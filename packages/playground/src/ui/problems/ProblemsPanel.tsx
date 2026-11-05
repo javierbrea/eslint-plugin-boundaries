@@ -6,11 +6,11 @@ import Tooltip from "@mui/material/Tooltip";
 import { useId } from "react";
 import type { ReactNode } from "react";
 
-import { FOCUS_RING } from "../../theme";
-import { CountBadge, PaneHead, TONE_COLORS, formatCount } from "../common";
-import type { Tone } from "../common";
-import { Icon } from "../icons";
-import type { ProblemsTab } from "../state";
+import { FOCUS_RING } from "@/theme";
+import { CountBadge, PaneHead, TONE_COLORS, formatCount } from "@/ui/common";
+import type { Tone } from "@/ui/common";
+import { Icon } from "@/ui/icons";
+import type { ProblemsTab } from "@/ui/state";
 
 import type { ProblemsPanelProps } from "./Problems.types";
 

@@ -1,6 +1,6 @@
 import { evaluate, parse } from "@humanwhocodes/momoa";
 
-import { buildTree, fromText, getFiles, toText } from "../sketch";
+import { buildTree, fromText, getFiles, toText } from "@/sketch";
 
 import { QUICK_START_EXAMPLE } from "./QuickStart";
 

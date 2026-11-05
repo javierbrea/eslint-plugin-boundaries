@@ -1,5 +1,5 @@
-import type { Tone } from "../common";
-import type { Target } from "../state";
+import type { Tone } from "@/ui/common";
+import type { Target } from "@/ui/state";
 
 /** What a row of the config inspector says about an entry of the config. */
 export type ConfigRow = {

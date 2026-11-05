@@ -1,4 +1,4 @@
-import type { Sketch } from "../../contract";
+import type { Sketch } from "@/contract";
 
 import { getFolderIds, getProjectItems } from "./ProjectItems";
 

@@ -1,7 +1,7 @@
 import type { Diagnostic } from "@codemirror/lint";
 import type { EditorView } from "@codemirror/view";
 
-import type { ConfigProblem, ProblemLevel, TextRange } from "../../engine";
+import type { ConfigProblem, ProblemLevel, TextRange } from "@/engine";
 
 /** The severity of CodeMirror that each level of a problem is shown with: a deprecation is a warning that the editor does not tell apart */
 const SEVERITIES = {

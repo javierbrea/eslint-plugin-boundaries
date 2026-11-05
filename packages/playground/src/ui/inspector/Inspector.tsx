@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { PaneHead } from "../common";
+import { PaneHead } from "@/ui/common";
 
 import { ConfigInspector } from "./ConfigInspector";
 import { FileInspector } from "./FileInspector";

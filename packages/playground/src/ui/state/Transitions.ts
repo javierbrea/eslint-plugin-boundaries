@@ -1,5 +1,5 @@
-import type { Sketch } from "../../contract";
-import type { Evaluation } from "../../engine";
+import type { Sketch } from "@/contract";
+import type { Evaluation } from "@/engine";
 import {
   CONFIG_PATH,
   addNode as addSketchNode,
@@ -14,8 +14,8 @@ import {
   removeNode as removeSketchNode,
   renameInFolder,
   setConfig,
-} from "../../sketch";
-import type { EditResult } from "../../sketch";
+} from "@/sketch";
+import type { EditResult } from "@/sketch";
 
 import type { Focus, Target } from "./Focus.types";
 import type { RenameTransition } from "./Transitions.types";

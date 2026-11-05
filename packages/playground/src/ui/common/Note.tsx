@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { Icon } from "../icons";
+import { Icon } from "@/ui/icons";
 
 const Frame = styled("div")(({ theme }) => ({
   display: "flex",

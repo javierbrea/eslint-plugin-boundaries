@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import { Root } from "../Root";
-import { ROOT_CLASS } from "../Theme";
+import { Root } from "@/theme/Root";
+import { ROOT_CLASS } from "@/theme/Theme";
 
 /**
  * Renders content inside the root element of the playground, which is where its theme applies. A spec that reads the text styles of a component renders it here, because the type scale is part of that theme.

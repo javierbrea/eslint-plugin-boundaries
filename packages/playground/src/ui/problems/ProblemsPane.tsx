@@ -1,7 +1,7 @@
 import { memo } from "react";
 import type { ReactNode } from "react";
 
-import { Note } from "../common";
+import { Note } from "@/ui/common";
 import {
   useOpen,
   useProblemList,
@@ -10,8 +10,8 @@ import {
   useSelectTab,
   useSetProblemsCollapsed,
   useShownTab,
-} from "../state";
-import type { ProblemsTabId } from "../state";
+} from "@/ui/state";
+import type { ProblemsTabId } from "@/ui/state";
 
 import { ProblemList } from "./ProblemList";
 import { ProblemsPanel } from "./ProblemsPanel";

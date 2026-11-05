@@ -1,6 +1,6 @@
 import { render, screen as view } from "@testing-library/react";
 
-import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
+import { renderInRoot } from "@/theme/__fixtures__/RenderInRoot";
 
 import { CountBadge } from "./CountBadge";
 

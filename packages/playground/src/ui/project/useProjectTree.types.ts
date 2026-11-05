@@ -1,4 +1,4 @@
-import type { WorkbenchStore } from "../state";
+import type { WorkbenchStore } from "@/ui/state";
 
 import type { ProjectTreeProps } from "./ProjectTree.types";
 

@@ -1,9 +1,9 @@
 import type { RefObject } from "react";
 import { useContext, useMemo, useSyncExternalStore } from "react";
 
-import type { ProjectCapabilities, Sketch } from "../../contract";
-import type { ConfigProblem, Evaluation } from "../../engine";
-import type { TextProblem } from "../../sketch";
+import type { ProjectCapabilities, Sketch } from "@/contract";
+import type { ConfigProblem, Evaluation } from "@/engine";
+import type { TextProblem } from "@/sketch";
 
 import type { Focus } from "./Focus.types";
 import type {

@@ -1,4 +1,4 @@
-import type { TextRange } from "../../engine";
+import type { TextRange } from "@/engine";
 
 /** What is in focus: nothing, the config node or a file. Phase 6 adds a dependency of the open file. */
 export type Focus =

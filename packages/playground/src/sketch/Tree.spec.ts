@@ -1,4 +1,4 @@
-import type { Sketch, SketchNode } from "../contract";
+import type { Sketch, SketchNode } from "@/contract";
 
 import {
   buildTree,

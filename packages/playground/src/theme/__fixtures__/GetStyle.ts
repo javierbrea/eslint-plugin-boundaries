@@ -1,4 +1,4 @@
-import { CACHE_KEY, ROOT_CLASS } from "../Theme";
+import { CACHE_KEY, ROOT_CLASS } from "@/theme/Theme";
 
 /** The placeholder of the element's own class in the selector passed to {@link getStyle}. */
 export const OWN_CLASS = "{class}";

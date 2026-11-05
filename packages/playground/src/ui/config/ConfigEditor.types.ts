@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 
-import type { ConfigProblem, TextRange } from "../../engine";
-import type { ConfigEditorSnapshot, ConfigReveal } from "../state";
+import type { ConfigProblem, TextRange } from "@/engine";
+import type { ConfigEditorSnapshot, ConfigReveal } from "@/ui/state";
 
 /** Props of {@link ConfigEditor}. */
 export type ConfigEditorProps = {

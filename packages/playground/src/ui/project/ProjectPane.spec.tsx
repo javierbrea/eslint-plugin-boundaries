@@ -8,15 +8,15 @@ import {
   within,
 } from "@testing-library/react";
 
-import type { ProjectCapabilities, Sketch } from "../../contract";
-import { QUICK_START_EXAMPLE } from "../../examples";
-import { EVALUATION_DELAY } from "../state";
-import type { Focus, ProjectView, Target, WorkbenchStore } from "../state";
+import type { ProjectCapabilities, Sketch } from "@/contract";
+import { QUICK_START_EXAMPLE } from "@/examples";
+import { EVALUATION_DELAY } from "@/ui/state";
+import type { Focus, ProjectView, Target, WorkbenchStore } from "@/ui/state";
 import {
   NO_CAPABILITIES,
   renderInWorkbench,
-} from "../state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
+} from "@/ui/state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
 
 import { ProjectPane } from "./ProjectPane";
 

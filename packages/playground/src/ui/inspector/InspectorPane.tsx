@@ -1,7 +1,7 @@
 import { memo } from "react";
 import type { ReactNode } from "react";
 
-import { useEvaluation, useFocus, useOpen } from "../state";
+import { useEvaluation, useFocus, useOpen } from "@/ui/state";
 
 import { Inspector } from "./Inspector";
 

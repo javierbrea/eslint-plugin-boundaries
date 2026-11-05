@@ -1,9 +1,9 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { CONFIG_PATH } from "../../sketch";
-import { Mono, PaneHead } from "../common";
-import { ConfigEditor } from "../config";
+import { CONFIG_PATH } from "@/sketch";
+import { Mono, PaneHead } from "@/ui/common";
+import { ConfigEditor } from "@/ui/config";
 
 import type { ConfigPaneProps } from "./ConfigPane.types";
 import { NodeFrame } from "./NodeFrame";

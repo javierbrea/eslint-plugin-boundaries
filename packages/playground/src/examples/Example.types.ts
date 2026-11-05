@@ -1,4 +1,4 @@
-import type { Sketch } from "../contract";
+import type { Sketch } from "@/contract";
 
 /** A sketch the playground ships with, for a host to start from or to offer in a list */
 export type Example = {

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { ProblemItem, ProblemsTab, Target } from "../state";
+import type { ProblemItem, ProblemsTab, Target } from "@/ui/state";
 
 /** Props of {@link ProblemsPanel}. */
 export type ProblemsPanelProps<Id extends string> = {

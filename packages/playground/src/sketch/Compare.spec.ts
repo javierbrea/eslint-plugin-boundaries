@@ -3,7 +3,7 @@ import type {
   SketchDependency,
   SketchNode,
   SketchSpecifier,
-} from "../contract";
+} from "@/contract";
 
 import { isSameProject } from "./Compare";
 

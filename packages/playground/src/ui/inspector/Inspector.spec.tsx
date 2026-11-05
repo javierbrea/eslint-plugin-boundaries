@@ -1,11 +1,11 @@
 // cspell:ignore patern dissallow -- deliberate typos, the mistakes of the config that the tests report
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
-import type { Sketch } from "../../contract";
-import { createEngine } from "../../engine";
-import type { Evaluation } from "../../engine";
-import { QUICK_START_EXAMPLE } from "../../examples";
-import type { Focus } from "../state";
+import type { Sketch } from "@/contract";
+import { createEngine } from "@/engine";
+import type { Evaluation } from "@/engine";
+import { QUICK_START_EXAMPLE } from "@/examples";
+import type { Focus } from "@/ui/state";
 
 import { Inspector } from "./Inspector";
 import type { InspectorProps } from "./Inspector.types";

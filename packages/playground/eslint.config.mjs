@@ -32,6 +32,13 @@ export default [
   createBrowserConfig(
     "The playground runs only in browsers; the host passes what it needs through the contract."
   ),
+  // The rule resolves a mocked module only as a relative path or a package, so it cannot follow the "@/" alias that jest.config.cjs maps
+  {
+    files: ["src/**/*.spec.{ts,tsx}"],
+    rules: {
+      "jest/valid-mock-module-path": "off",
+    },
+  },
   // The host owns the page, so the playground never imports from one
   {
     files: ["src/**/*.{ts,tsx}"],

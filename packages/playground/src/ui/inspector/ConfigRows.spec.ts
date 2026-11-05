@@ -3,7 +3,7 @@ import type {
   FileCategorySummary,
   RuleSummary,
   TextRange,
-} from "../../engine";
+} from "@/engine";
 
 import {
   getElementTypeRow,

@@ -3,12 +3,12 @@ import { styled } from "@mui/material/styles";
 import type { CSSObject, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { ProblemLevel } from "../../engine";
-import { TONE_COLORS } from "../common";
-import type { Tone } from "../common";
-import { Icon } from "../icons";
-import type { IconName } from "../icons";
-import type { ProblemItem } from "../state";
+import type { ProblemLevel } from "@/engine";
+import { TONE_COLORS } from "@/ui/common";
+import type { Tone } from "@/ui/common";
+import { Icon } from "@/ui/icons";
+import type { IconName } from "@/ui/icons";
+import type { ProblemItem } from "@/ui/state";
 
 import type { ProblemListProps } from "./Problems.types";
 

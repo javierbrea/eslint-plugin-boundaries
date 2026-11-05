@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { useEffect, useMemo, useRef } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
-import { toText } from "../../sketch";
+import { toText } from "@/sketch";
 import {
   useCapabilities,
   useReadText,
@@ -10,7 +10,7 @@ import {
   useSettleText,
   useTextDraft,
   useTree,
-} from "../state";
+} from "@/ui/state";
 
 /** Milliseconds after the last keystroke before the text is read */
 const READ_DELAY = 300;

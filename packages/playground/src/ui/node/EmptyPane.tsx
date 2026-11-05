@@ -2,9 +2,9 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { CONFIG_PATH } from "../../sketch";
-import { Mono, PaneHead } from "../common";
-import { Icon } from "../icons";
+import { CONFIG_PATH } from "@/sketch";
+import { Mono, PaneHead } from "@/ui/common";
+import { Icon } from "@/ui/icons";
 
 import type { EmptyPaneProps } from "./EmptyPane.types";
 import { NodeFrame } from "./NodeFrame";

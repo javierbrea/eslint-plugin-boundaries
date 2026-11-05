@@ -9,8 +9,8 @@ import { render, screen as view } from "@testing-library/react";
 import { StrictMode } from "react";
 import type { RefObject } from "react";
 
-import type { ConfigProblem, TextRange } from "../../engine";
-import type { ConfigEditorSnapshot } from "../state";
+import type { ConfigProblem, TextRange } from "@/engine";
+import type { ConfigEditorSnapshot } from "@/ui/state";
 
 import { ConfigEditor } from "./ConfigEditor";
 import type { ConfigEditorProps } from "./ConfigEditor.types";

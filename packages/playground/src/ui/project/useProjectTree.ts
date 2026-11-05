@@ -1,12 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
-import type { Sketch } from "../../contract";
-import {
-  CONFIG_PATH,
-  countFilesUnder,
-  getParentPath,
-  hasNode,
-} from "../../sketch";
+import type { Sketch } from "@/contract";
+import { CONFIG_PATH, countFilesUnder, getParentPath, hasNode } from "@/sketch";
 import {
   useAddNode,
   useCancelRename,
@@ -20,8 +15,8 @@ import {
   useStartRename,
   useToggleFolder,
   useWorkbenchStore,
-} from "../state";
-import type { Focus } from "../state";
+} from "@/ui/state";
+import type { Focus } from "@/ui/state";
 
 import type {
   DeleteRequest,

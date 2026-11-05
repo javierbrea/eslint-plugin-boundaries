@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import type { ProjectCapabilities, Sketch } from "../../contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 
 import {
   ALL_CAPABILITIES,

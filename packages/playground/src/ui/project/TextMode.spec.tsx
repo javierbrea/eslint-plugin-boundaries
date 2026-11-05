@@ -1,13 +1,13 @@
 import { act, fireEvent, screen as view } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import type { Sketch } from "../../contract";
-import { useTextProblems } from "../state";
+import type { Sketch } from "@/contract";
+import { useTextProblems } from "@/ui/state";
 import {
   NO_CAPABILITIES,
   renderInWorkbench,
-} from "../state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
+} from "@/ui/state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
 
 import { TextMode } from "./TextMode";
 

@@ -3,7 +3,7 @@ import { normalizeConfig } from "@boundaries/config";
 import type { EntityDescription } from "@boundaries/elements";
 import { describeEntity } from "@boundaries/policies";
 
-import type { Sketch, SketchNode } from "../contract";
+import type { Sketch, SketchNode } from "@/contract";
 
 import { QUICK_START_DESCRIPTIONS } from "./__fixtures__/quickStartDescriptions";
 import type { Engine } from "./Engine.types";

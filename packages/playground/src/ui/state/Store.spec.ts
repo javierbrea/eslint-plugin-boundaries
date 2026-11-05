@@ -1,13 +1,13 @@
-import type { Sketch } from "../../contract";
-import { createEngine } from "../../engine";
-import type { Engine } from "../../engine";
+import type { Sketch } from "@/contract";
+import { createEngine } from "@/engine";
+import type { Engine } from "@/engine";
 
 import { EVALUATION_DELAY, createWorkbenchStore } from "./Store";
 
 // The real engines, whose evaluations the tests only count
-jest.mock<{ createEngine: typeof createEngine }>("../../engine", () => {
+jest.mock<{ createEngine: typeof createEngine }>("@/engine", () => {
   const actual = jest.requireActual<{ createEngine: typeof createEngine }>(
-    "../../engine"
+    "@/engine"
   );
   return {
     ...actual,

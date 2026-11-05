@@ -1,4 +1,4 @@
-import type { Sketch } from "../contract";
+import type { Sketch } from "@/contract";
 
 /**
  * Tells whether two values hold the same data: the same primitives, in arrays of the same items in the same order and objects of the same keys.

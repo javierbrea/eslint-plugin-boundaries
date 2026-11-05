@@ -1,4 +1,4 @@
-import type { ProjectCapabilities, Sketch } from "../contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 
 /** Props of {@link Workbench}. */
 export type WorkbenchProps = {

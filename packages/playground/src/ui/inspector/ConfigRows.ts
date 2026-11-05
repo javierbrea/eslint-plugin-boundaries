@@ -2,8 +2,8 @@ import type {
   ElementTypeSummary,
   FileCategorySummary,
   RuleSummary,
-} from "../../engine";
-import { formatCount } from "../common";
+} from "@/engine";
+import { formatCount } from "@/ui/common";
 
 import type { ConfigRow } from "./ConfigRows.types";
 

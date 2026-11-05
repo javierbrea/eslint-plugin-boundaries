@@ -1,4 +1,4 @@
-import type { Sketch } from "../contract";
+import type { Sketch } from "@/contract";
 
 /** A node of the tree as the project pane shows it: folders are implied by the paths of their files */
 export type TreeItem = {

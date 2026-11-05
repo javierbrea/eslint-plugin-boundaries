@@ -1,4 +1,4 @@
-import type { Sketch, SketchDependency, SketchNode } from "../contract";
+import type { Sketch, SketchDependency, SketchNode } from "@/contract";
 
 import {
   getParentPath,

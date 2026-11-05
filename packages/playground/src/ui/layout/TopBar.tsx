@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { TONE_COLORS, formatCount } from "../common";
+import { TONE_COLORS, formatCount } from "@/ui/common";
 
 import type { TopBarProps } from "./TopBar.types";
 

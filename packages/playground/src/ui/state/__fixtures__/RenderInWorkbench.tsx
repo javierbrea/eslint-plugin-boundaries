@@ -3,10 +3,10 @@ import { render } from "@testing-library/react";
 import type { RenderResult } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import type { ProjectCapabilities, Sketch } from "../../../contract";
-import { useWorkbenchStore } from "../Hooks";
-import type { WorkbenchStore } from "../Store.types";
-import { WorkbenchProvider } from "../WorkbenchProvider";
+import type { ProjectCapabilities, Sketch } from "@/contract";
+import { useWorkbenchStore } from "@/ui/state/Hooks";
+import type { WorkbenchStore } from "@/ui/state/Store.types";
+import { WorkbenchProvider } from "@/ui/state/WorkbenchProvider";
 
 /** Everything can be edited, as on the website. */
 export const ALL_CAPABILITIES: ProjectCapabilities = {

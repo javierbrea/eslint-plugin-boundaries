@@ -1,12 +1,12 @@
 // cspell:ignore patern -- a deliberate typo, the mistake of the config that the test reports
 import { act, fireEvent, screen as view, within } from "@testing-library/react";
 
-import type { Sketch } from "../../contract";
-import { createEngine } from "../../engine";
-import { QUICK_START_EXAMPLE } from "../../examples";
-import { EVALUATION_DELAY } from "../state";
-import { renderInWorkbench } from "../state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
+import type { Sketch } from "@/contract";
+import { createEngine } from "@/engine";
+import { QUICK_START_EXAMPLE } from "@/examples";
+import { EVALUATION_DELAY } from "@/ui/state";
+import { renderInWorkbench } from "@/ui/state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
 
 import { InspectorPane } from "./InspectorPane";
 

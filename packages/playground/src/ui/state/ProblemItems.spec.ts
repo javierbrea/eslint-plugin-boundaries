@@ -1,5 +1,5 @@
-import type { ConfigProblem } from "../../engine";
-import type { TextProblem } from "../../sketch";
+import type { ConfigProblem } from "@/engine";
+import type { TextProblem } from "@/sketch";
 
 import {
   getConfigProblemItems,

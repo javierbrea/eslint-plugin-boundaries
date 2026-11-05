@@ -1,4 +1,4 @@
-import type { Sketch, SketchNode } from "../contract";
+import type { Sketch, SketchNode } from "@/contract";
 
 import { CONFIG_PATH, normalizePath } from "./Paths";
 import type { TextProblem, TextResult } from "./Sketch.types";

@@ -1,11 +1,11 @@
 import { render, screen as view, within } from "@testing-library/react";
 
-import type { Sketch } from "../../contract";
-import { FOCUS_RING, HOVER_BACKGROUND } from "../../theme";
-import { OWN_CLASS, getStyle } from "../../theme/__fixtures__/GetStyle";
-import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
-import type { CountBadge } from "../common";
-import type { ProblemCounts } from "../state";
+import type { Sketch } from "@/contract";
+import { FOCUS_RING, HOVER_BACKGROUND } from "@/theme";
+import { OWN_CLASS, getStyle } from "@/theme/__fixtures__/GetStyle";
+import { renderInRoot } from "@/theme/__fixtures__/RenderInRoot";
+import type { CountBadge } from "@/ui/common";
+import type { ProblemCounts } from "@/ui/state";
 
 import type { getProjectItems } from "./ProjectItems";
 import { ProjectTree } from "./ProjectTree";
@@ -297,7 +297,7 @@ describe("ProjectTree", () => {
       // An item that has a problem draws one badge each time it renders, which is the only trace of a render that a test can count
       badge = jest.spyOn(
         jest.requireActual<{ CountBadge: typeof CountBadge }>(
-          "../common/CountBadge"
+          "@/ui/common/CountBadge"
         ),
         "CountBadge"
       );

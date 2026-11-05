@@ -1,7 +1,7 @@
 import type { EditorState, StateEffect } from "@codemirror/state";
 import type { ReactNode, RefObject } from "react";
 
-import type { ProjectCapabilities, Sketch } from "../../contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 
 import type { WorkbenchStore } from "./Store.types";
 

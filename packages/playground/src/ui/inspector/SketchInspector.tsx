@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "../../engine";
+import type { Evaluation } from "@/engine";
 
 import { Title } from "./Title";
 

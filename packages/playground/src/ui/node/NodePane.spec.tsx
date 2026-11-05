@@ -4,14 +4,14 @@ import { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { act, fireEvent, screen as view } from "@testing-library/react";
 
-import type { Sketch } from "../../contract";
-import type { TextRange } from "../../engine";
-import { QUICK_START_EXAMPLE } from "../../examples";
+import type { Sketch } from "@/contract";
+import type { TextRange } from "@/engine";
+import { QUICK_START_EXAMPLE } from "@/examples";
 import {
   NO_CAPABILITIES,
   renderInWorkbench,
-} from "../state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
+} from "@/ui/state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
 
 import { NodePane } from "./NodePane";
 

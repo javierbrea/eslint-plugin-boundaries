@@ -11,7 +11,7 @@ import {
   useFocus,
   useOpen,
   useReveal,
-} from "../state";
+} from "@/ui/state";
 
 import { ConfigPane } from "./ConfigPane";
 import { EmptyPane } from "./EmptyPane";

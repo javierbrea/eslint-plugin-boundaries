@@ -1,5 +1,5 @@
-import type { Sketch, SketchDependency, SketchNode } from "../contract";
-import { QUICK_START_EXAMPLE } from "../examples";
+import type { Sketch, SketchDependency, SketchNode } from "@/contract";
+import { QUICK_START_EXAMPLE } from "@/examples";
 
 import { fromText, readTextProblems, toText } from "./TextMode";
 

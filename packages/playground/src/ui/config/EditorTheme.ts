@@ -2,7 +2,7 @@ import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
-import { TYPOGRAPHY } from "../../theme";
+import { TYPOGRAPHY } from "@/theme";
 
 import { HIGHLIGHT_CLASS } from "./Highlight";
 

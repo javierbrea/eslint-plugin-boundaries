@@ -1,9 +1,9 @@
 import { act, render, screen as view } from "@testing-library/react";
 import type { ReactNode, RefObject } from "react";
 
-import type { ProjectCapabilities, Sketch } from "../../contract";
-import { createEngine } from "../../engine";
-import type { Engine } from "../../engine";
+import type { ProjectCapabilities, Sketch } from "@/contract";
+import { createEngine } from "@/engine";
+import type { Engine } from "@/engine";
 
 import {
   ALL_CAPABILITIES,
@@ -21,9 +21,9 @@ import { WorkbenchProvider } from "./WorkbenchProvider";
 import type { ConfigEditorSnapshot } from "./WorkbenchProvider.types";
 
 // The real engines, whose evaluations the tests only count
-jest.mock<{ createEngine: typeof createEngine }>("../../engine", () => {
+jest.mock<{ createEngine: typeof createEngine }>("@/engine", () => {
   const actual = jest.requireActual<{ createEngine: typeof createEngine }>(
-    "../../engine"
+    "@/engine"
   );
   return {
     ...actual,

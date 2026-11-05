@@ -1,6 +1,6 @@
-import type { ConfigProblem, ProblemLevel } from "../../engine";
-import { CONFIG_PATH, readTextProblems } from "../../sketch";
-import type { TextProblem } from "../../sketch";
+import type { ConfigProblem, ProblemLevel } from "@/engine";
+import { CONFIG_PATH, readTextProblems } from "@/sketch";
+import type { TextProblem } from "@/sketch";
 
 import type { Focus } from "./Focus.types";
 import {

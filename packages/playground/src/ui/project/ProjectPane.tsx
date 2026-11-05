@@ -10,16 +10,16 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { memo, useId } from "react";
 import type { ReactNode } from "react";
 
-import { PaneHead, formatCount } from "../common";
-import { Icon } from "../icons";
+import { PaneHead, formatCount } from "@/ui/common";
+import { Icon } from "@/ui/icons";
 import {
   useCapabilities,
   useProblemCounts,
   useSetView,
   useTree,
   useView,
-} from "../state";
-import type { ProjectView } from "../state";
+} from "@/ui/state";
+import type { ProjectView } from "@/ui/state";
 
 import { ProjectTree } from "./ProjectTree";
 import { TextMode } from "./TextMode";

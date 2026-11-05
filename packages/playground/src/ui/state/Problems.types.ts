@@ -1,6 +1,6 @@
-import type { ProblemLevel } from "../../engine";
-import type { Tone } from "../common";
-import type { IconName } from "../icons";
+import type { ProblemLevel } from "@/engine";
+import type { Tone } from "@/ui/common";
+import type { IconName } from "@/ui/icons";
 
 import type { Target } from "./Focus.types";
 

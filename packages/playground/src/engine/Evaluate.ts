@@ -1,7 +1,7 @@
 import { normalizeConfig } from "@boundaries/config";
 
-import type { Sketch } from "../contract";
-import { getFiles } from "../sketch";
+import type { Sketch } from "@/contract";
+import { getFiles } from "@/sketch";
 
 import { describeFiles } from "./DescribeFiles";
 import { areRulesValid, toConfigProblems } from "./Diagnostics";

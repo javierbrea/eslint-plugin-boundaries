@@ -3,8 +3,8 @@ import { styled } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
 import type { ReactNode } from "react";
 
-import { PaneHead } from "../common";
-import { Icon } from "../icons";
+import { PaneHead } from "@/ui/common";
+import { Icon } from "@/ui/icons";
 
 import { DependencyLines } from "./DependencyLines";
 import type { DependencyLine } from "./DependencyLines.types";

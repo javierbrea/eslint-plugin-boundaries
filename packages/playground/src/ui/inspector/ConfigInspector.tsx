@@ -2,11 +2,11 @@ import ButtonBase from "@mui/material/ButtonBase";
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "../../engine";
-import { CONFIG_PATH } from "../../sketch";
-import { TONE_COLORS } from "../common";
-import type { Tone } from "../common";
-import type { Target } from "../state";
+import type { Evaluation } from "@/engine";
+import { CONFIG_PATH } from "@/sketch";
+import { TONE_COLORS } from "@/ui/common";
+import type { Tone } from "@/ui/common";
+import type { Target } from "@/ui/state";
 
 import {
   getElementTypeRow,

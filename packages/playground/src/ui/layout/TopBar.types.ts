@@ -1,4 +1,4 @@
-import type { Tone } from "../common";
+import type { Tone } from "@/ui/common";
 
 /** Props of {@link TopBar}. */
 export type TopBarProps = {

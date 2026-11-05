@@ -1,6 +1,6 @@
 import type { EntityDescription } from "@boundaries/elements";
 
-import type { Sketch } from "../contract";
+import type { Sketch } from "@/contract";
 
 /** A range of the config text: offsets for the editor, and the line and column of its start for the problem list */
 export type TextRange = {

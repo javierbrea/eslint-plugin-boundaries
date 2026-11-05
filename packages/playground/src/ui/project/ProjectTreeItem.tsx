@@ -12,11 +12,11 @@ import type {
   Ref,
 } from "react";
 
-import { FOCUS_RING, HOVER_BACKGROUND } from "../../theme";
-import { CountBadge, formatCount } from "../common";
-import type { Tone } from "../common";
-import { Icon } from "../icons";
-import type { ProblemCounts } from "../state";
+import { FOCUS_RING, HOVER_BACKGROUND } from "@/theme";
+import { CountBadge, formatCount } from "@/ui/common";
+import type { Tone } from "@/ui/common";
+import { Icon } from "@/ui/icons";
+import type { ProblemCounts } from "@/ui/state";
 
 import type { ProjectItem, ProjectTreeContextValue } from "./ProjectTree.types";
 import { RenameField } from "./RenameField";
