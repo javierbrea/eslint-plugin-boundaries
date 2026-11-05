@@ -2,7 +2,6 @@ import { ProblemsPanePom } from "@/domains/problems/modules/ProblemsPane/Problem
 import { ProjectPanePom } from "@/domains/project/modules/ProjectPane/ProjectPane.pom";
 import { InspectorPanePom } from "@/domains/shell/modules/InspectorPane/InspectorPane.pom";
 import { NodePanePom } from "@/domains/shell/modules/NodePane/NodePane.pom";
-import { ShellRegionsPom } from "@/domains/shell/ui/templates/ShellRegions/ShellRegions.pom";
 import { Pom } from "@/shared/testing/pom";
 
 import { SHELL_PANES_TEST_ID } from "./ShellPanes.constants";
@@ -10,14 +9,6 @@ import { SHELL_PANES_TEST_ID } from "./ShellPanes.constants";
 /** Page object of the shell panes, which are the regions with the panes of the store. */
 export class ShellPanesPom extends Pom {
   protected readonly defaultTestId = SHELL_PANES_TEST_ID;
-
-  /**
-   * The regions the module is, which have the same root element.
-   * @returns The page object of the regions.
-   */
-  get regions(): ShellRegionsPom {
-    return this.childPom(ShellRegionsPom, { root: this.root });
-  }
 
   /**
    * The project pane, on the left.

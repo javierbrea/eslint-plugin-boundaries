@@ -68,13 +68,4 @@ export class ShellPom extends Pom {
   get problems(): ProblemsPanePom {
     return this.panes.problems;
   }
-
-  /**
-   * Whether a text is among the content of the shell.
-   * @param text The text of an element, or a pattern it matches.
-   * @returns True when an element with that text is inside the shell.
-   */
-  holds(text: string | RegExp): boolean {
-    return this.scope.queryByText(text) !== null;
-  }
 }

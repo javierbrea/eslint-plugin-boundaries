@@ -95,6 +95,9 @@ describe("useSketchLoad", () => {
       };
       const source = new SketchSource(SOURCE_SKETCH);
       const { result, rerender } = renderLoad(source, previousStore);
+
+      expect(previousStore.load).toHaveBeenCalledTimes(1);
+
       rerender({ source, store: new MemoryStore(SAVED_SKETCH) });
       await waitFor(() => expect(result.current.status).toBe("loaded"));
 
@@ -124,6 +127,9 @@ describe("useSketchLoad", () => {
       };
       const source = new SketchSource(SOURCE_SKETCH);
       const { result, rerender } = renderLoad(source, previousStore);
+
+      expect(previousStore.load).toHaveBeenCalledTimes(1);
+
       rerender({ source, store: new MemoryStore(SAVED_SKETCH) });
       await waitFor(() => expect(result.current.status).toBe("loaded"));
 

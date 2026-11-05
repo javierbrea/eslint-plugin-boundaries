@@ -34,15 +34,6 @@ export class ProjectFootPom extends Pom {
   }
 
   /**
-   * Whether the foot has a button that assistive technology announces with a name.
-   * @param accessibleName The accessible name, such as `Add file`.
-   * @returns True when the foot has a button with that name.
-   */
-  hasButtonNamed(accessibleName: string): boolean {
-    return this.scope.queryByRole("button", { name: accessibleName }) !== null;
-  }
-
-  /**
    * The name of the toggle that switches between the tree and the text.
    * @returns The `aria-label` of the group of the toggle, or null when the foot has no group.
    */

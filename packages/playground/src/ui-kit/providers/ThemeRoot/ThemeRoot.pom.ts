@@ -1,7 +1,7 @@
 import { Pom } from "@/shared/testing/pom";
 import { ROOT_CLASS } from "@/ui-kit/helpers/theme/theme.constants";
 
-/** Page object of the root element of the playground, which has no role, label or test id: it is found by its class. */
+/** Page object of the root element of the playground, which has no role or label: it is found by its class. It renders a test id only when the component that is the playground gives it one, so a page object that must reach it whatever the test id takes it from its parent with the `root` option. */
 export class ThemeRootPom extends Pom {
   protected readonly defaultTestId = "";
 
@@ -17,6 +17,14 @@ export class ThemeRootPom extends Pom {
    */
   holds(text: string | RegExp): boolean {
     return this.scope.queryByText(text) !== null;
+  }
+
+  /**
+   * Whether the root carries the class that the scoped rules of the theme apply to. A page object that finds the root by its class always gets `true`; the one that gets the root through the `root` option, such as the page object of the playground, tells whether that element is the scoped one.
+   * @returns True when the class list of the root has the class of the root.
+   */
+  get isScoped(): boolean {
+    return this.root.classList.contains(ROOT_CLASS);
   }
 
   /**

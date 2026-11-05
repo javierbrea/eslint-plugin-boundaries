@@ -3,15 +3,13 @@ import { waitFor } from "@testing-library/react";
 import type { ProjectPanePom } from "@/domains/project/modules/ProjectPane/ProjectPane.pom";
 import { ShellPom } from "@/domains/shell/modules/Shell/Shell.pom";
 import { LoadStatePom } from "@/domains/shell/ui/atoms/LoadState/LoadState.pom";
+import { SHELL_LAYOUT_LABEL } from "@/domains/shell/ui/templates/ShellLayout/ShellLayout.constants";
+import { getInsertedRules } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
 import { ConfirmDialogPom } from "@/ui-kit/atoms/ConfirmDialog/ConfirmDialog.pom";
-import { CACHE_KEY } from "@/ui-kit/helpers/theme/theme.constants";
 import { ThemeRootPom } from "@/ui-kit/providers/ThemeRoot/ThemeRoot.pom";
 
 import { PLAYGROUND_TEST_ID } from "./Playground.constants";
-
-/** The accessible name of the landmark of the shell, which is on screen once the sketch is loaded. */
-const SHELL_LANDMARK = "Playground";
 
 /** Page object of the playground, which is the root element that the theme gives it: it holds the shell once the sketch is loaded, and the message of the load before. It composes the page objects of those pieces and has shortcuts for what a spec does most. */
 export class PlaygroundPom extends Pom {
@@ -62,13 +60,7 @@ export class PlaygroundPom extends Pom {
    * @returns The text of each rule, in the order they were inserted.
    */
   get insertedRules(): string[] {
-    return Array.from(
-      document.head.querySelectorAll<HTMLStyleElement>(
-        `style[data-emotion^="${CACHE_KEY}"]`
-      )
-    )
-      .flatMap((style) => Array.from(style.sheet?.cssRules ?? []))
-      .map((rule) => rule.cssText);
+    return getInsertedRules().map((rule) => rule.cssText);
   }
 
   /**
@@ -100,7 +92,7 @@ export class PlaygroundPom extends Pom {
     await waitFor(() => {
       if (
         !this.shell.isRendered ||
-        !this.shell.layout.isRegionNamed(SHELL_LANDMARK)
+        !this.shell.layout.isRegionNamed(SHELL_LAYOUT_LABEL)
       ) {
         throw new Error("The shell is not on screen yet");
       }

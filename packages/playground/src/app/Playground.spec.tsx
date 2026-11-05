@@ -253,7 +253,7 @@ describe("Playground", () => {
       await playground.waitUntilLoaded();
 
       // Assert
-      expect(playground.project.foot.hasButtonNamed("Add file")).toBe(false);
+      expect(playground.project.foot.buttonLabels).not.toContain("Add file");
     });
 
     it("should offer to add a file when the source can edit the tree", async () => {
@@ -265,7 +265,7 @@ describe("Playground", () => {
       await playground.waitUntilLoaded();
 
       // Assert
-      expect(playground.project.foot.hasButtonNamed("Add file")).toBe(true);
+      expect(playground.project.foot.buttonLabels).toContain("Add file");
     });
 
     it("should fill its container", async () => {
@@ -536,6 +536,7 @@ describe("Playground", () => {
       await playground.waitUntilLoaded();
 
       // Assert
+      expect(playground.theme.isScoped).toBe(true);
       expect(playground.insertedRules).toContainEqual(
         expect.stringMatching(/^\.jsb-play-root \{--jsb-play-spacing: 8px;/)
       );

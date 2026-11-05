@@ -3,6 +3,18 @@ import { CACHE_KEY, ROOT_CLASS } from "@/ui-kit/helpers/theme";
 import { OWN_CLASS } from "./emittedStyle.constants";
 
 /**
+ * Lists the CSS rules that the playground inserted in the document. Its Emotion style elements are in the head of the page and not in the playground's root, so the rules remain after the playground unmounts.
+ * @returns The rules of every style element of the playground, in the order they were inserted.
+ */
+export function getInsertedRules(): CSSRule[] {
+  return Array.from(
+    document.head.querySelectorAll<HTMLStyleElement>(
+      `style[data-emotion^="${CACHE_KEY}"]`
+    )
+  ).flatMap((style) => Array.from(style.sheet?.cssRules ?? []));
+}
+
+/**
  * Collects what the CSS rules of the playground declare for an element: its own Emotion class, or a selector built around it. jsdom cannot tell whether an element is hovered or has a keyboard focus ring, so a spec reads the rule instead of the computed style.
  * @param element The element that carries the class.
  * @param selector The selector to read, with {@link OWN_CLASS} where the class goes. It is the class alone by default.
@@ -20,21 +32,13 @@ export function getStyle(
     .map((className) => selector.replace(OWN_CLASS, `.${className}`));
   const declarations: Record<string, string> = {};
 
-  document.head
-    .querySelectorAll<HTMLStyleElement>(`style[data-emotion^="${CACHE_KEY}"]`)
-    .forEach((style) => {
-      // An Emotion style element in the document has its sheet
-      Array.from((style.sheet as CSSStyleSheet).cssRules).forEach((rule) => {
-        if (
-          rule instanceof CSSStyleRule &&
-          selectors.includes(rule.selectorText)
-        ) {
-          Array.from(rule.style).forEach((property) => {
-            declarations[property] = rule.style.getPropertyValue(property);
-          });
-        }
+  getInsertedRules().forEach((rule) => {
+    if (rule instanceof CSSStyleRule && selectors.includes(rule.selectorText)) {
+      Array.from(rule.style).forEach((property) => {
+        declarations[property] = rule.style.getPropertyValue(property);
       });
-    });
+    }
+  });
 
   return declarations;
 }
