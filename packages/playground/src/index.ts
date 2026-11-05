@@ -1,4 +1,4 @@
-export { Playground } from "./Playground";
+export { Playground } from "@/app";
 export type {
   PlaygroundProps,
   ProjectCapabilities,
@@ -10,8 +10,8 @@ export type {
   SketchNode,
   SketchSpecifier,
   StateStore,
-} from "./contract";
-export { EMPTY_SKETCH, MemoryStore, SketchSource } from "./contract";
+} from "@/contract";
+export { EMPTY_SKETCH, MemoryStore, SketchSource } from "@/contract";
 export type { Example } from "@/domains/examples/data/examples";
 export {
   EXAMPLES,

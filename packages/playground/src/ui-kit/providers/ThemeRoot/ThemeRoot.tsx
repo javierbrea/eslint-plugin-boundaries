@@ -38,9 +38,13 @@ const Base = styled("div")(({ theme }) => ({
  * Root element of the playground, which scopes the MUI theme and the Emotion styles to it, and gives the playground its base: the card background, the ink color and the 13 px body font. It is as tall as its container, which the host sizes. The host keeps its own theme: the root follows its `data-theme` attribute and never changes it.
  * @param props ThemeRoot props.
  * @param props.children Content of the playground.
+ * @param props.testId The test id of the root element, when the component that is the playground has one.
  * @returns The root element.
  */
-export function ThemeRoot({ children }: Readonly<ThemeRootProps>): ReactNode {
+export function ThemeRoot({
+  children,
+  testId,
+}: Readonly<ThemeRootProps>): ReactNode {
   const rootId = useId();
   const [cache] = useState(getCache);
   // MUI calls the getter when an overlay opens, after the root element is in the document
@@ -52,7 +56,7 @@ export function ThemeRoot({ children }: Readonly<ThemeRootProps>): ReactNode {
     <CacheProvider value={cache}>
       {/* Without a color scheme node, MUI would set its own data-theme on <html>; without a storage manager, it would read and follow the mode saved in localStorage */}
       <ThemeProvider theme={theme} colorSchemeNode={null} storageManager={null}>
-        <Base id={rootId} className={ROOT_CLASS}>
+        <Base id={rootId} className={ROOT_CLASS} data-testid={testId}>
           {children}
         </Base>
       </ThemeProvider>

@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 
+import type { PlaygroundProps, Sketch } from "@/contract";
 import { useSketchLoad } from "@/domains/session/data/sketchLoad";
 import { Shell } from "@/domains/shell/modules/Shell";
 import { LoadState } from "@/domains/shell/ui/atoms/LoadState";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
-import type { PlaygroundProps, Sketch } from "./contract";
+import { PLAYGROUND_TEST_ID } from "./Playground.constants";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.
@@ -41,7 +42,7 @@ export function Playground({
   );
 
   return (
-    <ThemeRoot>
+    <ThemeRoot testId={PLAYGROUND_TEST_ID}>
       {sketchLoad.status === "loaded" ? (
         <Shell
           initialSketch={sketchLoad.sketch}

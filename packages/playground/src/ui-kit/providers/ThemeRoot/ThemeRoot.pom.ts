@@ -12,10 +12,10 @@ export class ThemeRootPom extends Pom {
 
   /**
    * Whether a text is among the content of the root.
-   * @param text The text of an element.
+   * @param text The text of an element, or a pattern it matches.
    * @returns True when an element with that text is inside the root.
    */
-  holds(text: string): boolean {
+  holds(text: string | RegExp): boolean {
     return this.scope.queryByText(text) !== null;
   }
 
@@ -81,5 +81,13 @@ export class ThemeRootPom extends Pom {
    */
   get boxSizing(): string {
     return getComputedStyle(this.root).boxSizing;
+  }
+
+  /**
+   * The test id the root renders, which the component that is the playground gives it.
+   * @returns The `data-testid` attribute, or null when the root has none.
+   */
+  get renderedTestId(): string | null {
+    return this.root.getAttribute("data-testid");
   }
 }

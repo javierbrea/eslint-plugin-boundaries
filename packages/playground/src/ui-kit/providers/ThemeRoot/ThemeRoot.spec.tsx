@@ -5,11 +5,12 @@ import { ThemeRootPom } from "./ThemeRoot.pom";
 
 /**
  * Renders content inside the root element.
+ * @param testId The test id the root renders; none when it is unset.
  * @returns The page object of the root element.
  */
-function renderRoot(): ThemeRootPom {
+function renderRoot(testId?: string): ThemeRootPom {
   render(
-    <ThemeRoot>
+    <ThemeRoot testId={testId}>
       <p>Content of the playground</p>
     </ThemeRoot>
   );
@@ -74,5 +75,27 @@ describe("ThemeRoot", () => {
 
     // Assert
     expect(boxSizing).toBe("border-box");
+  });
+
+  it("should render the test id it is given on its root element", () => {
+    // Arrange
+    const root = renderRoot("playground");
+
+    // Act
+    const { renderedTestId } = root;
+
+    // Assert
+    expect(renderedTestId).toBe("playground");
+  });
+
+  it("should render no test id unless it is given one", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { renderedTestId } = root;
+
+    // Assert
+    expect(renderedTestId).toBeNull();
   });
 });
