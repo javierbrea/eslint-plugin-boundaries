@@ -1,0 +1,27 @@
+import type { ReactNode } from "react";
+
+import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
+import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
+import { useSessionSelector } from "@/domains/session/data/store";
+import { TopBar } from "@/domains/shell/ui/atoms/TopBar";
+
+import { SHELL_TOP_BAR_TEST_ID } from "./ShellTopBar.constants";
+
+/**
+ * The top bar of the instance, with the numbers of the store: how many files the sketch has and how many problems.
+ * @returns The bar.
+ */
+export function ShellTopBar(): ReactNode {
+  const files = useSessionSelector((state) => state.evaluation.files.size);
+  const { total, hasErrors, configHasErrors } = useProblemSummary();
+
+  return (
+    <TopBar
+      files={files}
+      problems={total}
+      tone={getCountTone(hasErrors)}
+      configHasErrors={configHasErrors}
+      testId={SHELL_TOP_BAR_TEST_ID}
+    />
+  );
+}
