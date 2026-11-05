@@ -120,7 +120,7 @@ export class FilesDescriptor {
     for (const descriptor of fileDescriptors) {
       if (!isFileDescriptor(descriptor)) {
         throw new Error(
-          `File descriptor at index ${index} must have a pattern, and a 'category' defined.`
+          `File descriptor at index ${index} must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set.`
         );
       }
       index++;
