@@ -34,5 +34,5 @@ How the files of `packages/playground/src` are organized and written. The layers
 ## Imports
 
 - Another element is imported through its entry with the `@/` alias for `src/`: `import { useSessionSelector } from "@/domains/session/data/store";`, never a file inside it. The exceptions are page objects, constants and mocks, which specs and page objects import by file.
-- A file of the same element is imported relative and same-directory: `./tree`. Never `../`: a module's own hook imports the files of its module through `@/`.
+- A file of the same element is imported relative and same-directory: `./tree`. Never `../`: a module imports its own hooks as `./hooks/<useX>`, their entry, and a hook imports the files of its module through `@/`.
 - `import/order` groups external modules, then `@/` imports, then relative ones; `eslint --fix` sorts them.

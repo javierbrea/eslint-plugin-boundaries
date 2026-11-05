@@ -1,10 +1,6 @@
 import { waitFor } from "@testing-library/react";
 
 import { ProjectTextPom } from "@/domains/project/modules/ProjectText/ProjectText.pom";
-import {
-  DELETE_FOLDER_DIALOG_CANCEL_LABEL,
-  DELETE_FOLDER_DIALOG_CONFIRM_LABEL,
-} from "@/domains/project/ui/molecules/DeleteFolderDialog/DeleteFolderDialog.constants";
 import { DeleteFolderDialogPom } from "@/domains/project/ui/molecules/DeleteFolderDialog/DeleteFolderDialog.pom";
 import { ProjectFootPom } from "@/domains/project/ui/molecules/ProjectFoot/ProjectFoot.pom";
 import type { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
@@ -102,40 +98,12 @@ export class ProjectPanePom extends Pom {
     item.pressKey("Delete");
   }
 
-  /** Presses the button of the dialog that removes the folder. */
-  confirmDelete(): void {
-    this.deleteDialog.dialog.button(DELETE_FOLDER_DIALOG_CONFIRM_LABEL).press();
-  }
-
-  /** Presses the button of the dialog that gives up. */
-  cancelDelete(): void {
-    this.deleteDialog.dialog.button(DELETE_FOLDER_DIALOG_CANCEL_LABEL).press();
-  }
-
   /**
    * Waits for the dialog that asks before a folder is removed to be gone from the page, which MUI does when its transition ends after the dialog closed.
    * @returns A promise that settles when the dialog is gone.
    */
   async waitUntilDeleteDialogGone(): Promise<void> {
     await this.deleteDialog.dialog.waitUntilGone();
-  }
-
-  /** Presses the button of the foot that adds a file. */
-  addFile(): void {
-    this.foot.addFile();
-  }
-
-  /** Presses the button of the foot that adds a folder. */
-  addFolder(): void {
-    this.foot.addFolder();
-  }
-
-  /**
-   * Presses a button of the toggle of the foot.
-   * @param text The text of the button, such as `Text`.
-   */
-  pressView(text: string): void {
-    this.foot.pressView(text);
   }
 
   /**

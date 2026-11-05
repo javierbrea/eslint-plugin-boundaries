@@ -1,3 +1,4 @@
+import { RenameFieldPom } from "@/domains/project/ui/atoms/RenameField/RenameField.pom";
 import { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
 import { Pom } from "@/shared/testing/pom";
 import { CountBadgePom } from "@/ui-kit/atoms/CountBadge/CountBadge.pom";
@@ -81,7 +82,7 @@ export class ProjectTreePom extends Pom {
    * @returns The number of text boxes within the tree: one while a node is renamed, none otherwise.
    */
   get renameFieldCount(): number {
-    return this.scope.queryAllByRole("textbox").length;
+    return this.childPom(RenameFieldPom).count;
   }
 
   /**
@@ -89,9 +90,11 @@ export class ProjectTreePom extends Pom {
    * @returns The `aria-label` of each button of the tree, in order: the actions of the rows; empty when nodes cannot be edited.
    */
   get buttonLabels(): (string | null)[] {
-    return this.scope
-      .queryAllByRole("button")
-      .map((button) => button.getAttribute("aria-label"));
+    return Array.from(
+      { length: this.itemCount },
+      (_, index) =>
+        this.childPom(ProjectTreeItemPom, { index }).row.buttonLabels
+    ).flat();
   }
 
   /**

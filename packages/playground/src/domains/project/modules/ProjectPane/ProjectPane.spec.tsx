@@ -1162,7 +1162,7 @@ describe("ProjectPane", () => {
       pane.item("src").deleteAction.press();
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
       await pane.waitUntilDeleteDialogGone();
 
       // Assert
@@ -1176,7 +1176,7 @@ describe("ProjectPane", () => {
       pane.askToDelete("src/components");
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
       await pane.waitUntilDeleteDialogGone();
       await pane.waitForFocus();
 
@@ -1198,7 +1198,7 @@ describe("ProjectPane", () => {
       pane.askToDelete("a/b/c");
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
       await pane.waitUntilDeleteDialogGone();
       await pane.waitForFocus();
 
@@ -1220,7 +1220,7 @@ describe("ProjectPane", () => {
       pane.askToDelete("docs/guide");
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
       await pane.waitUntilDeleteDialogGone();
       await pane.waitForFocus();
 
@@ -1235,7 +1235,7 @@ describe("ProjectPane", () => {
       pane.askToDelete("src/components");
 
       // Act
-      pane.cancelDelete();
+      pane.deleteDialog.cancel();
       await pane.waitUntilDeleteDialogGone();
       await pane.waitForFocus();
 
@@ -1249,7 +1249,7 @@ describe("ProjectPane", () => {
       pane.item("src").deleteAction.press();
 
       // Act
-      pane.cancelDelete();
+      pane.deleteDialog.cancel();
       await pane.waitUntilDeleteDialogGone();
 
       // Assert
@@ -1265,7 +1265,7 @@ describe("ProjectPane", () => {
       pane.item("src").pressKey("Delete");
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "none" });
@@ -1278,7 +1278,7 @@ describe("ProjectPane", () => {
       pane.item("src/components").pressKey("Delete");
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
       await pane.waitUntilDeleteDialogGone();
 
       // Assert
@@ -1320,7 +1320,7 @@ describe("ProjectPane", () => {
       act(() => store.removeNode("src"));
 
       // Act
-      pane.confirmDelete();
+      pane.deleteDialog.confirm();
 
       // Assert
       expect(onSketchChange).toHaveBeenCalledTimes(1);
@@ -1334,7 +1334,7 @@ describe("ProjectPane", () => {
       const { onSketchChange, pane } = renderPane();
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1348,7 +1348,7 @@ describe("ProjectPane", () => {
       const { store, pane } = renderPane();
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getFocus(store)).toEqual({
@@ -1366,7 +1366,7 @@ describe("ProjectPane", () => {
       });
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1381,7 +1381,7 @@ describe("ProjectPane", () => {
       });
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1397,7 +1397,7 @@ describe("ProjectPane", () => {
       pane.click("src/components");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1409,11 +1409,11 @@ describe("ProjectPane", () => {
       // Arrange
       const { onSketchChange, pane } = renderPane();
       pane.click("src/components");
-      pane.pressView("Text");
+      pane.foot.pressView("Text");
       typeProjectText(pane, "index.js\n");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
@@ -1426,11 +1426,11 @@ describe("ProjectPane", () => {
       // Arrange
       const { onSketchChange, store, pane } = renderPane();
       pane.click("src/components");
-      pane.pressView("Text");
+      pane.foot.pressView("Text");
       typeProjectText(pane, "src/components\nindex.js\n");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
@@ -1444,11 +1444,11 @@ describe("ProjectPane", () => {
     it("should pick a free name when the first one is taken", () => {
       // Arrange
       const { pane } = renderPane();
-      pane.addFile();
+      pane.foot.addFile();
       pane.item("new-file.js").field.pressKey("Escape");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(pane.item("new-file-2.js").field.value).toBe("new-file-2.js");
@@ -1461,7 +1461,7 @@ describe("ProjectPane", () => {
       });
 
       // Act
-      pane.addFolder();
+      pane.foot.addFolder();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1475,11 +1475,11 @@ describe("ProjectPane", () => {
     it("should add the next node inside the folder it just added", () => {
       // Arrange
       const { onSketchChange, pane } = renderPane();
-      pane.addFolder();
+      pane.foot.addFolder();
       pane.item("new-folder").field.pressKey("Enter");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1494,7 +1494,7 @@ describe("ProjectPane", () => {
       pane.click("src");
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(pane.item("src/new-file.js").field.value).toBe("new-file.js");
@@ -1506,7 +1506,7 @@ describe("ProjectPane", () => {
       const { store, pane } = renderPane({ view: "text" });
 
       // Act
-      pane.addFile();
+      pane.foot.addFile();
 
       // Assert
       expect(store.getState().view).toBe("tree");
@@ -1521,7 +1521,7 @@ describe("ProjectPane", () => {
       store.subscribe(() => changes(store.getState().view));
 
       // Act
-      pane.addFolder();
+      pane.foot.addFolder();
 
       // Assert
       expect(changes).toHaveBeenCalled();
@@ -1552,7 +1552,7 @@ describe("ProjectPane", () => {
       const { store, pane } = renderPane();
 
       // Act
-      pane.pressView("Text");
+      pane.foot.pressView("Text");
 
       // Assert
       expect(store.getState().view).toBe("text");
@@ -1568,7 +1568,7 @@ describe("ProjectPane", () => {
       store.subscribe(listener);
 
       // Act
-      pane.pressView("Tree");
+      pane.foot.pressView("Tree");
 
       // Assert
       expect(listener).not.toHaveBeenCalled();
@@ -1614,8 +1614,8 @@ describe("ProjectPane", () => {
       pane.click("src/components");
 
       // Act
-      pane.pressView("Text");
-      pane.pressView("Tree");
+      pane.foot.pressView("Text");
+      pane.foot.pressView("Tree");
 
       // Assert
       expect(pane.tree.itemPaths).not.toContain("src/components/Button.js");
@@ -1640,7 +1640,7 @@ describe("ProjectPane", () => {
       typeProjectText(pane, "  indented\n");
 
       // Act
-      pane.pressView("Tree");
+      pane.foot.pressView("Tree");
 
       // Assert
       expect(store.getState().textDraft).toBeUndefined();

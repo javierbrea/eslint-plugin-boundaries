@@ -63,6 +63,14 @@ export class RenameFieldPom extends Pom {
   }
 
   /**
+   * How many fields its parent holds, whatever the `name`, `index` and `containing` options. A page object that counts the fields of a part of the page reads this number.
+   * @returns The number of text boxes within the parent.
+   */
+  get count(): number {
+    return this.searchBase.queryAllByRole("textbox").length;
+  }
+
+  /**
    * The input element.
    * @returns The element the user types in.
    */
