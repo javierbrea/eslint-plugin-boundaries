@@ -1,4 +1,4 @@
-import type { DescribedValue } from "./FormatValue.types";
+import type { DescribedValue } from "./formatValue.types";
 
 /** The keys that read as they are in an object literal, as in the descriptions of the plugin and in the config text. */
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;

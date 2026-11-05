@@ -1,8 +1,16 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
+
+import {
+  PROJECT_SUMMARY_TEST_ID,
+  PROJECT_SUMMARY_TITLE,
+} from "./ProjectSummary.constants";
+import type { ProjectSummaryProps } from "./ProjectSummary.types";
+
+// The summary is a fragment of the content of the layout, whose grid places its parts: the root takes no box of its own, so that the test id has an element to be on
+const Root = styled("div")({ display: "contents" });
 
 const Numbers = styled("div")({
   display: "grid",
@@ -26,21 +34,15 @@ const Label = styled("span")(({ theme }) => ({
   color: "var(--jsb-muted)",
 }));
 
-/** Props of {@link SketchInspector}. */
-type SketchInspectorProps = {
-  /** What the engine says about the sketch. */
-  evaluation: Evaluation;
-};
-
 /**
  * What the inspector shows when nothing is open: the numbers of the sketch. Phase 6 adds the dependencies and the disallowed ones, which makes the grid 2×3.
- * @param props SketchInspector props.
+ * @param props ProjectSummary props.
  * @param props.evaluation What the engine says about the sketch.
  * @returns The content of the inspector.
  */
-export function SketchInspector({
+export function ProjectSummary({
   evaluation,
-}: Readonly<SketchInspectorProps>): ReactNode {
+}: Readonly<ProjectSummaryProps>): ReactNode {
   const { files, elementTypes, fileCategories, rules } = evaluation;
   const numbers = [
     { label: "files", count: files.size },
@@ -53,8 +55,8 @@ export function SketchInspector({
   ];
 
   return (
-    <>
-      <SectionTitle>Sketch</SectionTitle>
+    <Root data-testid={PROJECT_SUMMARY_TEST_ID}>
+      <SectionTitle>{PROJECT_SUMMARY_TITLE}</SectionTitle>
       <Numbers>
         {numbers.map(({ label, count }) => (
           <Tile key={label}>
@@ -63,6 +65,6 @@ export function SketchInspector({
           </Tile>
         ))}
       </Numbers>
-    </>
+    </Root>
   );
 }

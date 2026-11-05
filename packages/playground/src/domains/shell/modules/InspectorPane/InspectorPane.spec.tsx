@@ -1,5 +1,5 @@
 // cspell:ignore patern -- a deliberate typo, the mistake of the config that the test reports
-import { act, fireEvent, screen as view, within } from "@testing-library/react";
+import { act } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
@@ -9,6 +9,7 @@ import { renderInSession } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
 
 import { InspectorPane } from "./InspectorPane";
+import { InspectorPanePom } from "./InspectorPane.pom";
 
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
 
@@ -25,29 +26,19 @@ const WITH_IGNORED: Sketch = {
   ),
 };
 
+/** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
+type PaneRender = SessionRender & { readonly pane: InspectorPanePom };
+
 /**
  * Renders the inspector pane in a session.
  * @param sketch The sketch to start from.
- * @returns The render, the store and the spy of the sketches.
+ * @returns The render, the store, the spy of the sketches and the page object of the pane.
  */
-function renderPane(sketch: Sketch = QUICK_START): SessionRender {
-  return renderInSession(<InspectorPane />, { sketch });
-}
-
-/**
- * Reads how many files the sketch inspector counts.
- * @returns The number next to the `files` label.
- */
-function getFileCount(): string | null | undefined {
-  return view.getByText("files").previousElementSibling?.textContent;
-}
-
-/**
- * Reads how many element types the sketch inspector counts.
- * @returns The number next to the `element types` label.
- */
-function getElementTypeCount(): string | null | undefined {
-  return view.getByText("element types").previousElementSibling?.textContent;
+function renderPane(sketch: Sketch = QUICK_START): PaneRender {
+  return {
+    ...renderInSession(<InspectorPane />, { sketch }),
+    pane: new InspectorPanePom(),
+  };
 }
 
 describe("InspectorPane", () => {
@@ -57,38 +48,40 @@ describe("InspectorPane", () => {
 
   it("should be the landmark of the inspector", () => {
     // Act
-    renderPane();
+    const { pane } = renderPane();
 
     // Assert
-    expect(view.getByRole("complementary", { name: "Inspector" })).toBeTruthy();
+    expect(pane.layout.isLandmark).toBe(true);
+    expect(pane.layout.label).toBe("Inspector");
   });
 
   describe("nothing in focus", () => {
     it("should describe the sketch with the numbers of the evaluation", () => {
       // Act
-      renderPane();
+      const { pane } = renderPane();
 
       // Assert
-      expect(view.getByText("Sketch")).toBeTruthy();
-      expect(getFileCount()).toBe("6");
+      expect(pane.shown).toBe("project");
+      expect(pane.project.title.isRendered).toBe(true);
+      expect(pane.project.count("files")).toBe("6");
     });
 
     it("should count the files at once after a node is removed", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
 
       // Act
       act(() => store.removeNode(FILE));
 
       // Assert
-      expect(getFileCount()).toBe("5");
+      expect(pane.project.count("files")).toBe("5");
     });
 
     it("should count the files at once after the text of the project is read", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.setView("text"));
       act(() => store.setTextDraft("src/a.js\nsrc/b.js\n"));
 
@@ -96,48 +89,49 @@ describe("InspectorPane", () => {
       act(() => store.settleText());
 
       // Assert
-      expect(getFileCount()).toBe("2");
+      expect(pane.project.count("files")).toBe("2");
     });
 
     it("should count the elements of the config a moment after the config is edited", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
 
       // Act
       act(() => store.changeConfig("{ settings: {}, rules: {} }"));
       act(() => {
         jest.advanceTimersByTime(EVALUATION_DELAY - 1);
       });
-      const whileWaiting = getElementTypeCount();
+      const whileWaiting = pane.project.count("element types");
       act(() => {
         jest.advanceTimersByTime(1);
       });
 
       // Assert
       expect(whileWaiting).toBe("3");
-      expect(getElementTypeCount()).toBe("0");
+      expect(pane.project.count("element types")).toBe("0");
     });
   });
 
   describe("a file", () => {
     it("should describe the file in focus as the plugin does", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
 
       // Act
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Assert
-      expect(view.getByText(FILE)).toBeTruthy();
-      expect(view.getByText("element")).toBeTruthy();
-      expect(view.getByText('[ "module" ]')).toBeTruthy();
+      expect(pane.shown).toBe("file");
+      expect(pane.file.title(FILE).isRendered).toBe(true);
+      expect(pane.file.facet("element").isRendered).toBe(true);
+      expect(pane.file.facet("element").entries.types).toBe('[ "module" ]');
     });
 
     it("should describe the renamed file at once, without lagging behind the rename", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
@@ -146,45 +140,49 @@ describe("InspectorPane", () => {
       });
 
       // Assert
-      expect(view.getByText("src/features/checkout/index.js")).toBeTruthy();
-      expect(view.getByText("element")).toBeTruthy();
+      expect(pane.file.title("src/features/checkout/index.js").isRendered).toBe(
+        true
+      );
+      expect(pane.file.facet("element").isRendered).toBe(true);
     });
 
     it("should describe the sketch again when the file in focus is removed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
       act(() => store.removeNode(FILE));
 
       // Assert
-      expect(view.getByText("Sketch")).toBeTruthy();
+      expect(pane.shown).toBe("project");
+      expect(pane.project.title.isRendered).toBe(true);
     });
   });
 
   describe("the config", () => {
     it("should list the entries of the config", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
 
       // Act
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(view.getByText("Element types")).toBeTruthy();
-      expect(view.getByText("File categories")).toBeTruthy();
-      expect(view.getByText("Policies")).toBeTruthy();
+      expect(pane.shown).toBe("config");
+      expect(pane.config.group("Element types").isRendered).toBe(true);
+      expect(pane.config.group("File categories").isRendered).toBe(true);
+      expect(pane.config.group("Policies").isRendered).toBe(true);
     });
 
     it("should open the config at the entry of the row that is pressed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.open({ kind: "config" }));
       const [, component] = evaluate(QUICK_START).elementTypes;
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: /^component/ }));
+      pane.config.row(/^component/).press();
 
       // Assert
       expect(store.getState().focus).toEqual({ kind: "config" });
@@ -193,13 +191,13 @@ describe("InspectorPane", () => {
 
     it("should ask for a new scroll each time a row is pressed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.open({ kind: "config" }));
-      fireEvent.click(view.getByRole("button", { name: /^component/ }));
+      pane.config.row(/^component/).press();
       const first = store.getState().reveal?.key;
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: /^component/ }));
+      pane.config.row(/^component/).press();
 
       // Assert
       expect(first).toBe(1);
@@ -208,11 +206,11 @@ describe("InspectorPane", () => {
 
     it("should open the config at the descriptor that is ignored, where the mistake is", () => {
       // Arrange
-      const { store } = renderPane(WITH_IGNORED);
+      const { pane, store } = renderPane(WITH_IGNORED);
       act(() => store.open({ kind: "config" }));
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: /^component/ }));
+      pane.config.row(/^component/).press();
 
       // Assert
       expect(store.getState().reveal?.range).toEqual(
@@ -222,15 +220,11 @@ describe("InspectorPane", () => {
 
     it("should open the config at the rule that is pressed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { pane, store } = renderPane();
       act(() => store.open({ kind: "config" }));
 
       // Act
-      fireEvent.click(
-        within(view.getByRole("complementary")).getByRole("button", {
-          name: /^boundaries\/dependencies/,
-        })
-      );
+      pane.config.row(/^boundaries\/dependencies/).press();
 
       // Assert
       expect(store.getState().reveal?.range).toEqual(

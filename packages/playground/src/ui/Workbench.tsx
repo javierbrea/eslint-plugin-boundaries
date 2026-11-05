@@ -12,9 +12,9 @@ import {
   useSetProblemsCollapsed,
   useView,
 } from "@/domains/session/data/store";
+import { InspectorPane } from "@/domains/shell/modules/InspectorPane";
 import { NodePane } from "@/domains/shell/modules/NodePane";
 
-import { InspectorPane } from "./inspector";
 import { Regions, TopBar } from "./layout";
 import { ProjectPane } from "./project";
 import type { WorkbenchProps } from "./Workbench.types";

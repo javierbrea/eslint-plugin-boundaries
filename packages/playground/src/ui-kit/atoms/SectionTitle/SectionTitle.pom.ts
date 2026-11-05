@@ -23,6 +23,14 @@ export class SectionTitlePom extends Pom {
   }
 
   /**
+   * The element the title is drawn in.
+   * @returns The tag name of the root, in upper case.
+   */
+  get tagName(): string {
+    return this.root.tagName;
+  }
+
+  /**
    * The font family of the title.
    * @returns The computed value.
    */

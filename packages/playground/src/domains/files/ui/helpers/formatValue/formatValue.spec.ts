@@ -1,4 +1,4 @@
-import { formatValue } from "./FormatValue";
+import { formatValue } from "./formatValue";
 
 describe("formatValue", () => {
   it("should format null as null", () => {

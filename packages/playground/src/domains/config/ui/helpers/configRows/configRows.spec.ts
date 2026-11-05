@@ -9,7 +9,7 @@ import {
   getElementTypeRow,
   getFileCategoryRow,
   getRuleRow,
-} from "./ConfigRows";
+} from "./configRows";
 
 const RANGE: TextRange = { from: 120, to: 170, line: 5, column: 7 };
 
@@ -37,7 +37,7 @@ const RULE: RuleSummary = {
   range: RANGE,
 };
 
-describe("ConfigRows", () => {
+describe("configRows", () => {
   describe("getElementTypeRow", () => {
     it("should name the row by the type, with its files and its patterns", () => {
       // Act

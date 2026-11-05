@@ -2,19 +2,23 @@ import ButtonBase from "@mui/material/ButtonBase";
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import {
+  getElementTypeRow,
+  getFileCategoryRow,
+  getRuleRow,
+} from "@/domains/config/ui/helpers/configRows";
+import type { ConfigRow } from "@/domains/config/ui/helpers/configRows";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { Target } from "@/domains/session/helpers/focus";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import {
-  getElementTypeRow,
-  getFileCategoryRow,
-  getRuleRow,
-} from "./ConfigRows";
-import type { ConfigRow } from "./ConfigRows.types";
+import { CONFIG_INSPECTOR_TEST_ID } from "./ConfigInspector.constants";
+import type { ConfigInspectorProps } from "./ConfigInspector.types";
+
+// The inspector is a fragment of the content of the layout, whose grid places its parts: the root takes no box of its own, so that the test id has an element to be on
+const Root = styled("div")({ display: "contents" });
 
 const List = styled("ul")({
   display: "grid",
@@ -120,14 +124,6 @@ function RowList({ rows, onOpen }: Readonly<RowListProps>): ReactNode {
   );
 }
 
-/** Props of {@link ConfigInspector}. */
-type ConfigInspectorProps = {
-  /** What the engine says about the sketch. */
-  evaluation: Evaluation;
-  /** Called with the target of the row that the user chose: its entry in the config. */
-  onOpen: (target: Target) => void;
-};
-
 /**
  * What the inspector shows for the config: its element types, its file categories and its policies, each with how many files or policies it has and where it is written.
  * @param props ConfigInspector props.
@@ -140,7 +136,7 @@ export function ConfigInspector({
   onOpen,
 }: Readonly<ConfigInspectorProps>): ReactNode {
   return (
-    <>
+    <Root data-testid={CONFIG_INSPECTOR_TEST_ID}>
       <SectionTitle>{CONFIG_PATH}</SectionTitle>
       <SectionLabel>Element types</SectionLabel>
       <RowList
@@ -154,6 +150,6 @@ export function ConfigInspector({
       />
       <SectionLabel>Policies</SectionLabel>
       <RowList rows={evaluation.rules.map(getRuleRow)} onOpen={onOpen} />
-    </>
+    </Root>
   );
 }

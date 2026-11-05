@@ -5,7 +5,7 @@ import type {
 } from "@/domains/evaluation/helpers/engine";
 import { formatCount } from "@/shared/helpers/formatCount";
 
-import type { ConfigRow } from "./ConfigRows.types";
+import type { ConfigRow } from "./configRows.types";
 
 /**
  * Describes an element descriptor of the settings as a row.

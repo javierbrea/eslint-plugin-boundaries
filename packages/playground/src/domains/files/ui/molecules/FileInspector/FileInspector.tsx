@@ -2,11 +2,15 @@ import { styled } from "@mui/material/styles";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import { formatValue } from "@/domains/files/ui/helpers/formatValue";
+import type { DescribedValue } from "@/domains/files/ui/helpers/formatValue";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 
-import { formatValue } from "./FormatValue";
-import type { DescribedValue } from "./FormatValue.types";
+import { FILE_INSPECTOR_TEST_ID } from "./FileInspector.constants";
+import type { FileInspectorProps } from "./FileInspector.types";
+
+// The inspector is a fragment of the content of the layout, whose grid places its parts: the root takes no box of its own, so that the test id has an element to be on
+const Root = styled("div")({ display: "contents" });
 
 const Box = styled("div")(({ theme }) => ({
   display: "grid",
@@ -74,14 +78,6 @@ function Facet({ label, entries }: Readonly<FacetProps>): ReactNode {
   );
 }
 
-/** Props of {@link FileInspector}. */
-type FileInspectorProps = {
-  /** Path of the file in focus. */
-  path: string;
-  /** What the engine says about the sketch. */
-  evaluation: Evaluation;
-};
-
 /**
  * What the inspector shows for a file: its path and the three facets of its description, `element`, `file` and `module`, with the names and values that the plugin gives them. A file that the evaluation does not know, such as one that an edit just removed, has its path only.
  * @param props FileInspector props.
@@ -96,7 +92,7 @@ export function FileInspector({
   const description = evaluation.files.get(path);
 
   return (
-    <>
+    <Root data-testid={FILE_INSPECTOR_TEST_ID}>
       <SectionTitle>{path}</SectionTitle>
       {description === undefined ? null : (
         <>
@@ -118,6 +114,6 @@ export function FileInspector({
           />
         </>
       )}
-    </>
+    </Root>
   );
 }
