@@ -30,11 +30,12 @@ describe("EmptyNode", () => {
     const pane = new EmptyNodePom();
 
     // Act
-    const { isLandmark, label, tagName } = pane.frame;
+    const { frame } = pane;
+    const { tagName } = frame;
+    const isNamedRegion = frame.isRegionNamed(FRAME_LABEL);
 
     // Assert
-    expect(isLandmark).toBe(true);
-    expect(label).toBe(FRAME_LABEL);
+    expect(isNamedRegion).toBe(true);
     expect(tagName).toBe("SECTION");
   });
 

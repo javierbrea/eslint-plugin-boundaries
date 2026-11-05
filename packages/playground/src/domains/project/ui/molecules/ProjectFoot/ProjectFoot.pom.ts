@@ -15,12 +15,10 @@ export class ProjectFootPom extends Pom {
 
   /**
    * What the buttons of the foot say to assistive technology.
-   * @returns The `aria-label` of each button, in order: the ones that add a file and a folder, when the foot has them, and then the buttons of the toggle, which are named by their text and so have none.
+   * @returns The accessible name of each button, in order: the ones that add a file and a folder, when the foot has them, and then the buttons of the toggle, which are named by their text.
    */
-  get buttonLabels(): (string | null)[] {
-    return this.scope
-      .queryAllByRole("button")
-      .map((button) => button.getAttribute("aria-label"));
+  get buttonNames(): string[] {
+    return this.accessibleNames("button");
   }
 
   /**
@@ -35,10 +33,10 @@ export class ProjectFootPom extends Pom {
 
   /**
    * The name of the toggle that switches between the tree and the text.
-   * @returns The `aria-label` of the group of the toggle, or null when the foot has no group.
+   * @returns The accessible name of the group of the toggle, or null when the foot has no group.
    */
-  get viewLabel(): string | null {
-    return this.scope.queryByRole("group")?.getAttribute("aria-label") ?? null;
+  get viewName(): string | null {
+    return this.accessibleNames("group")[0] ?? null;
   }
 
   /**

@@ -81,11 +81,11 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { isLandmark } = panel;
+      const isNamedRegion = panel.isRegionNamed("Problems");
       const { label } = panel.head;
 
       // Assert
-      expect(isLandmark).toBe(true);
+      expect(isNamedRegion).toBe(true);
       expect(label).toBe("Problems");
     });
   });
@@ -383,10 +383,10 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { tablistLabel, tablistTabCount } = panel;
+      const { tablistName, tablistTabCount } = panel;
 
       // Assert
-      expect(tablistLabel).toBe("Problem lists");
+      expect(tablistName).toBe("Problem lists");
       expect(tablistTabCount).toBe(TABS.length);
     });
   });
@@ -422,10 +422,10 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { labelledBy } = panel.tabPanel("line 3");
+      const { isRendered } = panel.tabPanel("line 3");
 
       // Assert
-      expect(labelledBy).toBe(panel.tab("line 3").elementId);
+      expect(isRendered).toBe(true);
     });
 
     it("should give the elements of the tabs ids that are valid in aria-labelledby", () => {
@@ -519,10 +519,10 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { toggleLabels } = panel;
+      const { toggleNames } = panel;
 
       // Assert
-      expect(toggleLabels).toEqual(["Collapse the problems"]);
+      expect(toggleNames).toEqual(["Collapse the problems"]);
       expect(panel.toggle.icon.isHidden).toBe(true);
     });
 
@@ -532,10 +532,10 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { toggleLabels } = panel;
+      const { toggleNames } = panel;
 
       // Assert
-      expect(toggleLabels).toEqual(["Expand the problems"]);
+      expect(toggleNames).toEqual(["Expand the problems"]);
     });
 
     it("should ask to collapse when the button is pressed while expanded", () => {
@@ -579,7 +579,7 @@ describe("ProblemsPanel", () => {
       panel.toggle.press();
 
       // Assert
-      expect(panel.toggle.label).toBe("Expand the problems");
+      expect(panel.toggle.isButtonNamed("Expand the problems")).toBe(true);
       expect(panel.tabPanel().isRendered).toBe(false);
     });
 

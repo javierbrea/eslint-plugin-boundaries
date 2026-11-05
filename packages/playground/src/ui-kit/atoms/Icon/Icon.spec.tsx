@@ -111,15 +111,16 @@ describe("Icon", () => {
   it("should be an image named by its label when it has one", () => {
     // Arrange
     render(<Icon name="cross" label="Disallowed" />);
-    const icon = new IconPom({ name: "Disallowed" });
+    const icon = new IconPom();
 
     // Act
-    const { isRendered, attributes, label } = icon;
+    const { isRendered, attributes } = icon;
+    const isNamedImage = icon.isImageNamed("Disallowed");
 
     // Assert
     expect(isRendered).toBe(true);
     expect(attributes["aria-hidden"]).toBeUndefined();
-    expect(label).toBe("Disallowed");
+    expect(isNamedImage).toBe(true);
   });
 
   it("should not be focusable in old browsers that make an SVG a tab stop", () => {

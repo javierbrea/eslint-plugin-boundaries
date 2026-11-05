@@ -2,7 +2,6 @@ import { fireEvent } from "@testing-library/react";
 
 import { Pom } from "@/shared/testing/pom";
 
-import { RENAME_FIELD_LABEL } from "./RenameField.constants";
 import type { RenameFieldSelection } from "./RenameField.types";
 
 /** Page object of the tooltip that says why a name is refused, a part of the field: the page object of the field builds it, so it is exported only as a type. MUI renders it in a portal, outside the field, so it is built with the `portal` option. */
@@ -54,15 +53,6 @@ export class RenameFieldPom extends Pom {
   }
 
   /**
-   * The name of the field for a node, which is the `name` option of the field that renames it.
-   * @param path The path of the node.
-   * @returns The accessible name.
-   */
-  static nameFor(path: string): string {
-    return `${RENAME_FIELD_LABEL} ${path}`;
-  }
-
-  /**
    * How many fields its parent holds, whatever the `name`, `index` and `containing` options. A page object that counts the fields of a part of the page reads this number.
    * @returns The number of text boxes within the parent.
    */
@@ -79,11 +69,12 @@ export class RenameFieldPom extends Pom {
   }
 
   /**
-   * The accessible name of the field.
-   * @returns The `aria-label` attribute, or null when the field has none.
+   * Whether assistive technology reads the field as a text box with a given name, which is the path of the node it renames.
+   * @param accessibleName The accessible name.
+   * @returns True when the field is among the text boxes of that name of the element that holds it.
    */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isTextboxNamed(accessibleName: string): boolean {
+    return this.isNamed("textbox", accessibleName);
   }
 
   /**

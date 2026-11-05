@@ -249,10 +249,10 @@ describe("ShellRegions", () => {
       const { regions } = renderRegions();
 
       // Act
-      const { separatorLabels } = regions;
+      const { separatorNames } = regions;
 
       // Assert
-      expect(separatorLabels).toEqual([
+      expect(separatorNames).toEqual([
         "Resize the project pane",
         "Resize the inspector",
         "Resize the problems panel",

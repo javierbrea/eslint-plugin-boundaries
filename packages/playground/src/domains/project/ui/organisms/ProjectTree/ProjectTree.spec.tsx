@@ -58,10 +58,10 @@ describe("ProjectTree", () => {
       renderInRoot(<ProjectTree {...createProps()} />);
 
       // Act
-      const { label } = new ProjectTreePom();
+      const isNamedTree = new ProjectTreePom().isTreeNamed("Project files");
 
       // Assert
-      expect(label).toBe("Project files");
+      expect(isNamedTree).toBe(true);
     });
   });
 
@@ -142,7 +142,7 @@ describe("ProjectTree", () => {
 
       // Assert
       expect(folderRow.badge("2 failing dependencies").count).toBe("2");
-      expect(folderRow.badgeLabels).toEqual(["2 failing dependencies"]);
+      expect(folderRow.badgeNames).toEqual(["2 failing dependencies"]);
       expect(fileBadge.count).toBe("1");
       expect(fileBadge.color).toBe("var(--jsb-bad)");
     });
@@ -191,7 +191,7 @@ describe("ProjectTree", () => {
       render(<ProjectTree {...createProps()} />);
 
       // Act
-      const badges = new ProjectTreePom().badgeLabels;
+      const badges = new ProjectTreePom().badgeNames;
 
       // Assert
       expect(badges).toEqual([]);
@@ -279,7 +279,7 @@ describe("ProjectTree", () => {
 
       // Act
       const tree = new ProjectTreePom();
-      const { itemCount, itemPaths, itemLabels } = tree;
+      const { itemCount, itemPaths, itemNames } = tree;
 
       // Assert
       expect(itemCount).toBe(6);
@@ -291,7 +291,7 @@ describe("ProjectTree", () => {
         "src/index.js",
         "index.js",
       ]);
-      expect(itemLabels).toEqual([
+      expect(itemNames).toEqual([
         "eslint.config.js",
         "src/",
         "components/",

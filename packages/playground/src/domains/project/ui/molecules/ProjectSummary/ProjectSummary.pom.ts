@@ -1,21 +1,18 @@
 import { Pom } from "@/shared/testing/pom";
 import { SectionTitlePom } from "@/ui-kit/atoms/SectionTitle/SectionTitle.pom";
 
-import {
-  PROJECT_SUMMARY_TEST_ID,
-  PROJECT_SUMMARY_TITLE,
-} from "./ProjectSummary.constants";
+import { PROJECT_SUMMARY_TEST_ID } from "./ProjectSummary.constants";
 
 /** Page object of the summary of the sketch. */
 export class ProjectSummaryPom extends Pom {
   protected readonly defaultTestId = PROJECT_SUMMARY_TEST_ID;
 
   /**
-   * The title of the summary.
+   * The title of the summary, which is the first child of the summary.
    * @returns The page object of the title.
    */
   get title(): SectionTitlePom {
-    return this.childPom(SectionTitlePom, { name: PROJECT_SUMMARY_TITLE });
+    return this.childPom(SectionTitlePom);
   }
 
   /**

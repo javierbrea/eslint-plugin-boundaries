@@ -7,7 +7,7 @@ import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
 import { PaneFramePom } from "@/ui-kit/atoms/PaneFrame/PaneFrame.pom";
 import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
 
-import { EMPTY_NODE_LABEL, EMPTY_NODE_TEST_ID } from "./EmptyNode.constants";
+import { EMPTY_NODE_TEST_ID } from "./EmptyNode.constants";
 
 /** The name of the button that opens the config. */
 const OPEN_CONFIG_NAME = `Open ${CONFIG_PATH}`;
@@ -64,11 +64,11 @@ export class EmptyNodePom extends Pom {
   }
 
   /**
-   * The head of the pane.
+   * The head of the pane, which is the first child of the frame.
    * @returns The page object of the head.
    */
   get head(): PaneHeadPom {
-    return this.childPom(PaneHeadPom, { name: EMPTY_NODE_LABEL });
+    return this.childPom(PaneHeadPom);
   }
 
   /**

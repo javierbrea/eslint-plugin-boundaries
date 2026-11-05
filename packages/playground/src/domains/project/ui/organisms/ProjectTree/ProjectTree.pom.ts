@@ -1,7 +1,6 @@
 import { RenameFieldPom } from "@/domains/project/ui/atoms/RenameField/RenameField.pom";
 import { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
 import { Pom } from "@/shared/testing/pom";
-import { CountBadgePom } from "@/ui-kit/atoms/CountBadge/CountBadge.pom";
 
 import { PROJECT_TREE_TEST_ID } from "./ProjectTree.constants";
 
@@ -10,11 +9,12 @@ export class ProjectTreePom extends Pom {
   protected readonly defaultTestId = PROJECT_TREE_TEST_ID;
 
   /**
-   * The accessible name of the tree.
-   * @returns The `aria-label` attribute, or null when the tree has none.
+   * Whether assistive technology reads the tree as a tree with a given name.
+   * @param accessibleName The accessible name.
+   * @returns True when the tree is among the trees of that name of the element that holds it.
    */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isTreeNamed(accessibleName: string): boolean {
+    return this.isNamed("tree", accessibleName);
   }
 
   /**
@@ -47,13 +47,10 @@ export class ProjectTreePom extends Pom {
 
   /**
    * What names the items of the tree.
-   * @returns The label of each item, in the order they are drawn.
+   * @returns The accessible name of each item, in the order they are drawn.
    */
-  get itemLabels(): string[] {
-    return Array.from(
-      { length: this.itemCount },
-      (_, index) => this.childPom(ProjectTreeItemPom, { index }).label
-    );
+  get itemNames(): string[] {
+    return this.accessibleNames("treeitem");
   }
 
   /**
@@ -87,24 +84,20 @@ export class ProjectTreePom extends Pom {
 
   /**
    * What the buttons of the whole tree say to assistive technology.
-   * @returns The `aria-label` of each button of the tree, in order: the actions of the rows; empty when nodes cannot be edited.
+   * @returns The accessible name of each button of the tree, in order: the actions of the rows; empty when nodes cannot be edited.
    */
-  get buttonLabels(): (string | null)[] {
+  get buttonNames(): string[] {
     return Array.from(
       { length: this.itemCount },
-      (_, index) =>
-        this.childPom(ProjectTreeItemPom, { index }).row.buttonLabels
+      (_, index) => this.childPom(ProjectTreeItemPom, { index }).row.buttonNames
     ).flat();
   }
 
   /**
    * What the badges of the whole tree say to assistive technology.
-   * @returns The `aria-label` of each image of the tree, in order; empty when no node has a badge.
+   * @returns The accessible name of each image of the tree, in order; empty when no node has a badge.
    */
-  get badgeLabels(): (string | null)[] {
-    return Array.from(
-      { length: this.childPom(CountBadgePom).total },
-      (_, index) => this.childPom(CountBadgePom, { index }).label
-    );
+  get badgeNames(): string[] {
+    return this.accessibleNames("img");
   }
 }

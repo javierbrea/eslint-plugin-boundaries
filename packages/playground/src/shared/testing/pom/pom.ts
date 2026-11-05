@@ -1,4 +1,5 @@
 import { screen as view, within } from "@testing-library/react";
+import type { ByRoleMatcher } from "@testing-library/react";
 
 import type { PomOptions, PomQueries } from "./pom.types";
 
@@ -65,6 +66,20 @@ export abstract class Pom {
   }
 
   /**
+   * Finds the root element as the first child of the element that {@link Pom.searchBase} searches in, for a component that its parent places first, such as the head of a pane or the title of a section, so that its text does not have to be known.
+   * @param description What the child is, for the error.
+   * @returns The root element.
+   */
+  protected findFirstChild(description: string): HTMLElement {
+    const { firstElementChild: first } = this.searchBaseElement;
+
+    return this.pickMatch(
+      first === null ? [] : [first as HTMLElement],
+      description
+    );
+  }
+
+  /**
    * Chooses the root element among the candidates: those whose text includes the `containing` option, and then the one at the `index` option.
    * @param candidates The elements that match the query of the page object, in document order.
    * @param description What the candidates were searched by, for the error.
@@ -124,6 +139,43 @@ export abstract class Pom {
     }
 
     return accessibleName;
+  }
+
+  /**
+   * Whether assistive technology reads the root element as an element of a role with a given accessible name, however the component gives it the name: `aria-label`, `aria-labelledby` or its content. It is how a spec checks a landmark or a named role, since the attribute is not what a user gets.
+   * @param role The ARIA role, such as `region`.
+   * @param accessibleName The accessible name, or a pattern it matches.
+   * @returns True when the root is among the elements of that role and name of the element that holds it, whatever the parent of the page object, which a component that is the element makes its own root.
+   */
+  protected isNamed(
+    role: ByRoleMatcher,
+    accessibleName: string | RegExp
+  ): boolean {
+    return within(this.root.parentElement ?? document.body)
+      .queryAllByRole(role, { name: accessibleName })
+      .includes(this.root);
+  }
+
+  /**
+   * The accessible names of the elements of a role that the root element holds, in document order. It is how a spec checks the names of a list of controls without reading an attribute.
+   * @param role The ARIA role, such as `button`.
+   * @param queries The queries to search with, which are those of the root element when they are not given.
+   * @returns The accessible name of each element of that role that assistive technology reads, which is an empty string for an element with none.
+   */
+  protected accessibleNames(
+    role: ByRoleMatcher,
+    queries: PomQueries = this.scope
+  ): string[] {
+    const names: string[] = [];
+
+    queries.queryAllByRole(role, {
+      name: (accessibleName) => {
+        names.push(accessibleName);
+        return true;
+      },
+    });
+
+    return names;
   }
 
   /**

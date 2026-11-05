@@ -4,7 +4,7 @@ import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
 import { PaneFramePom } from "@/ui-kit/atoms/PaneFrame/PaneFrame.pom";
 import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
 
-import { CONFIG_PANE_LABEL, CONFIG_PANE_TEST_ID } from "./ConfigPane.constants";
+import { CONFIG_PANE_TEST_ID } from "./ConfigPane.constants";
 
 /** Page object of the config pane. It finds its root by the test id of the pane, or by the `testId` option when a module that is this pane gives it another. */
 export class ConfigPanePom extends Pom {
@@ -19,11 +19,11 @@ export class ConfigPanePom extends Pom {
   }
 
   /**
-   * The head of the pane, with the name of the file and the hint.
+   * The head of the pane, with the name of the file and the hint, which is the first child of the frame.
    * @returns The page object of the head.
    */
   get head(): PaneHeadPom {
-    return this.childPom(PaneHeadPom, { name: CONFIG_PANE_LABEL });
+    return this.childPom(PaneHeadPom);
   }
 
   /**

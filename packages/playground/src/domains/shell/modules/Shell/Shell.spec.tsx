@@ -257,20 +257,20 @@ describe("Shell", () => {
     it("should lay out the project, the node in focus, the inspector and the problems", () => {
       // Act
       const { shell } = renderShell();
-      const landmarks = [
-        [shell.project.layout.isLandmark, shell.project.layout.label],
-        [shell.inspector.layout.isLandmark, shell.inspector.layout.label],
-        [shell.problems.panel.isLandmark, shell.problems.panel.label],
-      ];
+      const landmarks = {
+        project: shell.project.layout.isRegionNamed("Project"),
+        inspector: shell.inspector.layout.isComplementaryNamed("Inspector"),
+        problems: shell.problems.panel.isRegionNamed("Problems"),
+      };
 
       // Assert
       expect(shell.layout.isRegionNamed("Playground")).toBe(true);
       expect(shell.node.frame.isRegionNamed("Node in focus")).toBe(true);
-      expect(landmarks).toEqual([
-        [true, "Project"],
-        [true, "Inspector"],
-        [true, "Problems"],
-      ]);
+      expect(landmarks).toEqual({
+        project: true,
+        inspector: true,
+        problems: true,
+      });
     });
 
     it("should separate the regions with separators the keyboard reaches", () => {
@@ -429,9 +429,11 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.head.path).toBe("new-file.js");
-      expect(shell.project.item("new-file.js").field.label).toBe(
-        "New name of new-file.js"
-      );
+      expect(
+        shell.project
+          .item("new-file.js")
+          .field.isTextboxNamed("New name of new-file.js")
+      ).toBe(true);
       expect(onSketchChange).toHaveBeenCalledTimes(1);
       expect(getPaths(onSketchChange.mock.calls[0][0])).toContain(
         "new-file.js"
@@ -448,7 +450,7 @@ describe("Shell", () => {
       // Assert
       const item = shell.project.item("new-file.js");
 
-      expect(item.field.label).toBe("New name of new-file.js");
+      expect(item.field.isTextboxNamed("New name of new-file.js")).toBe(true);
       expect(item.field.isFocused).toBe(true);
       expect(getTabs(shell)).toEqual(["Sketch", "new-file.js*"]);
       expect(item.ariaSelected).toBe("true");
@@ -492,9 +494,11 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.project.text.isRendered).toBe(false);
-      expect(shell.project.item("new-file.js").field.label).toBe(
-        "New name of new-file.js"
-      );
+      expect(
+        shell.project
+          .item("new-file.js")
+          .field.isTextboxNamed("New name of new-file.js")
+      ).toBe(true);
     });
 
     it("should count the new file at once", () => {
@@ -735,7 +739,7 @@ describe("Shell", () => {
       const { shell } = renderShell({ initialSketch: WARNING_ONLY });
 
       // Assert
-      expect(shell.problems.panel.isLandmark).toBe(true);
+      expect(shell.problems.panel.isRegionNamed("Problems")).toBe(true);
       expect(shell.problems.note.isRendered).toBe(false);
     });
 
@@ -744,7 +748,7 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Assert
-      expect(shell.problems.panel.isLandmark).toBe(true);
+      expect(shell.problems.panel.isRegionNamed("Problems")).toBe(true);
       expect(shell.problems.note.isRendered).toBe(false);
     });
 
@@ -934,7 +938,9 @@ describe("Shell", () => {
       // Assert
       const lines = shell.project.text.value.split("\n");
 
-      expect(shell.project.text.area.label).toBe("Project as text");
+      expect(shell.project.text.area.isTextboxNamed("Project as text")).toBe(
+        true
+      );
       expect(lines[0]).toBe("eslint.config.js");
       expect(lines).toContain(FILE);
     });
@@ -1444,7 +1450,7 @@ describe("Shell", () => {
       expect(first.project.text.isRendered).toBe(true);
       expect(first.project.tree.isRendered).toBe(false);
       expect(second.project.tree.isRendered).toBe(true);
-      expect(second.project.tree.label).toBe("Project files");
+      expect(second.project.tree.isTreeNamed("Project files")).toBe(true);
     });
 
     it("should not share the open node or the tabs with another shell", () => {

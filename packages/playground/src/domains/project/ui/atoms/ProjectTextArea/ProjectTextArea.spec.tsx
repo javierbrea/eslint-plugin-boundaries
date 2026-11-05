@@ -40,11 +40,12 @@ describe("ProjectTextArea", () => {
       const { area } = renderArea();
 
       // Act
-      const { isRendered, label, tagName } = area;
+      const { isRendered, tagName } = area;
+      const isNamedTextbox = area.isTextboxNamed("Project as text");
 
       // Assert
       expect(isRendered).toBe(true);
-      expect(label).toBe("Project as text");
+      expect(isNamedTextbox).toBe(true);
       expect(tagName).toBe("TEXTAREA");
     });
 

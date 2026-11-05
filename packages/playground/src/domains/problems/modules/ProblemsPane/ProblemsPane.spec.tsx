@@ -71,7 +71,7 @@ describe("ProblemsPane", () => {
       const { pane } = renderPane();
 
       // Assert
-      expect(pane.panel.isLandmark).toBe(true);
+      expect(pane.panel.isRegionNamed("Problems")).toBe(true);
     });
   });
 

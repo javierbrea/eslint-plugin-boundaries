@@ -1,6 +1,5 @@
 import { fireEvent } from "@testing-library/react";
 
-import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import { Pom } from "@/shared/testing/pom";
 import type { PomOptions } from "@/shared/testing/pom";
 import { SectionTitlePom } from "@/ui-kit/atoms/SectionTitle/SectionTitle.pom";
@@ -116,11 +115,11 @@ export class ConfigInspectorPom extends Pom {
   protected readonly defaultTestId = CONFIG_INSPECTOR_TEST_ID;
 
   /**
-   * The name of the file, over the groups.
+   * The name of the file, over the groups, which is the first child of the inspector.
    * @returns The page object of the title.
    */
   get title(): SectionTitlePom {
-    return this.childPom(SectionTitlePom, { name: CONFIG_PATH });
+    return this.childPom(SectionTitlePom);
   }
 
   /**

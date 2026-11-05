@@ -9,7 +9,6 @@ import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
 import {
   COLLAPSE_PROBLEMS_LABEL,
   EXPAND_PROBLEMS_LABEL,
-  PROBLEMS_PANEL_LABEL,
   PROBLEMS_PANEL_TEST_ID,
 } from "./ProblemsPanel.constants";
 import type { ProblemsPanelLabelStyle } from "./ProblemsPanel.types";
@@ -177,14 +176,6 @@ class ProblemsTabPanelPom extends Pom {
   }
 
   /**
-   * The id of the tab that names the tab panel.
-   * @returns The `aria-labelledby` attribute, or null when the tab panel has none.
-   */
-  get labelledBy(): string | null {
-    return this.root.getAttribute("aria-labelledby");
-  }
-
-  /**
    * Whether the keyboard reaches the tab panel, which scrolls and may hold nothing to focus.
    * @returns The `tabindex` attribute, or null when the tab panel has none.
    */
@@ -216,20 +207,12 @@ class ProblemsToggleButtonPom extends Pom {
   }
 
   /**
-   * How many buttons that collapse or expand the panel its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `ProblemsToggleButtonPom` per index below this number.
-   * @returns The number of such buttons within the parent.
+   * Whether assistive technology reads the button as a button with a given name, which is what it offers.
+   * @param accessibleName What the button offers, such as `Collapse the problems`.
+   * @returns True when the button is among the buttons of that name of the element that holds it.
    */
-  get count(): number {
-    return this.searchBase.queryAllByRole("button", { name: TOGGLE_NAME })
-      .length;
-  }
-
-  /**
-   * What the button offers.
-   * @returns The `aria-label` attribute, such as `Collapse the problems`.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isButtonNamed(accessibleName: string): boolean {
+    return this.isNamed("button", accessibleName);
   }
 
   /**
@@ -251,29 +234,20 @@ export class ProblemsPanelPom extends Pom {
   protected readonly defaultTestId: string = PROBLEMS_PANEL_TEST_ID;
 
   /**
-   * The accessible name of the landmark.
-   * @returns The `aria-label` attribute, or null when the panel has none.
+   * Whether assistive technology reads the panel as a region with a given name.
+   * @param accessibleName The accessible name.
+   * @returns True when the panel is among the regions of that name of the element that holds it, whatever the parent of the page object, which a pane that is this panel makes its own root.
    */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isRegionNamed(accessibleName: string): boolean {
+    return this.isNamed("region", accessibleName);
   }
 
   /**
-   * Whether assistive technology reads the panel as a region named after it.
-   * @returns True when the panel is among the regions of the element that holds it, whatever the parent of the page object, which a pane that is this panel makes its own root.
-   */
-  get isLandmark(): boolean {
-    return within(this.root.parentElement ?? document.body)
-      .queryAllByRole("region", { name: PROBLEMS_PANEL_LABEL })
-      .includes(this.root);
-  }
-
-  /**
-   * The head of the panel.
+   * The head of the panel, which is the first child of the panel.
    * @returns The page object of the head.
    */
   get head(): PaneHeadPom {
-    return this.childPom(PaneHeadPom, { name: PROBLEMS_PANEL_LABEL });
+    return this.childPom(PaneHeadPom);
   }
 
   /**
@@ -286,10 +260,10 @@ export class ProblemsPanelPom extends Pom {
 
   /**
    * The name of the strip of tabs.
-   * @returns The `aria-label` of the tab list, or null when the panel has no tab list or it has none.
+   * @returns The accessible name of the tab list, or null when the panel has no tab list.
    */
-  get tablistLabel(): string | null {
-    return this.tablist?.getAttribute("aria-label") ?? null;
+  get tablistName(): string | null {
+    return this.accessibleNames("tablist")[0] ?? null;
   }
 
   /**
@@ -367,14 +341,11 @@ export class ProblemsPanelPom extends Pom {
 
   /**
    * What the buttons that collapse or expand the panel offer.
-   * @returns The label of each such button, in order: one while the panel works.
+   * @returns The accessible name of each such button, in order: one while the panel works.
    */
-  get toggleLabels(): (string | null)[] {
-    const { count } = this.childPom(ProblemsToggleButtonPom);
-
-    return Array.from(
-      { length: count },
-      (_, index) => this.childPom(ProblemsToggleButtonPom, { index }).label
+  get toggleNames(): string[] {
+    return this.accessibleNames("button").filter((buttonName) =>
+      TOGGLE_NAME.test(buttonName)
     );
   }
 

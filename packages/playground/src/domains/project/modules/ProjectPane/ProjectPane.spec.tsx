@@ -174,10 +174,10 @@ describe("ProjectPane", () => {
 
       // Act
       const { layout } = pane;
+      const isNamedRegion = layout.isRegionNamed("Project");
 
       // Assert
-      expect(layout.isLandmark).toBe(true);
-      expect(layout.label).toBe("Project");
+      expect(isNamedRegion).toBe(true);
       expect(layout.childTexts[0]).toBe("Project");
     });
 
@@ -186,7 +186,7 @@ describe("ProjectPane", () => {
       const { pane } = renderPane();
 
       // Act
-      const names = pane.tree.itemLabels;
+      const names = pane.tree.itemNames;
 
       // Assert
       expect(names).toEqual([
@@ -466,7 +466,7 @@ describe("ProjectPane", () => {
       });
 
       // Act
-      const badges = pane.item("eslint.config.js").row.badgeLabels;
+      const badges = pane.item("eslint.config.js").row.badgeNames;
 
       // Assert
       expect(badges).toEqual([]);
@@ -479,7 +479,7 @@ describe("ProjectPane", () => {
       });
 
       // Act
-      const badges = pane.tree.badgeLabels;
+      const badges = pane.tree.badgeNames;
 
       // Assert
       expect(badges).toEqual(["2 problems"]);
@@ -517,14 +517,14 @@ describe("ProjectPane", () => {
       act(() => {
         jest.advanceTimersByTime(EVALUATION_DELAY - 1);
       });
-      const whileWaiting = pane.item("eslint.config.js").row.badgeLabels;
+      const whileWaiting = pane.item("eslint.config.js").row.badgeNames;
       act(() => {
         jest.advanceTimersByTime(1);
       });
 
       // Assert
       expect(whileWaiting).toHaveLength(1);
-      expect(pane.item("eslint.config.js").row.badgeLabels).toEqual([]);
+      expect(pane.item("eslint.config.js").row.badgeNames).toEqual([]);
     });
   });
 
@@ -990,7 +990,7 @@ describe("ProjectPane", () => {
       config.row.doubleClickName();
 
       // Assert
-      expect(config.row.buttonLabels).toEqual([]);
+      expect(config.row.buttonNames).toEqual([]);
       expect(pane.tree.renameFieldCount).toBe(0);
       expect(onSketchChange).not.toHaveBeenCalled();
     });
@@ -1153,7 +1153,7 @@ describe("ProjectPane", () => {
       const { dialog } = pane.deleteDialog;
 
       expect(dialog.title).toBe("Delete src/ and its 3 files?");
-      expect(dialog.labelledBy).toBe(dialog.titleId);
+      expect(dialog.isDialogNamed("Delete src/ and its 3 files?")).toBe(true);
     });
 
     it("should remove the folder and its files when the user confirms", async () => {
@@ -1537,10 +1537,10 @@ describe("ProjectPane", () => {
       const { pane } = renderPane({ view: "text" });
 
       // Act
-      const { viewLabel, views } = pane.foot;
+      const { viewName, views } = pane.foot;
 
       // Assert
-      expect(viewLabel).toBe("Project view");
+      expect(viewName).toBe("Project view");
       expect(views).toEqual([
         { text: "Tree", pressed: "false" },
         { text: "Text", pressed: "true" },
@@ -1557,7 +1557,7 @@ describe("ProjectPane", () => {
       // Assert
       expect(store.getState().view).toBe("text");
       expect(pane.text.isRendered).toBe(true);
-      expect(pane.text.area.label).toBe("Project as text");
+      expect(pane.text.area.isTextboxNamed("Project as text")).toBe(true);
     });
 
     it("should change nothing when the current view is pressed again", () => {
@@ -1657,7 +1657,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(buttonTexts).toEqual(["Tree", "Text"]);
-      expect(pane.tree.buttonLabels).toEqual([]);
+      expect(pane.tree.buttonNames).toEqual([]);
     });
 
     it("should draw no row actions", () => {

@@ -69,14 +69,6 @@ export class IconPom extends Pom {
   }
 
   /**
-   * What the icon says.
-   * @returns The `aria-label` attribute, or null when the icon has none.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
-  }
-
-  /**
    * The role the icon sets.
    * @returns The `role` attribute, or null when the icon has none.
    */
@@ -98,6 +90,15 @@ export class IconPom extends Pom {
    */
   get isImage(): boolean {
     return this.searchBase.queryAllByRole("img").includes(this.root);
+  }
+
+  /**
+   * Whether assistive technology reads the icon as an image with a given name, which is what the icon says.
+   * @param accessibleName The accessible name.
+   * @returns True when the icon is among the images of that name of the element that holds it.
+   */
+  isImageNamed(accessibleName: string): boolean {
+    return this.isNamed("img", accessibleName);
   }
 
   /**

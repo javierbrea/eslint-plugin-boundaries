@@ -1,27 +1,22 @@
-import { within } from "@testing-library/react";
-
 import { Pom } from "@/shared/testing/pom";
 
-/** Page object of the landmark of a pane. It has no test id: it finds the region within its parent, named by the `name` option, which is required, unless the `root` option is the frame itself, as a component that is the frame sets it. */
+/** Page object of the landmark of a pane. It has no test id: it finds the region within its parent, the one named by the `name` option when it is set, unless the `root` option is the frame itself, as a component that is the frame sets it. */
 export class PaneFramePom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    const regionName = this.requireName();
+    const { name: regionName } = this.options;
 
     return this.pickMatch(
-      this.searchBase.queryAllByRole("region", { name: regionName }),
-      `the role "region" named ${regionName}`
+      this.searchBase.queryAllByRole(
+        "region",
+        regionName === undefined ? {} : { name: regionName }
+      ),
+      regionName === undefined
+        ? 'the role "region"'
+        : `the role "region" named ${regionName}`
     );
-  }
-
-  /**
-   * The accessible name of the landmark.
-   * @returns The `aria-label` attribute, or null when the frame has none.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
   }
 
   /**
@@ -41,24 +36,12 @@ export class PaneFramePom extends Pom {
   }
 
   /**
-   * Whether assistive technology reads the frame as a region.
-   * @returns True when the frame is among the regions of the element that holds it, whatever the parent of the page object, which a component that is the frame makes its own root.
-   */
-  get isLandmark(): boolean {
-    return within(this.root.parentElement ?? document.body)
-      .queryAllByRole("region")
-      .includes(this.root);
-  }
-
-  /**
-   * Whether assistive technology reads the frame as a region with a given name, which is its accessible name and not only its `aria-label` attribute.
+   * Whether assistive technology reads the frame as a region with a given name.
    * @param accessibleName The accessible name.
    * @returns True when the frame is among the regions of that name of the element that holds it, whatever the parent of the page object, which a component that is the frame makes its own root.
    */
   isRegionNamed(accessibleName: string): boolean {
-    return within(this.root.parentElement ?? document.body)
-      .queryAllByRole("region", { name: accessibleName })
-      .includes(this.root);
+    return this.isNamed("region", accessibleName);
   }
 
   /**

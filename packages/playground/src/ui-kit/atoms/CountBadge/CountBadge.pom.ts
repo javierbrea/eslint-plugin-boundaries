@@ -29,14 +29,6 @@ export class CountBadgePom extends Pom {
   }
 
   /**
-   * How many badges its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `CountBadgePom` per index below this number. It is not `count`, which is the number a badge shows.
-   * @returns The number of images within the parent.
-   */
-  get total(): number {
-    return this.findBadges().length;
-  }
-
-  /**
    * The number the badge shows.
    * @returns The text of the badge.
    */
@@ -45,11 +37,12 @@ export class CountBadgePom extends Pom {
   }
 
   /**
-   * What the number counts, which assistive technology reads instead of the bare number.
-   * @returns The `aria-label` attribute, or null when the badge has none.
+   * Whether assistive technology reads the badge as an image with a given name, which is what the number counts, read instead of the bare number.
+   * @param accessibleName The accessible name.
+   * @returns True when the badge is among the images of that name of the element that holds it.
    */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isImageNamed(accessibleName: string): boolean {
+    return this.isNamed("img", accessibleName);
   }
 
   /**

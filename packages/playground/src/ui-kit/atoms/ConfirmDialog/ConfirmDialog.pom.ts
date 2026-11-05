@@ -70,19 +70,12 @@ export class ConfirmDialogPom extends Pom {
   }
 
   /**
-   * The id of the title, which the dialog points to as its name.
-   * @returns The `id` attribute of the title.
+   * Whether assistive technology reads the dialog as a dialog with a given name, which is its title.
+   * @param accessibleName The accessible name.
+   * @returns True when the dialog is among the dialogs of that name of the element that holds it.
    */
-  get titleId(): string {
-    return this.titleElement.id;
-  }
-
-  /**
-   * The element that names the dialog.
-   * @returns The `aria-labelledby` attribute of the dialog, or null when it has none.
-   */
-  get labelledBy(): string | null {
-    return this.root.getAttribute("aria-labelledby");
+  isDialogNamed(accessibleName: string): boolean {
+    return this.isNamed("dialog", accessibleName);
   }
 
   /**

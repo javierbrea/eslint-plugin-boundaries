@@ -36,12 +36,11 @@ describe("ShellLayout", () => {
       const layout = renderLayout();
 
       // Act
-      const { label, tagName } = layout;
+      const { tagName } = layout;
 
       // Assert
       expect(layout.isRegionNamed("Playground")).toBe(true);
       expect(layout.isRegionNamed("Another name")).toBe(false);
-      expect(label).toBe("Playground");
       expect(tagName).toBe("SECTION");
     });
 

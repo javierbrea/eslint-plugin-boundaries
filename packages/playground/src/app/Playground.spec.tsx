@@ -253,7 +253,7 @@ describe("Playground", () => {
       await playground.waitUntilLoaded();
 
       // Assert
-      expect(playground.project.foot.buttonLabels).not.toContain("Add file");
+      expect(playground.project.foot.buttonNames).not.toContain("Add file");
     });
 
     it("should offer to add a file when the source can edit the tree", async () => {
@@ -265,7 +265,7 @@ describe("Playground", () => {
       await playground.waitUntilLoaded();
 
       // Assert
-      expect(playground.project.foot.buttonLabels).toContain("Add file");
+      expect(playground.project.foot.buttonNames).toContain("Add file");
     });
 
     it("should fill its container", async () => {

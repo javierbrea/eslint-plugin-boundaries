@@ -11,11 +11,11 @@ describe("InspectorLayout", () => {
       const layout = new InspectorLayoutPom();
 
       // Act
-      const { isLandmark, label, text, head } = layout;
+      const { text, head } = layout;
+      const isNamedLandmark = layout.isComplementaryNamed("Inspector");
 
       // Assert
-      expect(isLandmark).toBe(true);
-      expect(label).toBe("Inspector");
+      expect(isNamedLandmark).toBe(true);
       expect(text).toContain("Inspector");
       expect(text).toContain("What is in focus");
       expect(head.itemTexts).toEqual(["Inspector", ""]);

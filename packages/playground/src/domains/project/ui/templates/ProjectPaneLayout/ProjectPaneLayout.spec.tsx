@@ -28,11 +28,11 @@ describe("ProjectPaneLayout", () => {
       const layout = renderLayout();
 
       // Act
-      const { isLandmark, label, tagName, display } = layout;
+      const { tagName, display } = layout;
+      const isNamedRegion = layout.isRegionNamed("Project");
 
       // Assert
-      expect(isLandmark).toBe(true);
-      expect(label).toBe("Project");
+      expect(isNamedRegion).toBe(true);
       expect(tagName).toBe("SECTION");
       expect(display).toBe("grid");
     });

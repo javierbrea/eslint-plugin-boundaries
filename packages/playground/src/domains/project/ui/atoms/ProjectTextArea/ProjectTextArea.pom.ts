@@ -54,11 +54,12 @@ export class ProjectTextAreaPom extends Pom {
   }
 
   /**
-   * The accessible name of the textarea.
-   * @returns The `aria-label` attribute, or null when the textarea has none.
+   * Whether assistive technology reads the textarea as a text box with a given name.
+   * @param accessibleName The accessible name.
+   * @returns True when the textarea is among the text boxes of that name of the element that holds it, whatever the parent of the page object, which a module that is the textarea makes its own root.
    */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
+  isTextboxNamed(accessibleName: string): boolean {
+    return this.isNamed("textbox", accessibleName);
   }
 
   /**

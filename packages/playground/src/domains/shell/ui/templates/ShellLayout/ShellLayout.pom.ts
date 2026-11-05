@@ -1,5 +1,3 @@
-import { within } from "@testing-library/react";
-
 import { TopBarPom } from "@/domains/shell/ui/atoms/TopBar/TopBar.pom";
 import { ShellRegionsPom } from "@/domains/shell/ui/templates/ShellRegions/ShellRegions.pom";
 import { Pom } from "@/shared/testing/pom";
@@ -45,22 +43,12 @@ export class ShellLayoutPom extends Pom {
   }
 
   /**
-   * The accessible name of the landmark.
-   * @returns The `aria-label` attribute, or null when the layout has none.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
-  }
-
-  /**
    * Whether assistive technology reads the layout as a region with a given name.
    * @param accessibleName The accessible name.
    * @returns True when the layout is among the regions of that name of the element that holds it, whatever the parent of the page object, which a module that is the layout makes its own root.
    */
   isRegionNamed(accessibleName: string): boolean {
-    return within(this.root.parentElement ?? document.body)
-      .queryAllByRole("region", { name: accessibleName })
-      .includes(this.root);
+    return this.isNamed("region", accessibleName);
   }
 
   /**

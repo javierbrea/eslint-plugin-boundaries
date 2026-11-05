@@ -59,11 +59,10 @@ describe("NodePane", () => {
       const { pane } = renderPane();
 
       // Act
-      const { isLandmark, label } = pane.frame;
+      const isNamedRegion = pane.frame.isRegionNamed(NODE_FRAME_LABEL);
 
       // Assert
-      expect(isLandmark).toBe(true);
-      expect(label).toBe(NODE_FRAME_LABEL);
+      expect(isNamedRegion).toBe(true);
     });
 
     it("should be named after the node in focus when a file is open", () => {
@@ -72,11 +71,10 @@ describe("NodePane", () => {
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
-      const { isLandmark, label } = pane.frame;
+      const isNamedRegion = pane.frame.isRegionNamed(NODE_FRAME_LABEL);
 
       // Assert
-      expect(isLandmark).toBe(true);
-      expect(label).toBe(NODE_FRAME_LABEL);
+      expect(isNamedRegion).toBe(true);
     });
 
     it("should be named after the node in focus when the config is open", () => {
@@ -85,11 +83,10 @@ describe("NodePane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Act
-      const { isLandmark, label } = pane.frame;
+      const isNamedRegion = pane.frame.isRegionNamed(NODE_FRAME_LABEL);
 
       // Assert
-      expect(isLandmark).toBe(true);
-      expect(label).toBe(NODE_FRAME_LABEL);
+      expect(isNamedRegion).toBe(true);
     });
   });
 

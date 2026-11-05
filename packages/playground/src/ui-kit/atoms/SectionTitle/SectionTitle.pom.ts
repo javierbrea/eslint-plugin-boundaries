@@ -1,12 +1,16 @@
 import { Pom } from "@/shared/testing/pom";
 
-/** Page object of a section title. It has no role or test id: it finds the title by its text, which is the `name` option and is required. */
+/** Page object of a section title. It has no role or test id: it finds the title as the first child of its parent, which is where a section puts it, or, with the `name` option, by its text. */
 export class SectionTitlePom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    const text = this.requireName();
+    const { name: text } = this.options;
+
+    if (text === undefined) {
+      return this.findFirstChild("the first child of its parent");
+    }
 
     return this.pickMatch(
       this.searchBase.queryAllByText(text),

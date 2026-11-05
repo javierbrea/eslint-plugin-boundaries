@@ -105,12 +105,16 @@ describe("ProjectTreeItem", () => {
       renderItems();
 
       // Act
-      const labels = ["eslint.config.js", "src", "src/index.js"].map(
-        (path) => item(path).label
+      const named = [
+        ["eslint.config.js", "eslint.config.js"],
+        ["src", "src/"],
+        ["src/index.js", "index.js"],
+      ].map(([path, accessibleName]) =>
+        item(path).isTreeItemNamed(accessibleName)
       );
 
       // Assert
-      expect(labels).toEqual(["eslint.config.js", "src/", "index.js"]);
+      expect(named).toEqual([true, true, true]);
     });
 
     it("should set the kind of its node", () => {
@@ -189,7 +193,7 @@ describe("ProjectTreeItem", () => {
       const { row } = item("eslint.config.js");
 
       // Assert
-      expect(row.badgeLabels).toEqual(["2 problems"]);
+      expect(row.badgeNames).toEqual(["2 problems"]);
       expect(row.badge().count).toBe("2");
     });
 
@@ -203,10 +207,10 @@ describe("ProjectTreeItem", () => {
       renderItems({ counts });
 
       // Act
-      const { badgeLabels } = item("eslint.config.js").row;
+      const { badgeNames } = item("eslint.config.js").row;
 
       // Assert
-      expect(badgeLabels).toEqual(["1 problem"]);
+      expect(badgeNames).toEqual(["1 problem"]);
     });
 
     it("should count the failing dependencies of a file and of a folder", () => {
@@ -226,9 +230,9 @@ describe("ProjectTreeItem", () => {
       const file = item("src/index.js").row;
 
       // Assert
-      expect(folder.badgeLabels).toEqual(["3 failing dependencies"]);
+      expect(folder.badgeNames).toEqual(["3 failing dependencies"]);
       expect(folder.badge().count).toBe("3");
-      expect(file.badgeLabels).toEqual(["1 failing dependency"]);
+      expect(file.badgeNames).toEqual(["1 failing dependency"]);
       expect(file.badge().count).toBe("1");
     });
 
@@ -237,12 +241,12 @@ describe("ProjectTreeItem", () => {
       renderItems({ editable: false });
 
       // Act
-      const labels = ["eslint.config.js", "src", "src/index.js"].map(
-        (path) => item(path).row.badgeLabels
+      const names = ["eslint.config.js", "src", "src/index.js"].map(
+        (path) => item(path).row.badgeNames
       );
 
       // Assert
-      expect(labels).toEqual([[], [], []]);
+      expect(names).toEqual([[], [], []]);
     });
 
     it("should draw a cross on a file with failing dependencies, and not on a folder", () => {
@@ -297,12 +301,12 @@ describe("ProjectTreeItem", () => {
       const folder = item("src");
 
       // Assert
-      expect(file.row.buttonLabels).toEqual([
+      expect(file.row.buttonNames).toEqual([
         "Rename src/index.js",
         "Delete src/index.js",
       ]);
       expect(file.row.iconPaths).toEqual([ICON_PATHS.edit, ICON_PATHS.trash]);
-      expect(folder.row.buttonLabels).toEqual(["Rename src", "Delete src"]);
+      expect(folder.row.buttonNames).toEqual(["Rename src", "Delete src"]);
     });
 
     it("should announce the keys that rename and remove, on a file and on a folder", () => {
@@ -326,7 +330,7 @@ describe("ProjectTreeItem", () => {
       const config = item("eslint.config.js");
 
       // Assert
-      expect(config.row.buttonLabels).toEqual([]);
+      expect(config.row.buttonNames).toEqual([]);
       expect(config.keyShortcuts).toBeNull();
     });
 
@@ -338,7 +342,7 @@ describe("ProjectTreeItem", () => {
       const file = item("src/index.js");
 
       // Assert
-      expect(file.row.buttonLabels).toEqual([]);
+      expect(file.row.buttonNames).toEqual([]);
       expect(file.keyShortcuts).toBeNull();
     });
   });
@@ -437,7 +441,7 @@ describe("ProjectTreeItem", () => {
 
       // Assert
       expect(field.value).toBe("index.js");
-      expect(row.buttonLabels).toEqual([]);
+      expect(row.buttonNames).toEqual([]);
       expect(item("index.js").field.isRendered).toBe(false);
     });
 

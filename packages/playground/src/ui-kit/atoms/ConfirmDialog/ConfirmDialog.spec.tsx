@@ -47,15 +47,12 @@ describe("ConfirmDialog", () => {
       const { dialog } = renderDialog();
 
       // Act
-      const { title, titleId, labelledBy } = dialog;
+      const { title } = dialog;
+      const isNamedDialog = dialog.isDialogNamed("Remove index.js?");
 
       // Assert
       expect(title).toBe("Remove index.js?");
-      expect(titleId).not.toBe("");
-      expect(labelledBy).toBe(titleId);
-      expect(
-        new ConfirmDialogPom({ name: "Remove index.js?" }).isRendered
-      ).toBe(true);
+      expect(isNamedDialog).toBe(true);
     });
 
     it("should explain with its text", () => {

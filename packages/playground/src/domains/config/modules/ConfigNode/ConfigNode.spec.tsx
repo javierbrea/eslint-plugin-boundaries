@@ -74,11 +74,10 @@ describe("ConfigNode", () => {
     const { node } = renderNode();
 
     // Act
-    const { isLandmark, label } = node.pane.frame;
+    const isNamedRegion = node.pane.frame.isRegionNamed(FRAME_LABEL);
 
     // Assert
-    expect(isLandmark).toBe(true);
-    expect(label).toBe(FRAME_LABEL);
+    expect(isNamedRegion).toBe(true);
   });
 
   it("should show the text of the config in the editor", () => {

@@ -33,14 +33,6 @@ class RowActionPom extends Pom {
   }
 
   /**
-   * What the button says to assistive technology.
-   * @returns The `aria-label` attribute, or null when the button has none.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
-  }
-
-  /**
    * The icon of the button.
    * @returns The page object of the icon.
    */
@@ -68,10 +60,7 @@ class ProjectRowPom extends Pom {
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    return this.pickMatch(
-      [this.searchBaseElement.firstElementChild as HTMLElement],
-      "the first element of the item"
-    );
+    return this.findFirstChild("the first element of the item");
   }
 
   /**
@@ -173,25 +162,26 @@ class ProjectRowPom extends Pom {
 
   /**
    * What the badges of the row say to assistive technology.
-   * @returns The `aria-label` of each image of the row, in order; empty when the row has no badge.
+   * @returns The accessible name of each image of the row, in order; empty when the row has no badge.
    */
-  get badgeLabels(): (string | null)[] {
-    const { total } = this.childPom(CountBadgePom);
-
-    return Array.from(
-      { length: total },
-      (_, index) => this.childPom(CountBadgePom, { index }).label
-    );
+  get badgeNames(): string[] {
+    return this.accessibleNames("img");
   }
 
   /**
    * What the buttons of the row say to assistive technology.
-   * @returns The `aria-label` of each button of the row, in order; empty when the row has none.
+   * @returns The accessible name of each button of the row, in order; empty when the row has none.
    */
-  get buttonLabels(): (string | null)[] {
-    return this.scope
-      .queryAllByRole("button")
-      .map((button) => button.getAttribute("aria-label"));
+  get buttonNames(): string[] {
+    return this.accessibleNames("button");
+  }
+
+  /**
+   * The field that renames the node, which replaces its name in the row.
+   * @returns The page object of the field, which is not rendered unless the node is being renamed.
+   */
+  get field(): RenameFieldPom {
+    return this.childPom(RenameFieldPom);
   }
 }
 
@@ -298,9 +288,7 @@ export class ProjectTreeItemPom extends Pom {
    * @returns The page object of the field, which is not rendered unless the node is being renamed.
    */
   get field(): RenameFieldPom {
-    return this.childPom(RenameFieldPom, {
-      name: RenameFieldPom.nameFor(this.path),
-    });
+    return this.row.field;
   }
 
   /**
@@ -348,13 +336,12 @@ export class ProjectTreeItemPom extends Pom {
   }
 
   /**
-   * What names the item, which is its own row and not everything inside it.
-   * @returns The text of the element that the item points to as its label, or an empty string when there is none.
+   * Whether assistive technology reads the item as a tree item with a given name, which is its own row and not everything inside it.
+   * @param accessibleName The accessible name.
+   * @returns True when the item is among the tree items of that name of the element that holds it.
    */
-  get label(): string {
-    const labelId = this.root.getAttribute("aria-labelledby") ?? "";
-
-    return document.getElementById(labelId)?.textContent ?? "";
+  isTreeItemNamed(accessibleName: string): boolean {
+    return this.isNamed("treeitem", accessibleName);
   }
 
   /**

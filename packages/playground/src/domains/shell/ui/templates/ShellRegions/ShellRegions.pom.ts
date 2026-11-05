@@ -50,14 +50,6 @@ class ShellRegionsSeparatorPom extends Pom {
   }
 
   /**
-   * What the separator resizes, which is its accessible name.
-   * @returns The `aria-label` attribute, or null when the separator has none.
-   */
-  get label(): string | null {
-    return this.root.getAttribute("aria-label");
-  }
-
-  /**
    * The orientation of the separator, which is across the regions it resizes.
    * @returns The `aria-orientation` attribute, or null when the separator has none.
    */
@@ -134,8 +126,8 @@ export class ShellRegionsPom extends Pom {
    * What each separator resizes, in order.
    * @returns The accessible name of each separator.
    */
-  get separatorLabels(): (string | null)[] {
-    return this.separators.map(({ label }) => label);
+  get separatorNames(): string[] {
+    return this.accessibleNames("separator");
   }
 
   /**

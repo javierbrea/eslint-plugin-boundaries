@@ -45,7 +45,7 @@ function renderField(refusal?: string): Page {
   );
 
   return {
-    field: new RenameFieldPom({ name: "New name of src/index.js" }),
+    field: new RenameFieldPom(),
     onCommit,
     onCancel,
     onKeyDown,
@@ -61,9 +61,11 @@ describe("RenameField", () => {
 
       // Act
       const { isRendered } = field;
+      const isNamedTextbox = field.isTextboxNamed("New name of src/index.js");
 
       // Assert
       expect(isRendered).toBe(true);
+      expect(isNamedTextbox).toBe(true);
     });
 
     it("should start with the current name selected and the keyboard focus", () => {

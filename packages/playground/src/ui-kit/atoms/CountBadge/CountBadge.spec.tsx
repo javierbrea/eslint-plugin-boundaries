@@ -39,10 +39,10 @@ describe("CountBadge", () => {
     const badge = new CountBadgePom();
 
     // Act
-    const { label } = badge;
+    const isNamedImage = badge.isImageNamed("1 warning");
 
     // Assert
-    expect(label).toBe("1 warning");
+    expect(isNamedImage).toBe(true);
   });
 
   it("should not pass its tone to the DOM", () => {

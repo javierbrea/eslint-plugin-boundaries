@@ -51,8 +51,7 @@ describe("InspectorPane", () => {
     const { pane } = renderPane();
 
     // Assert
-    expect(pane.layout.isLandmark).toBe(true);
-    expect(pane.layout.label).toBe("Inspector");
+    expect(pane.layout.isComplementaryNamed("Inspector")).toBe(true);
   });
 
   describe("nothing in focus", () => {

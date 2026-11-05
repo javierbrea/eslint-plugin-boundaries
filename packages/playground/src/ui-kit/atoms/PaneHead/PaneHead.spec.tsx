@@ -1,9 +1,22 @@
 import { render } from "@testing-library/react";
+import type { ReactNode } from "react";
 
+import { FixturePom } from "@/shared/testing/pom";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 
 import { PaneHead } from "./PaneHead";
 import { PaneHeadPom } from "./PaneHead.pom";
+
+/**
+ * Renders a head as the first child of a host, as a pane places it, so that the page object finds it without the text of its label.
+ * @param head The head.
+ * @returns The page object of the head.
+ */
+function renderInHost(head: ReactNode): PaneHeadPom {
+  render(<div data-testid="pane">{head}</div>);
+
+  return new PaneHeadPom({ parent: new FixturePom({ testId: "pane" }) });
+}
 
 describe("PaneHead", () => {
   it("should set the label in the small uppercase mono text of a pane", () => {
@@ -58,8 +71,7 @@ describe("PaneHead", () => {
 
   it("should show the label", () => {
     // Arrange
-    render(<PaneHead label="Project" />);
-    const head = new PaneHeadPom({ name: "Project" });
+    const head = renderInHost(<PaneHead label="Project" />);
 
     // Act
     const { label } = head;
@@ -200,7 +212,7 @@ describe("PaneHead", () => {
 
   it("should place the label, the path, the end slot and the hint in that order", () => {
     // Arrange
-    render(
+    const head = renderInHost(
       <PaneHead
         label="Config"
         path="eslint.config.js"
@@ -208,7 +220,6 @@ describe("PaneHead", () => {
         hint="JSON5"
       />
     );
-    const head = new PaneHeadPom({ name: "Config" });
 
     // Act
     const { itemTexts } = head;
@@ -224,8 +235,7 @@ describe("PaneHead", () => {
 
   it("should keep the hint at the end when there is no end slot", () => {
     // Arrange
-    render(<PaneHead label="Project" hint="A hint" />);
-    const head = new PaneHeadPom({ name: "Project" });
+    const head = renderInHost(<PaneHead label="Project" hint="A hint" />);
 
     // Act
     const { itemTexts } = head;

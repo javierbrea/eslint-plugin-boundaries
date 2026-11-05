@@ -67,11 +67,14 @@ describe("DeleteFolderDialog", () => {
       const { dialog } = renderDialog({ path: "src/components", files: 2 });
 
       // Act
-      const { title, titleId, labelledBy } = dialog.dialog;
+      const { title } = dialog.dialog;
+      const isNamedDialog = dialog.dialog.isDialogNamed(
+        "Delete src/components/ and its 2 files?"
+      );
 
       // Assert
       expect(title).toBe("Delete src/components/ and its 2 files?");
-      expect(labelledBy).toBe(titleId);
+      expect(isNamedDialog).toBe(true);
     });
   });
 

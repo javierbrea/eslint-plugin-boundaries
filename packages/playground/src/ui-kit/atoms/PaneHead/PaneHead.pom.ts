@@ -33,13 +33,17 @@ class HintPom extends Pom {
   }
 }
 
-/** Page object of the head of a pane. It has no role or test id: it finds the label of the head by the `name` option, which is required, and takes the parent of the label as its root. */
+/** Page object of the head of a pane. It has no role or test id: it finds the head as the first child of its parent, which is where a pane puts it, or, with the `name` option, by the text of its label, and then takes the parent of the label as its root. */
 export class PaneHeadPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    const labelName = this.requireName();
+    const { name: labelName } = this.options;
+
+    if (labelName === undefined) {
+      return this.findFirstChild("the first child of its parent");
+    }
 
     return this.pickMatch(
       this.searchBase

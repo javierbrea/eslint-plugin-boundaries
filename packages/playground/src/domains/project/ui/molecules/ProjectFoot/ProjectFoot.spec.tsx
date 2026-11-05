@@ -43,11 +43,11 @@ describe("ProjectFoot", () => {
       const { foot } = renderFoot();
 
       // Act
-      const { buttonTexts, buttonLabels } = foot;
+      const { buttonTexts, buttonNames } = foot;
 
       // Assert
       expect(buttonTexts).toEqual(["File", "Folder", "Tree", "Text"]);
-      expect(buttonLabels).toEqual(["Add file", "Add folder", null, null]);
+      expect(buttonNames).toEqual(["Add file", "Add folder", "Tree", "Text"]);
     });
 
     it("should offer only the toggle of the view when nodes cannot be added", () => {
@@ -55,11 +55,11 @@ describe("ProjectFoot", () => {
       const { foot } = renderFoot({ editable: false });
 
       // Act
-      const { buttonTexts, buttonLabels } = foot;
+      const { buttonTexts, buttonNames } = foot;
 
       // Assert
       expect(buttonTexts).toEqual(["Tree", "Text"]);
-      expect(buttonLabels).toEqual([null, null]);
+      expect(buttonNames).toEqual(["Tree", "Text"]);
     });
   });
 
@@ -95,10 +95,10 @@ describe("ProjectFoot", () => {
       const { foot } = renderFoot();
 
       // Act
-      const { viewLabel } = foot;
+      const { viewName } = foot;
 
       // Assert
-      expect(viewLabel).toBe("Project view");
+      expect(viewName).toBe("Project view");
     });
 
     it("should offer the tree and the text, with the current view pressed", () => {

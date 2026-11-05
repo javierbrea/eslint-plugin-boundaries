@@ -18,7 +18,7 @@ function renderFrame(testId?: string): PaneFramePom {
     </PaneFrame>
   );
 
-  return new PaneFramePom({ name: LABEL });
+  return new PaneFramePom();
 }
 
 describe("PaneFrame", () => {
@@ -39,11 +39,10 @@ describe("PaneFrame", () => {
     const frame = renderFrame();
 
     // Act
-    const { isLandmark, label } = frame;
+    const isNamedRegion = frame.isRegionNamed(LABEL);
 
     // Assert
-    expect(isLandmark).toBe(true);
-    expect(label).toBe(LABEL);
+    expect(isNamedRegion).toBe(true);
   });
 
   it("should not be found by the label of another landmark", () => {

@@ -43,11 +43,10 @@ describe("EmptyNodePane", () => {
     const { pane } = renderPane();
 
     // Act
-    const { isLandmark, label } = pane.node.frame;
+    const isNamedRegion = pane.node.frame.isRegionNamed(FRAME_LABEL);
 
     // Assert
-    expect(isLandmark).toBe(true);
-    expect(label).toBe(FRAME_LABEL);
+    expect(isNamedRegion).toBe(true);
   });
 
   it("should put the config in focus when the user chooses to open it", () => {

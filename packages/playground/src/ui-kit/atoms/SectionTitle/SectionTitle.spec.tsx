@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
 
+import { FixturePom } from "@/shared/testing/pom";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 
 import { SectionTitle } from "./SectionTitle";
@@ -8,9 +9,13 @@ import { SectionTitlePom } from "./SectionTitle.pom";
 describe("SectionTitle", () => {
   it("should show the path or the name it describes", () => {
     // Arrange
-    render(<SectionTitle>src/modules/checkout/index.js</SectionTitle>);
+    render(
+      <div data-testid="section">
+        <SectionTitle>src/modules/checkout/index.js</SectionTitle>
+      </div>
+    );
     const title = new SectionTitlePom({
-      name: "src/modules/checkout/index.js",
+      parent: new FixturePom({ testId: "section" }),
     });
 
     // Act
