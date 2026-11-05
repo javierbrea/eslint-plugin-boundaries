@@ -1,54 +1,23 @@
 import { act, renderHook } from "@testing-library/react";
-import type { ReactNode } from "react";
 
-import type { ProjectCapabilities, Sketch } from "@/contract";
-
+import type { Sketch } from "@/contract";
 import {
-  ALL_CAPABILITIES,
-  NO_CAPABILITIES,
-  renderInWorkbench,
-} from "./__fixtures__/RenderInWorkbench";
-import {
-  useAddNode,
-  useCancelRename,
-  useCapabilities,
-  useChangeConfig,
-  useClosedFolders,
-  useConfig,
-  useConfigEditorSnapshot,
-  useConfigProblems,
+  EVALUATION_DELAY,
   useEvaluation,
   useFocus,
-  useOpen,
-  usePickedFolder,
+  useView,
+} from "@/domains/session/data/store";
+import type { SessionStore } from "@/domains/session/data/store";
+import { renderInSession } from "@/domains/session/data/store/store.mock";
+
+import {
   useProblemCounts,
   useProblemList,
   useProblemSummary,
   useProblemTabs,
-  useProblemsCollapsed,
-  useReadText,
-  useRemoveNode,
-  useRenameNode,
-  useRenaming,
-  useReveal,
-  useSelectItem,
-  useSelectTab,
-  useSetProblemsCollapsed,
-  useSetTextDraft,
-  useSetView,
-  useSettleText,
   useShownTab,
-  useStartRename,
-  useTextDraft,
   useTextProblems,
-  useToggleFolder,
-  useTree,
-  useView,
-  useWorkbenchSelector,
-  useWorkbenchStore,
 } from "./Hooks";
-import { EVALUATION_DELAY } from "./Store";
-import type { WorkbenchStore } from "./Store.types";
 
 const SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -72,12 +41,10 @@ const INVALID_RULES_CONFIG =
 // A line that text mode cannot read: dependencies are not written in it yet
 const UNREADABLE_LINE = "  import { a } from './b'";
 
-const RANGE = { from: 1, to: 2, line: 1, column: 2 };
-
-/** What {@link renderHookInWorkbench} returns. */
+/** What {@link renderHookInSession} returns. */
 type HookRender<Result> = {
   /** The store that the provider created. */
-  readonly store: WorkbenchStore;
+  readonly store: SessionStore;
   /** What the hook returned in each render, in order. */
   readonly results: Result[];
   /** What the hook returned in the last render. */
@@ -90,7 +57,7 @@ type HookRender<Result> = {
  * @param sketch The sketch the store starts from.
  * @returns The store and what the hook returned.
  */
-function renderHookInWorkbench<Result>(
+function renderHookInSession<Result>(
   useHook: () => Result,
   sketch: Sketch = SKETCH
 ): HookRender<Result> {
@@ -105,7 +72,7 @@ function renderHookInWorkbench<Result>(
     return null;
   }
 
-  const { store } = renderInWorkbench(<Probe />, { sketch });
+  const { store } = renderInSession(<Probe />, { sketch });
 
   return {
     store,
@@ -125,7 +92,7 @@ function waitForEvaluation(): void {
   act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
 }
 
-describe("Hooks", () => {
+describe("problem hooks", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -145,316 +112,28 @@ describe("Hooks", () => {
     });
 
     it.each<[string, () => unknown]>([
-      ["useWorkbenchStore", useWorkbenchStore],
-      [
-        "useWorkbenchSelector",
-        () => useWorkbenchSelector((state) => state.view),
-      ],
-      ["useCapabilities", useCapabilities],
-      ["useConfigEditorSnapshot", useConfigEditorSnapshot],
-      ["useTree", useTree],
-      ["useConfig", useConfig],
-      ["useEvaluation", useEvaluation],
-      ["useConfigProblems", useConfigProblems],
-      ["useFocus", useFocus],
-      ["useView", useView],
-      ["useTextDraft", useTextDraft],
-      ["useReveal", useReveal],
-      ["useProblemsCollapsed", useProblemsCollapsed],
-      ["usePickedFolder", usePickedFolder],
-      ["useClosedFolders", useClosedFolders],
-      ["useRenaming", useRenaming],
       ["useTextProblems", useTextProblems],
       ["useProblemSummary", useProblemSummary],
       ["useProblemCounts", useProblemCounts],
       ["useProblemTabs", useProblemTabs],
       ["useShownTab", useShownTab],
       ["useProblemList", useProblemList],
-      ["useOpen", useOpen],
-      ["useSelectItem", useSelectItem],
-      ["useToggleFolder", useToggleFolder],
-      ["useChangeConfig", useChangeConfig],
-      ["useAddNode", useAddNode],
-      ["useStartRename", useStartRename],
-      ["useRenameNode", useRenameNode],
-      ["useCancelRename", useCancelRename],
-      ["useRemoveNode", useRemoveNode],
-      ["useSetView", useSetView],
-      ["useSetTextDraft", useSetTextDraft],
-      ["useReadText", useReadText],
-      ["useSettleText", useSettleText],
-      ["useSelectTab", useSelectTab],
-      ["useSetProblemsCollapsed", useSetProblemsCollapsed],
     ])(
-      "should throw when %s is used in a pane outside WorkbenchProvider",
+      "should throw when %s is used in a pane outside SessionProvider",
       (_name, useHook) => {
         // Act
         const render = (): unknown => renderHook(useHook);
 
         // Assert
-        expect(render).toThrow("outside WorkbenchProvider");
+        expect(render).toThrow("outside SessionProvider");
       }
     );
-  });
-
-  describe("useWorkbenchStore", () => {
-    it("should give the store of the provider", () => {
-      // Act
-      const { store, result } = renderHookInWorkbench(useWorkbenchStore);
-
-      // Assert
-      expect(result.current).toBe(store);
-    });
-  });
-
-  describe("useWorkbenchSelector", () => {
-    it("should read the slice the selector picks", () => {
-      // Act
-      const { result } = renderHookInWorkbench(() =>
-        useWorkbenchSelector((state) => state.sketch.tree.length)
-      );
-
-      // Assert
-      expect(result.current).toBe(2);
-    });
-
-    it("should render again when the slice changes", () => {
-      // Arrange
-      const { store, result } = renderHookInWorkbench(() =>
-        useWorkbenchSelector((state) => state.sketch.tree.length)
-      );
-
-      // Act
-      act(() => store.addNode("file"));
-
-      // Assert
-      expect(result.current).toBe(3);
-    });
-
-    it("should not render again when the slice stays", () => {
-      // Arrange
-      const { store, results } = renderHookInWorkbench(() =>
-        useWorkbenchSelector((state) => state.sketch.tree.length)
-      );
-
-      // Act
-      act(() => store.setView("text"));
-
-      // Assert
-      expect(results).toHaveLength(1);
-    });
-  });
-
-  describe("useCapabilities", () => {
-    it("should give what the host allows", () => {
-      // Arrange
-      const { result } = renderHookInWorkbench(useCapabilities);
-
-      // Assert
-      expect(result.current).toBe(ALL_CAPABILITIES);
-    });
-
-    it("should give the capabilities of the provider it is in", () => {
-      // Arrange
-      const capabilities: ProjectCapabilities[] = [];
-
-      /**
-       * Remembers the capabilities it reads.
-       * @returns Nothing to render.
-       */
-      function Probe(): ReactNode {
-        capabilities.push(useCapabilities());
-        return null;
-      }
-
-      // Act
-      renderInWorkbench(<Probe />, {
-        sketch: SKETCH,
-        capabilities: NO_CAPABILITIES,
-      });
-
-      // Assert
-      expect(capabilities[0]).toBe(NO_CAPABILITIES);
-    });
-  });
-
-  describe("useConfigEditorSnapshot", () => {
-    it("should give a ref of the instance that holds nothing at first", () => {
-      // Act
-      const { result } = renderHookInWorkbench(useConfigEditorSnapshot);
-
-      // Assert
-      expect(result.current.current).toBeUndefined();
-    });
-
-    it("should give the same ref after the store changes", () => {
-      // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
-        snapshot: useConfigEditorSnapshot(),
-        focus: useFocus(),
-      }));
-
-      // Act
-      act(() => store.open({ kind: "config" }));
-
-      // Assert
-      expect(results).toHaveLength(2);
-      expect(results[1].snapshot).toBe(results[0].snapshot);
-    });
-  });
-
-  describe("slices of the state", () => {
-    it.each<
-      [string, () => unknown, (store: WorkbenchStore) => void, unknown, unknown]
-    >([
-      [
-        "useConfig",
-        useConfig,
-        (store) => store.changeConfig("{}"),
-        SKETCH.config,
-        "{}",
-      ],
-      [
-        "useFocus",
-        useFocus,
-        (store) => store.open({ kind: "config" }),
-        { kind: "none" },
-        { kind: "config" },
-      ],
-      ["useView", useView, (store) => store.setView("text"), "tree", "text"],
-      [
-        "useTextDraft",
-        useTextDraft,
-        (store) => store.setTextDraft("main.js\n"),
-        undefined,
-        "main.js\n",
-      ],
-      [
-        "useReveal",
-        useReveal,
-        (store) => store.open({ kind: "config", range: RANGE }),
-        undefined,
-        { range: RANGE, key: 1 },
-      ],
-      [
-        "useProblemsCollapsed",
-        useProblemsCollapsed,
-        (store) => store.setProblemsCollapsed(true),
-        false,
-        true,
-      ],
-      [
-        "usePickedFolder",
-        usePickedFolder,
-        (store) => store.selectItem("src"),
-        undefined,
-        "src",
-      ],
-      [
-        "useClosedFolders",
-        () => Array.from(useClosedFolders()),
-        (store) => store.toggleFolder("src", false),
-        [],
-        ["src"],
-      ],
-      [
-        "useRenaming",
-        useRenaming,
-        (store) => store.startRename("src/index.js"),
-        undefined,
-        "src/index.js",
-      ],
-    ])(
-      "should read the slice of %s and render again when it changes",
-      (_name, useHook, change, initial, changed) => {
-        // Arrange
-        const { store, result, results } = renderHookInWorkbench(useHook);
-        const first = result.current;
-
-        // Act
-        act(() => change(store));
-
-        // Assert
-        expect(first).toEqual(initial);
-        expect(result.current).toEqual(changed);
-        expect(results).toHaveLength(2);
-      }
-    );
-
-    it("should read the tree and render again when it changes", () => {
-      // Arrange
-      const { store, result } = renderHookInWorkbench(useTree);
-
-      // Act
-      act(() => store.removeNode("src/helpers"));
-
-      // Assert
-      expect(result.current).toEqual([{ path: "src/index.js", kind: "file" }]);
-    });
-
-    it("should give the same tree while only the config changes", () => {
-      // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
-        tree: useTree(),
-        config: useConfig(),
-      }));
-
-      // Act
-      act(() => store.changeConfig("{}"));
-
-      // Assert
-      expect(results).toHaveLength(2);
-      expect(results[1].config).toBe("{}");
-      expect(results[1].tree).toBe(results[0].tree);
-    });
-
-    it("should read the evaluation, which follows the config after the delay", () => {
-      // Arrange
-      const { store, result } = renderHookInWorkbench(useEvaluation);
-      const first = result.current;
-
-      // Act
-      act(() => store.changeConfig("{}"));
-      const duringDelay = result.current;
-
-      waitForEvaluation();
-
-      // Assert
-      expect(first.sketch).toBe(SKETCH);
-      expect(duringDelay).toBe(first);
-      expect(result.current.sketch.config).toBe("{}");
-    });
-
-    it("should read the problems of the config, which follow the evaluation", () => {
-      // Arrange
-      const { store, result } = renderHookInWorkbench(useConfigProblems);
-      const first = result.current;
-
-      // Act
-      act(() => store.changeConfig(BROKEN_CONFIG));
-      waitForEvaluation();
-
-      // Assert
-      expect(first.map(({ level }) => level)).toEqual(["warning"]);
-      expect(result.current.map(({ level }) => level)).toEqual(["error"]);
-    });
-
-    it("should not render again when another slice changes", () => {
-      // Arrange
-      const { store, results } = renderHookInWorkbench(useView);
-
-      // Act
-      act(() => store.open({ kind: "config" }));
-
-      // Assert
-      expect(results).toHaveLength(1);
-    });
   });
 
   describe("useTextProblems", () => {
     it("should give no problems without a draft", () => {
       // Act
-      const { result } = renderHookInWorkbench(useTextProblems);
+      const { result } = renderHookInSession(useTextProblems);
 
       // Assert
       expect(result.current).toEqual([]);
@@ -462,7 +141,7 @@ describe("Hooks", () => {
 
     it("should give the lines of the draft that cannot be read", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useTextProblems);
+      const { store, result } = renderHookInSession(useTextProblems);
 
       act(() => store.setView("text"));
 
@@ -481,7 +160,7 @@ describe("Hooks", () => {
 
     it("should give the same array while the draft does not change", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         problems: useTextProblems(),
         focus: useFocus(),
       }));
@@ -501,7 +180,7 @@ describe("Hooks", () => {
 
     it("should give the same empty array each time there is no draft", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         problems: useTextProblems(),
         focus: useFocus(),
       }));
@@ -515,7 +194,7 @@ describe("Hooks", () => {
 
     it("should give no problems again when the draft is dropped", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useTextProblems);
+      const { store, result } = renderHookInSession(useTextProblems);
 
       act(() => store.setView("text"));
       act(() => store.setTextDraft(`${UNREADABLE_LINE}\n`));
@@ -531,7 +210,7 @@ describe("Hooks", () => {
   describe("useProblemSummary", () => {
     it("should count the problems of the config", () => {
       // Act
-      const { result } = renderHookInWorkbench(useProblemSummary);
+      const { result } = renderHookInSession(useProblemSummary);
 
       // Assert
       expect(result.current).toEqual({
@@ -545,7 +224,7 @@ describe("Hooks", () => {
 
     it("should count the lines that cannot be read as errors, apart from the config", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemSummary);
+      const { store, result } = renderHookInSession(useProblemSummary);
 
       act(() => store.setView("text"));
 
@@ -564,7 +243,7 @@ describe("Hooks", () => {
 
     it("should follow the evaluation of the config", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemSummary);
+      const { store, result } = renderHookInSession(useProblemSummary);
 
       // Act
       act(() => store.changeConfig(BROKEN_CONFIG));
@@ -582,7 +261,7 @@ describe("Hooks", () => {
 
     it("should give the same object while the problems do not change", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         summary: useProblemSummary(),
         focus: useFocus(),
       }));
@@ -598,7 +277,7 @@ describe("Hooks", () => {
   describe("useProblemCounts", () => {
     it("should count the problems of the config and none of the paths yet", () => {
       // Act
-      const { result } = renderHookInWorkbench(useProblemCounts);
+      const { result } = renderHookInSession(useProblemCounts);
 
       // Assert
       expect(result.current.config).toBe(1);
@@ -608,7 +287,7 @@ describe("Hooks", () => {
 
     it("should give the same object after an evaluation of the config with the same counts", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         counts: useProblemCounts(),
         summary: useProblemSummary(),
         evaluation: useEvaluation(),
@@ -628,7 +307,7 @@ describe("Hooks", () => {
 
     it("should give a new object when the config has an error", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(useProblemCounts);
+      const { store, results } = renderHookInSession(useProblemCounts);
 
       // Act
       act(() => store.changeConfig(BROKEN_CONFIG));
@@ -645,7 +324,7 @@ describe("Hooks", () => {
   describe("useProblemTabs", () => {
     it("should give the tab of the sketch when nothing is in focus", () => {
       // Act
-      const { result } = renderHookInWorkbench(useProblemTabs);
+      const { result } = renderHookInSession(useProblemTabs);
 
       // Assert
       expect(result.current).toEqual([
@@ -655,7 +334,7 @@ describe("Hooks", () => {
 
     it("should add the tab of the config when it is in focus", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemTabs);
+      const { store, result } = renderHookInSession(useProblemTabs);
 
       // Act
       act(() => store.open({ kind: "config" }));
@@ -675,7 +354,7 @@ describe("Hooks", () => {
 
     it("should add the tab of the file in focus", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemTabs);
+      const { store, result } = renderHookInSession(useProblemTabs);
 
       // Act
       act(() => store.open({ kind: "file", path: "src/helpers/format.js" }));
@@ -689,7 +368,7 @@ describe("Hooks", () => {
 
     it("should give the same array while the focus and the problems do not change", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         tabs: useProblemTabs(),
         view: useView(),
       }));
@@ -706,7 +385,7 @@ describe("Hooks", () => {
   describe("useShownTab", () => {
     it("should be the sketch's when nothing is in focus", () => {
       // Act
-      const { result } = renderHookInWorkbench(useShownTab);
+      const { result } = renderHookInSession(useShownTab);
 
       // Assert
       expect(result.current).toBe("sketch");
@@ -714,7 +393,7 @@ describe("Hooks", () => {
 
     it("should be the sketch's when nothing is in focus, whatever tab was selected", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useShownTab);
+      const { store, result } = renderHookInSession(useShownTab);
 
       // Act
       act(() => store.selectTab("node"));
@@ -725,7 +404,7 @@ describe("Hooks", () => {
 
     it("should be the tab of the node when something is opened", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useShownTab);
+      const { store, result } = renderHookInSession(useShownTab);
 
       // Act
       act(() => store.open({ kind: "config" }));
@@ -736,7 +415,7 @@ describe("Hooks", () => {
 
     it("should be the tab that the user selects while something is in focus", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useShownTab);
+      const { store, result } = renderHookInSession(useShownTab);
 
       act(() => store.open({ kind: "file", path: "src/index.js" }));
 
@@ -751,7 +430,7 @@ describe("Hooks", () => {
   describe("useProblemList", () => {
     it("should list the problems of the config under the sketch's tab", () => {
       // Act
-      const { result } = renderHookInWorkbench(useProblemList);
+      const { result } = renderHookInSession(useProblemList);
 
       // Assert
       expect(result.current.items.map(({ key }) => key)).toEqual(["config:0"]);
@@ -761,7 +440,7 @@ describe("Hooks", () => {
 
     it("should add the lines of text mode that cannot be read to the sketch's", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemList);
+      const { store, result } = renderHookInSession(useProblemList);
 
       act(() => store.setView("text"));
 
@@ -777,7 +456,7 @@ describe("Hooks", () => {
 
     it("should list the problems of the config under the config's tab, without the lines of text", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemList);
+      const { store, result } = renderHookInSession(useProblemList);
 
       act(() => store.setView("text"));
       act(() => store.setTextDraft(`${UNREADABLE_LINE}\n`));
@@ -792,7 +471,7 @@ describe("Hooks", () => {
 
     it("should list nothing under the tab of a file", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemList);
+      const { store, result } = renderHookInSession(useProblemList);
 
       // Act
       act(() => store.open({ kind: "file", path: "src/index.js" }));
@@ -807,7 +486,7 @@ describe("Hooks", () => {
 
     it("should list the problems of the sketch under the sketch's tab although a file is in focus", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemList);
+      const { store, result } = renderHookInSession(useProblemList);
 
       act(() => store.open({ kind: "file", path: "src/index.js" }));
 
@@ -821,7 +500,7 @@ describe("Hooks", () => {
 
     it("should say that the rule options are invalid under the tabs of the sketch and of the config", () => {
       // Arrange
-      const { store, result } = renderHookInWorkbench(useProblemList);
+      const { store, result } = renderHookInSession(useProblemList);
 
       act(() => store.changeConfig(INVALID_RULES_CONFIG));
       waitForEvaluation();
@@ -838,7 +517,7 @@ describe("Hooks", () => {
 
     it("should give the same content while its inputs do not change", () => {
       // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
+      const { store, results } = renderHookInSession(() => ({
         list: useProblemList(),
         view: useView(),
       }));
@@ -849,68 +528,6 @@ describe("Hooks", () => {
       // Assert
       expect(results).toHaveLength(2);
       expect(results[1].list).toBe(results[0].list);
-    });
-  });
-
-  describe("commands", () => {
-    it.each<[string, () => unknown, (store: WorkbenchStore) => unknown]>([
-      ["useOpen", useOpen, (store) => store.open],
-      ["useSelectItem", useSelectItem, (store) => store.selectItem],
-      ["useToggleFolder", useToggleFolder, (store) => store.toggleFolder],
-      ["useChangeConfig", useChangeConfig, (store) => store.changeConfig],
-      ["useAddNode", useAddNode, (store) => store.addNode],
-      ["useStartRename", useStartRename, (store) => store.startRename],
-      ["useRenameNode", useRenameNode, (store) => store.renameNode],
-      ["useCancelRename", useCancelRename, (store) => store.cancelRename],
-      ["useRemoveNode", useRemoveNode, (store) => store.removeNode],
-      ["useSetView", useSetView, (store) => store.setView],
-      ["useSetTextDraft", useSetTextDraft, (store) => store.setTextDraft],
-      ["useReadText", useReadText, (store) => store.readText],
-      ["useSettleText", useSettleText, (store) => store.settleText],
-      ["useSelectTab", useSelectTab, (store) => store.selectTab],
-      [
-        "useSetProblemsCollapsed",
-        useSetProblemsCollapsed,
-        (store) => store.setProblemsCollapsed,
-      ],
-    ])(
-      "should give the method of the store with %s",
-      (_name, useHook, getMethod) => {
-        // Act
-        const { store, result } = renderHookInWorkbench(useHook);
-
-        // Assert
-        expect(result.current).toBe(getMethod(store));
-      }
-    );
-
-    it("should give the same method after the store changes, so that it can be a dependency", () => {
-      // Arrange
-      const { store, results } = renderHookInWorkbench(() => ({
-        open: useOpen(),
-        focus: useFocus(),
-      }));
-
-      // Act
-      act(() => store.open({ kind: "config" }));
-
-      // Assert
-      expect(results[1].open).toBe(results[0].open);
-    });
-
-    it("should change the state when the method is called", () => {
-      // Arrange
-      const { store, result } = renderHookInWorkbench(() => ({
-        setView: useSetView(),
-        view: useView(),
-      }));
-
-      // Act
-      act(() => result.current.setView("text"));
-
-      // Assert
-      expect(store.getState().view).toBe("text");
-      expect(result.current.view).toBe("text");
     });
   });
 });

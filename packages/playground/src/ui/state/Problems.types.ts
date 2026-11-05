@@ -1,8 +1,7 @@
 import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
+import type { Target } from "@/domains/session/helpers/focus";
 import type { IconName } from "@/ui-kit/atoms/Icon";
 import type { Tone } from "@/ui-kit/helpers/tone";
-
-import type { Target } from "./Focus.types";
 
 /** A tab of the problems panel: one level of what is in focus. */
 export type ProblemsTab<Id extends string = string> = {

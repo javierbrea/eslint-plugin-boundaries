@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
-import type { Target } from "@/ui/state";
+import type { Target } from "@/domains/session/helpers/focus";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";

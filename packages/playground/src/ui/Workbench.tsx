@@ -1,19 +1,21 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
+import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
+import {
+  SessionProvider,
+  useProblemsCollapsed,
+  useSessionSelector,
+  useSetProblemsCollapsed,
+  useView,
+} from "@/domains/session/data/store";
+
 import { InspectorPane } from "./inspector";
 import { Regions, TopBar } from "./layout";
 import { NodePane } from "./node";
 import { ProblemsPane } from "./problems";
 import { ProjectPane } from "./project";
-import {
-  WorkbenchProvider,
-  useProblemSummary,
-  useProblemsCollapsed,
-  useSetProblemsCollapsed,
-  useView,
-  useWorkbenchSelector,
-} from "./state";
+import { useProblemSummary } from "./state";
 import type { WorkbenchProps } from "./Workbench.types";
 
 const Frame = styled("section")({
@@ -35,7 +37,7 @@ const Layout = styled("div")({
  * @returns The bar.
  */
 function WorkbenchTopBar(): ReactNode {
-  const files = useWorkbenchSelector((state) => state.evaluation.files.size);
+  const files = useSessionSelector((state) => state.evaluation.files.size);
   const { total, tone, configHasErrors } = useProblemSummary();
 
   return (
@@ -71,7 +73,7 @@ function WorkbenchRegions(): ReactNode {
 }
 
 /**
- * The workbench: the whole playground once a sketch is loaded. It creates the store of the instance and lays out the project, the node in focus, the inspector and the problems panel, which read the store through the hooks of `ui/state`.
+ * The workbench: the whole playground once a sketch is loaded. It creates the store of the instance and lays out the project, the node in focus, the inspector and the problems panel, which read the store through the hooks of the session.
  * @param props Workbench props.
  * @param props.initialSketch The sketch to start from.
  * @param props.capabilities What the user can change in the project.
@@ -84,17 +86,19 @@ export function Workbench({
   onSketchChange,
 }: Readonly<WorkbenchProps>): ReactNode {
   return (
-    <WorkbenchProvider
+    <SessionProvider
       initialSketch={initialSketch}
       capabilities={capabilities}
       onSketchChange={onSketchChange}
     >
-      <Frame aria-label="Playground">
-        <Layout>
-          <WorkbenchTopBar />
-          <WorkbenchRegions />
-        </Layout>
-      </Frame>
-    </WorkbenchProvider>
+      <ConfigEditorSnapshotProvider>
+        <Frame aria-label="Playground">
+          <Layout>
+            <WorkbenchTopBar />
+            <WorkbenchRegions />
+          </Layout>
+        </Frame>
+      </ConfigEditorSnapshotProvider>
+    </SessionProvider>
   );
 }

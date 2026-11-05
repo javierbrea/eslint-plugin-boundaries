@@ -5,13 +5,14 @@ import type {
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
 import { toText } from "@/domains/project/helpers/sketch";
+import type { Focus } from "@/domains/session/helpers/focus";
 
-import type { Focus } from "./Focus.types";
+import type { SessionState } from "./sessionState.types";
 import {
   addNode,
   cancelRename,
   changeConfig,
-  createWorkbenchState,
+  createSessionState,
   openTarget,
   readText,
   removeNode,
@@ -25,9 +26,8 @@ import {
   settleText,
   startRename,
   toggleFolder,
-} from "./Transitions";
-import type { RenameTransition } from "./Transitions.types";
-import type { WorkbenchState } from "./WorkbenchState.types";
+} from "./transitions";
+import type { RenameTransition } from "./transitions.types";
 
 // In the order of the tree: what an edit returns
 const SKETCH: Sketch = {
@@ -52,12 +52,12 @@ const INDEX_FOCUS: Focus = { kind: "file", path: "src/index.js" };
 const FORMAT_FOCUS: Focus = { kind: "file", path: "src/helpers/format.js" };
 
 /**
- * Creates a state of the workbench for the sketch of the spec.
+ * Creates a session state for the sketch of the spec.
  * @param overrides What differs from the first state.
  * @returns The state.
  */
-function createState(overrides: Partial<WorkbenchState> = {}): WorkbenchState {
-  return { ...createWorkbenchState(SKETCH, EVALUATION), ...overrides };
+function createState(overrides: Partial<SessionState> = {}): SessionState {
+  return { ...createSessionState(SKETCH, EVALUATION), ...overrides };
 }
 
 /**
@@ -66,7 +66,7 @@ function createState(overrides: Partial<WorkbenchState> = {}): WorkbenchState {
  * @returns The state after the rename and the new path of the node.
  */
 function getRenamed(result: RenameTransition): {
-  state: WorkbenchState;
+  state: SessionState;
   path: string;
 } {
   if ("error" in result) {
@@ -80,15 +80,15 @@ function getRenamed(result: RenameTransition): {
  * @param state The state.
  * @returns The paths of the nodes of its sketch, in order.
  */
-function getPaths(state: WorkbenchState): string[] {
+function getPaths(state: SessionState): string[] {
   return state.sketch.tree.map((node) => node.path);
 }
 
 describe("Transitions", () => {
-  describe("createWorkbenchState", () => {
+  describe("createSessionState", () => {
     it("should start with nothing in focus, the tree with every folder open and the sketch tab", () => {
       // Act
-      const state = createWorkbenchState(SKETCH, EVALUATION);
+      const state = createSessionState(SKETCH, EVALUATION);
 
       // Assert
       expect(state).toEqual({
@@ -109,7 +109,7 @@ describe("Transitions", () => {
 
     it("should keep the sketch and the evaluation it is given", () => {
       // Act
-      const state = createWorkbenchState(SKETCH, EVALUATION);
+      const state = createSessionState(SKETCH, EVALUATION);
 
       // Assert
       expect(state.sketch).toBe(SKETCH);

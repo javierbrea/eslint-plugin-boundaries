@@ -5,13 +5,14 @@ import { EditorView } from "@codemirror/view";
 import { act, fireEvent, screen as view } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
+import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import {
   NO_CAPABILITIES,
-  renderInWorkbench,
-} from "@/ui/state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
+  renderInSession,
+} from "@/domains/session/data/store/store.mock";
+import type { SessionRender } from "@/domains/session/data/store/store.mock";
 
 import { NodePane } from "./NodePane";
 
@@ -29,16 +30,21 @@ const WITH_ERROR: Sketch = {
 };
 
 /**
- * Renders the node pane in a workbench.
+ * Renders the node pane in a session, with the snapshot of the config editor that the workbench provides.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change; everything when it is unset.
  * @returns The render, the store and the spy of the sketches.
  */
 function renderPane(
   sketch: Sketch = QUICK_START,
-  capabilities?: Parameters<typeof renderInWorkbench>[1]["capabilities"]
-): WorkbenchRender {
-  return renderInWorkbench(<NodePane />, { sketch, capabilities });
+  capabilities?: Parameters<typeof renderInSession>[1]["capabilities"]
+): SessionRender {
+  return renderInSession(
+    <ConfigEditorSnapshotProvider>
+      <NodePane />
+    </ConfigEditorSnapshotProvider>,
+    { sketch, capabilities }
+  );
 }
 
 /**

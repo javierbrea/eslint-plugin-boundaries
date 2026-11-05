@@ -16,14 +16,15 @@ import {
   setConfig,
 } from "@/domains/project/helpers/sketch";
 import type { EditResult } from "@/domains/project/helpers/sketch";
-
-import type { Focus, Target } from "./Focus.types";
-import type { RenameTransition } from "./Transitions.types";
 import type {
+  Focus,
   ProblemsTabId,
   ProjectView,
-  WorkbenchState,
-} from "./WorkbenchState.types";
+  Target,
+} from "@/domains/session/helpers/focus";
+
+import type { SessionState } from "./sessionState.types";
+import type { RenameTransition } from "./transitions.types";
 
 const NO_FOCUS: Focus = { kind: "none" };
 
@@ -41,10 +42,10 @@ const NEW_NAMES = { file: "new-file.js", folder: "new-folder" } as const;
  * @param evaluation What the engine says about it.
  * @returns The first state.
  */
-export function createWorkbenchState(
+export function createSessionState(
   sketch: Sketch,
   evaluation: Evaluation
-): WorkbenchState {
+): SessionState {
   return {
     sketch,
     evaluation,
@@ -91,7 +92,7 @@ function openAncestors(
  * @param state The state before.
  * @returns The state after.
  */
-function closeFocus(state: WorkbenchState): WorkbenchState {
+function closeFocus(state: SessionState): SessionState {
   return { ...state, focus: NO_FOCUS, tab: "sketch", reveal: undefined };
 }
 
@@ -101,7 +102,7 @@ function closeFocus(state: WorkbenchState): WorkbenchState {
  * @param sketch The new sketch.
  * @returns The state after.
  */
-function replaceSketch(state: WorkbenchState, sketch: Sketch): WorkbenchState {
+function replaceSketch(state: SessionState, sketch: Sketch): SessionState {
   const { focus: openNode } = state;
 
   return openNode.kind === "file" && !getFiles(sketch).includes(openNode.path)
@@ -117,10 +118,10 @@ function replaceSketch(state: WorkbenchState, sketch: Sketch): WorkbenchState {
  * @returns The state after the edit.
  */
 function applyEdit(
-  state: WorkbenchState,
+  state: SessionState,
   result: EditResult,
-  apply: (sketch: Sketch) => WorkbenchState
-): WorkbenchState {
+  apply: (sketch: Sketch) => SessionState
+): SessionState {
   return "error" in result ? state : apply(result.sketch);
 }
 
@@ -136,7 +137,7 @@ function getTargetFolder({
   sketch,
   pickedFolder,
   focus: openNode,
-}: WorkbenchState): string {
+}: SessionState): string {
   // The selected folder can be gone, or be a file, after an edit of the text
   if (
     pickedFolder !== undefined &&
@@ -154,10 +155,7 @@ function getTargetFolder({
  * @param target What to open.
  * @returns The state after.
  */
-export function openTarget(
-  state: WorkbenchState,
-  target: Target
-): WorkbenchState {
+export function openTarget(state: SessionState, target: Target): SessionState {
   const { focus: openNode } = state;
   let nextFocus: Focus = CONFIG_FOCUS;
 
@@ -168,7 +166,7 @@ export function openTarget(
         : { kind: "file", path: target.path };
   }
 
-  const opened: WorkbenchState = {
+  const opened: SessionState = {
     ...state,
     focus: nextFocus,
     tab: "node",
@@ -201,7 +199,7 @@ export function openTarget(
  * @param id The id of the item: `eslint.config.js` for the config node, or the path of a node.
  * @returns The state after.
  */
-export function selectItem(state: WorkbenchState, id: string): WorkbenchState {
+export function selectItem(state: SessionState, id: string): SessionState {
   if (id === CONFIG_PATH) {
     return openTarget(state, { kind: "config" });
   }
@@ -219,10 +217,10 @@ export function selectItem(state: WorkbenchState, id: string): WorkbenchState {
  * @returns The state after, or the same one when the folder already was.
  */
 export function toggleFolder(
-  state: WorkbenchState,
+  state: SessionState,
   path: string,
   isOpen: boolean
-): WorkbenchState {
+): SessionState {
   if (isOpen !== state.closedFolders.has(path)) {
     return state;
   }
@@ -243,10 +241,7 @@ export function toggleFolder(
  * @param view The view to show.
  * @returns The state after.
  */
-export function setView(
-  state: WorkbenchState,
-  view: ProjectView
-): WorkbenchState {
+export function setView(state: SessionState, view: ProjectView): SessionState {
   return view === state.view ? state : { ...state, view, textDraft: undefined };
 }
 
@@ -257,9 +252,9 @@ export function setView(
  * @returns The state after.
  */
 export function addNode(
-  state: WorkbenchState,
+  state: SessionState,
   kind: "file" | "folder"
-): WorkbenchState {
+): SessionState {
   const path = getUniquePath(
     state.sketch,
     getTargetFolder(state),
@@ -287,10 +282,7 @@ export function addNode(
  * @param path The path of the node.
  * @returns The state after.
  */
-export function startRename(
-  state: WorkbenchState,
-  path: string
-): WorkbenchState {
+export function startRename(state: SessionState, path: string): SessionState {
   return path === state.renaming ? state : { ...state, renaming: path };
 }
 
@@ -299,7 +291,7 @@ export function startRename(
  * @param state The state before.
  * @returns The state after.
  */
-export function cancelRename(state: WorkbenchState): WorkbenchState {
+export function cancelRename(state: SessionState): SessionState {
   return state.renaming === undefined
     ? state
     : { ...state, renaming: undefined };
@@ -313,7 +305,7 @@ export function cancelRename(state: WorkbenchState): WorkbenchState {
  * @returns The state after and the new path of the node, or why the name is refused.
  */
 export function renameNode(
-  state: WorkbenchState,
+  state: SessionState,
   path: string,
   typedName: string
 ): RenameTransition {
@@ -352,15 +344,12 @@ export function renameNode(
  * @param path The path of the node.
  * @returns The state after, or the same one when there is no node at the path.
  */
-export function removeNode(
-  state: WorkbenchState,
-  path: string
-): WorkbenchState {
+export function removeNode(state: SessionState, path: string): SessionState {
   const isRemoved = (candidate: string | undefined): boolean =>
     candidate !== undefined && isSameOrInside(candidate, path);
 
   return applyEdit(state, removeSketchNode(state.sketch, path), (sketch) => {
-    const removed: WorkbenchState = {
+    const removed: SessionState = {
       ...state,
       sketch,
       pickedFolder: isRemoved(state.pickedFolder)
@@ -386,9 +375,9 @@ export function removeNode(
  * @returns The state after, or the same one when the text did not change.
  */
 export function changeConfig(
-  state: WorkbenchState,
+  state: SessionState,
   config: string
-): WorkbenchState {
+): SessionState {
   return config === state.sketch.config
     ? state
     : { ...state, sketch: setConfig(state.sketch, config) };
@@ -400,10 +389,7 @@ export function changeConfig(
  * @param text The whole text.
  * @returns The state after.
  */
-export function setTextDraft(
-  state: WorkbenchState,
-  text: string
-): WorkbenchState {
+export function setTextDraft(state: SessionState, text: string): SessionState {
   return text === state.textDraft ? state : { ...state, textDraft: text };
 }
 
@@ -413,7 +399,7 @@ export function setTextDraft(
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
  * @returns The state after.
  */
-function readDraft(state: WorkbenchState, settle: boolean): WorkbenchState {
+function readDraft(state: SessionState, settle: boolean): SessionState {
   const { textDraft } = state;
 
   if (textDraft === undefined) {
@@ -435,7 +421,7 @@ function readDraft(state: WorkbenchState, settle: boolean): WorkbenchState {
  * @param state The state before.
  * @returns The state after.
  */
-export function readText(state: WorkbenchState): WorkbenchState {
+export function readText(state: SessionState): SessionState {
   return readDraft(state, false);
 }
 
@@ -444,7 +430,7 @@ export function readText(state: WorkbenchState): WorkbenchState {
  * @param state The state before.
  * @returns The state after.
  */
-export function settleText(state: WorkbenchState): WorkbenchState {
+export function settleText(state: SessionState): SessionState {
   return readDraft(state, true);
 }
 
@@ -455,9 +441,9 @@ export function settleText(state: WorkbenchState): WorkbenchState {
  * @returns The state after.
  */
 export function selectTab(
-  state: WorkbenchState,
+  state: SessionState,
   tab: ProblemsTabId
-): WorkbenchState {
+): SessionState {
   return tab === state.tab && !state.problemsCollapsed
     ? state
     : { ...state, tab, problemsCollapsed: false };
@@ -470,9 +456,9 @@ export function selectTab(
  * @returns The state after.
  */
 export function setProblemsCollapsed(
-  state: WorkbenchState,
+  state: SessionState,
   collapsed: boolean
-): WorkbenchState {
+): SessionState {
   return collapsed === state.problemsCollapsed
     ? state
     : { ...state, problemsCollapsed: collapsed };
@@ -485,8 +471,8 @@ export function setProblemsCollapsed(
  * @returns The state after.
  */
 export function setEvaluation(
-  state: WorkbenchState,
+  state: SessionState,
   evaluation: Evaluation
-): WorkbenchState {
+): SessionState {
   return evaluation === state.evaluation ? state : { ...state, evaluation };
 }

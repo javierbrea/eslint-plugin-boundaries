@@ -17,11 +17,11 @@ import {
   useRenameNode,
   useRenaming,
   useSelectItem,
+  useSessionStore,
   useStartRename,
   useToggleFolder,
-  useWorkbenchStore,
-} from "@/ui/state";
-import type { Focus } from "@/ui/state";
+} from "@/domains/session/data/store";
+import type { Focus } from "@/domains/session/helpers/focus";
 
 import type {
   DeleteRequest,
@@ -71,7 +71,7 @@ function getItemAfterRemoval(sketch: Sketch, removedPath: string): string {
  * @returns The state and the handlers, for the tree, the foot and the confirmation dialog.
  */
 export function useProjectTree(): ProjectTreeController {
-  const store = useWorkbenchStore();
+  const store = useSessionStore();
   const openNode = useFocus();
   const pickedFolder = usePickedFolder();
   const closedFolders = useClosedFolders();

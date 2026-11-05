@@ -33,7 +33,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
       problems: parsed.problems,
     };
   }
-  // A policy half typed in the editor makes `normalizeConfig` throw, which would break the workbench. The playground is the host that resolves the root path, as the plugin does for ESLint
+  // A policy half typed in the editor makes `normalizeConfig` throw, which would break the panes. The playground is the host that resolves the root path, as the plugin does for ESLint
   const normalized = normalizeConfigSafely(
     {
       settings: parsed.value.settings,

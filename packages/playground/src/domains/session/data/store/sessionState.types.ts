@@ -1,27 +1,14 @@
 import type { Sketch } from "@/contract";
+import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import type {
-  Evaluation,
-  TextRange,
-} from "@/domains/evaluation/helpers/engine";
-
-import type { Focus } from "./Focus.types";
-
-/** How the project pane shows the sketch: as a tree, or as one path per line. */
-export type ProjectView = "tree" | "text";
-
-/** A tab of the problems panel in M1: the sketch as a whole, or the node in focus. Phase 6 adds the dependency in focus. */
-export type ProblemsTabId = "sketch" | "node";
-
-/** A request to show a range of the config: the editor scrolls to it and puts the cursor at its start each time the key changes. */
-export type ConfigReveal = {
-  /** The range to show. */
-  readonly range: TextRange;
-  /** Changes for each request, so that the same range can be shown again after the user scrolled away. */
-  readonly key: number;
-};
+  ConfigReveal,
+  Focus,
+  ProblemsTabId,
+  ProjectView,
+} from "@/domains/session/helpers/focus";
 
 /** What a playground instance remembers: the sketch it edits, its evaluation, and everything about how they are shown. Every transition returns a new state and never changes one. */
-export type WorkbenchState = {
+export type SessionState = {
   /** The sketch being edited. It is replaced by a new one after each edit. */
   readonly sketch: Sketch;
   /** What the engine says about the sketch, or about the one before it while an edit of the config waits out the delay. */

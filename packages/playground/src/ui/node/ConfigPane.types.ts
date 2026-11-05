@@ -1,10 +1,11 @@
 import type { RefObject } from "react";
 
+import type { ConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type {
   ConfigProblem,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import type { ConfigEditorSnapshot, ConfigReveal } from "@/ui/state";
+import type { ConfigReveal } from "@/domains/session/helpers/focus";
 
 /** Props of the config pane. */
 export type ConfigPaneProps = {

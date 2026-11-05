@@ -9,11 +9,11 @@ import { render, screen as view } from "@testing-library/react";
 import { StrictMode } from "react";
 import type { RefObject } from "react";
 
+import type { ConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type {
   ConfigProblem,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import type { ConfigEditorSnapshot } from "@/ui/state";
 
 import { ConfigEditor } from "./ConfigEditor";
 import type { ConfigEditorProps } from "./ConfigEditor.types";
@@ -87,7 +87,7 @@ function createProps(
 }
 
 /**
- * Creates the place where the editor leaves its snapshot, as the provider of the workbench does.
+ * Creates the place where the editor leaves its snapshot, as ConfigEditorSnapshotProvider does.
  * @returns A ref with no snapshot yet.
  */
 function createSnapshot(): RefObject<ConfigEditorSnapshot | undefined> {

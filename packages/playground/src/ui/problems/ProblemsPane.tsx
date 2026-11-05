@@ -3,14 +3,12 @@ import type { ReactNode } from "react";
 
 import {
   useOpen,
-  useProblemList,
-  useProblemTabs,
   useProblemsCollapsed,
   useSelectTab,
   useSetProblemsCollapsed,
-  useShownTab,
-} from "@/ui/state";
-import type { ProblemsTabId } from "@/ui/state";
+} from "@/domains/session/data/store";
+import type { ProblemsTabId } from "@/domains/session/helpers/focus";
+import { useProblemList, useProblemTabs, useShownTab } from "@/ui/state";
 import { Note } from "@/ui-kit/molecules/Note";
 
 import { ProblemList } from "./ProblemList";

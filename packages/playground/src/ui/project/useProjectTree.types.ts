@@ -1,4 +1,4 @@
-import type { WorkbenchStore } from "@/ui/state";
+import type { SessionStore } from "@/domains/session/data/store";
 
 import type { ProjectTreeProps } from "./ProjectTree.types";
 
@@ -31,7 +31,7 @@ export type ProjectTreeController = {
   /** A folder was opened or closed */
   readonly toggle: ProjectTreeProps["onToggle"];
   /** Adds a file or a folder, selects it and starts renaming it */
-  readonly add: WorkbenchStore["addNode"];
+  readonly add: SessionStore["addNode"];
   /** Starts renaming a node */
   readonly startRename: ProjectTreeProps["onRename"];
   /** Renames a node with the name typed, or says why it cannot */

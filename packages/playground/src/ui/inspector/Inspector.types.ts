@@ -1,5 +1,5 @@
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
-import type { Focus, Target } from "@/ui/state";
+import type { Focus, Target } from "@/domains/session/helpers/focus";
 
 /** Props of the inspector. */
 export type InspectorProps = {

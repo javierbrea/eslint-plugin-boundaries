@@ -3,9 +3,9 @@ import { act, fireEvent, screen as view, within } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import { EVALUATION_DELAY } from "@/ui/state";
-import { renderInWorkbench } from "@/ui/state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
+import { EVALUATION_DELAY } from "@/domains/session/data/store";
+import { renderInSession } from "@/domains/session/data/store/store.mock";
+import type { SessionRender } from "@/domains/session/data/store/store.mock";
 
 import { ProblemsPane } from "./ProblemsPane";
 
@@ -34,12 +34,12 @@ const WARNING_ONLY: Sketch = {
 };
 
 /**
- * Renders the problems pane in a workbench.
+ * Renders the problems pane in a session.
  * @param sketch The sketch to start from.
  * @returns The render, the store and the spy of the sketches.
  */
-function renderPane(sketch: Sketch = QUICK_START): WorkbenchRender {
-  return renderInWorkbench(<ProblemsPane />, { sketch });
+function renderPane(sketch: Sketch = QUICK_START): SessionRender {
+  return renderInSession(<ProblemsPane />, { sketch });
 }
 
 /**
@@ -215,7 +215,7 @@ describe("ProblemsPane", () => {
      * @param store The store of the render.
      * @param text The whole text.
      */
-    function typeLines(store: WorkbenchRender["store"], text: string): void {
+    function typeLines(store: SessionRender["store"], text: string): void {
       act(() => store.setView("text"));
       act(() => store.setTextDraft(text));
     }

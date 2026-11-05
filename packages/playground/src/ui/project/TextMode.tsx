@@ -10,7 +10,7 @@ import {
   useSettleText,
   useTextDraft,
   useTree,
-} from "@/ui/state";
+} from "@/domains/session/data/store";
 
 /** Milliseconds after the last keystroke before the text is read */
 const READ_DELAY = 300;

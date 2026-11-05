@@ -1,19 +1,20 @@
-import type { Target } from "./Focus.types";
 import type {
   ProblemsTabId,
   ProjectView,
-  WorkbenchState,
-} from "./WorkbenchState.types";
+  Target,
+} from "@/domains/session/helpers/focus";
+
+import type { SessionState } from "./sessionState.types";
 
 /** The result of a rename: the new path of the node, or why the name is refused. */
 export type RenameOutcome =
   | { readonly path: string }
   | { readonly error: string };
 
-/** The state of one playground instance, with the commands that change it. It knows nothing of React or of the host: components read it through the hooks of `ui/state`, and every method is stable for the life of the store. */
-export type WorkbenchStore = {
+/** The state of one playground instance, with the commands that change it. It knows nothing of React or of the host: components read it through the hooks of `store.hooks.ts`, and every method is stable for the life of the store. */
+export type SessionStore = {
   /** The current state. The same object until something changes. */
-  readonly getState: () => WorkbenchState;
+  readonly getState: () => SessionState;
   /** Calls a listener after each change, and returns the function that stops calling it. */
   readonly subscribe: (listener: () => void) => () => void;
   /** Cancels the evaluation that is waiting out its delay, when the instance goes away. */

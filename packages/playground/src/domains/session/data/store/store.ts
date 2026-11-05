@@ -1,9 +1,11 @@
 import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 
-import type { WorkbenchStore } from "./Store.types";
+import type { SessionState } from "./sessionState.types";
+import { EVALUATION_DELAY } from "./store.constants";
+import type { SessionStore } from "./store.types";
 import {
-  createWorkbenchState,
+  createSessionState,
   setEvaluation,
   openTarget,
   selectItem,
@@ -20,21 +22,17 @@ import {
   settleText,
   selectTab,
   setProblemsCollapsed,
-} from "./Transitions";
-import type { WorkbenchState } from "./WorkbenchState.types";
-
-/** Milliseconds after the last edit of the config before the sketch is evaluated again, so that typing does not evaluate each keystroke. */
-export const EVALUATION_DELAY = 150;
+} from "./transitions";
 
 /**
- * Creates the store of one playground instance, with its own engine, so that several instances on a page never share an evaluation. Each method applies the transition of `Transitions.ts` with its name, `open` applies `openTarget`, and notifies the listeners when the state changed. The store evaluates the sketch after each edit: at once when only the tree changed, because adding, renaming or removing a node is one action and the panes must not disagree in between, and a moment after the last edit of the config, which comes in keystrokes.
+ * Creates the store of one playground instance, with its own engine, so that several instances on a page never share an evaluation. Each method applies the transition of `transitions.ts` with its name, `open` applies `openTarget`, and notifies the listeners when the state changed. The store evaluates the sketch after each edit: at once when only the tree changed, because adding, renaming or removing a node is one action and the panes must not disagree in between, and a moment after the last edit of the config, which comes in keystrokes.
  * @param sketch The sketch to start from. It is evaluated at once, so that the panes never render without an evaluation.
  * @returns The store.
  */
-export function createWorkbenchStore(sketch: Sketch): WorkbenchStore {
+export function createSessionStore(sketch: Sketch): SessionStore {
   const engine = createEngine();
   const listeners = new Set<() => void>();
-  let state = createWorkbenchState(sketch, engine.evaluate(sketch));
+  let state = createSessionState(sketch, engine.evaluate(sketch));
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   /** Calls every listener. */
@@ -46,7 +44,7 @@ export function createWorkbenchStore(sketch: Sketch): WorkbenchStore {
    * Keeps a new state, evaluates its sketch when an edit changed it, and notifies the listeners.
    * @param next The state after a transition. The same object as the current one means that nothing changed.
    */
-  function set(next: WorkbenchState): void {
+  function set(next: SessionState): void {
     if (next === state) {
       return;
     }

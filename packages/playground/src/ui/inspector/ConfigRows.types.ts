@@ -1,4 +1,4 @@
-import type { Target } from "@/ui/state";
+import type { Target } from "@/domains/session/helpers/focus";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 /** What a row of the config inspector says about an entry of the config. */

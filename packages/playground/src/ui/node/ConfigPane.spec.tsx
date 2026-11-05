@@ -6,12 +6,12 @@ import { EditorView } from "@codemirror/view";
 import { render, screen as view } from "@testing-library/react";
 import type { RefObject } from "react";
 
+import type { ConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type {
   ConfigProblem,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
 import { highlightField } from "@/ui/config/Highlight";
-import type { ConfigEditorSnapshot } from "@/ui/state";
 
 import { ConfigPane } from "./ConfigPane";
 import type { ConfigPaneProps } from "./ConfigPane.types";

@@ -7,8 +7,8 @@ import {
   readTextProblems,
 } from "@/domains/project/helpers/sketch";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
+import type { Focus, ProblemsTabId } from "@/domains/session/helpers/focus";
 
-import type { Focus } from "./Focus.types";
 import {
   getConfigProblemItems,
   getCountTone,
@@ -21,7 +21,6 @@ import type {
   ProblemSummary,
   ProblemsTab,
 } from "./Problems.types";
-import type { ProblemsTabId } from "./WorkbenchState.types";
 
 /** No lines of text mode to report: the same array each time, so that what is derived from it does not change. */
 const NO_TEXT_PROBLEMS: readonly TextProblem[] = [];

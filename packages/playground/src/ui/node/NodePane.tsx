@@ -1,17 +1,17 @@
 import { memo } from "react";
 import type { ReactNode } from "react";
 
+import { useConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import {
   useAddNode,
   useCapabilities,
   useChangeConfig,
   useConfig,
-  useConfigEditorSnapshot,
   useConfigProblems,
   useFocus,
   useOpen,
   useReveal,
-} from "@/ui/state";
+} from "@/domains/session/data/store";
 
 import { ConfigPane } from "./ConfigPane";
 import { EmptyPane } from "./EmptyPane";

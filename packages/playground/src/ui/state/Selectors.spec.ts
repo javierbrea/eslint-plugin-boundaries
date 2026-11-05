@@ -1,7 +1,7 @@
 import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
+import type { Focus } from "@/domains/session/helpers/focus";
 
-import type { Focus } from "./Focus.types";
 import type { ProblemSummary } from "./Problems.types";
 import {
   getProblemCounts,

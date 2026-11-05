@@ -2,12 +2,12 @@ import { act, fireEvent, screen as view } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { Sketch } from "@/contract";
-import { useTextProblems } from "@/ui/state";
 import {
   NO_CAPABILITIES,
-  renderInWorkbench,
-} from "@/ui/state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
+  renderInSession,
+} from "@/domains/session/data/store/store.mock";
+import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import { useTextProblems } from "@/ui/state";
 
 import { TextMode } from "./TextMode";
 
@@ -47,16 +47,16 @@ function TextProblemsProbe(): ReactNode {
 }
 
 /**
- * Renders the text of a sketch in a workbench, with the lines that cannot be read listed next to it.
+ * Renders the text of a sketch in a session, with the lines that cannot be read listed next to it.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change.
  * @returns The render, the store and the spy of the sketches.
  */
 function renderText(
   sketch: Sketch = SKETCH,
-  capabilities?: Parameters<typeof renderInWorkbench>[1]["capabilities"]
-): WorkbenchRender {
-  return renderInWorkbench(
+  capabilities?: Parameters<typeof renderInSession>[1]["capabilities"]
+): SessionRender {
+  return renderInSession(
     <>
       <TextMode />
       <TextProblemsProbe />

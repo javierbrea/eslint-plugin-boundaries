@@ -10,13 +10,18 @@ import {
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import { EVALUATION_DELAY } from "@/ui/state";
-import type { Focus, ProjectView, Target, WorkbenchStore } from "@/ui/state";
+import { EVALUATION_DELAY } from "@/domains/session/data/store";
+import type { SessionStore } from "@/domains/session/data/store";
 import {
   NO_CAPABILITIES,
-  renderInWorkbench,
-} from "@/ui/state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
+  renderInSession,
+} from "@/domains/session/data/store/store.mock";
+import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import type {
+  Focus,
+  ProjectView,
+  Target,
+} from "@/domains/session/helpers/focus";
 
 import { ProjectPane } from "./ProjectPane";
 
@@ -79,7 +84,7 @@ type PaneOptions = {
 };
 
 /**
- * Renders the pane in a workbench and puts the store in the state a test starts from, as the user would: with a file opened, or the project shown as text.
+ * Renders the pane in a session and puts the store in the state a test starts from, as the user would: with a file opened, or the project shown as text.
  * @param options What the pane starts with.
  * @param options.sketch The sketch to start from.
  * @param options.capabilities What the user can change.
@@ -92,8 +97,8 @@ function renderPane({
   capabilities,
   focus: target,
   view: projectView = "tree",
-}: PaneOptions = {}): WorkbenchRender {
-  const rendered = renderInWorkbench(<ProjectPane />, {
+}: PaneOptions = {}): SessionRender {
+  const rendered = renderInSession(<ProjectPane />, {
     sketch,
     capabilities,
   });
@@ -112,7 +117,7 @@ function renderPane({
  * @param store The store of the pane.
  * @returns Its focus.
  */
-function getFocus(store: WorkbenchStore): Focus {
+function getFocus(store: SessionStore): Focus {
   return store.getState().focus;
 }
 
@@ -243,7 +248,7 @@ function getTreePaths(sketch: Sketch): string[] {
  * @param spy The spy of `onSketchChange`.
  * @returns The sketch.
  */
-function getLastSketch(spy: WorkbenchRender["onSketchChange"]): Sketch {
+function getLastSketch(spy: SessionRender["onSketchChange"]): Sketch {
   return spy.mock.calls[spy.mock.calls.length - 1][0];
 }
 

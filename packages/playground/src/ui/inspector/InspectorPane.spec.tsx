@@ -4,9 +4,9 @@ import { act, fireEvent, screen as view, within } from "@testing-library/react";
 import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import { EVALUATION_DELAY } from "@/ui/state";
-import { renderInWorkbench } from "@/ui/state/__fixtures__/RenderInWorkbench";
-import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";
+import { EVALUATION_DELAY } from "@/domains/session/data/store";
+import { renderInSession } from "@/domains/session/data/store/store.mock";
+import type { SessionRender } from "@/domains/session/data/store/store.mock";
 
 import { InspectorPane } from "./InspectorPane";
 
@@ -26,12 +26,12 @@ const WITH_IGNORED: Sketch = {
 };
 
 /**
- * Renders the inspector pane in a workbench.
+ * Renders the inspector pane in a session.
  * @param sketch The sketch to start from.
  * @returns The render, the store and the spy of the sketches.
  */
-function renderPane(sketch: Sketch = QUICK_START): WorkbenchRender {
-  return renderInWorkbench(<InspectorPane />, { sketch });
+function renderPane(sketch: Sketch = QUICK_START): SessionRender {
+  return renderInSession(<InspectorPane />, { sketch });
 }
 
 /**

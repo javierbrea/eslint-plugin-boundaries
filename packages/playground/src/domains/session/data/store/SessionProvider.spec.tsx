@@ -1,24 +1,15 @@
 import { act, render, screen as view } from "@testing-library/react";
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode } from "react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Engine } from "@/domains/evaluation/helpers/engine";
 
-import {
-  ALL_CAPABILITIES,
-  NO_CAPABILITIES,
-} from "./__fixtures__/RenderInWorkbench";
-import {
-  useCapabilities,
-  useConfigEditorSnapshot,
-  useTree,
-  useWorkbenchStore,
-} from "./Hooks";
-import { EVALUATION_DELAY } from "./Store";
-import type { WorkbenchStore } from "./Store.types";
-import { WorkbenchProvider } from "./WorkbenchProvider";
-import type { ConfigEditorSnapshot } from "./WorkbenchProvider.types";
+import { SessionProvider } from "./SessionProvider";
+import { EVALUATION_DELAY } from "./store.constants";
+import { useCapabilities, useSessionStore, useTree } from "./store.hooks";
+import { ALL_CAPABILITIES, NO_CAPABILITIES } from "./store.mock";
+import type { SessionStore } from "./store.types";
 
 // The real engines, whose evaluations the tests only count
 jest.mock<{ createEngine: typeof createEngine }>(
@@ -58,9 +49,8 @@ const OTHER_SKETCH: Sketch = {
 
 /** What the pane of the spec saw in each of its renders. */
 type Seen = {
-  stores: WorkbenchStore[];
+  stores: SessionStore[];
   capabilities: ProjectCapabilities[];
-  snapshots: RefObject<ConfigEditorSnapshot | undefined>[];
 };
 
 /** Props of {@link Pane}. */
@@ -76,9 +66,8 @@ type PaneProps = {
  * @returns The count of nodes.
  */
 function Pane({ seen }: Readonly<PaneProps>): ReactNode {
-  seen.stores.push(useWorkbenchStore());
+  seen.stores.push(useSessionStore());
   seen.capabilities.push(useCapabilities());
-  seen.snapshots.push(useConfigEditorSnapshot());
 
   return <output>{useTree().length}</output>;
 }
@@ -88,7 +77,7 @@ type Rendered = {
   /** What the pane saw in each render. */
   seen: Seen;
   /** The store that the provider created. */
-  store: WorkbenchStore;
+  store: SessionStore;
   /** Renders the provider again with other props. */
   update: (props: Partial<ProviderProps>) => void;
   /** Unmounts the provider. */
@@ -108,7 +97,7 @@ type ProviderProps = {
  * @returns The handles of the render.
  */
 function renderProvider(initial: Partial<ProviderProps> = {}): Rendered {
-  const seen: Seen = { stores: [], capabilities: [], snapshots: [] };
+  const seen: Seen = { stores: [], capabilities: [] };
   const defaults: ProviderProps = {
     initialSketch: SKETCH,
     capabilities: ALL_CAPABILITIES,
@@ -121,9 +110,9 @@ function renderProvider(initial: Partial<ProviderProps> = {}): Rendered {
    * @returns The element.
    */
   const ui = (props: Partial<ProviderProps>): ReactNode => (
-    <WorkbenchProvider {...defaults} {...props}>
+    <SessionProvider {...defaults} {...props}>
       <Pane seen={seen} />
-    </WorkbenchProvider>
+    </SessionProvider>
   );
   const { rerender, unmount } = render(ui(initial));
 
@@ -136,7 +125,7 @@ function renderProvider(initial: Partial<ProviderProps> = {}): Rendered {
   };
 }
 
-describe("WorkbenchProvider", () => {
+describe("SessionProvider", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -228,32 +217,6 @@ describe("WorkbenchProvider", () => {
 
       // Assert
       expect(seen.capabilities.at(-1)).toBe(NO_CAPABILITIES);
-    });
-  });
-
-  describe("config editor snapshot", () => {
-    it("should give a ref that holds nothing at first", () => {
-      // Act
-      const { seen } = renderProvider();
-
-      // Assert
-      expect(seen.snapshots[0].current).toBeUndefined();
-    });
-
-    it("should give the same ref on every render, with what was left in it", () => {
-      // Arrange
-      const { seen, store, update } = renderProvider();
-      const snapshot = {} as unknown as ConfigEditorSnapshot;
-
-      seen.snapshots[0].current = snapshot;
-
-      // Act
-      act(() => store.addNode("file"));
-      update({ capabilities: NO_CAPABILITIES });
-
-      // Assert
-      expect(new Set(seen.snapshots).size).toBe(1);
-      expect(seen.snapshots.at(-1)?.current).toBe(snapshot);
     });
   });
 

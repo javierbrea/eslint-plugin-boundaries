@@ -5,7 +5,7 @@ import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import type { Focus } from "@/ui/state";
+import type { Focus } from "@/domains/session/helpers/focus";
 
 import { Inspector } from "./Inspector";
 import type { InspectorProps } from "./Inspector.types";

@@ -2,7 +2,8 @@ import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Engine } from "@/domains/evaluation/helpers/engine";
 
-import { EVALUATION_DELAY, createWorkbenchStore } from "./Store";
+import { createSessionStore } from "./store";
+import { EVALUATION_DELAY } from "./store.constants";
 
 // The real engines, whose evaluations the tests only count
 jest.mock<{ createEngine: typeof createEngine }>(
@@ -46,7 +47,7 @@ const OTHER_SKETCH: Sketch = {
   tree: [{ path: "main.js", kind: "file" }],
 };
 
-describe("createWorkbenchStore", () => {
+describe("createSessionStore", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -58,7 +59,7 @@ describe("createWorkbenchStore", () => {
   describe("getState", () => {
     it("should start from the sketch, with nothing in focus", () => {
       // Act
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Assert
       expect(store.getState().sketch).toBe(SKETCH);
@@ -67,7 +68,7 @@ describe("createWorkbenchStore", () => {
 
     it("should have the evaluation of the sketch at once, so that the first render has one", () => {
       // Act
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Assert
       expect(store.getState().evaluation.sketch).toBe(SKETCH);
@@ -76,7 +77,7 @@ describe("createWorkbenchStore", () => {
 
     it("should not evaluate the first sketch again after the delay", () => {
       // Arrange
-      createWorkbenchStore(SKETCH);
+      createSessionStore(SKETCH);
 
       // Act
       jest.advanceTimersByTime(EVALUATION_DELAY * 2);
@@ -87,7 +88,7 @@ describe("createWorkbenchStore", () => {
 
     it("should give the same state until something changes", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const first = store.getState();
 
       // Act
@@ -102,7 +103,7 @@ describe("createWorkbenchStore", () => {
   describe("evaluation of a tree edit", () => {
     it("should be at once", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.removeNode("src/index.js");
@@ -117,7 +118,7 @@ describe("createWorkbenchStore", () => {
 
     it("should not wait for a timer", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.addNode("file");
@@ -128,7 +129,7 @@ describe("createWorkbenchStore", () => {
 
     it("should be at once for the lines read from text mode", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.setView("text");
       store.setTextDraft("main.js\n");
@@ -147,7 +148,7 @@ describe("createWorkbenchStore", () => {
   describe("evaluation of a config edit", () => {
     it("should keep the previous evaluation until the delay has passed", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.changeConfig("{}");
@@ -160,7 +161,7 @@ describe("createWorkbenchStore", () => {
 
     it("should evaluate the new sketch when the delay has passed", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.changeConfig("{}");
 
@@ -176,7 +177,7 @@ describe("createWorkbenchStore", () => {
 
     it("should wait for the delay after the last of the edits, and evaluate only that one", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.changeConfig("{ a");
@@ -197,7 +198,7 @@ describe("createWorkbenchStore", () => {
 
     it("should wait for the delay although a command that does not edit the sketch came in between", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.changeConfig("{}");
 
@@ -211,7 +212,7 @@ describe("createWorkbenchStore", () => {
 
     it("should not evaluate when the config does not change", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.changeConfig(SKETCH.config);
@@ -226,7 +227,7 @@ describe("createWorkbenchStore", () => {
   describe("evaluation of a tree edit while a config edit waits", () => {
     it("should evaluate everything at once, the config edit included", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.changeConfig("{}");
 
@@ -242,7 +243,7 @@ describe("createWorkbenchStore", () => {
 
     it("should cancel the timer, so that nothing is evaluated again", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.changeConfig("{}");
       store.addNode("file");
@@ -260,7 +261,7 @@ describe("createWorkbenchStore", () => {
   describe("subscribe", () => {
     it("should call the listener once for a tree edit", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -274,7 +275,7 @@ describe("createWorkbenchStore", () => {
 
     it("should call the listener for a config edit, and again when its evaluation comes", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -291,7 +292,7 @@ describe("createWorkbenchStore", () => {
 
     it("should call the listener once for a change that is not an edit", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -305,7 +306,7 @@ describe("createWorkbenchStore", () => {
 
     it("should not call the listener when a command changes nothing", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -326,7 +327,7 @@ describe("createWorkbenchStore", () => {
 
     it("should call every listener", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const first = jest.fn();
       const second = jest.fn();
 
@@ -343,7 +344,7 @@ describe("createWorkbenchStore", () => {
 
     it("should read the new state when the listener is called", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const views: string[] = [];
 
       store.subscribe(() => views.push(store.getState().view));
@@ -357,7 +358,7 @@ describe("createWorkbenchStore", () => {
 
     it("should stop calling the listener that unsubscribed, and keep calling the others", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const removed = jest.fn();
       const kept = jest.fn();
       const unsubscribe = store.subscribe(removed);
@@ -377,7 +378,7 @@ describe("createWorkbenchStore", () => {
   describe("dispose", () => {
     it("should cancel the evaluation that waits out its delay", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       store.changeConfig("{}");
@@ -397,7 +398,7 @@ describe("createWorkbenchStore", () => {
 
     it("should do nothing when no evaluation waits", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       const dispose = (): void => store.dispose();
@@ -410,7 +411,7 @@ describe("createWorkbenchStore", () => {
   describe("open", () => {
     it("should open the target", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.open({ kind: "file", path: "src/index.js" });
@@ -425,7 +426,7 @@ describe("createWorkbenchStore", () => {
 
     it("should ask to reveal the range of a config target", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const range = { from: 1, to: 2, line: 1, column: 2 };
 
       // Act
@@ -440,7 +441,7 @@ describe("createWorkbenchStore", () => {
   describe("selectItem", () => {
     it("should select a folder", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.selectItem("src");
@@ -451,7 +452,7 @@ describe("createWorkbenchStore", () => {
 
     it("should open a file", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.selectItem("src/index.js");
@@ -467,7 +468,7 @@ describe("createWorkbenchStore", () => {
   describe("toggleFolder", () => {
     it("should remember the folders that are closed", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.toggleFolder("src", false);
@@ -478,7 +479,7 @@ describe("createWorkbenchStore", () => {
 
     it("should forget the folders that are open again", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.toggleFolder("src", false);
 
@@ -493,7 +494,7 @@ describe("createWorkbenchStore", () => {
   describe("changeConfig", () => {
     it("should replace the config of the sketch", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.changeConfig("{}");
@@ -506,7 +507,7 @@ describe("createWorkbenchStore", () => {
   describe("addNode", () => {
     it("should add the node, open it and start renaming it", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.addNode("file");
@@ -526,7 +527,7 @@ describe("createWorkbenchStore", () => {
   describe("startRename and cancelRename", () => {
     it("should start renaming a node and give up", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.startRename("src/index.js");
@@ -543,7 +544,7 @@ describe("createWorkbenchStore", () => {
   describe("renameNode", () => {
     it("should rename the node and give its new path", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.startRename("src/index.js");
 
@@ -561,7 +562,7 @@ describe("createWorkbenchStore", () => {
 
     it("should evaluate the renamed sketch at once", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.renameNode("src/index.js", "app.js");
@@ -575,7 +576,7 @@ describe("createWorkbenchStore", () => {
 
     it("should give the reason and change nothing when the name is refused", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
       const listener = jest.fn();
       const before = store.getState();
 
@@ -592,7 +593,7 @@ describe("createWorkbenchStore", () => {
 
     it("should end the rename without a change when the name is the same", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.startRename("src/index.js");
 
@@ -610,7 +611,7 @@ describe("createWorkbenchStore", () => {
   describe("removeNode", () => {
     it("should remove the node and everything under it", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.removeNode("src/helpers");
@@ -625,7 +626,7 @@ describe("createWorkbenchStore", () => {
   describe("setView", () => {
     it("should change how the project is shown", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.setView("text");
@@ -638,7 +639,7 @@ describe("createWorkbenchStore", () => {
   describe("setTextDraft, readText and settleText", () => {
     it("should keep the draft, read it into the sketch and drop it when settled", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.setView("text");
 
@@ -665,7 +666,7 @@ describe("createWorkbenchStore", () => {
   describe("selectTab and setProblemsCollapsed", () => {
     it("should select a tab and expand the panel that was collapsed", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       store.setProblemsCollapsed(true);
       const collapsed = store.getState().problemsCollapsed;
@@ -683,8 +684,8 @@ describe("createWorkbenchStore", () => {
   describe("instances", () => {
     it("should give each store an engine of its own, so that playgrounds on one page share no evaluations", () => {
       // Act
-      createWorkbenchStore(SKETCH);
-      createWorkbenchStore(OTHER_SKETCH);
+      createSessionStore(SKETCH);
+      createSessionStore(OTHER_SKETCH);
 
       // Assert
       expect(createEngine).toHaveBeenCalledTimes(2);
@@ -695,7 +696,7 @@ describe("createWorkbenchStore", () => {
 
     it("should create the engine once for the store, whatever the number of edits", () => {
       // Arrange
-      const store = createWorkbenchStore(SKETCH);
+      const store = createSessionStore(SKETCH);
 
       // Act
       store.addNode("file");
@@ -708,8 +709,8 @@ describe("createWorkbenchStore", () => {
 
     it("should not share state, listeners or timers between stores", () => {
       // Arrange
-      const first = createWorkbenchStore(SKETCH);
-      const second = createWorkbenchStore(SKETCH);
+      const first = createSessionStore(SKETCH);
+      const second = createSessionStore(SKETCH);
       const listener = jest.fn();
 
       second.subscribe(listener);
