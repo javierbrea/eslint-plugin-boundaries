@@ -163,3 +163,5 @@ export class ShellRegionsPom extends Pom {
     return this.scope.queryByText(text) !== null;
   }
 }
+
+export type { ShellRegionsGroupPom, ShellRegionsSeparatorPom };

@@ -38,6 +38,21 @@ function renderBar(overrides: Partial<TopBarProps> = {}): {
 }
 
 describe("TopBar", () => {
+  beforeEach(() => {
+    // React logs a prop that a styled part leaks to the DOM as an attribute it does not know, once for each name
+    jest.spyOn(console, "error").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    const logged = [...jest.mocked(console.error).mock.calls];
+
+    jest.mocked(console.error).mockRestore();
+
+    if (logged.length > 0) {
+      throw new Error(`React logged to the console: ${JSON.stringify(logged)}`);
+    }
+  });
+
   describe("status", () => {
     it("should say how many files and problems the sketch has", () => {
       // Arrange
@@ -157,9 +172,11 @@ describe("TopBar", () => {
 
       // Act
       const { leakedPropAttributes } = bar;
+      const logged = jest.mocked(console.error).mock.calls;
 
       // Assert
       expect(leakedPropAttributes).toEqual([]);
+      expect(logged).toEqual([]);
     });
   });
 

@@ -16,6 +16,21 @@ function renderLoadState(load: LoadStateProps["load"]): LoadStatePom {
 }
 
 describe("LoadState", () => {
+  beforeEach(() => {
+    // React logs a prop that a styled part leaks to the DOM as an attribute it does not know, once for each name
+    jest.spyOn(console, "error").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    const logged = [...jest.mocked(console.error).mock.calls];
+
+    jest.mocked(console.error).mockRestore();
+
+    if (logged.length > 0) {
+      throw new Error(`React logged to the console: ${JSON.stringify(logged)}`);
+    }
+  });
+
   describe("loading", () => {
     it("should say that the sketch is loading", () => {
       // Arrange
@@ -82,13 +97,13 @@ describe("LoadState", () => {
 
     it("should not pass the failed state to the DOM", () => {
       // Arrange
-      const message = renderLoadState({ status: "failed", error: "offline" });
+      renderLoadState({ status: "failed", error: "offline" });
 
       // Act
-      const { hasFailedAttribute } = message;
+      const logged = jest.mocked(console.error).mock.calls;
 
       // Assert
-      expect(hasFailedAttribute).toBe(false);
+      expect(logged).toEqual([]);
     });
   });
 });

@@ -35,12 +35,4 @@ export class LoadStatePom extends Pom {
   get color(): string {
     return getComputedStyle(this.root).color;
   }
-
-  /**
-   * Whether the failed state reached the DOM as an attribute, which the message must not do.
-   * @returns True when the message has a `failed` attribute.
-   */
-  get hasFailedAttribute(): boolean {
-    return this.root.hasAttribute("failed");
-  }
 }
