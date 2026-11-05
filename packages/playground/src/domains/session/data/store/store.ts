@@ -1,4 +1,4 @@
-import type { Sketch } from "@/contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 
 import type { SessionState } from "./sessionState.types";
@@ -27,12 +27,16 @@ import {
 /**
  * Creates the store of one playground instance, with its own engine, so that several instances on a page never share an evaluation. Each method applies the transition of `transitions.ts` with its name, `open` applies `openTarget`, and notifies the listeners when the state changed. The store evaluates the sketch after each edit: at once when only the tree changed, because adding, renaming or removing a node is one action and the panes must not disagree in between, and a moment after the last edit of the config, which comes in keystrokes.
  * @param sketch The sketch to start from. It is evaluated at once, so that the panes never render without an evaluation.
+ * @param capabilities What the user can change in the project: an edit that they do not allow changes nothing and notifies no listener.
  * @returns The store.
  */
-export function createSessionStore(sketch: Sketch): SessionStore {
+export function createSessionStore(
+  sketch: Sketch,
+  capabilities: ProjectCapabilities
+): SessionStore {
   const engine = createEngine();
   const listeners = new Set<() => void>();
-  let state = createSessionState(sketch, engine.evaluate(sketch));
+  let state = createSessionState(sketch, engine.evaluate(sketch), capabilities);
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   /** Calls every listener. */

@@ -4,6 +4,8 @@ import type { Engine } from "@/domains/evaluation/helpers/engine";
 
 import { createSessionStore } from "./store";
 import { EVALUATION_DELAY } from "./store.constants";
+import { ALL_CAPABILITIES, NO_CAPABILITIES } from "./store.mock";
+import type { SessionStore } from "./store.types";
 
 // The real engines, whose evaluations the tests only count
 jest.mock<{ createEngine: typeof createEngine }>(
@@ -59,7 +61,7 @@ describe("createSessionStore", () => {
   describe("getState", () => {
     it("should start from the sketch, with nothing in focus", () => {
       // Act
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Assert
       expect(store.getState().sketch).toBe(SKETCH);
@@ -68,7 +70,7 @@ describe("createSessionStore", () => {
 
     it("should have the evaluation of the sketch at once, so that the first render has one", () => {
       // Act
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Assert
       expect(store.getState().evaluation.sketch).toBe(SKETCH);
@@ -77,7 +79,7 @@ describe("createSessionStore", () => {
 
     it("should not evaluate the first sketch again after the delay", () => {
       // Arrange
-      createSessionStore(SKETCH);
+      createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       jest.advanceTimersByTime(EVALUATION_DELAY * 2);
@@ -88,7 +90,7 @@ describe("createSessionStore", () => {
 
     it("should give the same state until something changes", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const first = store.getState();
 
       // Act
@@ -103,7 +105,7 @@ describe("createSessionStore", () => {
   describe("evaluation of a tree edit", () => {
     it("should be at once", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.removeNode("src/index.js");
@@ -118,7 +120,7 @@ describe("createSessionStore", () => {
 
     it("should not wait for a timer", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.addNode("file");
@@ -129,7 +131,7 @@ describe("createSessionStore", () => {
 
     it("should be at once for the lines read from text mode", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.setView("text");
       store.setTextDraft("main.js\n");
@@ -148,7 +150,7 @@ describe("createSessionStore", () => {
   describe("evaluation of a config edit", () => {
     it("should keep the previous evaluation until the delay has passed", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.changeConfig("{}");
@@ -161,7 +163,7 @@ describe("createSessionStore", () => {
 
     it("should evaluate the new sketch when the delay has passed", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.changeConfig("{}");
 
@@ -177,7 +179,7 @@ describe("createSessionStore", () => {
 
     it("should wait for the delay after the last of the edits, and evaluate only that one", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.changeConfig("{ a");
@@ -198,7 +200,7 @@ describe("createSessionStore", () => {
 
     it("should wait for the delay although a command that does not edit the sketch came in between", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.changeConfig("{}");
 
@@ -212,7 +214,7 @@ describe("createSessionStore", () => {
 
     it("should not evaluate when the config does not change", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.changeConfig(SKETCH.config);
@@ -227,7 +229,7 @@ describe("createSessionStore", () => {
   describe("evaluation of a tree edit while a config edit waits", () => {
     it("should evaluate everything at once, the config edit included", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.changeConfig("{}");
 
@@ -243,7 +245,7 @@ describe("createSessionStore", () => {
 
     it("should cancel the timer, so that nothing is evaluated again", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.changeConfig("{}");
       store.addNode("file");
@@ -261,7 +263,7 @@ describe("createSessionStore", () => {
   describe("subscribe", () => {
     it("should call the listener once for a tree edit", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -275,7 +277,7 @@ describe("createSessionStore", () => {
 
     it("should call the listener for a config edit, and again when its evaluation comes", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -292,7 +294,7 @@ describe("createSessionStore", () => {
 
     it("should call the listener once for a change that is not an edit", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -306,7 +308,7 @@ describe("createSessionStore", () => {
 
     it("should not call the listener when a command changes nothing", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       store.subscribe(listener);
@@ -327,7 +329,7 @@ describe("createSessionStore", () => {
 
     it("should call every listener", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const first = jest.fn();
       const second = jest.fn();
 
@@ -344,7 +346,7 @@ describe("createSessionStore", () => {
 
     it("should read the new state when the listener is called", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const views: string[] = [];
 
       store.subscribe(() => views.push(store.getState().view));
@@ -358,7 +360,7 @@ describe("createSessionStore", () => {
 
     it("should stop calling the listener that unsubscribed, and keep calling the others", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const removed = jest.fn();
       const kept = jest.fn();
       const unsubscribe = store.subscribe(removed);
@@ -378,7 +380,7 @@ describe("createSessionStore", () => {
   describe("dispose", () => {
     it("should cancel the evaluation that waits out its delay", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       store.changeConfig("{}");
@@ -398,7 +400,7 @@ describe("createSessionStore", () => {
 
     it("should do nothing when no evaluation waits", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       const dispose = (): void => store.dispose();
@@ -411,7 +413,7 @@ describe("createSessionStore", () => {
   describe("open", () => {
     it("should open the target", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.open({ kind: "file", path: "src/index.js" });
@@ -426,7 +428,7 @@ describe("createSessionStore", () => {
 
     it("should ask to reveal the range of a config target", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const range = { from: 1, to: 2, line: 1, column: 2 };
 
       // Act
@@ -441,7 +443,7 @@ describe("createSessionStore", () => {
   describe("selectItem", () => {
     it("should select a folder", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.selectItem("src");
@@ -452,7 +454,7 @@ describe("createSessionStore", () => {
 
     it("should open a file", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.selectItem("src/index.js");
@@ -468,7 +470,7 @@ describe("createSessionStore", () => {
   describe("toggleFolder", () => {
     it("should remember the folders that are closed", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.toggleFolder("src", false);
@@ -479,7 +481,7 @@ describe("createSessionStore", () => {
 
     it("should forget the folders that are open again", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.toggleFolder("src", false);
 
@@ -494,7 +496,7 @@ describe("createSessionStore", () => {
   describe("changeConfig", () => {
     it("should replace the config of the sketch", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.changeConfig("{}");
@@ -507,7 +509,7 @@ describe("createSessionStore", () => {
   describe("addNode", () => {
     it("should add the node, open it and start renaming it", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.addNode("file");
@@ -527,7 +529,7 @@ describe("createSessionStore", () => {
   describe("startRename and cancelRename", () => {
     it("should start renaming a node and give up", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.startRename("src/index.js");
@@ -544,7 +546,7 @@ describe("createSessionStore", () => {
   describe("renameNode", () => {
     it("should rename the node and give its new path", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.startRename("src/index.js");
 
@@ -562,7 +564,7 @@ describe("createSessionStore", () => {
 
     it("should evaluate the renamed sketch at once", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.renameNode("src/index.js", "app.js");
@@ -576,7 +578,7 @@ describe("createSessionStore", () => {
 
     it("should give the reason and change nothing when the name is refused", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
       const before = store.getState();
 
@@ -593,7 +595,7 @@ describe("createSessionStore", () => {
 
     it("should end the rename without a change when the name is the same", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.startRename("src/index.js");
 
@@ -611,7 +613,7 @@ describe("createSessionStore", () => {
   describe("removeNode", () => {
     it("should remove the node and everything under it", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.removeNode("src/helpers");
@@ -626,7 +628,7 @@ describe("createSessionStore", () => {
   describe("setView", () => {
     it("should change how the project is shown", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.setView("text");
@@ -639,7 +641,7 @@ describe("createSessionStore", () => {
   describe("setTextDraft, readText and settleText", () => {
     it("should keep the draft, read it into the sketch and drop it when settled", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.setView("text");
 
@@ -666,7 +668,7 @@ describe("createSessionStore", () => {
   describe("selectTab and setProblemsCollapsed", () => {
     it("should select a tab and expand the panel that was collapsed", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       store.setProblemsCollapsed(true);
       const collapsed = store.getState().problemsCollapsed;
@@ -681,11 +683,63 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("capabilities", () => {
+    it("should keep the capabilities it was created with in its state", () => {
+      // Act
+      const store = createSessionStore(SKETCH, NO_CAPABILITIES);
+
+      // Assert
+      expect(store.getState().capabilities).toBe(NO_CAPABILITIES);
+    });
+
+    it.each<[string, (store: SessionStore) => unknown]>([
+      ["adding a file", (store) => store.addNode("file")],
+      ["adding a folder", (store) => store.addNode("folder")],
+      ["starting a rename", (store) => store.startRename("src/index.js")],
+      [
+        "renaming a node",
+        (store) => store.renameNode("src/index.js", "main.js"),
+      ],
+      ["removing a node", (store) => store.removeNode("src/index.js")],
+      ["changing the config", (store) => store.changeConfig("{}")],
+      ["typing in text mode", (store) => store.setTextDraft("main.js\n")],
+    ])(
+      "should change nothing, notify no listener and evaluate nothing when %s is not allowed",
+      (_title, edit) => {
+        // Arrange
+        const store = createSessionStore(SKETCH, NO_CAPABILITIES);
+        const before = store.getState();
+        const listener = jest.fn();
+        store.subscribe(listener);
+
+        // Act
+        edit(store);
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+
+        // Assert
+        expect(store.getState()).toBe(before);
+        expect(listener).not.toHaveBeenCalled();
+        expect(getEvaluate()).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it("should give the path of the node when a rename is not allowed, which keeps its name", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, NO_CAPABILITIES);
+
+      // Act
+      const outcome = store.renameNode("src/index.js", "main.js");
+
+      // Assert
+      expect(outcome).toEqual({ path: "src/index.js" });
+    });
+  });
+
   describe("instances", () => {
     it("should give each store an engine of its own, so that playgrounds on one page share no evaluations", () => {
       // Act
-      createSessionStore(SKETCH);
-      createSessionStore(OTHER_SKETCH);
+      createSessionStore(SKETCH, ALL_CAPABILITIES);
+      createSessionStore(OTHER_SKETCH, ALL_CAPABILITIES);
 
       // Assert
       expect(createEngine).toHaveBeenCalledTimes(2);
@@ -696,7 +750,7 @@ describe("createSessionStore", () => {
 
     it("should create the engine once for the store, whatever the number of edits", () => {
       // Arrange
-      const store = createSessionStore(SKETCH);
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
 
       // Act
       store.addNode("file");
@@ -709,8 +763,8 @@ describe("createSessionStore", () => {
 
     it("should not share state, listeners or timers between stores", () => {
       // Arrange
-      const first = createSessionStore(SKETCH);
-      const second = createSessionStore(SKETCH);
+      const first = createSessionStore(SKETCH, ALL_CAPABILITIES);
+      const second = createSessionStore(SKETCH, ALL_CAPABILITIES);
       const listener = jest.fn();
 
       second.subscribe(listener);

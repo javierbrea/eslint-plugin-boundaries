@@ -18,7 +18,7 @@ import type { SessionStore } from "./store.types";
 
 /**
  * Reads what the provider gives the panes.
- * @returns The store and the capabilities.
+ * @returns The store.
  * @throws {Error} When the component is not inside a `SessionProvider`.
  */
 function useSessionContext(): SessionContextValue {
@@ -54,11 +54,11 @@ export function useSessionSelector<Slice>(
 }
 
 /**
- * Reads what the user can change in the project.
- * @returns The capabilities that the host gave.
+ * Reads what the user can change in the project, to show or hide the controls that edit it. The store refuses the edits that they do not allow, whatever a pane shows.
+ * @returns The capabilities that the host gave when the store was created.
  */
 export function useCapabilities(): ProjectCapabilities {
-  return useSessionContext().capabilities;
+  return useSessionSelector((state) => state.capabilities);
 }
 
 /**

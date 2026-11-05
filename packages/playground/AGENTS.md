@@ -70,7 +70,7 @@ Where a new element goes:
 - A presentational component that names a playground concept goes to `ui/` of its domain, in the sub-layer its imports put it in. One that names none goes to `ui-kit/`.
 - Support shared by specs and page objects goes to `shared/testing/`.
 
-The state of a playground instance lives in its store (`src/domains/session/data/store`): an edit is one pure transition that moves everything it affects, the panes read and change the `SessionStore` through the hooks of that element and through module-hooks, and whatever opens something produces a `Target` (`src/domains/session/helpers/focus`). A component keeps only what belongs to the page, such as a keyboard focus request or an open dialog.
+The state of a playground instance lives in its store (`src/domains/session/data/store`): an edit is one pure transition that moves everything it affects, the panes read and change the `SessionStore` through the hooks of that element and through module-hooks, and whatever opens something produces a `Target` (`src/domains/session/helpers/focus`). A transition that edits what the `ProjectCapabilities` of the state do not allow returns the same state; the panes read the capabilities only to show or hide their controls. A component keeps only what belongs to the page, such as a keyboard focus request or an open dialog.
 
 ## Stack
 

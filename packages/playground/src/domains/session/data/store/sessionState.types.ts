@@ -1,4 +1,4 @@
-import type { Sketch } from "@/contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import type {
   ConfigReveal,
@@ -13,6 +13,8 @@ export type SessionState = {
   readonly sketch: Sketch;
   /** What the engine says about the sketch, or about the one before it while an edit of the config waits out the delay. */
   readonly evaluation: Evaluation;
+  /** What the user can change in the project. The host gives them with the sketch, and they do not change for the life of the instance: an edit that they do not allow leaves the state as it was. */
+  readonly capabilities: ProjectCapabilities;
   /** What is in focus. */
   readonly focus: Focus;
   /** The selected tab of the problems panel. It is `node` only while something is in focus. */

@@ -8,15 +8,13 @@ import type { SessionStore } from "./store.types";
 export type SessionContextValue = {
   /** The store of the instance. */
   readonly store: SessionStore;
-  /** What the user can change in the project. */
-  readonly capabilities: ProjectCapabilities;
 };
 
 /** Props of {@link SessionProvider}. */
 export type SessionProviderProps = {
   /** The sketch to start from. A later value is ignored: the store owns the sketch from then on, and a host that shows another sketch mounts the playground again. */
   readonly initialSketch: Sketch;
-  /** What the user can change in the project. */
+  /** What the user can change in the project. A later value is ignored, as the sketch's is: the capabilities come with the source of the sketch, and a host that changes the source mounts the playground again. */
   readonly capabilities: ProjectCapabilities;
   /** Called with each new sketch after an edit, and never with the first one. */
   readonly onSketchChange: (sketch: Sketch) => void;

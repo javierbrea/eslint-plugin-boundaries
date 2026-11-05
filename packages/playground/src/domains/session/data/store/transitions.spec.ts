@@ -8,6 +8,7 @@ import { toText } from "@/domains/project/helpers/sketch";
 import type { Focus } from "@/domains/session/helpers/focus";
 
 import type { SessionState } from "./sessionState.types";
+import { ALL_CAPABILITIES } from "./store.mock";
 import {
   addNode,
   cancelRename,
@@ -51,13 +52,22 @@ const INDEX_FOCUS: Focus = { kind: "file", path: "src/index.js" };
 
 const FORMAT_FOCUS: Focus = { kind: "file", path: "src/helpers/format.js" };
 
+/** The tree cannot be edited, and the rest can. */
+const TREE_LOCKED = { ...ALL_CAPABILITIES, editTree: false };
+
+/** The config cannot be edited, and the rest can. */
+const CONFIG_LOCKED = { ...ALL_CAPABILITIES, editConfig: false };
+
 /**
  * Creates a session state for the sketch of the spec.
  * @param overrides What differs from the first state.
  * @returns The state.
  */
 function createState(overrides: Partial<SessionState> = {}): SessionState {
-  return { ...createSessionState(SKETCH, EVALUATION), ...overrides };
+  return {
+    ...createSessionState(SKETCH, EVALUATION, ALL_CAPABILITIES),
+    ...overrides,
+  };
 }
 
 /**
@@ -88,12 +98,13 @@ describe("Transitions", () => {
   describe("createSessionState", () => {
     it("should start with nothing in focus, the tree with every folder open and the sketch tab", () => {
       // Act
-      const state = createSessionState(SKETCH, EVALUATION);
+      const state = createSessionState(SKETCH, EVALUATION, ALL_CAPABILITIES);
 
       // Assert
       expect(state).toEqual({
         sketch: SKETCH,
         evaluation: EVALUATION,
+        capabilities: ALL_CAPABILITIES,
         focus: { kind: "none" },
         tab: "sketch",
         problemsCollapsed: false,
@@ -107,13 +118,14 @@ describe("Transitions", () => {
       });
     });
 
-    it("should keep the sketch and the evaluation it is given", () => {
+    it("should keep the sketch, the evaluation and the capabilities it is given", () => {
       // Act
-      const state = createSessionState(SKETCH, EVALUATION);
+      const state = createSessionState(SKETCH, EVALUATION, TREE_LOCKED);
 
       // Assert
       expect(state.sketch).toBe(SKETCH);
       expect(state.evaluation).toBe(EVALUATION);
+      expect(state.capabilities).toBe(TREE_LOCKED);
     });
   });
 
@@ -503,6 +515,31 @@ describe("Transitions", () => {
   });
 
   describe("addNode", () => {
+    it.each(["file", "folder"] as const)(
+      "should return the same state for a %s without editTree",
+      (kind) => {
+        // Arrange
+        const before = createState({ capabilities: TREE_LOCKED });
+
+        // Act
+        const state = addNode(before, kind);
+
+        // Assert
+        expect(state).toBe(before);
+      }
+    );
+
+    it("should add the node without editConfig", () => {
+      // Act
+      const state = addNode(
+        createState({ capabilities: CONFIG_LOCKED }),
+        "file"
+      );
+
+      // Assert
+      expect(getPaths(state)).toContain("new-file.js");
+    });
+
     it("should add a file at the root when nothing is in focus or selected", () => {
       // Act
       const state = addNode(createState(), "file");
@@ -733,6 +770,28 @@ describe("Transitions", () => {
   });
 
   describe("startRename", () => {
+    it("should return the same state without editTree", () => {
+      // Arrange
+      const before = createState({ capabilities: TREE_LOCKED });
+
+      // Act
+      const state = startRename(before, "src/index.js");
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should start renaming without editConfig", () => {
+      // Act
+      const state = startRename(
+        createState({ capabilities: CONFIG_LOCKED }),
+        "src/index.js"
+      );
+
+      // Assert
+      expect(state.renaming).toBe("src/index.js");
+    });
+
     it("should start renaming a node", () => {
       // Act
       const state = startRename(createState(), "main.js");
@@ -789,6 +848,37 @@ describe("Transitions", () => {
   });
 
   describe("renameNode", () => {
+    it("should rename nothing without editTree, and give the path of the node, which keeps its name", () => {
+      // Arrange
+      const before = createState({
+        capabilities: TREE_LOCKED,
+        renaming: "src/index.js",
+      });
+
+      // Act
+      const { state, path } = getRenamed(
+        renameNode(before, "src/index.js", "main2.js")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+      expect(path).toBe("src/index.js");
+    });
+
+    it("should rename the node without editConfig", () => {
+      // Act
+      const { path } = getRenamed(
+        renameNode(
+          createState({ capabilities: CONFIG_LOCKED }),
+          "src/index.js",
+          "main2.js"
+        )
+      );
+
+      // Assert
+      expect(path).toBe("src/main2.js");
+    });
+
     it("should rename the node in its folder and give its new path", () => {
       // Arrange
       const before = createState({ renaming: "src/index.js" });
@@ -1071,6 +1161,28 @@ describe("Transitions", () => {
   });
 
   describe("removeNode", () => {
+    it("should return the same state without editTree", () => {
+      // Arrange
+      const before = createState({ capabilities: TREE_LOCKED });
+
+      // Act
+      const state = removeNode(before, "src/index.js");
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should remove the node without editConfig", () => {
+      // Act
+      const state = removeNode(
+        createState({ capabilities: CONFIG_LOCKED }),
+        "src/index.js"
+      );
+
+      // Assert
+      expect(getPaths(state)).not.toContain("src/index.js");
+    });
+
     it("should remove the node and everything under it", () => {
       // Act
       const state = removeNode(createState(), "src");
@@ -1217,6 +1329,28 @@ describe("Transitions", () => {
   });
 
   describe("changeConfig", () => {
+    it("should return the same state without editConfig", () => {
+      // Arrange
+      const before = createState({ capabilities: CONFIG_LOCKED });
+
+      // Act
+      const state = changeConfig(before, "{}");
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should replace the config without editTree", () => {
+      // Act
+      const state = changeConfig(
+        createState({ capabilities: TREE_LOCKED }),
+        "{}"
+      );
+
+      // Assert
+      expect(state.sketch.config).toBe("{}");
+    });
+
     it("should replace the config and keep the tree of the sketch", () => {
       // Arrange
       const before = createState();
@@ -1253,6 +1387,28 @@ describe("Transitions", () => {
   });
 
   describe("setTextDraft", () => {
+    it("should return the same state without editTree", () => {
+      // Arrange
+      const before = createState({ capabilities: TREE_LOCKED });
+
+      // Act
+      const state = setTextDraft(before, "main.js\n");
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should keep the draft without editConfig", () => {
+      // Act
+      const state = setTextDraft(
+        createState({ capabilities: CONFIG_LOCKED }),
+        "main.js\n"
+      );
+
+      // Assert
+      expect(state.textDraft).toBe("main.js\n");
+    });
+
     it("should keep what the user typed", () => {
       // Act
       const state = setTextDraft(createState(), "main.js\nsrc/new.js\n");

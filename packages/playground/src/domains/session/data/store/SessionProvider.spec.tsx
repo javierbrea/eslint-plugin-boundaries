@@ -208,7 +208,7 @@ describe("SessionProvider", () => {
       expect(seen.capabilities[0]).toBe(NO_CAPABILITIES);
     });
 
-    it("should give the new capabilities when the host changes them", () => {
+    it("should keep the capabilities it started with when later ones are passed", () => {
       // Arrange
       const { seen, update } = renderProvider();
 
@@ -216,7 +216,29 @@ describe("SessionProvider", () => {
       update({ capabilities: NO_CAPABILITIES });
 
       // Assert
-      expect(seen.capabilities.at(-1)).toBe(NO_CAPABILITIES);
+      expect(seen.capabilities.length).toBeGreaterThan(1);
+      expect(seen.capabilities.at(-1)).toBe(ALL_CAPABILITIES);
+    });
+
+    it("should refuse the edits that the capabilities do not allow, and report no sketch", () => {
+      // Arrange
+      const onSketchChange = jest.fn();
+      const { store } = renderProvider({
+        capabilities: NO_CAPABILITIES,
+        onSketchChange,
+      });
+
+      // Act
+      act(() => {
+        store.addNode("file");
+        store.changeConfig("{}");
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+      });
+
+      // Assert
+      expect(view.getByRole("status").textContent).toBe("1");
+      expect(store.getState().sketch).toBe(SKETCH);
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
   });
 

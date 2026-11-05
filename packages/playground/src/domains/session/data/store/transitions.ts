@@ -1,4 +1,4 @@
-import type { Sketch } from "@/contract";
+import type { ProjectCapabilities, Sketch } from "@/contract";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import {
   CONFIG_PATH,
@@ -40,15 +40,18 @@ const NEW_NAMES = { file: "new-file.js", folder: "new-folder" } as const;
  * Creates the state an instance starts with: the sketch and its evaluation, with nothing in focus, the project as a tree with every folder open, and the problems panel open on the sketch.
  * @param sketch The sketch to start from.
  * @param evaluation What the engine says about it.
+ * @param capabilities What the user can change in the project.
  * @returns The first state.
  */
 export function createSessionState(
   sketch: Sketch,
-  evaluation: Evaluation
+  evaluation: Evaluation,
+  capabilities: ProjectCapabilities
 ): SessionState {
   return {
     sketch,
     evaluation,
+    capabilities,
     focus: NO_FOCUS,
     tab: "sketch",
     problemsCollapsed: false,
@@ -249,12 +252,16 @@ export function setView(state: SessionState, view: ProjectView): SessionState {
  * Adds a file or a folder with a free name and starts renaming it, from the tree or from the pane of nothing open alike. It goes in the folder the user selected, the folder of the file in focus or the root; the tree shows, with the folders above it open. A new file opens; a new folder is selected.
  * @param state The state before.
  * @param kind Whether to add a file or a folder.
- * @returns The state after.
+ * @returns The state after, or the same one without `editTree`.
  */
 export function addNode(
   state: SessionState,
   kind: "file" | "folder"
 ): SessionState {
+  if (!state.capabilities.editTree) {
+    return state;
+  }
+
   const path = getUniquePath(
     state.sketch,
     getTargetFolder(state),
@@ -280,10 +287,12 @@ export function addNode(
  * Starts renaming a node in the tree.
  * @param state The state before.
  * @param path The path of the node.
- * @returns The state after.
+ * @returns The state after, or the same one without `editTree`.
  */
 export function startRename(state: SessionState, path: string): SessionState {
-  return path === state.renaming ? state : { ...state, renaming: path };
+  return path === state.renaming || !state.capabilities.editTree
+    ? state
+    : { ...state, renaming: path };
 }
 
 /**
@@ -302,13 +311,17 @@ export function cancelRename(state: SessionState): SessionState {
  * @param state The state before.
  * @param path The path of the node.
  * @param typedName The name as typed: it can have a path, which moves the node.
- * @returns The state after and the new path of the node, or why the name is refused.
+ * @returns The state after and the new path of the node, or why the name is refused. Without `editTree`, the same state and the path of the node, which keeps its name.
  */
 export function renameNode(
   state: SessionState,
   path: string,
   typedName: string
 ): RenameTransition {
+  if (!state.capabilities.editTree) {
+    return { state, path };
+  }
+
   const result = renameInFolder(state.sketch, path, typedName);
 
   if ("error" in result) {
@@ -342,9 +355,13 @@ export function renameNode(
  * Removes a node and everything under it. What was inside it leaves the focus, the selection, the rename and the closed folders.
  * @param state The state before.
  * @param path The path of the node.
- * @returns The state after, or the same one when there is no node at the path.
+ * @returns The state after, or the same one when there is no node at the path or without `editTree`.
  */
 export function removeNode(state: SessionState, path: string): SessionState {
+  if (!state.capabilities.editTree) {
+    return state;
+  }
+
   const isRemoved = (candidate: string | undefined): boolean =>
     candidate !== undefined && isSameOrInside(candidate, path);
 
@@ -372,25 +389,27 @@ export function removeNode(state: SessionState, path: string): SessionState {
  * Replaces the config text.
  * @param state The state before.
  * @param config The new config, as JSON5 text.
- * @returns The state after, or the same one when the text did not change.
+ * @returns The state after, or the same one when the text did not change or without `editConfig`.
  */
 export function changeConfig(
   state: SessionState,
   config: string
 ): SessionState {
-  return config === state.sketch.config
+  return config === state.sketch.config || !state.capabilities.editConfig
     ? state
     : { ...state, sketch: setConfig(state.sketch, config) };
 }
 
 /**
- * Keeps what the user typed in text mode.
+ * Keeps what the user typed in text mode. The draft is the only way that text reaches the sketch, so without it `readText` and `settleText` have nothing to read.
  * @param state The state before.
  * @param text The whole text.
- * @returns The state after.
+ * @returns The state after, or the same one without `editTree`.
  */
 export function setTextDraft(state: SessionState, text: string): SessionState {
-  return text === state.textDraft ? state : { ...state, textDraft: text };
+  return text === state.textDraft || !state.capabilities.editTree
+    ? state
+    : { ...state, textDraft: text };
 }
 
 /**
