@@ -5,6 +5,7 @@ import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/Confi
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
 import { ProblemsPane } from "@/domains/problems/modules/ProblemsPane";
 import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
+import { ProjectPane } from "@/domains/project/modules/ProjectPane";
 import {
   SessionProvider,
   useProblemsCollapsed,
@@ -16,7 +17,6 @@ import { InspectorPane } from "@/domains/shell/modules/InspectorPane";
 import { NodePane } from "@/domains/shell/modules/NodePane";
 
 import { Regions, TopBar } from "./layout";
-import { ProjectPane } from "./project";
 import type { WorkbenchProps } from "./Workbench.types";
 
 const Frame = styled("section")({

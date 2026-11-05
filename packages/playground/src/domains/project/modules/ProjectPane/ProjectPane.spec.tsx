@@ -1,15 +1,9 @@
 // cspell:ignore dissallow patern -- deliberate typos, the mistakes of the config that the tests report
-import {
-  act,
-  fireEvent,
-  screen as view,
-  waitFor,
-  waitForElementToBeRemoved,
-  within,
-} from "@testing-library/react";
+import { act } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
+import { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import type { SessionStore } from "@/domains/session/data/store";
 import {
@@ -24,6 +18,7 @@ import type {
 } from "@/domains/session/helpers/focus";
 
 import { ProjectPane } from "./ProjectPane";
+import { ProjectPanePom } from "./ProjectPane.pom";
 
 const SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -83,6 +78,12 @@ type PaneOptions = {
   view?: ProjectView;
 };
 
+/** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
+type PaneRender = SessionRender & {
+  /** The page object of the project pane. */
+  readonly pane: ProjectPanePom;
+};
+
 /**
  * Renders the pane in a session and puts the store in the state a test starts from, as the user would: with a file opened, or the project shown as text.
  * @param options What the pane starts with.
@@ -90,18 +91,21 @@ type PaneOptions = {
  * @param options.capabilities What the user can change.
  * @param options.focus What is in focus.
  * @param options.view How the pane shows the project.
- * @returns The render, the store and the spy of the sketches.
+ * @returns The render, the store, the spy of the sketches and the page object of the pane.
  */
 function renderPane({
   sketch = SKETCH,
   capabilities,
   focus: target,
   view: projectView = "tree",
-}: PaneOptions = {}): SessionRender {
-  const rendered = renderInSession(<ProjectPane />, {
-    sketch,
-    capabilities,
-  });
+}: PaneOptions = {}): PaneRender {
+  const rendered = {
+    ...renderInSession(<ProjectPane />, {
+      sketch,
+      capabilities,
+    }),
+    pane: new ProjectPanePom(),
+  };
 
   if (target !== undefined) {
     act(() => rendered.store.open(target));
@@ -123,97 +127,12 @@ function getFocus(store: SessionStore): Focus {
 
 /**
  * Types the whole text of the project in the textarea, and leaves it, as the user does when the text is done.
+ * @param pane The page object of the pane, which shows the project as text.
  * @param text The text.
  */
-function typeProjectText(text: string): void {
-  const area = view.getByRole("textbox", { name: "Project as text" });
-
-  fireEvent.change(area, { target: { value: text } });
-  fireEvent.blur(area);
-}
-
-/**
- * Reads the paths of the files and folders of the tree the pane shows, in order.
- * @returns The `title` of each row but the config's: the path of its node.
- */
-function getPaths(): (string | null)[] {
-  return view
-    .getAllByRole("treeitem")
-    .slice(1)
-    .map(
-      (item) => item.querySelector("[title]")?.getAttribute("title") ?? null
-    );
-}
-
-/**
- * Gets the row of a node.
- * @param path The path of the node.
- * @returns The element of the row that shows the node: its name.
- */
-function getRow(path: string): HTMLElement {
-  return view.getByTitle(path);
-}
-
-/**
- * Gets the item of the tree that has a node's name.
- * @param path The path of the node.
- * @returns The element of the item.
- */
-function getItem(path: string): HTMLElement {
-  return getRow(path).closest("[role='treeitem']") as HTMLElement;
-}
-
-/**
- * Gets the field that renames a node.
- * @param path The path of the node being renamed.
- * @returns The field.
- */
-function getField(path: string): HTMLInputElement {
-  return view.getByRole("textbox", {
-    name: `New name of ${path}`,
-  }) as HTMLInputElement;
-}
-
-/**
- * Gets the item whose name is being edited.
- * @param path The path of the node being renamed.
- * @returns The element of the item, which holds the field in place of the name.
- */
-function getRenamingItem(path: string): HTMLElement {
-  return view
-    .getByRole("textbox", { name: `New name of ${path}` })
-    .closest("[role='treeitem']") as HTMLElement;
-}
-
-/**
- * Types a name in the field that renames a node.
- * @param path The path of the node being renamed.
- * @param typed What to type.
- * @returns The field.
- */
-function typeName(path: string, typed: string): HTMLElement {
-  const field = getField(path);
-
-  fireEvent.change(field, { target: { value: typed } });
-  return field;
-}
-
-/**
- * Moves the keyboard focus out of the tree, to the button of the Tree view, as a click or the Tab key outside the tree does. `fireEvent.blur` only dispatches the event and never moves the focus, so it cannot tell where the focus ends.
- * @returns The element that has the focus now.
- */
-function moveFocusAway(): HTMLElement {
-  const other = view.getByRole("button", { name: "Tree" });
-
-  act(() => other.focus());
-  return other;
-}
-
-/**
- * Waits until the focus is on an element, which is when the tree took it back after the rename or the dialog went. The focus is on the body until then.
- */
-async function waitForFocus(): Promise<void> {
-  await waitFor(() => expect(document.activeElement).not.toBe(document.body));
+function typeProjectText(pane: ProjectPanePom, text: string): void {
+  pane.text.type(text);
+  pane.text.blur();
 }
 
 /**
@@ -223,15 +142,6 @@ async function settleFocus(): Promise<void> {
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
-}
-
-/**
- * Opens the confirmation dialog of a folder the way a keyboard user does: the item of the folder has the focus, and Delete is pressed.
- * @param path The path of the folder.
- */
-function askToDelete(path: string): void {
-  act(() => getItem(path).focus());
-  fireEvent.keyDown(getItem(path), { key: "Delete" });
 }
 
 /**
@@ -260,24 +170,23 @@ describe("ProjectPane", () => {
   describe("tree", () => {
     it("should name the pane Project", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const pane = view.getByRole("region", { name: "Project" });
+      const { layout } = pane;
 
       // Assert
-      expect(within(pane).getByText("Project").textContent).toBe("Project");
+      expect(layout.isLandmark).toBe(true);
+      expect(layout.label).toBe("Project");
+      expect(layout.childTexts[0]).toBe("Project");
     });
 
     it("should pin eslint.config.js first and put folders before files, each by name", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const names = view
-        .getAllByRole("treeitem")
-        .map((item) => item.getAttribute("aria-labelledby"))
-        .map((id) => document.getElementById(id as string)?.textContent);
+      const names = pane.tree.itemLabels;
 
       // Assert
       expect(names).toEqual([
@@ -293,13 +202,14 @@ describe("ProjectPane", () => {
 
     it("should show the full path of a node as the title of its name", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const paths = getPaths();
+      const paths = pane.tree.itemPaths;
 
       // Assert
       expect(paths).toEqual([
+        "eslint.config.js",
         "src",
         "src/components",
         "src/components/Button.js",
@@ -311,28 +221,24 @@ describe("ProjectPane", () => {
 
     it("should start with every folder open", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const folders = view
-        .getAllByRole("treeitem")
-        .filter((item) => item.hasAttribute("aria-expanded"));
+      const folders = pane.tree.expandedStates;
 
       // Assert
-      expect(
-        folders.map((folder) => folder.getAttribute("aria-expanded"))
-      ).toEqual(["true", "true"]);
+      expect(folders).toEqual(["true", "true"]);
     });
 
     it("should close a folder when it is clicked, and open it when it is clicked again", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.click(getRow("src/components"));
-      const pathsClosed = getPaths();
-      fireEvent.click(getRow("src/components"));
-      const pathsOpen = getPaths();
+      pane.click("src/components");
+      const pathsClosed = pane.tree.itemPaths;
+      pane.click("src/components");
+      const pathsOpen = pane.tree.itemPaths;
 
       // Assert
       expect(pathsClosed).not.toContain("src/components/Button.js");
@@ -341,10 +247,10 @@ describe("ProjectPane", () => {
 
     it("should remember in the store the folders that were closed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(getRow("src/components"));
+      pane.click("src/components");
 
       // Assert
       expect(Array.from(store.getState().closedFolders)).toEqual([
@@ -354,12 +260,12 @@ describe("ProjectPane", () => {
 
     it("should not open anything when a folder is clicked", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.click(getRow("src"));
+      pane.click("src");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
@@ -367,10 +273,10 @@ describe("ProjectPane", () => {
 
     it("should open a file when it is clicked", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(getRow("src/index.js"));
+      pane.click("src/index.js");
 
       // Assert
       expect(getFocus(store)).toEqual({
@@ -381,10 +287,10 @@ describe("ProjectPane", () => {
 
     it("should open the config when it is clicked", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(getRow("eslint.config.js"));
+      pane.click("eslint.config.js");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "config" });
@@ -392,36 +298,34 @@ describe("ProjectPane", () => {
 
     it("should select the file that is in focus", () => {
       // Arrange
-      renderPane({ focus: { kind: "file", path: "src/index.js" } });
+      const { pane } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
 
       // Act
-      const selected = view
-        .getAllByRole("treeitem")
-        .filter((item) => item.getAttribute("aria-selected") === "true");
+      const selected = pane.tree.selectedPaths;
 
       // Assert
-      expect(selected).toEqual([getItem("src/index.js")]);
+      expect(selected).toEqual(["src/index.js"]);
     });
 
     it("should select the config when it is in focus", () => {
       // Arrange
-      renderPane({ focus: { kind: "config" } });
+      const { pane } = renderPane({ focus: { kind: "config" } });
 
       // Act
-      const config = getItem("eslint.config.js");
+      const config = pane.item("eslint.config.js");
 
       // Assert
-      expect(config.getAttribute("aria-selected")).toBe("true");
+      expect(config.ariaSelected).toBe("true");
     });
 
     it("should select nothing when nothing is in focus", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const selected = view
-        .getAllByRole("treeitem")
-        .filter((item) => item.getAttribute("aria-selected") === "true");
+      const selected = pane.tree.selectedPaths;
 
       // Assert
       expect(selected).toEqual([]);
@@ -429,50 +333,50 @@ describe("ProjectPane", () => {
 
     it("should select a folder the user clicked, and keep what is in focus", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.click(getRow("src"));
+      pane.click("src");
 
       // Assert
-      expect(getItem("src").getAttribute("aria-selected")).toBe("true");
-      expect(getItem("index.js").getAttribute("aria-selected")).toBe("false");
+      expect(pane.item("src").ariaSelected).toBe("true");
+      expect(pane.item("index.js").ariaSelected).toBe("false");
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should select the file again when it is clicked after a folder", () => {
       // Arrange
-      renderPane({ focus: { kind: "file", path: "index.js" } });
-      fireEvent.click(getRow("src"));
+      const { pane } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
+      pane.click("src");
 
       // Act
-      fireEvent.click(getRow("index.js"));
+      pane.click("index.js");
 
       // Assert
-      expect(getItem("index.js").getAttribute("aria-selected")).toBe("true");
-      expect(getItem("src").getAttribute("aria-selected")).toBe("false");
+      expect(pane.item("index.js").ariaSelected).toBe("true");
+      expect(pane.item("src").ariaSelected).toBe("false");
     });
 
     it("should drop the selected folder when something else takes the focus", () => {
       // Arrange
-      const { store } = renderPane();
-      fireEvent.click(getRow("src"));
+      const { store, pane } = renderPane();
+      pane.click("src");
 
       // Act
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(getItem("src").getAttribute("aria-selected")).toBe("false");
-      expect(getItem("eslint.config.js").getAttribute("aria-selected")).toBe(
-        "true"
-      );
+      expect(pane.item("src").ariaSelected).toBe("false");
+      expect(pane.item("eslint.config.js").ariaSelected).toBe("true");
     });
 
     it("should keep what is in focus when the keyboard clears the selection", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
       const listener = jest.fn();
@@ -480,30 +384,30 @@ describe("ProjectPane", () => {
       store.subscribe(listener);
 
       // Act
-      fireEvent.keyDown(getItem("index.js"), { key: " " });
+      pane.item("index.js").pressKey(" ");
 
       // Assert
       expect(listener).not.toHaveBeenCalled();
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
-      expect(getItem("index.js").getAttribute("aria-selected")).toBe("true");
+      expect(pane.item("index.js").ariaSelected).toBe("true");
     });
 
     it("should open the folders above a file that takes the focus", () => {
       // Arrange
-      const { store } = renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.click(getRow("src"));
+      const { store, pane } = renderPane();
+      pane.click("src/components");
+      pane.click("src");
 
       // Act
       act(() => store.open({ kind: "file", path: "src/components/Button.js" }));
 
       // Assert
-      expect(getPaths()).toContain("src/components/Button.js");
+      expect(pane.tree.itemPaths).toContain("src/components/Button.js");
     });
 
     it("should select nothing when the file in focus is removed", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
@@ -511,22 +415,18 @@ describe("ProjectPane", () => {
       act(() => store.removeNode("index.js"));
 
       // Assert
-      expect(
-        view
-          .getAllByRole("treeitem")
-          .filter((item) => item.getAttribute("aria-selected") === "true")
-      ).toEqual([]);
+      expect(pane.tree.selectedPaths).toEqual([]);
     });
 
     it("should show a node that another pane adds to the store", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
       act(() => store.addNode("file"));
 
       // Assert
-      expect(getField("new-file.js").value).toBe("new-file.js");
+      expect(pane.item("new-file.js").field.value).toBe("new-file.js");
       expect(getTreePaths(store.getState().sketch)).toContain("new-file.js");
     });
   });
@@ -534,37 +434,39 @@ describe("ProjectPane", () => {
   describe("badges", () => {
     it("should show the problems of the config in red when it has errors", () => {
       // Arrange
-      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_BOTH } });
-
-      // Act
-      const badge = within(getItem("eslint.config.js")).getByRole("img", {
-        name: "2 problems",
+      const { pane } = renderPane({
+        sketch: { ...SKETCH, config: CONFIG_WITH_BOTH },
       });
 
+      // Act
+      const badge = pane.item("eslint.config.js").row.badge("2 problems");
+
       // Assert
-      expect(badge.textContent).toBe("2");
-      expect(getComputedStyle(badge).color).toBe("var(--jsb-bad)");
+      expect(badge.count).toBe("2");
+      expect(badge.color).toBe("var(--jsb-bad)");
     });
 
     it("should show the problems of the config in the warning color when it has no errors", () => {
       // Arrange
-      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_WARNING } });
-
-      // Act
-      const badge = within(getItem("eslint.config.js")).getByRole("img", {
-        name: "1 problem",
+      const { pane } = renderPane({
+        sketch: { ...SKETCH, config: CONFIG_WITH_WARNING },
       });
 
+      // Act
+      const badge = pane.item("eslint.config.js").row.badge("1 problem");
+
       // Assert
-      expect(getComputedStyle(badge).color).toBe("var(--jsb-warn)");
+      expect(badge.color).toBe("var(--jsb-warn)");
     });
 
     it("should draw no badge when the config has no problems", () => {
       // Arrange
-      renderPane({ sketch: { ...SKETCH, config: QUICK_START_CONFIG } });
+      const { pane } = renderPane({
+        sketch: { ...SKETCH, config: QUICK_START_CONFIG },
+      });
 
       // Act
-      const badges = within(getItem("eslint.config.js")).queryAllByRole("img");
+      const badges = pane.item("eslint.config.js").row.badgeLabels;
 
       // Assert
       expect(badges).toEqual([]);
@@ -572,42 +474,41 @@ describe("ProjectPane", () => {
 
     it("should draw no badge on a folder or a file until dependencies are evaluated", () => {
       // Arrange
-      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_BOTH } });
+      const { pane } = renderPane({
+        sketch: { ...SKETCH, config: CONFIG_WITH_BOTH },
+      });
 
       // Act
-      const badges = [getItem("src"), getItem("src/index.js")].flatMap((item) =>
-        within(item).queryAllByRole("img")
-      );
+      const badges = pane.tree.badgeLabels;
 
       // Assert
-      expect(badges).toEqual([]);
+      expect(badges).toEqual(["2 problems"]);
     });
 
     it("should turn the config red when it has errors, and not otherwise", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         sketch: { ...SKETCH, config: CONFIG_WITH_ERROR },
       });
-      const withErrors = getItem("eslint.config.js").firstElementChild;
-      const withErrorsBad = withErrors?.hasAttribute("data-bad");
+      const withErrorsBad = pane.item("eslint.config.js").row.isBad;
 
       // Act
       act(() => store.changeConfig(CONFIG_WITH_WARNING));
       act(() => {
         jest.advanceTimersByTime(EVALUATION_DELAY);
       });
-      const withoutErrors = getItem("eslint.config.js").firstElementChild;
+      const withoutErrorsBad = pane.item("eslint.config.js").row.isBad;
 
       // Assert
       expect(withErrorsBad).toBe(true);
-      expect(withoutErrors?.hasAttribute("data-bad")).toBe(false);
+      expect(withoutErrorsBad).toBe(false);
     });
 
     it("should keep the badge of the config while an edit of the config waits to be evaluated", () => {
       // Arrange
       jest.useFakeTimers();
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         sketch: { ...SKETCH, config: CONFIG_WITH_ERROR },
       });
 
@@ -616,18 +517,14 @@ describe("ProjectPane", () => {
       act(() => {
         jest.advanceTimersByTime(EVALUATION_DELAY - 1);
       });
-      const whileWaiting = within(getItem("eslint.config.js")).queryAllByRole(
-        "img"
-      );
+      const whileWaiting = pane.item("eslint.config.js").row.badgeLabels;
       act(() => {
         jest.advanceTimersByTime(1);
       });
 
       // Assert
       expect(whileWaiting).toHaveLength(1);
-      expect(within(getItem("eslint.config.js")).queryAllByRole("img")).toEqual(
-        []
-      );
+      expect(pane.item("eslint.config.js").row.badgeLabels).toEqual([]);
     });
   });
 
@@ -638,83 +535,78 @@ describe("ProjectPane", () => {
 
     it("should rename a file in place from its row action", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Rename src/index.js"));
-      const field = typeName("src/index.js", "main.js");
-      fireEvent.keyDown(field, { key: "Enter" });
+      pane.item("src/index.js").renameAction.press();
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
+      field.pressKey("Enter");
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/main.js"
       );
-      expect(getPaths()).toContain("src/main.js");
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(pane.tree.itemPaths).toContain("src/main.js");
+      expect(pane.tree.renameFieldCount).toBe(0);
     });
 
     it("should start the rename on double click", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.doubleClick(getRow("src/index.js"));
+      pane.item("src/index.js").row.doubleClickName();
 
       // Assert
-      expect(getField("src/index.js").value).toBe("index.js");
+      expect(pane.item("src/index.js").field.value).toBe("index.js");
     });
 
     it("should start the rename with F2", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      pane.item("src/index.js").pressKey("F2");
 
       // Assert
-      expect(getField("src/index.js").value).toBe("index.js");
+      expect(pane.item("src/index.js").field.value).toBe("index.js");
     });
 
     it("should start with the current name, selected, without the slash of a folder", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.doubleClick(getRow("src/components"));
-      const field = view.getByRole("textbox", {
-        name: "New name of src/components",
-      }) as HTMLInputElement;
+      pane.item("src/components").row.doubleClickName();
+      const { field } = pane.item("src/components");
 
       // Assert
       expect(field.value).toBe("components");
-      expect([field.selectionStart, field.selectionEnd]).toEqual([0, 10]);
+      expect(field.selection).toEqual({ start: 0, end: 10 });
     });
 
     it("should not open or select the row when the field is clicked", () => {
       // Arrange
-      const { store } = renderPane();
-      fireEvent.doubleClick(getRow("src/components"));
+      const { store, pane } = renderPane();
+      pane.item("src/components").row.doubleClickName();
 
       // Act
-      fireEvent.click(
-        view.getByRole("textbox", { name: "New name of src/components" })
-      );
+      pane.item("src/components").field.click();
 
       // Assert
-      expect(getPaths()).toContain("src/components/Button.js");
+      expect(pane.tree.itemPaths).toContain("src/components/Button.js");
       expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should not pass the keys of the field to the tree", () => {
       // Arrange
-      const { store } = renderPane();
-      fireEvent.doubleClick(getRow("src/index.js"));
-      const field = view.getByRole("textbox", {
-        name: "New name of src/index.js",
-      });
+      const { store, pane } = renderPane();
+      pane.item("src/index.js").row.doubleClickName();
+      const { field } = pane.item("src/index.js");
 
       // Act
-      fireEvent.keyDown(field, { key: " " });
+      field.pressKey(" ");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "none" });
@@ -722,31 +614,29 @@ describe("ProjectPane", () => {
 
     it("should follow the rename with the focus", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "src/index.js" },
       });
 
       // Act
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Enter" });
+      pane.rename("src/index.js", "main.js");
 
       // Assert
       expect(getFocus(store)).toEqual({
         kind: "file",
         path: "src/main.js",
       });
-      expect(getItem("src/main.js").getAttribute("aria-selected")).toBe("true");
+      expect(pane.item("src/main.js").ariaSelected).toBe("true");
     });
 
     it("should follow the rename of a folder with the file in focus inside it", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "src/components/Button.js" },
       });
 
       // Act
-      fireEvent.keyDown(getItem("src"), { key: "F2" });
-      fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
+      pane.rename("src", "lib");
 
       // Assert
       expect(getFocus(store)).toEqual({
@@ -757,13 +647,12 @@ describe("ProjectPane", () => {
 
     it("should leave the focus alone when the renamed node is not the file in focus", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.keyDown(getItem("src"), { key: "F2" });
-      fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
+      pane.rename("src", "lib");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
@@ -771,15 +660,15 @@ describe("ProjectPane", () => {
 
     it("should keep a renamed folder closed, and keep its children's dependencies", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.click(getRow("src/components"));
+      const { onSketchChange, pane } = renderPane();
+      pane.click("src/components");
 
       // Act
-      fireEvent.keyDown(getItem("src"), { key: "F2" });
-      fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
+      pane.rename("src", "lib");
 
       // Assert
-      expect(getPaths()).toEqual([
+      expect(pane.tree.itemPaths).toEqual([
+        "eslint.config.js",
         "lib",
         "lib/components",
         "lib/index.js",
@@ -793,26 +682,22 @@ describe("ProjectPane", () => {
 
     it("should keep the selected folder selected when it is renamed", () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src"));
+      const { pane } = renderPane();
+      pane.click("src");
 
       // Act
-      fireEvent.keyDown(getItem("src"), { key: "F2" });
-      fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
+      pane.rename("src", "lib");
 
       // Assert
-      expect(getItem("lib").getAttribute("aria-selected")).toBe("true");
+      expect(pane.item("lib").ariaSelected).toBe("true");
     });
 
     it("should rename a file inside a folder, keeping the folder", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
-      fireEvent.keyDown(typeName("src/components/Price.js", "Cost.js"), {
-        key: "Enter",
-      });
+      pane.rename("src/components/Price.js", "Cost.js");
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -822,13 +707,10 @@ describe("ProjectPane", () => {
 
     it("should move a node into a folder when the name has a path", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      fireEvent.keyDown(typeName("src/index.js", "./app/main.js"), {
-        key: "Enter",
-      });
+      pane.rename("src/index.js", "./app/main.js");
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -838,32 +720,30 @@ describe("ProjectPane", () => {
 
     it("should open the closed folder that a node moves into, and give the keyboard to the node", async () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { pane } = renderPane();
+      pane.click("src/components");
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
 
       // Act
-      fireEvent.keyDown(typeName("src/index.js", "components/moved.js"), {
-        key: "Enter",
-      });
-      await waitForFocus();
+      field.type("components/moved.js");
+      field.pressKey("Enter");
+      await pane.waitForFocus();
 
       // Assert
-      expect(getItem("src/components").getAttribute("aria-expanded")).toBe(
-        "true"
-      );
-      expect(getPaths()).toContain("src/components/moved.js");
-      expect(document.activeElement).toBe(getItem("src/components/moved.js"));
+      expect(pane.item("src/components").ariaExpanded).toBe("true");
+      expect(pane.tree.itemPaths).toContain("src/components/moved.js");
+      expect(pane.item("src/components/moved.js").isFocused).toBe(true);
     });
 
     it("should rename when the field loses the focus, and leave the focus where the user put it", async () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      typeName("src/index.js", "main.js");
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      pane.item("src/index.js").field.type("main.js");
 
       // Act
-      const other = moveFocusAway();
+      pane.foot.focusView("Tree");
       await settleFocus();
 
       // Assert
@@ -871,90 +751,86 @@ describe("ProjectPane", () => {
         "src/main.js"
       );
       expect(onSketchChange).toHaveBeenCalledTimes(1);
-      expect(getPaths()).toContain("src/main.js");
-      expect(document.activeElement).toBe(other);
+      expect(pane.tree.itemPaths).toContain("src/main.js");
+      expect(pane.foot.isViewFocused("Tree")).toBe(true);
     });
 
     it("should give up when Escape is pressed", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      const field = typeName("src/index.js", "main.js");
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
 
       // Act
-      fireEvent.keyDown(field, { key: "Escape" });
-      fireEvent.blur(field);
+      field.pressKey("Escape");
 
       // Assert
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(view.queryByRole("textbox")).toBeNull();
-      expect(getPaths()).toContain("src/index.js");
+      expect(pane.tree.renameFieldCount).toBe(0);
+      expect(pane.tree.itemPaths).toContain("src/index.js");
     });
 
     it("should ignore the other keys", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
 
       // Act
-      fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "a" });
+      field.pressKey("a");
 
       // Assert
-      expect(getField("src/index.js").value).toBe("main.js");
+      expect(pane.item("src/index.js").field.value).toBe("main.js");
       expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should close the field without an edit when the name did not change", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(typeName("src/index.js", "  index.js "), {
-        key: "Enter",
-      });
+      pane.rename("src/index.js", "  index.js ");
 
       // Assert
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(pane.tree.renameFieldCount).toBe(0);
     });
 
     it("should refuse a name that is taken, say why next to the field and keep the field open", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/components/Price.js").pressKey("F2");
+      const { field } = pane.item("src/components/Price.js");
+      field.type("Button.js");
 
       // Act
-      const field = typeName("src/components/Price.js", "Button.js");
-      fireEvent.keyDown(field, { key: "Enter" });
+      field.pressKey("Enter");
 
       // Assert
-      expect(view.getByRole("tooltip").textContent).toBe(
-        "That path already exists."
-      );
-      expect(field.getAttribute("aria-invalid")).toBe("true");
-      expect(field.getAttribute("aria-describedby")).toBe(
-        view.getByRole("tooltip").id
-      );
+      expect(field.refusal.text).toBe("That path already exists.");
+      expect(field.ariaInvalid).toBe("true");
+      expect(field.describedBy).toBe(field.refusal.id);
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(view.getByRole("textbox")).toBe(field);
+      // The field is still there, and it is the only one
+      expect([field.isRendered, pane.tree.renameFieldCount]).toEqual([true, 1]);
     });
 
     it("should clear the reason when the user types again, and rename with the fixed name", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
-      const field = typeName("src/components/Price.js", "Button.js");
-      fireEvent.keyDown(field, { key: "Enter" });
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/components/Price.js").pressKey("F2");
+      const { field } = pane.item("src/components/Price.js");
+      field.type("Button.js");
+      field.pressKey("Enter");
 
       // Act
-      fireEvent.change(field, { target: { value: "Cost.js" } });
-      const invalidAfterTyping = field.getAttribute("aria-invalid");
-      const describedAfterTyping = field.getAttribute("aria-describedby");
-      const titleAfterTyping = field
-        .closest(".MuiInputBase-root")
-        ?.getAttribute("title");
-      fireEvent.keyDown(field, { key: "Enter" });
+      field.type("Cost.js");
+      const invalidAfterTyping = field.ariaInvalid;
+      const describedAfterTyping = field.describedBy;
+      const titleAfterTyping = field.nativeTitle;
+      field.pressKey("Enter");
 
       // Assert
       expect(invalidAfterTyping).toBe("false");
@@ -967,127 +843,136 @@ describe("ProjectPane", () => {
 
     it("should refuse an empty name, in a folder and at the root", () => {
       // Arrange
-      renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      fireEvent.keyDown(typeName("src/index.js", " "), { key: "Enter" });
-      const reasonInFolder = view.getByRole("tooltip").textContent;
-      fireEvent.keyDown(typeName("src/index.js", "index.js"), {
-        key: "Escape",
-      });
-      fireEvent.keyDown(getItem("index.js"), { key: "F2" });
+      const { pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const folderField = pane.item("src/index.js").field;
+      folderField.type(" ");
+      folderField.pressKey("Enter");
+      const reasonInFolder = folderField.refusal.text;
+      folderField.type("index.js");
+      folderField.pressKey("Escape");
+      pane.item("index.js").pressKey("F2");
+      const rootField = pane.item("index.js").field;
 
       // Act
-      fireEvent.keyDown(typeName("index.js", ""), { key: "Enter" });
+      rootField.type("");
+      rootField.pressKey("Enter");
 
       // Assert
       expect(reasonInFolder).toBe("The path is empty.");
-      expect(view.getByRole("tooltip").textContent).toBe("The path is empty.");
+      expect(rootField.refusal.text).toBe("The path is empty.");
     });
 
     it("should refuse a folder that would move into itself", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src"), { key: "F2" });
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src").pressKey("F2");
+      const { field } = pane.item("src");
+      field.type("src/inner");
 
       // Act
-      fireEvent.keyDown(typeName("src", "src/inner"), { key: "Enter" });
+      field.pressKey("Enter");
 
       // Assert
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(view.getByRole("tooltip").textContent).not.toBe("");
+      expect(field.refusal.text).not.toBe("");
     });
 
     it("should give up when the field loses the focus with a refused name, and leave the focus where the user put it", async () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
-      typeName("src/components/Price.js", "Button.js");
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/components/Price.js").pressKey("F2");
+      pane.item("src/components/Price.js").field.type("Button.js");
 
       // Act
-      const other = moveFocusAway();
+      pane.foot.focusView("Tree");
       await settleFocus();
 
       // Assert
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(pane.tree.renameFieldCount).toBe(0);
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(getPaths()).toContain("src/components/Price.js");
-      expect(document.activeElement).toBe(other);
+      expect(pane.tree.itemPaths).toContain("src/components/Price.js");
+      expect(pane.foot.isViewFocused("Tree")).toBe(true);
     });
 
     it("should close the field and leave the focus where the user put it when the name did not change", async () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
 
       // Act
-      const other = moveFocusAway();
+      pane.foot.focusView("Tree");
       await settleFocus();
 
       // Assert
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(pane.tree.renameFieldCount).toBe(0);
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(document.activeElement).toBe(other);
+      expect(pane.foot.isViewFocused("Tree")).toBe(true);
     });
 
     it("should not touch the item while the focus is on its way to where the user clicked", async () => {
       // Arrange
       const focusSpy = jest.spyOn(HTMLElement.prototype, "focus");
-      renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      const field = typeName("src/index.js", "main.js");
-      const other = view.getByRole("button", { name: "Tree" });
+      const { pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
       focusSpy.mockClear();
 
       // Act
       // A browser runs the handlers of the blur while the focus is on the body, and puts it on its target when they return
       act(() => {
-        fireEvent.blur(field);
+        field.blur();
       });
-      act(() => other.focus());
+      pane.foot.focusView("Tree");
       await settleFocus();
 
       // Assert
-      const roles = focusSpy.mock.contexts.map((element) =>
-        element.getAttribute("role")
+      const itemsTouched = focusSpy.mock.contexts.some((element) =>
+        ProjectTreeItemPom.isItem(element)
       );
 
-      expect(roles).not.toContain("treeitem");
-      expect(document.activeElement).toBe(other);
+      expect(itemsTouched).toBe(false);
+      expect(pane.foot.isViewFocused("Tree")).toBe(true);
     });
 
     it("should give the keyboard back to the renamed item", async () => {
       // Arrange
-      renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
 
       // Act
-      fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Enter" });
-      await waitForFocus();
+      field.pressKey("Enter");
+      await pane.waitForFocus();
 
       // Assert
-      expect(document.activeElement).toBe(getItem("src/main.js"));
+      expect(pane.item("src/main.js").isFocused).toBe(true);
     });
 
     it("should give the keyboard back to the item when the user gives up", async () => {
       // Arrange
-      renderPane();
-      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const { pane } = renderPane();
+      pane.item("src/index.js").pressKey("F2");
+      const { field } = pane.item("src/index.js");
+      field.type("main.js");
 
       // Act
-      fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Escape" });
-      await waitForFocus();
+      field.pressKey("Escape");
+      await pane.waitForFocus();
 
       // Assert
-      expect(document.activeElement).toBe(getItem("src/index.js"));
+      expect(pane.item("src/index.js").isFocused).toBe(true);
     });
 
     it("should announce the F2 and Delete shortcuts on the rows that can be edited, and not on the config", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
       const shortcuts = ["src", "src/index.js", "eslint.config.js"].map(
-        (path) => getItem(path).getAttribute("aria-keyshortcuts")
+        (path) => pane.item(path).keyShortcuts
       );
 
       // Assert
@@ -1096,26 +981,26 @@ describe("ProjectPane", () => {
 
     it("should have no row actions, rename or delete for the config", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      const config = getItem("eslint.config.js");
-      fireEvent.keyDown(config, { key: "F2" });
-      fireEvent.keyDown(config, { key: "Delete" });
-      fireEvent.doubleClick(getRow("eslint.config.js"));
+      const config = pane.item("eslint.config.js");
+      config.pressKey("F2");
+      config.pressKey("Delete");
+      config.row.doubleClickName();
 
       // Assert
-      expect(within(config).queryAllByRole("button")).toEqual([]);
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(config.row.buttonLabels).toEqual([]);
+      expect(pane.tree.renameFieldCount).toBe(0);
       expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should not open the row when its action is clicked", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Rename src/index.js"));
+      pane.item("src/index.js").renameAction.press();
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "none" });
@@ -1123,41 +1008,41 @@ describe("ProjectPane", () => {
 
     it("should ignore the keys that come from inside the item", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(view.getByLabelText("Rename src/index.js"), {
-        key: "F2",
-      });
-      fireEvent.keyDown(getItem("src/components/Button.js"), { key: "F2" });
+      pane.item("src/index.js").renameAction.pressKey("F2");
+      pane.item("src/components/Button.js").pressKey("F2");
 
       // Assert: the field is the one of the child, not of src/ that holds it
-      expect(view.getAllByRole("textbox")).toHaveLength(1);
-      expect(getField("src/components/Button.js").value).toBe("Button.js");
+      expect(pane.tree.renameFieldCount).toBe(1);
+      expect(pane.item("src/components/Button.js").field.value).toBe(
+        "Button.js"
+      );
     });
   });
 
   describe("delete", () => {
     it("should remove a file right away from its row action", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete src/index.js"));
+      pane.item("src/index.js").deleteAction.press();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
         "src/index.js"
       );
-      expect(getPaths()).not.toContain("src/index.js");
+      expect(pane.tree.itemPaths).not.toContain("src/index.js");
     });
 
     it("should remove the dependencies of the file with it", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete src/index.js"));
+      pane.item("src/index.js").deleteAction.press();
 
       // Assert
       expect(getLastSketch(onSketchChange).dependencies).toHaveLength(1);
@@ -1165,10 +1050,10 @@ describe("ProjectPane", () => {
 
     it("should remove a file with the Delete key", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(getItem("index.js"), { key: "Delete" });
+      pane.item("index.js").pressKey("Delete");
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
@@ -1178,10 +1063,10 @@ describe("ProjectPane", () => {
 
     it("should leave the other keys alone", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.keyDown(getItem("index.js"), { key: "Backspace" });
+      pane.item("index.js").pressKey("Backspace");
 
       // Assert
       expect(onSketchChange).not.toHaveBeenCalled();
@@ -1189,12 +1074,12 @@ describe("ProjectPane", () => {
 
     it("should put nothing in focus when the file in focus is removed", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.keyDown(getItem("index.js"), { key: "Delete" });
+      pane.item("index.js").pressKey("Delete");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "none" });
@@ -1202,12 +1087,12 @@ describe("ProjectPane", () => {
 
     it("should leave the focus when another file is removed", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.keyDown(getItem("src/index.js"), { key: "Delete" });
+      pane.item("src/index.js").pressKey("Delete");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
@@ -1215,15 +1100,15 @@ describe("ProjectPane", () => {
 
     it("should ask before it removes a folder with files", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete src"));
+      pane.item("src").deleteAction.press();
 
       // Assert
-      const dialog = view.getByRole("dialog");
-
-      expect(dialog.textContent).toContain("Delete src/ and its 3 files?");
+      expect(pane.deleteDialog.dialog.title).toBe(
+        "Delete src/ and its 3 files?"
+      );
       expect(onSketchChange).not.toHaveBeenCalled();
     });
 
@@ -1233,72 +1118,71 @@ describe("ProjectPane", () => {
         ...SKETCH,
         tree: [...SKETCH.tree, { path: "docs/readme.md", kind: "file" }],
       };
-      renderPane({ sketch });
+      const { pane } = renderPane({ sketch });
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete docs"));
+      pane.item("docs").deleteAction.press();
 
       // Assert
-      expect(view.getByRole("dialog").textContent).toContain(
+      expect(pane.deleteDialog.dialog.title).toBe(
         "Delete docs/ and its 1 file?"
       );
     });
 
     it("should count the files of the folder at any depth, and not the folders", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete src/components"));
+      pane.item("src/components").deleteAction.press();
 
       // Assert
-      expect(view.getByRole("dialog").textContent).toContain(
+      expect(pane.deleteDialog.dialog.title).toBe(
         "Delete src/components/ and its 2 files?"
       );
     });
 
     it("should name the dialog by its title", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete src"));
+      pane.item("src").deleteAction.press();
 
       // Assert
-      const title = view.getByText("Delete src/ and its 3 files?");
+      const { dialog } = pane.deleteDialog;
 
-      expect(view.getByRole("dialog").getAttribute("aria-labelledby")).toBe(
-        title.id
-      );
+      expect(dialog.title).toBe("Delete src/ and its 3 files?");
+      expect(dialog.labelledBy).toBe(dialog.titleId);
     });
 
     it("should remove the folder and its files when the user confirms", async () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.click(view.getByLabelText("Delete src"));
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src").deleteAction.press();
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      pane.confirmDelete();
+      await pane.waitUntilDeleteDialogGone();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toEqual(["index.js"]);
-      expect(getPaths()).toEqual(["index.js"]);
+      expect(pane.tree.itemPaths).toEqual(["eslint.config.js", "index.js"]);
     });
 
     it("should give the keyboard to the parent of the folder once the dialog is gone", async () => {
       // Arrange
-      renderPane();
-      askToDelete("src/components");
+      const { pane } = renderPane();
+      pane.askToDelete("src/components");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
-      await waitForFocus();
+      pane.confirmDelete();
+      await pane.waitUntilDeleteDialogGone();
+      await pane.waitForFocus();
 
       // Assert
-      expect(getPaths()).not.toContain("src/components");
-      expect(document.activeElement).toBe(getItem("src"));
+      expect(pane.tree.itemPaths).not.toContain("src/components");
+      expect(pane.item("src").isFocused).toBe(true);
     });
 
     it("should give the keyboard to the nearest folder that is left when the parent goes with it", async () => {
@@ -1310,17 +1194,17 @@ describe("ProjectPane", () => {
           { path: "a/y.js", kind: "file" },
         ],
       };
-      renderPane({ sketch });
-      askToDelete("a/b/c");
+      const { pane } = renderPane({ sketch });
+      pane.askToDelete("a/b/c");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
-      await waitForFocus();
+      pane.confirmDelete();
+      await pane.waitUntilDeleteDialogGone();
+      await pane.waitForFocus();
 
       // Assert
-      expect(getPaths()).toEqual(["a", "a/y.js"]);
-      expect(document.activeElement).toBe(getItem("a"));
+      expect(pane.tree.itemPaths).toEqual(["eslint.config.js", "a", "a/y.js"]);
+      expect(pane.item("a").isFocused).toBe(true);
     });
 
     it("should give the keyboard to the config when no folder is left above the removed one", async () => {
@@ -1332,56 +1216,56 @@ describe("ProjectPane", () => {
           { path: "index.js", kind: "file" },
         ],
       };
-      renderPane({ sketch });
-      askToDelete("docs/guide");
+      const { pane } = renderPane({ sketch });
+      pane.askToDelete("docs/guide");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
-      await waitForFocus();
+      pane.confirmDelete();
+      await pane.waitUntilDeleteDialogGone();
+      await pane.waitForFocus();
 
       // Assert
-      expect(getPaths()).toEqual(["index.js"]);
-      expect(document.activeElement).toBe(getItem("eslint.config.js"));
+      expect(pane.tree.itemPaths).toEqual(["eslint.config.js", "index.js"]);
+      expect(pane.item("eslint.config.js").isFocused).toBe(true);
     });
 
     it("should leave the keyboard on the folder when the user cancels", async () => {
       // Arrange
-      renderPane();
-      askToDelete("src/components");
+      const { pane } = renderPane();
+      pane.askToDelete("src/components");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Cancel" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
-      await waitForFocus();
+      pane.cancelDelete();
+      await pane.waitUntilDeleteDialogGone();
+      await pane.waitForFocus();
 
       // Assert
-      expect(document.activeElement).toBe(getItem("src/components"));
+      expect(pane.item("src/components").isFocused).toBe(true);
     });
 
     it("should keep the folder when the user cancels", async () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.click(view.getByLabelText("Delete src"));
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src").deleteAction.press();
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Cancel" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      pane.cancelDelete();
+      await pane.waitUntilDeleteDialogGone();
 
       // Assert
       expect(onSketchChange).not.toHaveBeenCalled();
-      expect(getPaths()).toContain("src");
+      expect(pane.tree.itemPaths).toContain("src");
     });
 
     it("should put nothing in focus when the file in focus was inside the removed folder", () => {
       // Arrange
-      const { store } = renderPane({
+      const { store, pane } = renderPane({
         focus: { kind: "file", path: "src/components/Button.js" },
       });
-      fireEvent.keyDown(getItem("src"), { key: "Delete" });
+      pane.item("src").pressKey("Delete");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
+      pane.confirmDelete();
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "none" });
@@ -1389,32 +1273,28 @@ describe("ProjectPane", () => {
 
     it("should drop the selection of a folder that is removed", async () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.keyDown(getItem("src/components"), { key: "Delete" });
+      const { pane } = renderPane();
+      pane.click("src/components");
+      pane.item("src/components").pressKey("Delete");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
-      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      pane.confirmDelete();
+      await pane.waitUntilDeleteDialogGone();
 
       // Assert
-      const selected = view
-        .getAllByRole("treeitem")
-        .filter((item) => item.getAttribute("aria-selected") === "true");
-
-      expect(selected).toEqual([]);
+      expect(pane.tree.selectedPaths).toEqual([]);
     });
 
     it("should keep the selection of a folder when another is removed", () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src"));
+      const { pane } = renderPane();
+      pane.click("src");
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete index.js"));
+      pane.item("index.js").deleteAction.press();
 
       // Assert
-      expect(getItem("src").getAttribute("aria-selected")).toBe("true");
+      expect(pane.item("src").ariaSelected).toBe("true");
     });
 
     it("should remove a folder with no files without asking", () => {
@@ -1423,24 +1303,24 @@ describe("ProjectPane", () => {
         ...SKETCH,
         tree: [...SKETCH.tree, { path: "docs", kind: "folder" }],
       };
-      const { onSketchChange } = renderPane({ sketch });
+      const { onSketchChange, pane } = renderPane({ sketch });
 
       // Act
-      fireEvent.click(view.getByLabelText("Delete docs"));
+      pane.item("docs").deleteAction.press();
 
       // Assert
-      expect(view.queryByRole("dialog")).toBeNull();
+      expect(pane.deleteDialog.isRendered).toBe(false);
       expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain("docs");
     });
 
     it("should ignore a confirmation for a folder that is gone", () => {
       // Arrange
-      const { onSketchChange, store } = renderPane();
-      fireEvent.click(view.getByLabelText("Delete src"));
+      const { onSketchChange, store, pane } = renderPane();
+      pane.item("src").deleteAction.press();
       act(() => store.removeNode("src"));
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Delete" }));
+      pane.confirmDelete();
 
       // Assert
       expect(onSketchChange).toHaveBeenCalledTimes(1);
@@ -1451,46 +1331,42 @@ describe("ProjectPane", () => {
   describe("add", () => {
     it("should add a file at the root and start renaming it", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
+      const { onSketchChange, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-file.js"
       );
-      expect(getField("new-file.js").value).toBe("new-file.js");
+      expect(pane.item("new-file.js").field.value).toBe("new-file.js");
     });
 
     it("should select the new file, open it and focus its field", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getFocus(store)).toEqual({
         kind: "file",
         path: "new-file.js",
       });
-      expect(getRenamingItem("new-file.js").getAttribute("aria-selected")).toBe(
-        "true"
-      );
-      expect(document.activeElement).toBe(
-        view.getByRole("textbox", { name: "New name of new-file.js" })
-      );
+      expect(pane.item("new-file.js").ariaSelected).toBe("true");
+      expect(pane.item("new-file.js").field.isFocused).toBe(true);
     });
 
     it("should add the file in the folder of the file in focus", () => {
       // Arrange
-      const { onSketchChange } = renderPane({
+      const { onSketchChange, pane } = renderPane({
         focus: { kind: "file", path: "src/components/Button.js" },
       });
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1500,10 +1376,12 @@ describe("ProjectPane", () => {
 
     it("should add the file at the root when the config is in focus", () => {
       // Arrange
-      const { onSketchChange } = renderPane({ focus: { kind: "config" } });
+      const { onSketchChange, pane } = renderPane({
+        focus: { kind: "config" },
+      });
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1513,13 +1391,13 @@ describe("ProjectPane", () => {
 
     it("should add the file inside the folder that is selected", () => {
       // Arrange
-      const { onSketchChange } = renderPane({
+      const { onSketchChange, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
-      fireEvent.click(getRow("src/components"));
+      pane.click("src/components");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1529,13 +1407,13 @@ describe("ProjectPane", () => {
 
     it("should add the file at the root when the selected folder is gone", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.click(view.getByRole("button", { name: "Text" }));
-      typeProjectText("index.js\n");
+      const { onSketchChange, pane } = renderPane();
+      pane.click("src/components");
+      pane.pressView("Text");
+      typeProjectText(pane, "index.js\n");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
@@ -1546,13 +1424,13 @@ describe("ProjectPane", () => {
 
     it("should add the file at the root when the selected folder became a file", () => {
       // Arrange
-      const { onSketchChange, store } = renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.click(view.getByRole("button", { name: "Text" }));
-      typeProjectText("src/components\nindex.js\n");
+      const { onSketchChange, store, pane } = renderPane();
+      pane.click("src/components");
+      pane.pressView("Text");
+      typeProjectText(pane, "src/components\nindex.js\n");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
@@ -1565,51 +1443,43 @@ describe("ProjectPane", () => {
 
     it("should pick a free name when the first one is taken", () => {
       // Arrange
-      renderPane();
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
-      fireEvent.keyDown(
-        view.getByRole("textbox", { name: "New name of new-file.js" }),
-        { key: "Escape" }
-      );
+      const { pane } = renderPane();
+      pane.addFile();
+      pane.item("new-file.js").field.pressKey("Escape");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
-      expect(getField("new-file-2.js").value).toBe("new-file-2.js");
+      expect(pane.item("new-file-2.js").field.value).toBe("new-file-2.js");
     });
 
     it("should add a folder, select it and start renaming it", () => {
       // Arrange
-      const { onSketchChange, store } = renderPane({
+      const { onSketchChange, store, pane } = renderPane({
         focus: { kind: "file", path: "index.js" },
       });
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add folder" }));
+      pane.addFolder();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-folder"
       );
-      expect(getRenamingItem("new-folder").getAttribute("aria-selected")).toBe(
-        "true"
-      );
-      expect(getField("new-folder").value).toBe("new-folder");
+      expect(pane.item("new-folder").ariaSelected).toBe("true");
+      expect(pane.item("new-folder").field.value).toBe("new-folder");
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should add the next node inside the folder it just added", () => {
       // Arrange
-      const { onSketchChange } = renderPane();
-      fireEvent.click(view.getByRole("button", { name: "Add folder" }));
-      fireEvent.keyDown(
-        view.getByRole("textbox", { name: "New name of new-folder" }),
-        { key: "Enter" }
-      );
+      const { onSketchChange, pane } = renderPane();
+      pane.addFolder();
+      pane.item("new-folder").field.pressKey("Enter");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
@@ -1619,39 +1489,39 @@ describe("ProjectPane", () => {
 
     it("should open the folders above the new node", () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src/components"));
-      fireEvent.click(getRow("src"));
+      const { pane } = renderPane();
+      pane.click("src/components");
+      pane.click("src");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
-      expect(getField("src/new-file.js").value).toBe("new-file.js");
-      expect(getItem("src").getAttribute("aria-expanded")).toBe("true");
+      expect(pane.item("src/new-file.js").field.value).toBe("new-file.js");
+      expect(pane.item("src").ariaExpanded).toBe("true");
     });
 
     it("should show the tree, where the node is renamed, when it adds from the text", () => {
       // Arrange
-      const { store } = renderPane({ view: "text" });
+      const { store, pane } = renderPane({ view: "text" });
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      pane.addFile();
 
       // Assert
       expect(store.getState().view).toBe("tree");
-      expect(getField("new-file.js").value).toBe("new-file.js");
+      expect(pane.item("new-file.js").field.value).toBe("new-file.js");
     });
 
     it("should not change the view when it adds from the tree", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
       const changes = jest.fn();
 
       store.subscribe(() => changes(store.getState().view));
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Add folder" }));
+      pane.addFolder();
 
       // Assert
       expect(changes).toHaveBeenCalled();
@@ -1664,47 +1534,41 @@ describe("ProjectPane", () => {
   describe("view", () => {
     it("should offer the tree and the text, with the current view pressed", () => {
       // Arrange
-      renderPane({ view: "text" });
+      const { pane } = renderPane({ view: "text" });
 
       // Act
-      const group = view.getByRole("group", { name: "Project view" });
-      const buttons = within(group).getAllByRole("button");
+      const { viewLabel, views } = pane.foot;
 
       // Assert
-      expect(
-        buttons.map((button) => [
-          button.textContent,
-          button.getAttribute("aria-pressed"),
-        ])
-      ).toEqual([
-        ["Tree", "false"],
-        ["Text", "true"],
+      expect(viewLabel).toBe("Project view");
+      expect(views).toEqual([
+        { text: "Tree", pressed: "false" },
+        { text: "Text", pressed: "true" },
       ]);
     });
 
     it("should show the other view when its button is pressed", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Text" }));
+      pane.pressView("Text");
 
       // Assert
       expect(store.getState().view).toBe("text");
-      expect(
-        view.getByRole("textbox", { name: "Project as text" })
-      ).toBeTruthy();
+      expect(pane.text.isRendered).toBe(true);
+      expect(pane.text.area.label).toBe("Project as text");
     });
 
     it("should change nothing when the current view is pressed again", () => {
       // Arrange
-      const { store } = renderPane();
+      const { store, pane } = renderPane();
       const listener = jest.fn();
 
       store.subscribe(listener);
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Tree" }));
+      pane.pressView("Tree");
 
       // Assert
       expect(listener).not.toHaveBeenCalled();
@@ -1713,13 +1577,13 @@ describe("ProjectPane", () => {
 
     it("should show the text, with the hint, instead of the tree", () => {
       // Arrange
-      renderPane({ view: "text" });
+      const { pane } = renderPane({ view: "text" });
 
       // Act
-      const text = view.getByRole("textbox", { name: "Project as text" });
+      const { value } = pane.text;
 
       // Assert
-      expect((text as HTMLTextAreaElement).value).toBe(
+      expect(value).toBe(
         [
           "eslint.config.js",
           "src/components/Button.js",
@@ -1729,18 +1593,16 @@ describe("ProjectPane", () => {
           "",
         ].join("\n")
       );
-      expect(view.getByText("One path per line").textContent).toBe(
-        "One path per line"
-      );
-      expect(view.queryByRole("tree")).toBeNull();
+      expect(pane.layout.head.hint).toBe("One path per line");
+      expect(pane.tree.isRendered).toBe(false);
     });
 
     it("should show no hint with the tree", () => {
       // Arrange
-      renderPane();
+      const { pane } = renderPane();
 
       // Act
-      const hint = view.queryByText("One path per line");
+      const { hint } = pane.layout.head;
 
       // Assert
       expect(hint).toBeNull();
@@ -1748,23 +1610,23 @@ describe("ProjectPane", () => {
 
     it("should keep the closed folders when the text is shown and the tree comes back", () => {
       // Arrange
-      renderPane();
-      fireEvent.click(getRow("src/components"));
+      const { pane } = renderPane();
+      pane.click("src/components");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Text" }));
-      fireEvent.click(view.getByRole("button", { name: "Tree" }));
+      pane.pressView("Text");
+      pane.pressView("Tree");
 
       // Assert
-      expect(getPaths()).not.toContain("src/components/Button.js");
+      expect(pane.tree.itemPaths).not.toContain("src/components/Button.js");
     });
 
     it("should read the text into the sketch of the store, and keep the lines that cannot be read as a draft", () => {
       // Arrange
-      const { onSketchChange, store } = renderPane({ view: "text" });
+      const { onSketchChange, store, pane } = renderPane({ view: "text" });
 
       // Act
-      typeProjectText("a.js\n  indented\n");
+      typeProjectText(pane, "a.js\n  indented\n");
 
       // Assert
       expect(onSketchChange).toHaveBeenCalledTimes(1);
@@ -1774,11 +1636,11 @@ describe("ProjectPane", () => {
 
     it("should drop the lines that were not read when the view goes back to the tree", () => {
       // Arrange
-      const { store } = renderPane({ view: "text" });
-      typeProjectText("  indented\n");
+      const { store, pane } = renderPane({ view: "text" });
+      typeProjectText(pane, "  indented\n");
 
       // Act
-      fireEvent.click(view.getByRole("button", { name: "Tree" }));
+      pane.pressView("Tree");
 
       // Assert
       expect(store.getState().textDraft).toBeUndefined();
@@ -1788,61 +1650,62 @@ describe("ProjectPane", () => {
   describe("without edit capabilities", () => {
     it("should draw no add buttons", () => {
       // Arrange
-      renderPane({ capabilities: NO_CAPABILITIES });
+      const { pane } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
-      const buttons = view
-        .getAllByRole("button")
-        .map((button) => button.textContent);
+      const { buttonTexts } = pane.foot;
 
       // Assert
-      expect(buttons).toEqual(["Tree", "Text"]);
+      expect(buttonTexts).toEqual(["Tree", "Text"]);
+      expect(pane.tree.buttonLabels).toEqual([]);
     });
 
     it("should draw no row actions", () => {
       // Arrange
-      renderPane({ capabilities: NO_CAPABILITIES });
+      const { pane } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
-      const actions = view.queryByLabelText("Rename src/index.js");
+      const actions = pane.item("src/index.js").renameAction;
 
       // Assert
-      expect(actions).toBeNull();
+      expect(actions.isRendered).toBe(false);
     });
 
     it("should announce no shortcuts on the rows", () => {
       // Arrange
-      renderPane({ capabilities: NO_CAPABILITIES });
+      const { pane } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
-      const shortcuts = view
-        .getAllByRole("treeitem")
-        .map((item) => item.getAttribute("aria-keyshortcuts"));
+      const shortcuts = pane.tree.itemPaths.map(
+        (path) => pane.item(path).keyShortcuts
+      );
 
       // Assert
-      expect(shortcuts.every((keys) => keys === null)).toBe(true);
+      expect(shortcuts).toEqual(Array(7).fill(null));
     });
 
     it("should neither rename nor remove with the keyboard or the mouse", () => {
       // Arrange
-      const { onSketchChange } = renderPane({ capabilities: NO_CAPABILITIES });
+      const { onSketchChange, pane } = renderPane({
+        capabilities: NO_CAPABILITIES,
+      });
 
       // Act
-      fireEvent.keyDown(getItem("index.js"), { key: "F2" });
-      fireEvent.keyDown(getItem("index.js"), { key: "Delete" });
-      fireEvent.doubleClick(getRow("index.js"));
+      pane.item("index.js").pressKey("F2");
+      pane.item("index.js").pressKey("Delete");
+      pane.item("index.js").row.doubleClickName();
 
       // Assert
-      expect(view.queryByRole("textbox")).toBeNull();
+      expect(pane.tree.renameFieldCount).toBe(0);
       expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should still open files and the config", () => {
       // Arrange
-      const { store } = renderPane({ capabilities: NO_CAPABILITIES });
+      const { store, pane } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
-      fireEvent.click(getRow("index.js"));
+      pane.click("index.js");
 
       // Assert
       expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
@@ -1850,24 +1713,27 @@ describe("ProjectPane", () => {
 
     it("should show the text read only", () => {
       // Arrange
-      renderPane({ capabilities: NO_CAPABILITIES, view: "text" });
+      const { pane } = renderPane({
+        capabilities: NO_CAPABILITIES,
+        view: "text",
+      });
 
       // Act
-      const text = view.getByRole("textbox", { name: "Project as text" });
+      const { isReadOnly } = pane.text;
 
       // Assert
-      expect((text as HTMLTextAreaElement).readOnly).toBe(true);
+      expect(isReadOnly).toBe(true);
     });
 
     it("should leave the text editable with edit capabilities", () => {
       // Arrange
-      renderPane({ view: "text" });
+      const { pane } = renderPane({ view: "text" });
 
       // Act
-      const text = view.getByRole("textbox", { name: "Project as text" });
+      const { isReadOnly } = pane.text;
 
       // Assert
-      expect((text as HTMLTextAreaElement).readOnly).toBe(false);
+      expect(isReadOnly).toBe(false);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { fireEvent } from "@testing-library/react";
+import { act, fireEvent } from "@testing-library/react";
 
 import { Pom } from "@/shared/testing/pom";
 
@@ -65,10 +65,38 @@ export class ProjectFootPom extends Pom {
   }
 
   /**
+   * The button of the toggle with a text.
+   * @param text The text of the button, such as `Tree`.
+   * @returns The element of the button.
+   */
+  private viewButton(text: string): HTMLElement {
+    return this.scope.getByRole("button", { name: text });
+  }
+
+  /**
+   * Gives the keyboard focus to a button of the toggle, as a click or the Tab key outside the tree does. Dispatching a `blur` event never moves the focus, so this is how a spec tells where the focus ends.
+   * @param text The text of the button, such as `Tree`.
+   */
+  focusView(text: string): void {
+    const button = this.viewButton(text);
+
+    act(() => button.focus());
+  }
+
+  /**
+   * Whether a button of the toggle has the keyboard focus.
+   * @param text The text of the button, such as `Tree`.
+   * @returns True when the button is the active element of the page.
+   */
+  isViewFocused(text: string): boolean {
+    return document.activeElement === this.viewButton(text);
+  }
+
+  /**
    * Presses a button of the toggle.
    * @param text The text of the button, such as `Text`.
    */
   pressView(text: string): void {
-    fireEvent.click(this.scope.getByRole("button", { name: text }));
+    fireEvent.click(this.viewButton(text));
   }
 }

@@ -149,6 +149,11 @@ class ProjectRowPom extends Pom {
     );
   }
 
+  /** Clicks the name of the node, as the user does to open a file, or to close or open a folder. */
+  clickName(): void {
+    fireEvent.click(this.root.querySelector("[title]") as HTMLElement);
+  }
+
   /** Double clicks the name of the node. */
   doubleClickName(): void {
     fireEvent.doubleClick(this.root.querySelector("[title]") as HTMLElement);
@@ -215,6 +220,18 @@ export class ProjectTreeItemPom extends Pom {
     return label?.startsWith(prefix) === true
       ? label.slice(prefix.length)
       : null;
+  }
+
+  /**
+   * Tells whether an element is an item of the tree, as the tree view roles it.
+   * @param element What a spec got from a spy, such as the element a `focus` call was made on.
+   * @returns True when the element has the role `treeitem`.
+   */
+  static isItem(element: unknown): boolean {
+    return (
+      element instanceof HTMLElement &&
+      element.getAttribute("role") === "treeitem"
+    );
   }
 
   /**
@@ -312,6 +329,22 @@ export class ProjectTreeItemPom extends Pom {
    */
   get kind(): string | null {
     return this.root.getAttribute("data-kind");
+  }
+
+  /**
+   * Whether the tree view selects the item.
+   * @returns The `aria-selected` attribute: `true` for the selected item and `false` for the others, or null when the item cannot be selected.
+   */
+  get ariaSelected(): string | null {
+    return this.root.getAttribute("aria-selected");
+  }
+
+  /**
+   * Whether the folder shows the items inside it.
+   * @returns The `aria-expanded` attribute: `true` for an open folder and `false` for a closed one, or null when the item holds no other items.
+   */
+  get ariaExpanded(): string | null {
+    return this.root.getAttribute("aria-expanded");
   }
 
   /**

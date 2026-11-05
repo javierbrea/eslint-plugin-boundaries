@@ -56,6 +56,45 @@ export class ProjectTreePom extends Pom {
   }
 
   /**
+   * The items that the tree view selects.
+   * @returns The path of each selected item, in the order they are drawn; empty when nothing is selected.
+   */
+  get selectedPaths(): string[] {
+    return this.itemPaths.filter(
+      (_, index) =>
+        this.childPom(ProjectTreeItemPom, { index }).ariaSelected === "true"
+    );
+  }
+
+  /**
+   * Whether each folder shows the items inside it.
+   * @returns The `aria-expanded` attribute of each item that can be expanded, in the order they are drawn: `true` for an open folder and `false` for a closed one.
+   */
+  get expandedStates(): string[] {
+    return Array.from({ length: this.itemCount }, (_, index) =>
+      this.childPom(ProjectTreeItemPom, { index })
+    ).flatMap((item) => item.ariaExpanded ?? []);
+  }
+
+  /**
+   * How many fields rename a node in the tree.
+   * @returns The number of text boxes within the tree: one while a node is renamed, none otherwise.
+   */
+  get renameFieldCount(): number {
+    return this.scope.queryAllByRole("textbox").length;
+  }
+
+  /**
+   * What the buttons of the whole tree say to assistive technology.
+   * @returns The `aria-label` of each button of the tree, in order: the actions of the rows; empty when nodes cannot be edited.
+   */
+  get buttonLabels(): (string | null)[] {
+    return this.scope
+      .queryAllByRole("button")
+      .map((button) => button.getAttribute("aria-label"));
+  }
+
+  /**
    * What the badges of the whole tree say to assistive technology.
    * @returns The `aria-label` of each image of the tree, in order; empty when no node has a badge.
    */

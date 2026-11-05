@@ -14,7 +14,8 @@ import {
   useView,
 } from "@/domains/session/data/store";
 
-import { useProjectTree } from "./useProjectTree";
+import { useProjectTree } from "./hooks/useProjectTree";
+import { PROJECT_PANE_TEST_ID } from "./ProjectPane.constants";
 
 /**
  * The left pane: the sketch as a tree with `eslint.config.js` pinned first, or as text, and a foot to add files and folders and to switch between the two. Both views edit the sketch of the store through its transitions.
@@ -33,6 +34,7 @@ function ProjectPaneContent(): ReactNode {
     <>
       <ProjectPaneLayout
         view={view}
+        testId={PROJECT_PANE_TEST_ID}
         foot={
           <ProjectFoot
             view={view}
