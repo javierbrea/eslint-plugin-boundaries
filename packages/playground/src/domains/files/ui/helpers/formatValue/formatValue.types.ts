@@ -4,5 +4,5 @@ export type DescribedValue =
   | number
   | boolean
   | null
-  | DescribedValue[]
+  | readonly DescribedValue[]
   | { readonly [key: string]: DescribedValue };

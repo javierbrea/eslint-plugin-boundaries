@@ -5,7 +5,7 @@ import { describeEntity } from "@boundaries/policies";
 
 import type { Sketch, SketchNode } from "@/contract";
 
-import type { Engine } from "./engine.types";
+import type { Engine, FileDescription } from "./engine.types";
 import { createEngine } from "./evaluate";
 import { QUICK_START_DESCRIPTIONS } from "./quickStartDescriptions.mock";
 
@@ -160,24 +160,26 @@ function createSketch(config: string, files: readonly string[] = []): Sketch {
 }
 
 /**
- * Picks the properties of a description that the plugin's debug output is compared by.
- * @param description The description of a file.
- * @param description.element
- * @param description.file
- * @param description.module
- * @returns Its element types, element path, captured values, file categories and module origin.
+ * Picks what the engine keeps of a description of the plugin: the properties that the plugin's debug output is compared by.
+ * @param description The description of a file, as `describeEntity` or the plugin gives it.
+ * @param description.element The element of the file.
+ * @param description.file The file itself.
+ * @param description.module The module of the file.
+ * @returns Its element types, element path, captured values, file categories and module origin, in the facets of the plugin.
  */
 function pickDescribed({
   element,
   file,
   module: moduleDescription,
-}: EntityDescription) {
+}: EntityDescription): FileDescription {
   return {
-    types: element.types,
-    path: element.path,
-    captured: element.captured,
-    categories: file.categories,
-    origin: moduleDescription.origin,
+    element: {
+      types: element.types,
+      path: element.path,
+      captured: element.captured,
+    },
+    file: { categories: file.categories },
+    module: { origin: moduleDescription.origin },
   };
 }
 
@@ -272,7 +274,7 @@ describe("Evaluate", () => {
 
           // Assert
           expect(description).toBeDefined();
-          expect(pickDescribed(description!)).toEqual(
+          expect(description).toEqual(
             pickDescribed(QUICK_START_DESCRIPTIONS[path])
           );
         }
@@ -294,7 +296,7 @@ describe("Evaluate", () => {
           new Map(
             QUICK_START_FILES.map((path) => [
               path,
-              describeEntity(settings, `/project/${path}`),
+              pickDescribed(describeEntity(settings, `/project/${path}`)),
             ])
           )
         );
@@ -323,9 +325,7 @@ describe("Evaluate", () => {
           const { files } = evaluate(sketch);
 
           // Assert
-          expect(
-            QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
-          ).toEqual(
+          expect(QUICK_START_FILES.map((path) => files.get(path))).toEqual(
             QUICK_START_FILES.map((path) =>
               pickDescribed(QUICK_START_DESCRIPTIONS[path])
             )
@@ -356,9 +356,7 @@ describe("Evaluate", () => {
         const { files } = evaluate(sketch);
 
         // Assert
-        expect(
-          QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
-        ).toEqual(
+        expect(QUICK_START_FILES.map((path) => files.get(path))).toEqual(
           QUICK_START_FILES.map((path) =>
             pickDescribed(describeEntity(settings, `/project/${path}`))
           )

@@ -3,6 +3,7 @@ import type { SettingsNormalized } from "@boundaries/config";
 import { describeEntity } from "@boundaries/policies";
 
 import { describeFiles } from "./describeFiles";
+import type { FileDescription } from "./engine.types";
 
 const FILES = [
   "src/helpers/format/index.js",
@@ -10,6 +11,33 @@ const FILES = [
   "src/modules/checkout/index.spec.js",
   "src/index.css",
 ];
+
+/**
+ * Describes a file as `describeEntity` does, and keeps what the playground shows: its element types, element path, captured values, file categories and module origin, in the facets of the plugin.
+ * @param settings The normalized settings.
+ * @param path The path of the file.
+ * @returns What the playground shows of the description.
+ */
+function describeAsPlugin(
+  settings: SettingsNormalized,
+  path: string
+): FileDescription {
+  const {
+    element,
+    file,
+    module: moduleDescription,
+  } = describeEntity(settings, path);
+
+  return {
+    element: {
+      types: element.types,
+      path: element.path,
+      captured: element.captured,
+    },
+    file: { categories: file.categories },
+    module: { origin: moduleDescription.origin },
+  };
+}
 
 /**
  * Normalizes settings as written.
@@ -22,12 +50,12 @@ function normalize(settings: Record<string, unknown>): SettingsNormalized {
 
 describe("DescribeFiles", () => {
   describe("describeFiles", () => {
-    it("should describe each file as describeEntity does", () => {
+    it("should describe each file as describeEntity does, with only what the playground shows", () => {
       // Arrange
       const settings = normalize({
         "boundaries/elements": [
           { type: "helper", pattern: "helpers/*" },
-          { type: "module", pattern: "modules/*" },
+          { type: "module", pattern: "modules/*", capture: ["module"] },
         ],
         "boundaries/files": [{ category: "test", pattern: "**/*.spec.js" }],
       });
@@ -37,7 +65,7 @@ describe("DescribeFiles", () => {
 
       // Assert
       expect(files).toEqual(
-        new Map(FILES.map((path) => [path, describeEntity(settings, path)]))
+        new Map(FILES.map((path) => [path, describeAsPlugin(settings, path)]))
       );
     });
 

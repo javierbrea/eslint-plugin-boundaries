@@ -1,5 +1,3 @@
-import type { EntityDescription } from "@boundaries/elements";
-
 import type { Sketch } from "@/contract";
 
 /** A range of the config text: offsets for the editor, and the line and column of its start for the problem list */
@@ -31,6 +29,26 @@ export type ConfigProblem = {
   /** The value at `path`; the parse position for a parse error */
   readonly range: TextRange;
   readonly source: "parse" | "config";
+};
+
+/** What the playground shows of the description that the plugin gives a file, with the names and the values of the plugin. The engine maps it from `@boundaries/elements`, so that no other code depends on the shape of its descriptions */
+export type FileDescription = {
+  readonly element: {
+    /** The types of the element of the file, or `null` when no element descriptor matches it */
+    readonly types: readonly string[] | null;
+    /** The path of the element, or `null` when no element descriptor matches the file */
+    readonly path: string | null;
+    /** What the pattern of the element captured, or `null` when it captured nothing */
+    readonly captured: Readonly<Record<string, string>> | null;
+  };
+  readonly file: {
+    /** The categories of the file, or `null` when no file descriptor matches it */
+    readonly categories: readonly string[] | null;
+  };
+  readonly module: {
+    /** Where the module comes from. Every file of the sketch is local, unless the root path leaves it outside with `outsideRootPath` */
+    readonly origin: "local" | "external" | "core";
+  };
 };
 
 /** An element descriptor of the settings, with how many files of the sketch it matches */
@@ -76,7 +94,7 @@ export type Evaluation = {
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
   /** Every file of the tree, by path */
-  readonly files: ReadonlyMap<string, EntityDescription>;
+  readonly files: ReadonlyMap<string, FileDescription>;
   readonly elementTypes: readonly ElementTypeSummary[];
   readonly fileCategories: readonly FileCategorySummary[];
   readonly rules: readonly RuleSummary[];

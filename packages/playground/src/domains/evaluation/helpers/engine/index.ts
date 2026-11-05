@@ -4,6 +4,7 @@ export type {
   Engine,
   Evaluation,
   FileCategorySummary,
+  FileDescription,
   ProblemLevel,
   RuleSummary,
   TextRange,
