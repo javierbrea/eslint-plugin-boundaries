@@ -323,6 +323,36 @@ describe("ShellRegions", () => {
       expect(getHandle(PROJECT_WIDTH).resize).toHaveBeenCalledWith(420);
     });
 
+    it.each([420, 604])(
+      "should leave the project at %d px while the text is shown, as it is not narrower than the text needs",
+      (width) => {
+        // Arrange
+        const { update } = renderRegions();
+        const handle = getHandle(PROJECT_WIDTH);
+        handle.getSize.mockReturnValue({ asPercentage: 40, inPixels: width });
+
+        // Act
+        update({ isTextMode: true });
+
+        // Assert
+        expect(handle.resize).not.toHaveBeenCalled();
+      }
+    );
+
+    it("should give no width back after the text when it left the project as it was", () => {
+      // Arrange
+      const { update } = renderRegions();
+      const handle = getHandle(PROJECT_WIDTH);
+      handle.getSize.mockReturnValue({ asPercentage: 40, inPixels: 604 });
+      update({ isTextMode: true });
+
+      // Act
+      update({ isTextMode: false });
+
+      // Assert
+      expect(handle.resize).not.toHaveBeenCalled();
+    });
+
     it("should give the project the width it had before the text", () => {
       // Arrange
       const { update } = renderRegions();

@@ -64,7 +64,7 @@ const RowSeparator = styled(Separator)({
 });
 
 /**
- * Lays out the four regions of the shell with resizable splits: the project, the node in focus and the inspector in a row, over the problems panel. The project and the inspector keep their width when the page is resized, and the problems panel its height, so the node in focus takes the difference. The project pane takes room while the text is shown, and gives it back after; the problems panel collapses to its head.
+ * Lays out the four regions of the shell with resizable splits: the project, the node in focus and the inspector in a row, over the problems panel. The project and the inspector keep their width when the page is resized, and the problems panel its height, so the node in focus takes the difference. The project pane widens to 420 px while the text is shown, unless the user made it wider, and gives the room back after; the problems panel collapses to its head.
  * @param props ShellRegions props.
  * @param props.project The project pane.
  * @param props.node The node in focus.
@@ -96,8 +96,13 @@ export function ShellRegions({
     const panel = projectRef.current;
 
     if (isTextMode) {
-      widthBeforeTextRef.current = panel?.getSize().inPixels;
-      panel?.resize(SIZES.project.text);
+      const width = panel?.getSize().inPixels;
+
+      // A pane that the user made as wide as the text needs, or wider, keeps its width, and has none to get back
+      if (width !== undefined && width < SIZES.project.text) {
+        widthBeforeTextRef.current = width;
+        panel?.resize(SIZES.project.text);
+      }
     } else if (widthBeforeTextRef.current !== undefined) {
       panel?.resize(widthBeforeTextRef.current);
       widthBeforeTextRef.current = undefined;
