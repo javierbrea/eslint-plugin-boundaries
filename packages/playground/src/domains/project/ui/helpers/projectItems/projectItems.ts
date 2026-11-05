@@ -2,7 +2,7 @@ import type { Sketch } from "@/contract";
 import { CONFIG_PATH, buildTree } from "@/domains/project/helpers/sketch";
 import type { TreeItem } from "@/domains/project/helpers/sketch";
 
-import type { ProjectItem } from "./ProjectTree.types";
+import type { ProjectItem } from "./projectItems.types";
 
 /** The config node, pinned above the tree */
 const CONFIG_ITEM: ProjectItem = {

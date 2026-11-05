@@ -1,6 +1,6 @@
 import type { Sketch } from "@/contract";
 
-import { getFolderIds, getProjectItems } from "./ProjectItems";
+import { getFolderIds, getProjectItems } from "./projectItems";
 
 const TREE: Sketch["tree"] = [
   { path: "src/components/Button.js", kind: "file" },
@@ -9,7 +9,7 @@ const TREE: Sketch["tree"] = [
   { path: "index.js", kind: "file" },
 ];
 
-describe("ProjectItems", () => {
+describe("projectItems", () => {
   describe("getProjectItems", () => {
     it("should put the config node first, with its path as its id", () => {
       // Act

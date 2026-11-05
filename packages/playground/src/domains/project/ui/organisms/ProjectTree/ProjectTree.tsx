@@ -2,13 +2,20 @@ import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 
-import { getFolderIds, getProjectItems } from "./ProjectItems";
-import type {
-  ProjectItem,
-  ProjectTreeContextValue,
-  ProjectTreeProps,
-} from "./ProjectTree.types";
-import { ProjectTreeContext, ProjectTreeItem } from "./ProjectTreeItem";
+import { ProjectTreeProvider } from "@/domains/project/ui/contexts/ProjectTreeContext";
+import type { ProjectTreeContextValue } from "@/domains/project/ui/contexts/ProjectTreeContext";
+import {
+  getFolderIds,
+  getProjectItems,
+} from "@/domains/project/ui/helpers/projectItems";
+import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
+import { ProjectTreeItem } from "@/domains/project/ui/molecules/ProjectTreeItem";
+
+import {
+  PROJECT_TREE_LABEL,
+  PROJECT_TREE_TEST_ID,
+} from "./ProjectTree.constants";
+import type { ProjectTreeProps } from "./ProjectTree.types";
 
 /** The tree fills its pane and scrolls when it does not fit */
 const TREE_STYLES = {
@@ -85,9 +92,10 @@ export function ProjectTree({
   );
 
   return (
-    <ProjectTreeContext value={context}>
+    <ProjectTreeProvider value={context}>
       <RichTreeView<ProjectItem, false>
-        aria-label="Project files"
+        aria-label={PROJECT_TREE_LABEL}
+        data-testid={PROJECT_TREE_TEST_ID}
         items={items}
         slots={{ item: ProjectTreeItem }}
         expandedItems={expandedItems}
@@ -98,6 +106,6 @@ export function ProjectTree({
         onSelectedItemsChange={(_event, id) => onSelect(id)}
         sx={TREE_STYLES}
       />
-    </ProjectTreeContext>
+    </ProjectTreeProvider>
   );
 }

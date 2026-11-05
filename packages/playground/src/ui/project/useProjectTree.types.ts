@@ -1,6 +1,5 @@
+import type { ProjectTreeProps } from "@/domains/project/ui/organisms/ProjectTree";
 import type { SessionStore } from "@/domains/session/data/store";
-
-import type { ProjectTreeProps } from "./ProjectTree.types";
 
 /** A folder that is about to lose files: the dialog asks the user before it goes */
 export type DeleteRequest = {

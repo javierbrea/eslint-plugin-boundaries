@@ -7,17 +7,8 @@ import type {
   ReactNode,
 } from "react";
 
-/** Props of {@link RenameField}. */
-type RenameFieldProps = {
-  /** The path of the node being renamed */
-  path: string;
-  /** The current name of the node: the field starts with it, selected */
-  name: string;
-  /** Called with the name that was typed. It returns why the name is refused, or `undefined` when the node was renamed */
-  onCommit: (path: string, name: string) => string | undefined;
-  /** Called when the user gives up */
-  onCancel: () => void;
-};
+import { RENAME_FIELD_LABEL } from "./RenameField.constants";
+import type { RenameFieldProps } from "./RenameField.types";
 
 /**
  * The field that renames a node in place, in the row of the tree. Enter and leaving the field rename the node, and Escape gives up. A refused name keeps the node as it was and says why next to the field: after Enter the field stays open so that the user can fix the name, and after leaving it the rename is given up.
@@ -108,7 +99,7 @@ export function RenameField({
         value={value}
         slotProps={{
           input: {
-            "aria-label": `New name of ${path}`,
+            "aria-label": `${RENAME_FIELD_LABEL} ${path}`,
             "aria-describedby": refusal.isShown ? reasonId : undefined,
           },
         }}

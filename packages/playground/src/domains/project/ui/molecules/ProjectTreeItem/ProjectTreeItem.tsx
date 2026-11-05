@@ -2,36 +2,23 @@ import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
 import { useTreeItemModel } from "@mui/x-tree-view/hooks";
-import type { TreeItemProps } from "@mui/x-tree-view/TreeItem";
 import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
-import { createContext, useContext, useEffect, useId } from "react";
-import type {
-  KeyboardEvent as ReactKeyboardEvent,
-  ReactNode,
-  Ref,
-} from "react";
+import { useEffect, useId } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
 import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
+import { RenameField } from "@/domains/project/ui/atoms/RenameField";
+import { useProjectTreeContext } from "@/domains/project/ui/contexts/ProjectTreeContext";
+import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import type { ProjectItem, ProjectTreeContextValue } from "./ProjectTree.types";
-import { RenameField } from "./RenameField";
-
-/** Props of {@link ProjectTreeItem}: the ones that the tree view gives each item, and the ref of its root element, which is a plain prop of a function component */
-type ProjectTreeItemProps = TreeItemProps & {
-  /** The ref of the root element of the item */
-  ref?: Ref<HTMLLIElement>;
-};
-
-/** What the items of the tree need from the tree that renders them. It is provided by `ProjectTree` */
-export const ProjectTreeContext = createContext<ProjectTreeContextValue | null>(
-  null
-);
+import { PROJECT_TREE_ITEM_TEST_ID } from "./ProjectTreeItem.constants";
+import type { ProjectTreeItemProps } from "./ProjectTreeItem.types";
 
 const Root = styled("li")({
   margin: 0,
@@ -226,8 +213,7 @@ export function ProjectTreeItem({
 }: Readonly<ProjectTreeItemProps>): ReactNode {
   // The tree only renders the items of its own model
   const item = useTreeItemModel<ProjectItem>(itemId) as ProjectItem;
-  // The tree provides it to everything it renders
-  const context = useContext(ProjectTreeContext) as ProjectTreeContextValue;
+  const context = useProjectTreeContext();
   const nameId = useId();
   const {
     getContextProviderProps,
@@ -275,6 +261,7 @@ export function ProjectTreeItem({
           onKeyDown: handleKeyDown,
         })}
         data-kind={item.kind}
+        data-testid={PROJECT_TREE_ITEM_TEST_ID}
       >
         <Row
           {...getContentProps()}

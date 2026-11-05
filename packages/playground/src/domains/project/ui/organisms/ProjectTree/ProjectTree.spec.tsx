@@ -1,14 +1,15 @@
-import { render, screen as view, within } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
-import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
+import type { getProjectItems } from "@/domains/project/ui/helpers/projectItems";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import type { CountBadge } from "@/ui-kit/atoms/CountBadge";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 
-import type { getProjectItems } from "./ProjectItems";
 import { ProjectTree } from "./ProjectTree";
+import { ProjectTreePom } from "./ProjectTree.pom";
 import type { ProjectTreeProps } from "./ProjectTree.types";
 
 const TREE: Sketch["tree"] = [
@@ -50,15 +51,6 @@ function createProps(
   };
 }
 
-/**
- * Gets the item of the tree that has a node's name.
- * @param path The path of the node.
- * @returns The element of the item.
- */
-function getItem(path: string): HTMLElement {
-  return view.getByTitle(path).closest("[role='treeitem']") as HTMLElement;
-}
-
 describe("ProjectTree", () => {
   describe("rows", () => {
     it("should set the name of a row in mono text, on a line as tall as the row", () => {
@@ -66,14 +58,14 @@ describe("ProjectTree", () => {
       renderInRoot(<ProjectTree {...createProps()} />);
 
       // Act
-      const style = getComputedStyle(
-        getItem("src/index.js").firstElementChild as HTMLElement
-      );
+      const { fontFamily, fontSize, lineHeight } = new ProjectTreePom().item(
+        "src/index.js"
+      ).row.textStyle;
 
       // Assert
-      expect(style.fontFamily).toBe("var(--jsb-font-mono)");
-      expect(style.fontSize).toBe("12.5px");
-      expect(style.lineHeight).toBe("26px");
+      expect(fontFamily).toBe("var(--jsb-font-mono)");
+      expect(fontSize).toBe("12.5px");
+      expect(lineHeight).toBe("26px");
     });
 
     it("should draw the focus ring of the theme on the row, inside it", () => {
@@ -81,10 +73,7 @@ describe("ProjectTree", () => {
       renderInRoot(<ProjectTree {...createProps()} />);
 
       // Act
-      const style = getStyle(
-        getItem("src/index.js"),
-        `${OWN_CLASS}:focus-visible>div`
-      );
+      const style = new ProjectTreePom().item("src/index.js").focusRingStyle;
 
       // Assert
       expect(style).toEqual({ outline: FOCUS_RING, "outline-offset": "-2px" });
@@ -95,10 +84,7 @@ describe("ProjectTree", () => {
       renderInRoot(<ProjectTree {...createProps()} />);
 
       // Act
-      const style = getStyle(
-        getItem("src/index.js").firstElementChild as HTMLElement,
-        `${OWN_CLASS}:hover`
-      );
+      const style = new ProjectTreePom().item("src/index.js").row.hoverStyle;
 
       // Assert
       expect(style.background).toBe(HOVER_BACKGROUND);
@@ -109,12 +95,14 @@ describe("ProjectTree", () => {
       renderInRoot(<ProjectTree {...createProps()} />);
 
       // Act
-      const style = getComputedStyle(view.getByText("{}"));
+      const { fontSize, fontWeight, lineHeight } = new ProjectTreePom().item(
+        "eslint.config.js"
+      ).row.glyphStyle;
 
       // Assert
-      expect(style.fontSize).toBe("11px");
-      expect(style.fontWeight).toBe("inherit");
-      expect(style.lineHeight).toBe("inherit");
+      expect(fontSize).toBe("11px");
+      expect(fontWeight).toBe("inherit");
+      expect(lineHeight).toBe("inherit");
     });
   });
 
@@ -131,18 +119,19 @@ describe("ProjectTree", () => {
       };
       render(<ProjectTree {...createProps({ counts })} />);
 
+      const tree = new ProjectTreePom();
+
       // Act
-      const folderBadge = within(getItem("src")).getAllByRole("img", {
-        name: "2 failing dependencies",
-      });
-      const fileBadge = within(getItem("src/index.js")).getByRole("img", {
-        name: "1 failing dependency",
-      });
+      const folderRow = tree.item("src").row;
+      const fileBadge = tree
+        .item("src/index.js")
+        .row.badge("1 failing dependency");
 
       // Assert
-      expect(folderBadge.map((badge) => badge.textContent)).toEqual(["2"]);
-      expect(fileBadge.textContent).toBe("1");
-      expect(getComputedStyle(fileBadge).color).toBe("var(--jsb-bad)");
+      expect(folderRow.badge("2 failing dependencies").count).toBe("2");
+      expect(folderRow.badgeLabels).toEqual(["2 failing dependencies"]);
+      expect(fileBadge.count).toBe("1");
+      expect(fileBadge.color).toBe("var(--jsb-bad)");
     });
 
     it("should mark a file with failures with its name in red and a cross", () => {
@@ -154,14 +143,18 @@ describe("ProjectTree", () => {
       };
       render(<ProjectTree {...createProps({ counts })} />);
 
+      const tree = new ProjectTreePom();
+
       // Act
-      const failing = getItem("src/index.js");
-      const passing = getItem("index.js");
+      const failing = tree.item("src/index.js").row;
+      const passing = tree.item("index.js").row;
 
       // Assert
-      expect(failing.querySelector("[data-bad]")?.tagName).toBe("DIV");
-      expect(failing.querySelector("svg")).not.toBeNull();
-      expect(passing.querySelector("[data-bad]")).toBeNull();
+      expect(failing.isBad).toBe(true);
+      expect(failing.tagName).toBe("DIV");
+      expect(failing.iconPaths).toContain(ICON_PATHS.cross);
+      expect(passing.isBad).toBe(false);
+      expect(passing.iconPaths).not.toContain(ICON_PATHS.cross);
     });
 
     it("should not turn a folder with failures red", () => {
@@ -174,10 +167,10 @@ describe("ProjectTree", () => {
       render(<ProjectTree {...createProps({ counts })} />);
 
       // Act
-      const folderRow = getItem("src").firstElementChild;
+      const folderRow = new ProjectTreePom().item("src").row;
 
       // Assert
-      expect(folderRow?.hasAttribute("data-bad")).toBe(false);
+      expect(folderRow.isBad).toBe(false);
     });
 
     it("should draw no badge on a node that has no failures", () => {
@@ -185,7 +178,7 @@ describe("ProjectTree", () => {
       render(<ProjectTree {...createProps()} />);
 
       // Act
-      const badges = view.queryAllByRole("img");
+      const badges = new ProjectTreePom().badgeLabels;
 
       // Assert
       expect(badges).toEqual([]);
@@ -199,11 +192,10 @@ describe("ProjectTree", () => {
         byPath: new Map(),
       };
       const { rerender } = render(<ProjectTree {...createProps({ counts })} />);
-      const red = getComputedStyle(
-        within(getItem("eslint.config.js")).getByRole("img", {
-          name: "3 problems",
-        })
-      ).color;
+      const badge = new ProjectTreePom()
+        .item("eslint.config.js")
+        .row.badge("3 problems");
+      const red = badge.color;
 
       // Act
       rerender(
@@ -211,11 +203,7 @@ describe("ProjectTree", () => {
           {...createProps({ counts: { ...counts, configHasErrors: false } })}
         />
       );
-      const warn = getComputedStyle(
-        within(getItem("eslint.config.js")).getByRole("img", {
-          name: "3 problems",
-        })
-      ).color;
+      const warn = badge.color;
 
       // Assert
       expect(red).toBe("var(--jsb-bad)");
@@ -230,7 +218,7 @@ describe("ProjectTree", () => {
       // The tree reads the function from the module each time it renders
       spy = jest.spyOn(
         jest.requireActual<{ getProjectItems: typeof getProjectItems }>(
-          "./ProjectItems"
+          "@/domains/project/ui/helpers/projectItems/projectItems"
         ),
         "getProjectItems"
       );
@@ -269,7 +257,7 @@ describe("ProjectTree", () => {
 
       // Assert
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(view.getByTitle("docs")).toBeTruthy();
+      expect(new ProjectTreePom().item("docs").isRendered).toBe(true);
     });
 
     it("should hide the children of the folders that are closed", () => {
@@ -278,10 +266,11 @@ describe("ProjectTree", () => {
 
       // Act
       render(<ProjectTree {...props} />);
+      const tree = new ProjectTreePom();
 
       // Assert
-      expect(view.queryByTitle("src/components/Button.js")).toBeNull();
-      expect(view.getByTitle("src/index.js")).toBeTruthy();
+      expect(tree.item("src/components/Button.js").isRendered).toBe(false);
+      expect(tree.item("src/index.js").isRendered).toBe(true);
     });
   });
 
@@ -333,7 +322,7 @@ describe("ProjectTree", () => {
       // Assert
       expect(badge.mock.calls.length).toBeGreaterThan(drawn);
       expect(
-        within(getItem("eslint.config.js")).getByRole("img").textContent
+        new ProjectTreePom().item("eslint.config.js").row.badge().count
       ).toBe("2");
     });
   });
