@@ -1,8 +1,8 @@
-import { styled } from "@mui/material/styles";
 import { useEffect, useMemo, useRef } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { toText } from "@/domains/project/helpers/sketch";
+import { ProjectTextArea } from "@/domains/project/ui/atoms/ProjectTextArea";
 import {
   useCapabilities,
   useReadText,
@@ -12,34 +12,13 @@ import {
   useTree,
 } from "@/domains/session/data/store";
 
-/** Milliseconds after the last keystroke before the text is read */
-const READ_DELAY = 300;
-
-const Area = styled("textarea")(({ theme }) => ({
-  boxSizing: "border-box",
-  width: "100%",
-  height: "100%",
-  margin: 0,
-  padding: "10px 12px",
-  overflow: "auto",
-  border: 0,
-  // The text is always the one being edited, so the ring is always there, as in the mockup
-  outline: "none",
-  boxShadow: "inset 0 0 0 1px var(--jsb-accent)",
-  background: "var(--jsb-paper-2)",
-  color: "var(--jsb-ink)",
-  ...theme.typography.monoSmall,
-  // A line is 20 px tall
-  lineHeight: "20px",
-  resize: "none",
-  whiteSpace: "pre",
-}));
+import { PROJECT_TEXT_TEST_ID, READ_DELAY } from "./ProjectText.constants";
 
 /**
  * The project as text, one path per line: a textarea that edits the same sketch as the tree. What the user types is the draft of the store, which shows instead of the sketch's text and whose lines that cannot be read are listed as problems. The draft is read into the sketch 300 ms after the last keystroke, and on blur, which also goes back to the sketch's text when every line was read. Without `editTree` the text is read only.
  * @returns The textarea, as tall as its container.
  */
-export function TextMode(): ReactNode {
+export function ProjectText(): ReactNode {
   const tree = useTree();
   const draft = useTextDraft();
   const { editTree } = useCapabilities();
@@ -54,10 +33,10 @@ export function TextMode(): ReactNode {
 
   /**
    * Keeps what the user typed and schedules reading it.
-   * @param changeEvent The change of the textarea.
+   * @param value The whole text after the keystroke.
    */
-  function handleChange(changeEvent: ChangeEvent<HTMLTextAreaElement>): void {
-    setTextDraft(changeEvent.target.value);
+  function handleChange(value: string): void {
+    setTextDraft(value);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(readText, READ_DELAY);
   }
@@ -69,15 +48,10 @@ export function TextMode(): ReactNode {
   }
 
   return (
-    <Area
-      aria-label="Project as text"
+    <ProjectTextArea
       value={draft ?? text}
       readOnly={!editTree}
-      spellCheck={false}
-      autoCapitalize="off"
-      autoComplete="off"
-      autoCorrect="off"
-      wrap="off"
+      testId={PROJECT_TEXT_TEST_ID}
       onChange={handleChange}
       onBlur={handleBlur}
     />

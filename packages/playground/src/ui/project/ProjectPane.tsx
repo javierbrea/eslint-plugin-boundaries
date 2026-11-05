@@ -2,6 +2,7 @@ import { memo } from "react";
 import type { ReactNode } from "react";
 
 import { useProblemCounts } from "@/domains/problems/modules/hooks/useProblemCounts";
+import { ProjectText } from "@/domains/project/modules/ProjectText";
 import { DeleteFolderDialog } from "@/domains/project/ui/molecules/DeleteFolderDialog";
 import { ProjectFoot } from "@/domains/project/ui/molecules/ProjectFoot";
 import { ProjectTree } from "@/domains/project/ui/organisms/ProjectTree";
@@ -13,7 +14,6 @@ import {
   useView,
 } from "@/domains/session/data/store";
 
-import { TextMode } from "./TextMode";
 import { useProjectTree } from "./useProjectTree";
 
 /**
@@ -60,7 +60,7 @@ function ProjectPaneContent(): ReactNode {
             onDelete={tree.requestDelete}
           />
         ) : (
-          <TextMode />
+          <ProjectText />
         )}
       </ProjectPaneLayout>
       <DeleteFolderDialog
