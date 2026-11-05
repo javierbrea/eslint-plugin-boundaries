@@ -15,7 +15,6 @@ import {
   summarizeFileCategories,
   summarizeRules,
 } from "./summaries";
-import { diagnoseFailures } from "./writtenConfig";
 
 /**
  * Reads and normalizes a config text.
@@ -64,7 +63,7 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
 
   // Sketch paths are relative to its root, and so is the root path of the settings. Every file is local, so there are no sources to describe. The files are the ones that the sketch says, so a node with nodes under it is a folder here as it is in the tree
   const described = describeFiles(settings, getFiles(sketch));
-  const { files, failures } = described;
+  const { files } = described;
 
   if (!parsed.parsed) {
     return {
@@ -89,17 +88,7 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
   return {
     sketch,
     configParsed: true,
-    // Without descriptors that fail, the problems are the same array while the text of the config does not change
-    problems:
-      failures.length === 0
-        ? problems
-        : [
-            ...problems,
-            ...toConfigProblems(
-              diagnoseFailures(parsed, normalized.diagnostics, failures),
-              parsed.ast
-            ),
-          ],
+    problems,
     rulesValid: areRulesValid(normalized.diagnostics),
     files,
     elementTypes: summarizeElementTypes(input),

@@ -1,14 +1,9 @@
 import { SETTINGS } from "@boundaries/config";
 import type { Diagnostic } from "@boundaries/config";
 
-import type { DescriptorFailure } from "./describeFiles.types";
 import { pointsTo } from "./diagnostics";
 import { SETTINGS_KEY } from "./engine.constants";
 import type { ConfigRead } from "./parseConfig.types";
-
-/** What the plugin does with a descriptor that makes describing the files throw, which the editor has to say because the throw itself says nothing about it */
-const FAILURE_DETAIL =
-  "ESLint stops with this error when it loads a rule of the plugin, whatever file it lints.";
 
 /**
  * Reads a value as an object whose keys are looked up.
@@ -55,33 +50,4 @@ export function getKeptIndexes(
   return (Array.isArray(written) ? written : [])
     .map((_entry, index) => index)
     .filter((index) => !pointsTo(diagnostics, [SETTINGS_KEY, key, index]));
-}
-
-/**
- * Describes the descriptors left out because describing the files throws, as errors at their entries.
- * @param config The config as written.
- * @param diagnostics The diagnostics of `normalizeConfig`.
- * @param failures The descriptors left out.
- * @returns One error per descriptor, with the message of the error and a period as its title, as `normalizeConfigSafely` writes the policies that throw.
- */
-export function diagnoseFailures(
-  config: ConfigRead,
-  diagnostics: readonly Diagnostic[],
-  failures: readonly DescriptorFailure[]
-): Diagnostic[] {
-  const settings = readSettings(config);
-  const keys = {
-    elements: getElementsKey(settings),
-    files: SETTINGS.FILES,
-  };
-  const indexes = {
-    elements: getKeptIndexes(settings, keys.elements, diagnostics),
-    files: getKeptIndexes(settings, keys.files, diagnostics),
-  };
-  return failures.map(({ descriptors, position, message }) => ({
-    level: "error",
-    title: `${message}.`,
-    detail: FAILURE_DETAIL,
-    paths: [[SETTINGS_KEY, keys[descriptors], indexes[descriptors][position]]],
-  }));
 }

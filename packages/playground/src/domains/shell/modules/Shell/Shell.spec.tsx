@@ -51,15 +51,6 @@ const WARNING_ONLY: Sketch = {
   ),
 };
 
-/** The quick-start config with a capture that is not a list, which makes describing the files throw */
-const CAPTURE_NOT_A_LIST: Sketch = {
-  ...QUICK_START,
-  config: QUICK_START.config.replace(
-    'pattern: "helpers/*"',
-    'pattern: "helpers/*", capture: "name"'
-  ),
-};
-
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
 
@@ -311,14 +302,6 @@ describe("Shell", () => {
     it("should say that the config has errors when it has", () => {
       // Act
       const { shell } = renderShell({ initialSketch: MISTAKES });
-
-      // Assert
-      expect(getStatus(shell)).toBe("6 files · config has errors");
-    });
-
-    it("should say that the config has errors when a descriptor makes describing the files throw", () => {
-      // Act
-      const { shell } = renderShell({ initialSketch: CAPTURE_NOT_A_LIST });
 
       // Assert
       expect(getStatus(shell)).toBe("6 files · config has errors");
@@ -722,26 +705,6 @@ describe("Shell", () => {
       // Assert
       expect(beforeTheLastDelay).toBe("6 files · 0 problems");
       expect(getStatus(shell)).toBe("6 files · config has errors");
-    });
-
-    it("should show the error of an edit that makes describing the files throw, a moment after it", () => {
-      // Arrange
-      useFakeTimeouts();
-      const { shell } = renderShell();
-      shell.project.click(CONFIG);
-      const at =
-        QUICK_START.config.indexOf('pattern: "helpers/*"') +
-        'pattern: "helpers/*"'.length;
-
-      // Act
-      shell.node.config.editor.replaceText(at, at, ', capture: "name"');
-      wait(EVALUATION_WAIT);
-
-      // Assert
-      expect(getStatus(shell)).toBe("6 files · config has errors");
-      expect(getProblemRow(shell, "eslint.config.js:4:7").text).toContain(
-        "descriptor.capture.join is not a function."
-      );
     });
 
     it("should list them in the sketch tab with their count", () => {

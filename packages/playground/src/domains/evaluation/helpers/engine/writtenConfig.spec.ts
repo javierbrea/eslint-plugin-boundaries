@@ -5,14 +5,10 @@ import { parseConfig } from "./parseConfig";
 import type { ConfigRead } from "./parseConfig.types";
 import {
   asRecord,
-  diagnoseFailures,
   getElementsKey,
   getKeptIndexes,
   readSettings,
 } from "./writtenConfig";
-
-const DETAIL =
-  "ESLint stops with this error when it loads a rule of the plugin, whatever file it lints.";
 
 /**
  * Reads a config text and normalizes it, as the evaluation does.
@@ -145,64 +141,6 @@ describe("WrittenConfig", () => {
 
       // Assert
       expect(indexes).toEqual([]);
-    });
-  });
-
-  describe("diagnoseFailures", () => {
-    it("should return an error at the entry of each descriptor that fails, past the invalid ones", () => {
-      // Arrange
-      const { config, diagnostics } = read(`{
-  settings: {
-    "boundaries/elements": [
-      { pattern: "invalid/*" },
-      { type: "helper", pattern: "helpers/*", capture: "name" },
-    ],
-    "boundaries/files": [
-      { pattern: "**/*.spec.js" },
-      { category: "style", pattern: "**/*.css" },
-      { category: "test", pattern: "**/*.spec.js", capture: 5 },
-    ],
-  },
-}`);
-
-      // Act
-      const errors = diagnoseFailures(config, diagnostics, [
-        { descriptors: "elements", position: 0, message: "elements fail" },
-        { descriptors: "files", position: 1, message: "files fail" },
-      ]);
-
-      // Assert
-      expect(errors).toEqual([
-        {
-          level: "error",
-          title: "elements fail.",
-          detail: DETAIL,
-          paths: [["settings", "boundaries/elements", 1]],
-        },
-        {
-          level: "error",
-          title: "files fail.",
-          detail: DETAIL,
-          paths: [["settings", "boundaries/files", 2]],
-        },
-      ]);
-    });
-
-    it("should place the error of an element descriptor in the deprecated boundaries/types when boundaries/elements is not set", () => {
-      // Arrange
-      const { config, diagnostics } = read(`{
-  settings: {
-    "boundaries/types": [{ type: "helper", pattern: "helpers/*", capture: "name" }],
-  },
-}`);
-
-      // Act
-      const errors = diagnoseFailures(config, diagnostics, [
-        { descriptors: "elements", position: 0, message: "elements fail" },
-      ]);
-
-      // Assert
-      expect(errors[0].paths).toEqual([["settings", "boundaries/types", 0]]);
     });
   });
 });

@@ -283,33 +283,6 @@ describe("Summaries", () => {
       }
     );
 
-    it("should mark as ignored a descriptor that makes describing the files throw, and count no files for it", () => {
-      // Arrange
-      const text = `{
-  settings: {
-    "boundaries/elements": [
-      { type: "helper", pattern: "helpers/*", capture: "name" },
-      { type: "module", pattern: "modules/*" },
-    ],
-  },
-}`;
-      const input = createInput(text, [
-        "src/helpers/format/index.js",
-        "src/modules/checkout/index.js",
-      ]);
-
-      // Act
-      const summaries = summarizeElementTypes(input);
-
-      // Assert
-      expect(
-        summaries.map(({ type, files, ignored }) => [type, files, ignored])
-      ).toEqual([
-        ["helper", 0, true],
-        ["module", 1, false],
-      ]);
-    });
-
     it("should name an entry that is not an object by its index, as ignored", () => {
       // Arrange
       const text = `{ settings: { "boundaries/elements": [5, null, { type: 3, pattern: ["a", 3] }] } }`;
@@ -483,27 +456,6 @@ describe("Summaries", () => {
           ["style", 2],
         ]
       );
-    });
-
-    it("should leave out a descriptor that makes describing the files throw, and keep the index of the others", () => {
-      // Arrange
-      const text = `{
-  settings: {
-    "boundaries/files": [
-      { pattern: "**/*.css", category: "style", capture: 5 },
-      { pattern: "**/*.js", category: "script" },
-    ],
-  },
-}`;
-      const input = createInput(text, ["a.css", "b.js"]);
-
-      // Act
-      const summaries = summarizeFileCategories(input);
-
-      // Assert
-      expect(
-        summaries.map(({ index, category, files }) => [index, category, files])
-      ).toEqual([[1, "script", 1]]);
     });
 
     it.each([

@@ -129,7 +129,7 @@ const THROWING_CONFIG = QUICK_START_CONFIG.replace(
   `"policies": [\n${THROWING_POLICY},`
 );
 
-// The quick-start config with a capture that is not a list in the helper descriptor, which `normalizeConfig` accepts and makes describing the files throw
+// The quick-start config with a capture that is not a list in the helper descriptor, which made describing the files throw until `normalizeConfig` reported it as invalid
 const CAPTURE_CONFIG = QUICK_START_CONFIG.replace(
   '"pattern": "helpers/*"',
   '"pattern": "helpers/*",\n        "capture": "name"'
@@ -748,20 +748,8 @@ describe("Evaluate", () => {
       });
     });
 
-    describe("when a descriptor makes describing the files throw", () => {
-      it("should return an evaluation instead of throwing", () => {
-        // Arrange
-        const sketch = createSketch(CAPTURE_CONFIG, QUICK_START_FILES);
-
-        // Act
-        const evaluation = evaluate(sketch);
-
-        // Assert
-        expect(evaluation.sketch).toBe(sketch);
-        expect(evaluation.configParsed).toBe(true);
-      });
-
-      it("should place an error at the descriptor", () => {
+    describe("when a descriptor has a capture that is not a list", () => {
+      it("should place the warning of the invalid descriptor at its entry, as the plugin does, instead of throwing", () => {
         // Arrange
         const sketch = createSketch(CAPTURE_CONFIG, QUICK_START_FILES);
         const descriptor = [
@@ -779,11 +767,10 @@ describe("Evaluate", () => {
         // Assert
         expect(problems).toEqual([
           {
-            level: "error",
-            title: "descriptor.capture.join is not a function.",
-            detail:
-              "ESLint stops with this error when it loads a rule of the plugin, whatever file it lints.",
-            links: [],
+            level: "warning",
+            title: "Some element descriptors are invalid and will be ignored.",
+            detail: expect.stringContaining('"capture":"name"'),
+            links: [ELEMENTS_LINK],
             path: ["settings", "boundaries/elements", 0],
             range: {
               from,
@@ -793,24 +780,6 @@ describe("Evaluate", () => {
             },
             source: "config",
           },
-        ]);
-      });
-
-      it("should keep the problems of the config before the error", () => {
-        // Arrange
-        const config = CAPTURE_CONFIG.replace(
-          '"default": "disallow"',
-          '"default": "dissallow"'
-        );
-        const sketch = createSketch(config, QUICK_START_FILES);
-
-        // Act
-        const { problems } = evaluate(sketch);
-
-        // Assert
-        expect(problems.map(({ title }) => title)).toEqual([
-          expect.stringContaining("boundaries/dependencies"),
-          "descriptor.capture.join is not a function.",
         ]);
       });
 
@@ -839,17 +808,6 @@ describe("Evaluate", () => {
           ["component", 3, false],
           ["module", 1, false],
         ]);
-      });
-
-      it("should report nothing when the sketch has no files, as there is nothing to describe", () => {
-        // Arrange
-        const sketch = createSketch(CAPTURE_CONFIG);
-
-        // Act
-        const { problems } = evaluate(sketch);
-
-        // Assert
-        expect(problems).toEqual([]);
       });
     });
 

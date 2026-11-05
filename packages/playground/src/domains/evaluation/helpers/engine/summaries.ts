@@ -1,6 +1,5 @@
 import { PLUGIN_NAME, SETTINGS } from "@boundaries/config";
 
-import type { DescriptorFailure } from "./describeFiles.types";
 import { hasErrorUnder } from "./diagnostics";
 import { SETTINGS_KEY } from "./engine.constants";
 import type {
@@ -54,27 +53,9 @@ function readElementDescriptor(descriptor: unknown): {
 }
 
 /**
- * Tells whether a descriptor was left out because describing the files with it throws.
- * @param failures The descriptors left out.
- * @param descriptors The list the descriptor is in.
- * @param position Its position in that list of the normalized settings.
- * @returns `true` when it was left out.
- */
-function isLeftOut(
-  failures: readonly DescriptorFailure[],
-  descriptors: DescriptorFailure["descriptors"],
-  position: number
-): boolean {
-  return failures.some(
-    (failure) =>
-      failure.descriptors === descriptors && failure.position === position
-  );
-}
-
-/**
  * Summarizes the element descriptors of the settings, with how many files of the sketch each one matches: the files whose element it gives its type to, so descriptors that share a type count their own files.
  * @param input What the summaries are built from.
- * @returns One summary per entry of `boundaries/elements`, or of the deprecated `boundaries/types` when `boundaries/elements` is not set, as `@boundaries/config` reads them. Those that a diagnostic says are invalid, and those that make describing the files throw, are marked as ignored.
+ * @returns One summary per entry of `boundaries/elements`, or of the deprecated `boundaries/types` when `boundaries/elements` is not set, as `@boundaries/config` reads them. Those that a diagnostic says are invalid are marked as ignored.
  */
 export function summarizeElementTypes(
   input: SummariesInput
@@ -86,7 +67,7 @@ export function summarizeElementTypes(
     return [];
   }
   const keptIndexes = getKeptIndexes(settings, key, input.diagnostics);
-  const { elementDescriptorFiles, failures } = input.described;
+  const { elementDescriptorFiles } = input.described;
   return descriptors.map((descriptor, index) => {
     const path = [SETTINGS_KEY, key, index];
     const { type, patterns } = readElementDescriptor(descriptor);
@@ -96,7 +77,7 @@ export function summarizeElementTypes(
       type: type ?? `#${index}`,
       patterns,
       files: position === -1 ? 0 : elementDescriptorFiles[position],
-      ignored: position === -1 || isLeftOut(failures, "elements", position),
+      ignored: position === -1,
       range: getRangeOf(input.config.ast, path),
     };
   });
@@ -105,7 +86,7 @@ export function summarizeElementTypes(
 /**
  * Summarizes the file descriptors of the settings, with how many files of the sketch each one matches: the files it gives its category to, so descriptors that share a category count their own files.
  * @param input What the summaries are built from.
- * @returns One summary per valid entry of `boundaries/files`. The invalid ones, which `@boundaries/config` leaves out, and those that make describing the files throw, which the engine leaves out, have a diagnostic and no summary.
+ * @returns One summary per valid entry of `boundaries/files`. The invalid ones, which `@boundaries/config` leaves out, have a diagnostic and no summary.
  */
 export function summarizeFileCategories(
   input: SummariesInput
@@ -116,27 +97,22 @@ export function summarizeFileCategories(
     SETTINGS.FILES,
     input.diagnostics
   );
-  const { fileDescriptorFiles, failures } = input.described;
+  const { fileDescriptorFiles } = input.described;
 
-  return input.settings.fileDescriptors.flatMap(
+  return input.settings.fileDescriptors.map(
     ({ category, pattern }, position) => {
-      if (isLeftOut(failures, "files", position)) {
-        return [];
-      }
       const index = keptIndexes[position];
-      return [
-        {
+      return {
+        index,
+        category,
+        patterns: readPatterns(pattern),
+        files: fileDescriptorFiles[position],
+        range: getRangeOf(input.config.ast, [
+          SETTINGS_KEY,
+          SETTINGS.FILES,
           index,
-          category,
-          patterns: readPatterns(pattern),
-          files: fileDescriptorFiles[position],
-          range: getRangeOf(input.config.ast, [
-            SETTINGS_KEY,
-            SETTINGS.FILES,
-            index,
-          ]),
-        },
-      ];
+        ]),
+      };
     }
   );
 }
