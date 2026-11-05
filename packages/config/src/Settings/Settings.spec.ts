@@ -497,6 +497,70 @@ describe("Settings/Settings", () => {
         );
       });
 
+      it("filters element descriptors whose capture or baseCapture is set and is not an array, and warns about them", () => {
+        // Arrange
+        const settings = {
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            validElementDescriptor,
+            { ...validElementDescriptor, capture: "name" },
+            { ...validElementDescriptor, baseCapture: 5 },
+          ],
+        };
+
+        // Act
+        const { value, diagnostics: result } = normalizeSettings(settings);
+
+        // Assert
+        expect(value.elementDescriptors).toEqual([
+          {
+            match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+            ...validElementDescriptor,
+          },
+        ]);
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: "Some element descriptors are invalid and will be ignored.",
+            detail: `Invalid descriptors:\n${JSON.stringify([
+              {
+                match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+                ...validElementDescriptor,
+                capture: "name",
+              },
+              {
+                match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+                ...validElementDescriptor,
+                baseCapture: 5,
+              },
+            ])}.\n${SETTINGS_INFO}`,
+            paths: [
+              [SETTINGS_KEYS_MAP.ELEMENTS, 1],
+              [SETTINGS_KEYS_MAP.ELEMENTS, 2],
+            ],
+          },
+        ]);
+      });
+
+      it("keeps element descriptors whose capture and baseCapture are null", () => {
+        // Arrange
+        const descriptor = {
+          ...validElementDescriptor,
+          capture: null,
+          baseCapture: null,
+        };
+
+        // Act
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [descriptor],
+        });
+
+        // Assert
+        expect(value.elementDescriptors).toEqual([
+          { match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER, ...descriptor },
+        ]);
+        expect(result).toEqual([]);
+      });
+
       it("warns when any element descriptor uses the deprecated 'mode' option", () => {
         normalize({
           [SETTINGS_KEYS_MAP.ELEMENTS]: [
@@ -798,6 +862,35 @@ describe("Settings/Settings", () => {
           expect.stringContaining("file descriptors"),
           expect.stringContaining(JSON.stringify([invalidFileDescriptor]))
         );
+      });
+
+      it("filters file descriptors whose capture is set and is not an array, and warns about them", () => {
+        // Arrange
+        const invalidCaptureFileDescriptor = {
+          ...validFileDescriptor,
+          capture: {},
+        };
+
+        // Act
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.FILES]: [
+            invalidCaptureFileDescriptor,
+            validFileDescriptor,
+          ],
+        });
+
+        // Assert
+        expect(value.fileDescriptors).toEqual([validFileDescriptor]);
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: "Some file descriptors are invalid and will be ignored.",
+            detail: `Invalid descriptors:\n${JSON.stringify([
+              invalidCaptureFileDescriptor,
+            ])}.\n${SETTINGS_INFO}`,
+            paths: [[SETTINGS_KEYS_MAP.FILES, 0]],
+          },
+        ]);
       });
     });
 

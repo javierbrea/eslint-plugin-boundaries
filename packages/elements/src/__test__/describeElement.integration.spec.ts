@@ -1,6 +1,11 @@
 import picomatch from "picomatch";
 
-import type { ElementDescription, ElementDescriptors, Matcher } from "../index";
+import type {
+  DescriptorsConfig,
+  ElementDescription,
+  ElementDescriptors,
+  Matcher,
+} from "../index";
 import {
   Elements,
   isIgnoredElementDescription,
@@ -109,6 +114,47 @@ describe("describeElement | Integration", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
+    it.each([
+      ["capture", { capture: "name" }],
+      ["baseCapture", { basePattern: "src", baseCapture: true }],
+    ])(
+      "should throw the error of an invalid descriptor when its %s is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const descriptors = {
+          elements: [
+            { type: "component", pattern: "components/*" },
+            { type: "helper", pattern: "helpers/*", ...captureOptions },
+          ],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it("should throw for a descriptor whose capture is not an array after building the matcher of the same descriptor without capture", () => {
+      // Arrange
+      const descriptor = { type: "helper", pattern: "helpers/*" };
+      elements.getMatcher({ elements: [descriptor] });
+      const descriptors = {
+        elements: [{ ...descriptor, capture: "name" }],
+      } as unknown as DescriptorsConfig;
+
+      // Act
+      const act = () => elements.getMatcher(descriptors);
+
+      // Assert
+      expect(act).toThrow(
+        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+      );
+    });
+
     it("should throw an error for invalid descriptors", () => {
       expect(() =>
         elements.getMatcher(
@@ -132,9 +178,56 @@ describe("describeElement | Integration", () => {
           }
         )
       ).toThrow(
-        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined."
+        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
+
+    it.each([null, undefined])(
+      "should throw the error of an invalid descriptor when a descriptor is %p",
+      (descriptor) => {
+        // Arrange
+        const descriptors = {
+          elements: [
+            { type: "component", pattern: "components/*" },
+            descriptor,
+          ],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it.each([
+      ["includePaths", false],
+      ["ignorePaths", true],
+    ])(
+      "should not reuse the matcher of %s given as a string for a list whose patterns join into that string",
+      (option, isIgnored) => {
+        // Arrange
+        const descriptors = {
+          elements: [{ type: "helper", pattern: "helpers/*" }],
+        };
+        elements.getMatcher(descriptors, {
+          [option]: "**/helpers/**,**/other/**",
+        });
+
+        // Act
+        const element = elements
+          .getMatcher(descriptors, {
+            [option]: ["**/helpers/**", "**/other/**"],
+          })
+          .describeElement("/project/src/helpers/foo/a.ts");
+
+        // Assert
+        expect(element.isIgnored).toBe(isIgnored);
+      }
+    );
 
     it("should not include files when includePaths do not match", () => {
       const otherDescriptors = elements.getMatcher(
@@ -545,6 +638,95 @@ describe("describeElement | Integration", () => {
       matcher.describeElement("/project/src/utils/math/index.ts");
 
       expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("matchers of different descriptors", () => {
+    it.each([
+      ["capture", { capture: ["invalid-capture"] }, { capture: "name" }],
+      [
+        "baseCapture",
+        { basePattern: "**/src", baseCapture: ["invalid-base-capture"] },
+        { basePattern: "**/src", baseCapture: "name" },
+      ],
+    ])(
+      "should throw for a descriptor whose %s is not an array after building the matcher of a list that holds the name of its hash",
+      (_property, listOptions, invalidOptions) => {
+        // Arrange
+        const descriptor = { type: "helper", pattern: "helpers/*" };
+        elements.getMatcher({ elements: [{ ...descriptor, ...listOptions }] });
+        const descriptors = {
+          elements: [{ ...descriptor, ...invalidOptions }],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it.each([
+      ["capture", {}, { capture: ["no-capture"] }, null],
+      [
+        "baseCapture",
+        { basePattern: "**/src" },
+        { baseCapture: ["no-base-capture"] },
+        {},
+      ],
+    ])(
+      "should describe an element without %s after building the matcher of a list that holds the name of its hash",
+      (_property, baseOptions, listOptions, captured) => {
+        // Arrange
+        const descriptor = {
+          type: "helper",
+          pattern: "helpers/*",
+          ...baseOptions,
+        };
+        elements.getMatcher({ elements: [{ ...descriptor, ...listOptions }] });
+
+        // Act
+        const element = elements
+          .getMatcher({ elements: [descriptor] })
+          .describeElement("/project/src/helpers/foo/a.ts");
+
+        // Assert
+        expect(element.captured).toEqual(captured);
+      }
+    );
+
+    it("should capture each name of a list after building the matcher of a list whose single name joins them", () => {
+      // Arrange
+      const descriptor = { type: "helper", pattern: "helpers/*/*" };
+      elements.getMatcher({ elements: [{ ...descriptor, capture: ["a,b"] }] });
+
+      // Act
+      const element = elements
+        .getMatcher({ elements: [{ ...descriptor, capture: ["a", "b"] }] })
+        .describeElement("/project/src/helpers/x/y/a.ts");
+
+      // Assert
+      expect(element.captured).toEqual({ a: "x", b: "y" });
+    });
+
+    it("should match a list of patterns after building the matcher of a pattern string with the same text", () => {
+      // Arrange
+      elements.getMatcher({
+        elements: [{ type: "helper", pattern: "helpers/*,other/*" }],
+      });
+
+      // Act
+      const element = elements
+        .getMatcher({
+          elements: [{ type: "helper", pattern: ["helpers/*", "other/*"] }],
+        })
+        .describeElement("/project/src/helpers/foo/a.ts");
+
+      // Assert
+      expect(element.types).toEqual(["helper"]);
     });
   });
 

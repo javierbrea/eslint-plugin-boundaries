@@ -3,6 +3,7 @@
 import picomatch from "picomatch";
 
 import type {
+  DescriptorsConfig,
   FileDescription,
   FileSingleSelector,
   FileSelector,
@@ -89,6 +90,51 @@ describe("describeFile | Integration", () => {
       expect(isFileDescription(file)).toBe(true);
     });
 
+    it.each([
+      ["capture", { capture: {} }],
+      ["baseCapture", { basePattern: "src", baseCapture: 5 }],
+    ])(
+      "should throw the error of an invalid descriptor when its %s is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const descriptors = {
+          files: [
+            { pattern: "**/*.tsx", category: "react" },
+            { pattern: "**/*.ts", category: "ts", ...captureOptions },
+          ],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it("should throw for a descriptor whose baseCapture is not an array after building the matcher of the same descriptor without baseCapture", () => {
+      // Arrange
+      const descriptor = {
+        pattern: "*.ts",
+        category: "ts",
+        basePattern: "src",
+      };
+      elements.getMatcher({ files: [descriptor] });
+      const descriptors = {
+        files: [{ ...descriptor, baseCapture: 5 }],
+      } as unknown as DescriptorsConfig;
+
+      // Act
+      const act = () => elements.getMatcher(descriptors);
+
+      // Assert
+      expect(act).toThrow(
+        "File descriptor at index 0 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+      );
+    });
+
     it("should throw an error for invalid descriptors", () => {
       expect(() =>
         elements.getMatcher({
@@ -100,9 +146,27 @@ describe("describeFile | Integration", () => {
           ],
         })
       ).toThrow(
-        "File descriptor at index 1 must have a pattern, and a 'category' defined."
+        "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
+
+    it.each([null, undefined])(
+      "should throw the error of an invalid descriptor when a descriptor is %p",
+      (descriptor) => {
+        // Arrange
+        const descriptors = {
+          files: [{ pattern: "**/*.tsx", category: "react" }, descriptor],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
 
     it("should not include files when includePaths do not match", () => {
       const otherMatcher = elements.getMatcher(
@@ -333,6 +397,83 @@ describe("describeFile | Integration", () => {
       matcher.describeFile("/project/src/components/Button.tsx");
 
       expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("matchers of different descriptors", () => {
+    it.each([
+      ["capture", { capture: ["invalid-capture"] }, { capture: "name" }],
+      [
+        "baseCapture",
+        { basePattern: "**/src/*", baseCapture: ["invalid-base-capture"] },
+        { basePattern: "**/src/*", baseCapture: "name" },
+      ],
+    ])(
+      "should throw for a descriptor whose %s is not an array after building the matcher of a list that holds the name of its hash",
+      (_property, listOptions, invalidOptions) => {
+        // Arrange
+        const descriptor = { pattern: "**/*.ts", category: "ts" };
+        elements.getMatcher({ files: [{ ...descriptor, ...listOptions }] });
+        const descriptors = {
+          files: [{ ...descriptor, ...invalidOptions }],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "File descriptor at index 0 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it.each([
+      ["capture", {}, { capture: ["no-capture"] }],
+      [
+        "baseCapture",
+        { basePattern: "**/src/*" },
+        { baseCapture: ["no-base-capture"] },
+      ],
+    ])(
+      "should describe a file without %s after building the matcher of a list that holds the name of its hash",
+      (_property, baseOptions, listOptions) => {
+        // Arrange
+        const descriptor = {
+          pattern: "**/*.ts",
+          category: "ts",
+          ...baseOptions,
+        };
+        elements.getMatcher({ files: [{ ...descriptor, ...listOptions }] });
+
+        // Act
+        const file = elements
+          .getMatcher({ files: [descriptor] })
+          .describeFile("/project/src/utils/a.ts");
+
+        // Assert
+        expect({
+          categories: file.categories,
+          captured: file.captured,
+        }).toEqual({ categories: ["ts"], captured: null });
+      }
+    );
+
+    it("should match a list of patterns after building the matcher of a pattern string with the same text", () => {
+      // Arrange
+      elements.getMatcher({
+        files: [{ pattern: "**/*.ts,**/*.md", category: "ts" }],
+      });
+
+      // Act
+      const file = elements
+        .getMatcher({
+          files: [{ pattern: ["**/*.ts", "**/*.md"], category: "ts" }],
+        })
+        .describeFile("/project/src/utils/a.ts");
+
+      // Assert
+      expect(file.categories).toEqual(["ts"]);
     });
   });
 
