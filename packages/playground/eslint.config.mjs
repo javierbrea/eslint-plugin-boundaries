@@ -27,8 +27,8 @@ const UI_TYPES = [
 // The same layers without any knowledge of a domain
 const UI_KIT_TYPES = UI_TYPES.map((type) => type.replace("ui-", "ui-kit-"));
 
-// Every new element type. A new element never imports a legacy one, so this is also what legacy code may import
-const NEW_TYPES = [
+// Every element type
+const ELEMENT_TYPES = [
   "contract",
   "helper",
   "data",
@@ -41,21 +41,9 @@ const NEW_TYPES = [
 ];
 
 // Layers that may use React, which are all but the pure ones
-const REACT_TYPES = NEW_TYPES.filter(
+const REACT_TYPES = ELEMENT_TYPES.filter(
   (type) => type !== "helper" && type !== "contract"
 );
-
-// The legacy layering, which the refactor of the playground structure moves element by element. Task 19 of that refactor removes these types, their policies and their file categories
-const LEGACY_TYPES = [
-  "legacy-sketch",
-  "legacy-engine",
-  "legacy-examples",
-  "legacy-ui-state",
-  "legacy-ui-shared",
-  "legacy-ui-pane",
-  "legacy-ui-root",
-  "legacy-theme",
-];
 
 // What each layer may import, always through the entry of the element. Presentational layers climb one step at a time: an atom composes nothing, a molecule composes atoms, an organism composes molecules and organisms, a template composes them all
 const UI_ATOM_TARGETS = [
@@ -197,19 +185,6 @@ const ELEMENTS = [
   domain("module", "modules"),
   shared("testing", "testing"),
   ...UI_KIT_LAYERS.map(([type, folder]) => uiKit(type, folder)),
-  // Legacy layering, removed by task 19 of the refactor of the playground structure
-  { type: "legacy-sketch", pattern: "src/sketch" },
-  { type: "legacy-engine", pattern: "src/engine" },
-  { type: "legacy-examples", pattern: "src/examples" },
-  // The state of an instance and its hooks: the panes depend on it, never the other way round
-  { type: "legacy-ui-state", pattern: "src/ui/state" },
-  // Presentational pieces that every pane uses, which know nothing of the state
-  { type: "legacy-ui-shared", pattern: "src/ui/{common,icons}" },
-  // A pane and its parts, such as the project pane or the problems panel
-  { type: "legacy-ui-pane", pattern: "src/ui/*", capture: ["pane"] },
-  // The workbench, which creates the state and lays out the panes
-  { type: "legacy-ui-root", pattern: "src/ui" },
-  { type: "legacy-theme", pattern: "src/theme" },
 ];
 
 const FILES = [
@@ -221,17 +196,6 @@ const FILES = [
   { pattern: "src/**/*.pom.ts", category: "pom" },
   { pattern: "src/**/*.mock.{ts,tsx}", category: "mock" },
   { pattern: "src/**/*.constants.ts", category: "constants" },
-  // Legacy categories, removed by task 19 of the refactor of the playground structure
-  { pattern: "src/index.ts", category: "legacy-entry" },
-  {
-    pattern: ["src/Playground.tsx", "src/Playground.spec.tsx"],
-    category: "legacy-app",
-  },
-  // The fixtures hold what only specs load, such as captured data and the stubs of browser APIs
-  {
-    pattern: "src/{engine,theme,ui}/**/__fixtures__/**",
-    category: "legacy-test",
-  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -252,17 +216,6 @@ const externalModule = (source) => ({
 const elementNamed = (domainName, names, types = UI_TYPES) => ({
   element: { type: types, captured: { domain: domainName, name: names } },
 });
-
-const LEGACY_IMPORTERS = [
-  { element: { type: LEGACY_TYPES } },
-  { file: { categories: ["legacy-entry", "legacy-app"] } },
-];
-
-// A spec of legacy code: a spec in a legacy element, or the spec of the legacy app
-const LEGACY_TESTS = [
-  { element: { type: LEGACY_TYPES }, file: { categories: "test" } },
-  { file: { categories: { allOf: ["legacy-app", "test"] } } },
-];
 
 const POLICIES = [
   // An element may always import itself. Restrictions on test, page object and mock files come after and override this
@@ -343,88 +296,9 @@ const POLICIES = [
     allow: { to: { module: { origin: "external" } } },
   },
 
-  // Legacy code may import any new element and any external module. Core modules are not allowed anywhere, since the playground runs only in browsers
-  {
-    from: LEGACY_IMPORTERS,
-    allow: {
-      to: [
-        { element: { type: NEW_TYPES } },
-        { module: { origin: "external" } },
-      ],
-    },
-  },
-  {
-    from: { file: { categories: "legacy-entry" } },
-    allow: {
-      to: [
-        { file: { categories: "legacy-app" } },
-        { element: { type: "legacy-examples" } },
-      ],
-    },
-  },
-  {
-    from: { file: { categories: "legacy-app" } },
-    allow: { to: { element: { type: ["legacy-ui-root", "legacy-theme"] } } },
-  },
-  {
-    from: { element: { type: "legacy-ui-root" } },
-    allow: {
-      to: {
-        element: {
-          type: ["legacy-ui-state", "legacy-ui-shared", "legacy-ui-pane"],
-        },
-      },
-    },
-  },
-  // A pane imports the tokens that the MUI theme object does not carry: the focus ring and the hover of its own rows, and the type scale for CodeMirror, whose theme is built before any MUI theme exists. The rest of the theme reaches a pane through `styled`
-  {
-    from: { element: { type: "legacy-ui-pane" } },
-    allow: {
-      to: {
-        element: {
-          type: [
-            "legacy-sketch",
-            "legacy-engine",
-            "legacy-theme",
-            "legacy-ui-state",
-            "legacy-ui-shared",
-          ],
-        },
-      },
-    },
-  },
-  // The node pane shows the config with the editor of the config pane
-  {
-    from: { element: { type: "legacy-ui-pane", captured: { pane: "node" } } },
-    allow: {
-      to: {
-        element: { type: "legacy-ui-pane", captured: { pane: "config" } },
-      },
-    },
-  },
-  {
-    from: { element: { type: "legacy-ui-state" } },
-    allow: {
-      to: {
-        element: {
-          type: ["legacy-sketch", "legacy-engine", "legacy-ui-shared"],
-        },
-      },
-    },
-  },
-  {
-    from: { element: { type: "legacy-ui-shared" } },
-    allow: { to: { element: { type: "legacy-ui-shared" } } },
-  },
-  // The engine also reads the sketch, so that both agree on which nodes are files
-  {
-    from: { element: { type: "legacy-engine" } },
-    allow: { to: { element: { type: "legacy-sketch" } } },
-  },
-
   // Test, page object and mock files are test support: nothing imports them unless a policy below allows it
   {
-    disallow: { to: { file: { categories: ["test", "legacy-test"] } } },
+    disallow: { to: { file: { categories: "test" } } },
     message: "Do not import test files from source code",
   },
   {
@@ -438,12 +312,12 @@ const POLICIES = [
       "Only specs import a mock. Production code and page objects never do",
   },
 
-  // A spec may import the entry of any new element, which includes the testing support, and the page objects, constants and mocks that it drives, by file
+  // A spec may import the entry of any element, which includes the testing support, and the page objects, constants and mocks that it drives, by file
   {
     from: { file: { categories: "test" } },
     allow: {
       to: [
-        entryOf(NEW_TYPES),
+        entryOf(ELEMENT_TYPES),
         { file: { categories: ["pom", "constants", "mock"] } },
       ],
     },
@@ -458,21 +332,7 @@ const POLICIES = [
   // A mock wraps its own element, so it reads the entries of the others
   {
     from: { file: { categories: "mock" } },
-    allow: { to: entryOf(NEW_TYPES) },
-  },
-  // Legacy specs keep importing what they imported, and the fixtures that only they load
-  {
-    from: LEGACY_TESTS,
-    allow: {
-      to: [
-        { element: { type: LEGACY_TYPES } },
-        { file: { categories: ["legacy-entry", "legacy-app", "legacy-test"] } },
-      ],
-    },
-  },
-  {
-    from: { file: { categories: "legacy-test" } },
-    allow: { to: { file: { categories: "legacy-test" } } },
+    allow: { to: entryOf(ELEMENT_TYPES) },
   },
 
   // Domains organize the code, they do not isolate it, except for these three limits. They come last, so that no allowance above reopens them

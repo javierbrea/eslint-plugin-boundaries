@@ -45,14 +45,14 @@ An element is one folder of a layer, `<layer>/<Name>/`, under `shared/`, under `
 | `ui-atom` | `ui/atoms/<Name>/` | Presentational; composes no `ui` component | `ui-helper`, `ui-context`, `ui-kit-atom`, `ui-kit-context`, `ui-kit-helper`, `helper`, `contract` |
 | `ui-molecule` | `ui/molecules/<Name>/` | Composes atoms | as `ui-atom`, plus `ui-atom`, `ui-kit-molecule` |
 | `ui-organism` | `ui/organisms/<Name>/` | Composes molecules or organisms | as `ui-molecule`, plus `ui-molecule`, `ui-organism`, `ui-kit-organism` |
-| `ui-template` | `ui/templates/<Name>/` | Arranges slots into a layout | as `ui-organism`, plus `ui-organism`, `ui-template`, `ui-kit-template` |
+| `ui-template` | `ui/templates/<Name>/` | Arranges slots into a layout | as `ui-organism`, plus `ui-template`, `ui-kit-template` |
 | `ui-provider` | `ui/providers/<Name>/` | Mounts a capability around `children` | every `ui-*` and `ui-kit-*`, `helper`, `contract` |
 | `ui-kit-helper` | `ui-kit/helpers/<name>/` | Domain-free presentation logic: the theme, the tones | `ui-kit-helper`, `helper` |
 | `ui-kit-context` | `ui-kit/contexts/<Name>/` | Domain-free context | `ui-kit-context`, `ui-kit-helper`, `helper` |
 | `ui-kit-atom` | `ui-kit/atoms/<Name>/` | Domain-free building block | `ui-kit-context`, `ui-kit-helper`, `helper` |
 | `ui-kit-molecule` | `ui-kit/molecules/<Name>/` | Composes `ui-kit` atoms | as `ui-kit-atom`, plus `ui-kit-atom` |
 | `ui-kit-organism` | `ui-kit/organisms/<Name>/` | Composes `ui-kit` molecules | as `ui-kit-molecule`, plus `ui-kit-molecule`, `ui-kit-organism` |
-| `ui-kit-template` | `ui-kit/templates/<Name>/` | Domain-free layout | as `ui-kit-organism`, plus `ui-kit-organism`, `ui-kit-template` |
+| `ui-kit-template` | `ui-kit/templates/<Name>/` | Domain-free layout | as `ui-kit-organism`, plus `ui-kit-template` |
 | `ui-kit-provider` | `ui-kit/providers/<Name>/` | Domain-free capability: the theme root | every `ui-kit-*`, `helper` |
 | `testing` | `shared/testing/<name>/` | Test support shared by specs and page objects | `testing`, `helper`, every `ui-kit-*`, `contract` |
 | `app` | `app/` | The `Playground` component | `module`, `data`, every `ui-*` and `ui-kit-*`, `helper`, `contract` |

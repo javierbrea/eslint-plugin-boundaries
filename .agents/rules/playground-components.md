@@ -11,7 +11,7 @@ How the files of `packages/playground/src` are organized and written. The layers
 ## Files of an element
 
 - An element is one folder with an `index.ts` that only re-exports its public API, values and types: `export { X } from "./X";`, `export type { XProps } from "./X.types";`. No logic, no `export *`, no import.
-- Component elements and their files are PascalCase (`ProjectTree/ProjectTree.tsx`). Every other element and file is camelCase (`helpers/sketch/tree.ts`), and hooks are `useX`.
+- A component file and a component element are PascalCase (`ProjectTree/ProjectTree.tsx`, `store/SessionProvider.tsx`). Every other element and file is camelCase (`helpers/sketch/tree.ts`), and hooks are `useX`.
 - Sibling files of `<name>`: `<name>.types.ts` (exported types, see `.agents/rules/typescript-conventions.md`), `<name>.constants.ts`, `<name>.hooks.ts` (the React hooks of a `data` element), `<name>.pom.ts`, `<name>.spec.ts(x)` and `<name>.mock.ts(x)`. An element that holds several modules keeps one camelCase file per module (`helpers/engine/parseConfig.ts`).
 - The only subfolders inside an element are a module's own hooks: `modules/<Name>/hooks/<useX>/`, for a hook that only that module uses. A hook a second module needs moves to `modules/hooks/<useX>/` of the domain.
 
@@ -24,6 +24,7 @@ How the files of `packages/playground/src` are organized and written. The layers
   - A component that a library renders once per item, and so cannot receive props from its parent (the tree items that `@mui/x-tree-view` renders), renders the constant on each root, and its page object picks one by its content.
   - A component that would render a fragment of several elements wraps them in a private `styled("div")({ display: "contents" })` root that carries the test id, so its parent's layout still places the children.
   - A component whose root is one of its children, next to children that render in a portal (a module that renders a layout and a dialog), puts the test id on that child and needs no wrapper.
+  - A component that renders no element of its own, such as a module that returns one of several panes (`NodePane`), has no test id: its page object finds the root of whichever pane is rendered.
 - A component sits in the sub-layer its imports put it in. An atom composes no `ui` component (it may use `ui-kit` atoms), a molecule composes atoms, an organism composes molecules or organisms, and a template arranges slots (`children`, `ReactNode` props) into a layout. A lint error is fixed by moving the component to the sub-layer its imports put it in, never by importing differently to stay put.
 - A module never imports `@mui/*`, never styles and never writes user-facing text: it reads the store through data hooks and module-hooks, and renders `ui` and `ui-kit` components with props and callbacks. A pane that reads the store stays `memo(...)`.
 - A `ui` component never imports `data`, not even a type. A vocabulary that `data` and `ui` must agree on (`Focus`, `Target`, `ProblemsTabId`) lives in the `helpers/` of its domain.

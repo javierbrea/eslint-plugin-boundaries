@@ -17,8 +17,8 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 
 `src/shared/testing/pom` exports the base every page object extends (`Pom`) and `FixturePom`, the page object of the probe markup of a spec. Its TSDoc documents every member and option; read it before writing a page object. The facts that decide how to write one:
 
-- The `PomOptions` select the root element: a test id, an `index`, a text it `contains`, a `parent`, an explicit `root` or `portal` for an overlay outside the parent. The root is resolved on every access and never cached.
-- A composite takes `defaultTestId` from its constants file. An atom sets `defaultTestId = ""` and overrides `findRoot()` to find its root by role, name, label or selector within `searchBase`, passing the candidates through `pickMatch(...)` so that `index` and `containing` still apply.
+- The `PomOptions` select the root element: a `testId`, a `name`, an `index`, a text it is `containing`, a `parent`, an explicit `root` or `portal` for an overlay outside the parent. The root is resolved on every access and never cached.
+- A composite takes `defaultTestId` from its constants file. An atom sets `defaultTestId = ""` and overrides `findRoot()` to find its root by role and name, or by text, within `searchBase`, passing the candidates through `pickMatch(...)` so that `index` and `containing` still apply; `findRootBySelector(...)` does that for a CSS selector.
 - A child is built with `childPom(Ctor, options)`, which sets the parent.
 
 ## Page objects
@@ -44,11 +44,11 @@ export class ProjectTreePom extends Pom {
   protected readonly defaultTestId = PROJECT_TREE_TEST_ID;
 
   get itemCount(): number {
-    return this.scope.queryAllByRole("treeitem").length;
+    return this.childPom(ProjectTreeItemPom).count;
   }
 
-  item(index: number): ProjectTreeItemPom {
-    return this.childPom(ProjectTreeItemPom, { index });
+  item(path: string): ProjectTreeItemPom {
+    return this.childPom(ProjectTreeItemPom, { name: path });
   }
 }
 ```
@@ -62,7 +62,7 @@ export class ProjectTreePom extends Pom {
 - Mocks (`<name>.mock.ts(x)`) live in the element they wrap and are imported only by specs: lint fails a page object, another mock or production code that imports one.
 - Barrels, page objects, mocks and `src/shared/testing` are left out of coverage in `packages/playground/jest.config.cjs`; everything else stays at 100%.
 
-Illustrative spec of the page object above, where `PROPS` holds the props of a tree with two files:
+Illustrative spec of the page object above, where `PROPS` holds the props of a tree with a file at `index.js`:
 
 ```tsx
 // src/domains/project/ui/organisms/ProjectTree/ProjectTree.spec.tsx
@@ -72,17 +72,17 @@ import { ProjectTree } from "./ProjectTree";
 import { ProjectTreePom } from "./ProjectTree.pom";
 
 describe("ProjectTree", () => {
-  describe("when the sketch has two files", () => {
-    it("should render an item for each of them", () => {
+  describe("when the sketch has a file at index.js", () => {
+    it("should render an item for it", () => {
       // Arrange
       renderInRoot(<ProjectTree {...PROPS} />);
       const tree = new ProjectTreePom();
 
       // Act
-      const count = tree.itemCount;
+      const { isRendered } = tree.item("index.js");
 
       // Assert
-      expect(count).toBe(2);
+      expect(isRendered).toBe(true);
     });
   });
 });

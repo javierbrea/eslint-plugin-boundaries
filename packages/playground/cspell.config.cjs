@@ -10,7 +10,6 @@ module.exports = createConfig({
     "labelledby",
     "momoa",
     "noreferrer",
-    "pom",
   ],
   // Misspelled on purpose in the tests of the problems panel: the mockup's config problem is a typo of `disallow`
   ignoreWords: ["dissallow"],
