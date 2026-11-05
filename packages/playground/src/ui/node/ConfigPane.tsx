@@ -1,8 +1,8 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
+import { ConfigEditor } from "@/domains/config/ui/atoms/ConfigEditor";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
-import { ConfigEditor } from "@/ui/config";
 import { Mono } from "@/ui-kit/atoms/Mono";
 import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";

@@ -12,12 +12,10 @@ import {
 } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
 
+import { fitToDocument } from "@/domains/config/ui/helpers/editorDiagnostics";
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 
-import { fitToDocument } from "./Diagnostics";
-
-/** The class of the highlighted lines, and of their gutter elements, which the theme styles */
-export const HIGHLIGHT_CLASS = "cm-jsb-highlight";
+import { HIGHLIGHT_CLASS } from "./editorHighlight.constants";
 
 /** The lines to highlight, or `undefined` to clear them. Only the offsets are read */
 export const setHighlight = StateEffect.define<

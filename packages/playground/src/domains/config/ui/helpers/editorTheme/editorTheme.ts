@@ -2,9 +2,8 @@ import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
+import { HIGHLIGHT_CLASS } from "@/domains/config/ui/helpers/editorHighlight";
 import { TYPOGRAPHY } from "@/ui-kit/helpers/theme";
-
-import { HIGHLIGHT_CLASS } from "./Highlight";
 
 const { body2, mono, monoCaption, fontWeightBold } = TYPOGRAPHY;
 

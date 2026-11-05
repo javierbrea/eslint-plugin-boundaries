@@ -2,11 +2,11 @@ import { EditorState } from "@codemirror/state";
 import { gutterLineClass } from "@codemirror/view";
 
 import {
-  HIGHLIGHT_CLASS,
   highlightExtension,
   highlightField,
   setHighlight,
-} from "./Highlight";
+} from "./editorHighlight";
+import { HIGHLIGHT_CLASS } from "./editorHighlight.constants";
 
 const TEXT = ["{", "  settings: {},", "  rules: {},", "}"].join("\n");
 

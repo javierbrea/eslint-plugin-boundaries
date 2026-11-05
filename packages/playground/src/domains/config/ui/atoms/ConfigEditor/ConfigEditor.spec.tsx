@@ -1,11 +1,5 @@
 // cspell:ignore patern dissallow -- deliberate typos, the mistakes of the config that the tests report
-import { insertNewlineAndIndent, undo } from "@codemirror/commands";
-import { forEachDiagnostic } from "@codemirror/lint";
-import { EditorSelection } from "@codemirror/state";
-import type { EditorState } from "@codemirror/state";
-import { EditorView, runScopeHandlers } from "@codemirror/view";
-import { tags } from "@lezer/highlight";
-import { render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { StrictMode } from "react";
 import type { RefObject } from "react";
 
@@ -16,9 +10,8 @@ import type {
 } from "@/domains/evaluation/helpers/engine";
 
 import { ConfigEditor } from "./ConfigEditor";
+import { ConfigEditorPom } from "./ConfigEditor.pom";
 import type { ConfigEditorProps } from "./ConfigEditor.types";
-import { highlightStyle } from "./EditorTheme";
-import { highlightField } from "./Highlight";
 
 const TEXT = [
   "{",
@@ -94,63 +87,6 @@ function createSnapshot(): RefObject<ConfigEditorSnapshot | undefined> {
   return { current: undefined };
 }
 
-/**
- * Reads the scroll that a view still has to apply. jsdom has no layout, so the target that the view keeps until its next measure is the only trace of a scroll restored from a snapshot.
- * @param editor The view.
- * @returns The target, or `null` when there is none.
- */
-function getPendingScroll(editor: EditorView): unknown {
-  return (editor as unknown as { viewState: { scrollTarget: unknown } })
-    .viewState.scrollTarget;
-}
-
-/**
- * Finds the CodeMirror view that an element of the document holds.
- * @param container The element the editor was rendered in.
- * @returns The view.
- */
-function getEditorView(container: HTMLElement): EditorView {
-  const editor = container.querySelector(".cm-editor") as HTMLElement;
-  const found = EditorView.findFromDOM(editor);
-
-  expect(found).not.toBeNull();
-
-  return found as EditorView;
-}
-
-/**
- * Reads the diagnostics of a state.
- * @param state The state of the editor.
- * @returns Where each one is and how it looks.
- */
-function getDiagnostics(
-  state: EditorState
-): { from: number; to: number; severity: string; message: string }[] {
-  const diagnostics: {
-    from: number;
-    to: number;
-    severity: string;
-    message: string;
-  }[] = [];
-  forEachDiagnostic(state, ({ severity, message }, from, to) => {
-    diagnostics.push({ from, to, severity, message });
-  });
-  return diagnostics;
-}
-
-/**
- * Reads the numbers of the lines that the highlight marks.
- * @param state The state of the editor.
- * @returns The line numbers, from 1.
- */
-function getHighlightedLines(state: EditorState): number[] {
-  const lines: number[] = [];
-  state.field(highlightField).between(0, state.doc.length, (from) => {
-    lines.push(state.doc.lineAt(from).number);
-  });
-  return lines;
-}
-
 describe("ConfigEditor", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
@@ -160,69 +96,59 @@ describe("ConfigEditor", () => {
     it("should show the text in an editor that has the label as its name", () => {
       // Arrange
       const props = createProps();
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom({ name: LABEL });
 
       // Act
-      render(<ConfigEditor {...props} />);
+      const { renderedText } = editor;
 
       // Assert
-      const lines = Array.from(
-        view.getByRole("textbox", { name: LABEL }).querySelectorAll(".cm-line")
-      );
-
-      expect(lines.map((line) => line.textContent).join("\n")).toBe(TEXT);
+      expect(renderedText).toBe(TEXT);
     });
 
     it("should show the line numbers", () => {
       // Arrange
       const props = createProps();
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { lineNumbers } = editor;
 
       // Assert
-      const numbers = Array.from(
-        container.querySelectorAll(".cm-lineNumbers .cm-gutterElement")
-      ).map((element) => element.textContent);
-
-      expect(numbers).toContain("1");
-      expect(numbers).toContain("8");
+      expect(lineNumbers).toContain("1");
+      expect(lineNumbers).toContain("8");
     });
 
     it("should give the strings the class of the string tag", () => {
       // Arrange
       const props = createProps();
-      const stringClass = highlightStyle.style([tags.string]) as string;
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { stringTokens } = editor;
 
       // Assert
-      const strings = Array.from(
-        container.querySelectorAll(`.${stringClass}`)
-      ).map((element) => element.textContent);
-
-      expect(strings).toContain('"helper"');
-      expect(strings).toContain('"dissallow"');
-      expect(strings).not.toContain("settings");
+      expect(stringTokens).toContain('"helper"');
+      expect(stringTokens).toContain('"dissallow"');
+      expect(stringTokens).not.toContain("settings");
     });
 
     it("should give the keys the class of the property name tag, and not the one of the strings", () => {
       // Arrange
       const props = createProps();
-      const keyClass = highlightStyle.style([tags.propertyName]) as string;
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { keyTokens } = editor;
 
       // Assert
-      const keys = Array.from(container.querySelectorAll(`.${keyClass}`)).map(
-        (element) => element.textContent
-      );
-
-      expect(keys).toContain("settings");
-      expect(keys).toContain("type");
-      expect(keys).toContain('"boundaries/dependencies"');
-      expect(keys).not.toContain('"helper"');
+      expect(keyTokens).toContain("settings");
+      expect(keyTokens).toContain("type");
+      expect(keyTokens).toContain('"boundaries/dependencies"');
+      expect(keyTokens).not.toContain('"helper"');
     });
 
     it("should read the config as JSON5, with comments, unquoted keys and single quotes, and no error", () => {
@@ -230,41 +156,39 @@ describe("ConfigEditor", () => {
       const props = createProps({
         value: "{ // the settings\n  settings: { a: 'b', },\n}",
       });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { renderedText, hasUnderline } = editor;
 
       // Assert
-      expect(container.querySelector(".cm-content")?.textContent).toBe(
-        "{ // the settings  settings: { a: 'b', },}"
+      expect(renderedText).toBe(
+        "{ // the settings\n  settings: { a: 'b', },\n}"
       );
-      expect(container.querySelector(".cm-lintRange")).toBeNull();
+      expect(hasUnderline).toBe(false);
     });
 
     it("should fill its container", () => {
       // Arrange
       const props = createProps();
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { height } = editor;
 
       // Assert
-      expect((container.firstElementChild as HTMLElement).style.height).toBe(
-        "100%"
-      );
+      expect(height).toBe("100%");
     });
 
     it("should leave Tab to the browser, so that the focus can leave the editor", () => {
       // Arrange
-      const { container } = render(<ConfigEditor {...createProps()} />);
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...createProps()} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const handled = runScopeHandlers(
-        editor,
-        new KeyboardEvent("keydown", { key: "Tab" }),
-        "editor"
-      );
+      const handled = editor.pressTab();
 
       // Assert
       expect(handled).toBe(false);
@@ -275,14 +199,11 @@ describe("ConfigEditor", () => {
     it("should call onChange with the whole text after an edit of the user", () => {
       // Arrange
       const props = createProps();
-      const { container } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      editor.dispatch({
-        changes: { from: TEXT.length, insert: "\n// done" },
-        userEvent: "input.type",
-      });
+      editor.typeAt(TEXT.length, "\n// done");
 
       // Assert
       expect(props.onChange).toHaveBeenCalledTimes(1);
@@ -292,11 +213,11 @@ describe("ConfigEditor", () => {
     it("should not call onChange when the selection moves", () => {
       // Arrange
       const props = createProps();
-      const { container } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      editor.dispatch({ selection: { anchor: 4 } });
+      editor.moveCursor(4);
 
       // Assert
       expect(props.onChange).not.toHaveBeenCalled();
@@ -306,17 +227,14 @@ describe("ConfigEditor", () => {
       // Arrange
       const first = jest.fn();
       const second = jest.fn();
-      const { container, rerender } = render(
+      const { rerender } = render(
         <ConfigEditor {...createProps({ onChange: first })} />
       );
-      const editor = getEditorView(container);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...createProps({ onChange: second })} />);
-      editor.dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
 
       // Assert
       expect(first).not.toHaveBeenCalled();
@@ -325,19 +243,16 @@ describe("ConfigEditor", () => {
 
     it("should undo the edits of the user", () => {
       // Arrange
-      const { container } = render(<ConfigEditor {...createProps()} />);
-      const editor = getEditorView(container);
-      editor.dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      render(<ConfigEditor {...createProps()} />);
+      const editor = new ConfigEditorPom();
+      editor.typeAt(0, " ");
 
       // Act
-      const undone = undo(editor);
+      const undone = editor.undo();
 
       // Assert
       expect(undone).toBe(true);
-      expect(editor.state.doc.toString()).toBe(TEXT);
+      expect(editor.text).toBe(TEXT);
     });
   });
 
@@ -345,78 +260,75 @@ describe("ConfigEditor", () => {
     it("should replace the document with a new value, without reporting it as an edit", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} value="{ settings: {} }" />);
 
       // Assert
-      expect(editor.state.doc.toString()).toBe("{ settings: {} }");
+      expect(editor.text).toBe("{ settings: {} }");
       expect(props.onChange).not.toHaveBeenCalled();
     });
 
     it("should leave the document alone when the value is the text it has", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
-      const documentBefore = editor.state.doc;
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      const documentBefore = editor.documentId;
 
       // Act
       rerender(<ConfigEditor {...props} />);
 
       // Assert
-      expect(editor.state.doc).toBe(documentBefore);
+      expect(editor.documentId).toBe(documentBefore);
     });
 
     it("should leave the document alone when the parent gives back the text that the user typed", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
-      editor.dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
-      const documentBefore = editor.state.doc;
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      editor.typeAt(0, " ");
+      const documentBefore = editor.documentId;
 
       // Act
       rerender(<ConfigEditor {...props} value={` ${TEXT}`} />);
 
       // Assert
-      expect(editor.state.doc).toBe(documentBefore);
+      expect(editor.documentId).toBe(documentBefore);
     });
 
     it("should not put the replacement in the history, so that undo does not bring the old text back", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} value="{}" />);
-      const undone = undo(editor);
+      const undone = editor.undo();
 
       // Assert
       expect(undone).toBe(false);
-      expect(editor.state.doc.toString()).toBe("{}");
+      expect(editor.text).toBe("{}");
     });
 
     it("should replace the document without asking to scroll", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
-      const dispatch = jest.spyOn(editor, "dispatch");
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      const dispatches = editor.recordDispatches();
 
       // Act
       rerender(<ConfigEditor {...props} value="{}" />);
 
       // Assert
-      expect(dispatch).toHaveBeenCalledTimes(1);
-      expect(dispatch.mock.calls[0][0]).not.toHaveProperty("scrollIntoView");
-      expect(dispatch.mock.calls[0][0]).not.toHaveProperty("effects");
+      expect(dispatches.count).toBe(1);
+      expect(dispatches.scrolled).toBe(false);
+      expect(dispatches.hasEffects).toBe(false);
     });
   });
 
@@ -424,12 +336,14 @@ describe("ConfigEditor", () => {
     it("should mark the problems at their ranges, with the level and the message", () => {
       // Arrange
       const props = createProps({ problems: [WARNING, ERROR] });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { diagnostics } = editor;
 
       // Assert
-      expect(getDiagnostics(getEditorView(container).state)).toEqual([
+      expect(diagnostics).toEqual([
         {
           from: WARNING.range.from,
           to: WARNING.range.to,
@@ -448,70 +362,72 @@ describe("ConfigEditor", () => {
     it("should underline the text of each problem", () => {
       // Arrange
       const props = createProps({ problems: [WARNING, ERROR] });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const errorText = editor.underlinedText("error");
+      const warningText = editor.underlinedText("warning");
 
       // Assert
-      expect(container.querySelector(".cm-lintRange-error")?.textContent).toBe(
-        '"dissallow"'
-      );
-      expect(
-        container.querySelector(".cm-lintRange-warning")?.textContent
-      ).toBe('{ type: "helper", patern: "x" }');
+      expect(errorText).toBe('"dissallow"');
+      expect(warningText).toBe('{ type: "helper", patern: "x" }');
     });
 
     it("should mark the lines of the problems in the gutter", () => {
       // Arrange
       const props = createProps({ problems: [WARNING, ERROR] });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const warnings = editor.gutterMarkerCount("warning");
+      const errors = editor.gutterMarkerCount("error");
 
       // Assert
-      expect(
-        container.querySelectorAll(".cm-gutter-lint .cm-lint-marker-warning")
-      ).toHaveLength(1);
-      expect(
-        container.querySelectorAll(".cm-gutter-lint .cm-lint-marker-error")
-      ).toHaveLength(1);
+      expect(warnings).toBe(1);
+      expect(errors).toBe(1);
     });
 
     it("should replace the problems when the list changes", () => {
       // Arrange
       const props = createProps({ problems: [WARNING, ERROR] });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} problems={[ERROR]} />);
 
       // Assert
-      expect(getDiagnostics(getEditorView(container).state)).toHaveLength(1);
-      expect(container.querySelector(".cm-lintRange-warning")).toBeNull();
+      expect(editor.diagnostics).toHaveLength(1);
+      expect(editor.underlinedText("warning")).toBeNull();
     });
 
     it("should clear the problems when the list is empty", () => {
       // Arrange
       const props = createProps({ problems: [WARNING, ERROR] });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} problems={[]} />);
 
       // Assert
-      expect(getDiagnostics(getEditorView(container).state)).toEqual([]);
-      expect(container.querySelector(".cm-lint-marker-error")).toBeNull();
+      expect(editor.diagnostics).toEqual([]);
+      expect(editor.gutterMarkerCount("error")).toBe(0);
     });
 
     it("should keep the problems inside a document that is shorter than the text that was evaluated", () => {
       // Arrange
       const props = createProps({ value: "{}", problems: [ERROR] });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { diagnostics } = editor;
 
       // Assert
-      expect(getDiagnostics(getEditorView(container).state)).toEqual([
+      expect(diagnostics).toEqual([
         {
           from: 2,
           to: 2,
@@ -533,14 +449,14 @@ describe("ConfigEditor", () => {
         range: { ...position, to: position.from },
         source: "parse",
       };
+      render(<ConfigEditor {...createProps({ problems: [parseError] })} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(
-        <ConfigEditor {...createProps({ problems: [parseError] })} />
-      );
+      const hasPoint = editor.hasPoint("error");
 
       // Assert
-      expect(container.querySelector(".cm-lintPoint-error")).not.toBeNull();
+      expect(hasPoint).toBe(true);
     });
   });
 
@@ -550,15 +466,15 @@ describe("ConfigEditor", () => {
       const props = createProps({
         highlight: rangeOf('"boundaries/dependencies"'),
       });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { highlightedLines, highlightedLineTexts } = editor;
 
       // Assert
-      expect(getHighlightedLines(getEditorView(container).state)).toEqual([6]);
-      expect(
-        container.querySelector(".cm-line.cm-jsb-highlight")?.textContent
-      ).toContain("boundaries/dependencies");
+      expect(highlightedLines).toEqual([6]);
+      expect(highlightedLineTexts[0]).toContain("boundaries/dependencies");
     });
 
     it("should mark every line of a range that has several", () => {
@@ -567,14 +483,14 @@ describe("ConfigEditor", () => {
       const props = createProps({
         highlight: { from: rules, to: TEXT.length, line: 5, column: 1 },
       });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { highlightedLines } = editor;
 
       // Assert
-      expect(getHighlightedLines(getEditorView(container).state)).toEqual([
-        5, 6, 7, 8,
-      ]);
+      expect(highlightedLines).toEqual([5, 6, 7, 8]);
     });
 
     it("should mark the gutter of the lines of the range", () => {
@@ -582,61 +498,54 @@ describe("ConfigEditor", () => {
       const props = createProps({
         highlight: rangeOf('"boundaries/dependencies"'),
       });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      const { highlightedProblemGutterCount, highlightedLineNumberCount } =
+        editor;
 
       // Assert
-      expect(
-        container.querySelectorAll(
-          ".cm-gutter-lint .cm-gutterElement.cm-jsb-highlight"
-        )
-      ).toHaveLength(1);
-      expect(
-        container.querySelectorAll(
-          ".cm-lineNumbers .cm-gutterElement.cm-jsb-highlight"
-        )
-      ).toHaveLength(1);
+      expect(highlightedProblemGutterCount).toBe(1);
+      expect(highlightedLineNumberCount).toBe(1);
     });
 
     it("should add the lines when the highlight is set, and remove them when it is unset", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} highlight={rangeOf("settings")} />);
-      const whileSet = getHighlightedLines(editor.state);
+      const whileSet = editor.highlightedLines;
       rerender(<ConfigEditor {...props} highlight={undefined} />);
 
       // Assert
       expect(whileSet).toEqual([2]);
-      expect(getHighlightedLines(editor.state)).toEqual([]);
-      expect(container.querySelector(".cm-jsb-highlight")).toBeNull();
+      expect(editor.highlightedLines).toEqual([]);
+      expect(editor.highlightMarkCount).toBe(0);
     });
 
     it("should move the lines when the offsets of the range change", () => {
       // Arrange
       const props = createProps({ highlight: rangeOf("settings") });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} highlight={rangeOf("rules")} />);
 
       // Assert
-      expect(getHighlightedLines(getEditorView(container).state)).toEqual([5]);
+      expect(editor.highlightedLines).toEqual([5]);
     });
 
     it("should keep the lines where the edits of the user moved them when the parent builds the same range again", () => {
       // Arrange
       const props = createProps({ highlight: rangeOf("settings") });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
-      editor.dispatch({
-        changes: { from: 0, insert: "// config\n" },
-        userEvent: "input.type",
-      });
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      editor.typeAt(0, "// config\n");
 
       // Act
       rerender(
@@ -644,19 +553,20 @@ describe("ConfigEditor", () => {
       );
 
       // Assert
-      expect(getHighlightedLines(editor.state)).toEqual([3]);
+      expect(editor.highlightedLines).toEqual([3]);
     });
 
     it("should drop the lines when the text is replaced from outside, as the offsets no longer point at the same lines", () => {
       // Arrange
       const props = createProps({ highlight: rangeOf("settings") });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} value={`${TEXT}\n// more`} />);
 
       // Assert
-      expect(getHighlightedLines(getEditorView(container).state)).toEqual([]);
+      expect(editor.highlightedLines).toEqual([]);
     });
   });
 
@@ -664,23 +574,21 @@ describe("ConfigEditor", () => {
     it("should put the cursor at the start of the range, and scroll to the range", () => {
       // Arrange
       const range = rangeOf('"boundaries/dependencies"');
-      const scrollIntoView = jest.spyOn(EditorView, "scrollIntoView");
+      const editor = new ConfigEditorPom();
+      const reveals = editor.recordReveals();
       const props = createProps({ reveal: { range, key: 1 } });
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      render(<ConfigEditor {...props} />);
 
       // Assert
-      expect(getEditorView(container).state.selection.main.head).toBe(
-        range.from
-      );
-      expect(scrollIntoView).toHaveBeenCalledWith(
-        EditorSelection.range(range.from, range.to),
-        {
-          y: "start",
-          yMargin: 120,
-        }
-      );
+      expect(editor.cursor).toBe(range.from);
+      expect(reveals.requests).toContainEqual({
+        from: range.from,
+        to: range.to,
+        y: "start",
+        yMargin: 120,
+      });
     });
 
     it("should reveal again when the key changes", () => {
@@ -688,15 +596,15 @@ describe("ConfigEditor", () => {
       const props = createProps({
         reveal: { range: rangeOf("settings"), key: 1 },
       });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
       const next = rangeOf("rules");
 
       // Act
       rerender(<ConfigEditor {...props} reveal={{ range: next, key: 2 }} />);
 
       // Assert
-      expect(editor.state.selection.main.head).toBe(next.from);
+      expect(editor.cursor).toBe(next.from);
     });
 
     it("should reveal a range at the start of the first request, whose key is 0", () => {
@@ -704,14 +612,10 @@ describe("ConfigEditor", () => {
       const range = rangeOf("rules");
 
       // Act
-      const { container } = render(
-        <ConfigEditor {...createProps({ reveal: { range, key: 0 } })} />
-      );
+      render(<ConfigEditor {...createProps({ reveal: { range, key: 0 } })} />);
 
       // Assert
-      expect(getEditorView(container).state.selection.main.head).toBe(
-        range.from
-      );
+      expect(new ConfigEditorPom().cursor).toBe(range.from);
     });
 
     it("should not move the cursor of the user when the same request comes again with another range", () => {
@@ -719,9 +623,9 @@ describe("ConfigEditor", () => {
       const props = createProps({
         reveal: { range: rangeOf("settings"), key: 1 },
       });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
-      editor.dispatch({ selection: { anchor: 3 } });
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      editor.moveCursor(3);
 
       // Act
       rerender(
@@ -729,19 +633,20 @@ describe("ConfigEditor", () => {
       );
 
       // Assert
-      expect(editor.state.selection.main.head).toBe(3);
+      expect(editor.cursor).toBe(3);
     });
 
     it("should do nothing without a request", () => {
       // Arrange
-      const scrollIntoView = jest.spyOn(EditorView, "scrollIntoView");
+      const editor = new ConfigEditorPom();
+      const reveals = editor.recordReveals();
 
       // Act
-      const { container } = render(<ConfigEditor {...createProps()} />);
+      render(<ConfigEditor {...createProps()} />);
 
       // Assert
-      expect(getEditorView(container).state.selection.main.head).toBe(0);
-      expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(editor.cursor).toBe(0);
+      expect(reveals.requests).toEqual([]);
     });
 
     it("should keep a range that is past the end of the document inside it", () => {
@@ -749,14 +654,14 @@ describe("ConfigEditor", () => {
       const range = { from: 500, to: 600, line: 30, column: 1 };
 
       // Act
-      const { container } = render(
+      render(
         <ConfigEditor
           {...createProps({ value: "{}", reveal: { range, key: 1 } })}
         />
       );
 
       // Assert
-      expect(getEditorView(container).state.selection.main.head).toBe(2);
+      expect(new ConfigEditorPom().cursor).toBe(2);
     });
 
     it("should reveal the range in the view of a double mount, as the development mode of React does", () => {
@@ -764,61 +669,59 @@ describe("ConfigEditor", () => {
       const range = rangeOf("rules");
 
       // Act
-      const { container } = render(
+      render(
         <StrictMode>
           <ConfigEditor {...createProps({ reveal: { range, key: 1 } })} />
         </StrictMode>
       );
 
       // Assert
-      expect(container.querySelectorAll(".cm-editor")).toHaveLength(1);
-      expect(getEditorView(container).state.selection.main.head).toBe(
-        range.from
-      );
+      const editor = new ConfigEditorPom();
+
+      expect(editor.editorCount).toBe(1);
+      expect(editor.cursor).toBe(range.from);
     });
   });
 
   describe("readOnly", () => {
     it("should allow edits by default", () => {
       // Arrange
-      const { container } = render(<ConfigEditor {...createProps()} />);
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...createProps()} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const inserted = insertNewlineAndIndent(editor);
+      const inserted = editor.pressEnter();
 
       // Assert
       expect(inserted).toBe(true);
-      expect(editor.state.readOnly).toBe(false);
+      expect(editor.isReadOnly).toBe(false);
     });
 
     it("should refuse edits when it is set", () => {
       // Arrange
-      const { container } = render(
-        <ConfigEditor {...createProps({ readOnly: true })} />
-      );
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...createProps({ readOnly: true })} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      const inserted = insertNewlineAndIndent(editor);
+      const inserted = editor.pressEnter();
 
       // Assert
       expect(inserted).toBe(false);
-      expect(editor.state.readOnly).toBe(true);
-      expect(editor.state.doc.toString()).toBe(TEXT);
+      expect(editor.isReadOnly).toBe(true);
+      expect(editor.text).toBe(TEXT);
     });
 
     it("should accept edits again when it is unset", () => {
       // Arrange
       const props = createProps({ readOnly: true });
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
 
       // Act
       rerender(<ConfigEditor {...props} readOnly={false} />);
 
       // Assert
-      expect(editor.state.readOnly).toBe(false);
+      expect(editor.isReadOnly).toBe(false);
     });
   });
 
@@ -827,14 +730,13 @@ describe("ConfigEditor", () => {
       // Arrange
       const props = createProps();
       const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom({ name: "Config of the example" });
 
       // Act
       rerender(<ConfigEditor {...props} label="Config of the example" />);
 
       // Assert
-      expect(
-        view.getByRole("textbox", { name: "Config of the example" })
-      ).toBeTruthy();
+      expect(editor.isRendered).toBe(true);
     });
   });
 
@@ -844,37 +746,33 @@ describe("ConfigEditor", () => {
       const snapshot = createSnapshot();
 
       // Act
-      const { container } = render(
-        <ConfigEditor {...createProps({ snapshot })} />
-      );
+      render(<ConfigEditor {...createProps({ snapshot })} />);
 
       // Assert
-      expect(getEditorView(container).state.doc.toString()).toBe(TEXT);
+      expect(new ConfigEditorPom().text).toBe(TEXT);
       expect(snapshot.current).toBeUndefined();
     });
 
     it("should leave its state in the snapshot when it unmounts", () => {
       // Arrange
       const snapshot = createSnapshot();
-      const { container, unmount } = render(
+      const { unmount } = render(
         <ConfigEditor {...createProps({ snapshot })} />
       );
-      getEditorView(container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      new ConfigEditorPom().typeAt(0, " ");
 
       // Act
       unmount();
 
       // Assert
-      expect(snapshot.current?.state.doc.toString()).toBe(` ${TEXT}`);
+      expect(ConfigEditorPom.textOfSnapshot(snapshot.current)).toBe(` ${TEXT}`);
     });
 
     it("should leave its scroll in the snapshot when it unmounts", () => {
       // Arrange
       const snapshot = createSnapshot();
-      const scrollSnapshot = jest.spyOn(EditorView.prototype, "scrollSnapshot");
+      const editor = new ConfigEditorPom();
+      const scrollSnapshots = editor.recordScrollSnapshots();
       const { unmount } = render(
         <ConfigEditor {...createProps({ snapshot })} />
       );
@@ -883,90 +781,75 @@ describe("ConfigEditor", () => {
       unmount();
 
       // Assert
-      expect(scrollSnapshot).toHaveBeenCalledTimes(1);
-      expect(snapshot.current?.scroll).toBe(
-        scrollSnapshot.mock.results[0].value
-      );
+      expect(scrollSnapshots.count).toBe(1);
+      expect(snapshot.current?.scroll).toBe(scrollSnapshots.values[0]);
     });
 
     it("should replace the snapshot each time it unmounts", () => {
       // Arrange
       const snapshot = createSnapshot();
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
       first.unmount();
       const stateOfFirst = snapshot.current?.state;
       const second = render(<ConfigEditor {...createProps({ snapshot })} />);
-      getEditorView(second.container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
 
       // Act
       second.unmount();
 
       // Assert
       expect(snapshot.current?.state).not.toBe(stateOfFirst);
-      expect(snapshot.current?.state.doc.toString()).toBe(` ${TEXT}`);
+      expect(ConfigEditorPom.textOfSnapshot(snapshot.current)).toBe(` ${TEXT}`);
     });
 
     it("should start from the state of the snapshot when it mounts again", () => {
       // Arrange
       const snapshot = createSnapshot();
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
-      getEditorView(first.container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
       first.unmount();
 
       // Act
-      const { container } = render(
+      render(
         <ConfigEditor {...createProps({ snapshot, value: ` ${TEXT}` })} />
       );
 
       // Assert
-      expect(getEditorView(container).state.doc).toBe(
-        snapshot.current?.state.doc
-      );
-      expect(getEditorView(container).state.doc.toString()).toBe(` ${TEXT}`);
+      expect(editor.showsDocumentOf(snapshot.current)).toBe(true);
+      expect(editor.text).toBe(` ${TEXT}`);
     });
 
     it("should keep the undo history when it mounts again", () => {
       // Arrange
       const snapshot = createSnapshot();
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
-      getEditorView(first.container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
       first.unmount();
-      const { container } = render(
+      render(
         <ConfigEditor {...createProps({ snapshot, value: ` ${TEXT}` })} />
       );
-      const editor = getEditorView(container);
 
       // Act
-      const undone = undo(editor);
+      const undone = editor.undo();
 
       // Assert
       expect(undone).toBe(true);
-      expect(editor.state.doc.toString()).toBe(TEXT);
+      expect(editor.text).toBe(TEXT);
     });
 
     it("should start with an empty history when there is no snapshot", () => {
       // Arrange
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps()} />);
-      getEditorView(first.container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
       first.unmount();
-      const { container } = render(
-        <ConfigEditor {...createProps({ value: ` ${TEXT}` })} />
-      );
+      render(<ConfigEditor {...createProps({ value: ` ${TEXT}` })} />);
 
       // Act
-      const undone = undo(getEditorView(container));
+      const undone = editor.undo();
 
       // Assert
       expect(undone).toBe(false);
@@ -975,49 +858,41 @@ describe("ConfigEditor", () => {
     it("should keep the selection when it mounts again", () => {
       // Arrange
       const snapshot = createSnapshot();
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
-      getEditorView(first.container).dispatch({
-        selection: EditorSelection.range(4, 9),
-      });
+      editor.select(4, 9);
       first.unmount();
 
       // Act
-      const { container } = render(
-        <ConfigEditor {...createProps({ snapshot })} />
-      );
+      render(<ConfigEditor {...createProps({ snapshot })} />);
 
       // Assert
-      const { anchor, head } = getEditorView(container).state.selection.main;
-
-      expect([anchor, head]).toEqual([4, 9]);
+      expect(editor.selection).toEqual({ anchor: 4, head: 9 });
     });
 
     it("should scroll to where it was left when it mounts again", () => {
       // Arrange
       const snapshot = createSnapshot();
+      const editor = new ConfigEditorPom();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
-      getEditorView(first.container).dispatch({
-        effects: EditorView.scrollIntoView(120, { y: "start" }),
-      });
+      editor.scrollTo(120);
       first.unmount();
       const scrollLeft = snapshot.current?.scroll;
 
       // Act
-      const { container } = render(
-        <ConfigEditor {...createProps({ snapshot })} />
-      );
+      render(<ConfigEditor {...createProps({ snapshot })} />);
 
       // Assert
       expect(scrollLeft).toBeDefined();
-      expect(getPendingScroll(getEditorView(container))).not.toBeNull();
+      expect(editor.hasPendingScroll).toBe(true);
     });
 
     it("should have no scroll to apply when it starts without a snapshot", () => {
       // Act
-      const { container } = render(<ConfigEditor {...createProps()} />);
+      render(<ConfigEditor {...createProps()} />);
 
       // Assert
-      expect(getPendingScroll(getEditorView(container))).toBeNull();
+      expect(new ConfigEditorPom().hasPendingScroll).toBe(false);
     });
 
     it("should call the onChange of the component that mounts it again", () => {
@@ -1031,17 +906,14 @@ describe("ConfigEditor", () => {
         />
       );
       first.unmount();
-      const { container } = render(
+      render(
         <ConfigEditor
           {...createProps({ snapshot, onChange: onChangeOfSecond })}
         />
       );
 
       // Act
-      getEditorView(container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      new ConfigEditorPom().typeAt(0, " ");
 
       // Assert
       expect(onChangeOfFirst).not.toHaveBeenCalled();
@@ -1053,20 +925,18 @@ describe("ConfigEditor", () => {
       // Arrange
       const snapshot = createSnapshot();
       const props = createProps({ snapshot });
-      const { container } = render(
+      render(
         <StrictMode>
           <ConfigEditor {...props} />
         </StrictMode>
       );
+      const editor = new ConfigEditorPom();
 
       // Act
-      getEditorView(container).dispatch({
-        changes: { from: 0, insert: " " },
-        userEvent: "input.type",
-      });
+      editor.typeAt(0, " ");
 
       // Assert
-      expect(container.querySelectorAll(".cm-editor")).toHaveLength(1);
+      expect(editor.editorCount).toBe(1);
       expect(props.onChange).toHaveBeenCalledTimes(1);
     });
 
@@ -1078,10 +948,10 @@ describe("ConfigEditor", () => {
       const props = createProps({ snapshot, value: "{}" });
 
       // Act
-      const { container } = render(<ConfigEditor {...props} />);
+      render(<ConfigEditor {...props} />);
 
       // Assert
-      expect(getEditorView(container).state.doc.toString()).toBe("{}");
+      expect(new ConfigEditorPom().text).toBe("{}");
       expect(props.onChange).not.toHaveBeenCalled();
     });
 
@@ -1096,13 +966,15 @@ describe("ConfigEditor", () => {
       first.unmount();
 
       // Act
-      const { container } = render(
+      render(
         <ConfigEditor {...createProps({ snapshot, problems: [ERROR] })} />
       );
 
       // Assert
-      expect(getDiagnostics(getEditorView(container).state)).toHaveLength(1);
-      expect(container.querySelector(".cm-lintRange-warning")).toBeNull();
+      const editor = new ConfigEditorPom();
+
+      expect(editor.diagnostics).toHaveLength(1);
+      expect(editor.underlinedText("warning")).toBeNull();
     });
 
     it("should honor read only after it mounts again", () => {
@@ -1110,15 +982,14 @@ describe("ConfigEditor", () => {
       const snapshot = createSnapshot();
       const first = render(<ConfigEditor {...createProps({ snapshot })} />);
       first.unmount();
-      const props = createProps({ snapshot, readOnly: true });
-      const { container } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      render(<ConfigEditor {...createProps({ snapshot, readOnly: true })} />);
+      const editor = new ConfigEditorPom();
 
       // Act
-      insertNewlineAndIndent(editor);
+      editor.pressEnter();
 
       // Assert
-      expect(editor.state.doc.toString()).toBe(TEXT);
+      expect(editor.text).toBe(TEXT);
     });
   });
 
@@ -1126,31 +997,31 @@ describe("ConfigEditor", () => {
     it("should create the view once, however many times it renders", () => {
       // Arrange
       const props = createProps();
-      const { container, rerender } = render(<ConfigEditor {...props} />);
-      const editor = getEditorView(container);
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      const viewBefore = editor.viewId;
 
       // Act
       rerender(<ConfigEditor {...props} problems={[ERROR]} />);
       rerender(<ConfigEditor {...props} value="{}" />);
 
       // Assert
-      expect(container.querySelectorAll(".cm-editor")).toHaveLength(1);
-      expect(getEditorView(container)).toBe(editor);
+      expect(editor.editorCount).toBe(1);
+      expect(editor.viewId).toBe(viewBefore);
     });
 
     it("should destroy the view on unmount", () => {
       // Arrange
-      const destroy = jest.spyOn(EditorView.prototype, "destroy");
-      const { container, unmount } = render(
-        <ConfigEditor {...createProps()} />
-      );
+      const editor = new ConfigEditorPom();
+      const destroys = editor.recordDestroys();
+      const { unmount } = render(<ConfigEditor {...createProps()} />);
 
       // Act
       unmount();
 
       // Assert
-      expect(destroy).toHaveBeenCalledTimes(1);
-      expect(container.querySelector(".cm-editor")).toBeNull();
+      expect(destroys.count).toBe(1);
+      expect(editor.editorCount).toBe(0);
     });
   });
 });

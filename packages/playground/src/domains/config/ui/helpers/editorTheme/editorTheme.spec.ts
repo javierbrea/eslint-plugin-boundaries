@@ -2,7 +2,7 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
-import { editorTheme, highlightStyle } from "./EditorTheme";
+import { editorTheme, highlightStyle } from "./editorTheme";
 
 /**
  * Mounts an editor with the theme, so that CodeMirror inserts its styles, and reads them.

@@ -6,7 +6,7 @@ import type {
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
 
-import { fitToDocument, toDiagnostics } from "./Diagnostics";
+import { fitToDocument, toDiagnostics } from "./editorDiagnostics";
 
 const RANGE: TextRange = { from: 10, to: 24, line: 2, column: 5 };
 

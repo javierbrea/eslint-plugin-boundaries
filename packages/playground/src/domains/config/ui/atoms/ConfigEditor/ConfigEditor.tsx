@@ -25,10 +25,20 @@ import { json5 } from "codemirror-json5";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import {
+  fitToDocument,
+  toDiagnostics,
+} from "@/domains/config/ui/helpers/editorDiagnostics";
+import {
+  highlightExtension,
+  setHighlight,
+} from "@/domains/config/ui/helpers/editorHighlight";
+import {
+  editorTheme,
+  highlightStyle,
+} from "@/domains/config/ui/helpers/editorTheme";
+
 import type { ConfigEditorProps } from "./ConfigEditor.types";
-import { fitToDocument, toDiagnostics } from "./Diagnostics";
-import { editorTheme, highlightStyle } from "./EditorTheme";
-import { highlightExtension, setHighlight } from "./Highlight";
 
 /** Marks the transactions that put the `value` prop in the document, so that they are not reported as edits of the user */
 const FROM_PROPS = Annotation.define<boolean>();
