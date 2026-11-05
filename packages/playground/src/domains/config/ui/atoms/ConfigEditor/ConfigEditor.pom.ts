@@ -8,10 +8,8 @@ import type { Tag } from "@lezer/highlight";
 import { act } from "@testing-library/react";
 
 import type { ConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
-import {
-  HIGHLIGHT_CLASS,
-  highlightField,
-} from "@/domains/config/ui/helpers/editorHighlight";
+import { highlightField } from "@/domains/config/ui/helpers/editorHighlight";
+import { HIGHLIGHT_CLASS } from "@/domains/config/ui/helpers/editorHighlight/editorHighlight.constants";
 import { highlightStyle } from "@/domains/config/ui/helpers/editorTheme";
 import { Pom } from "@/shared/testing/pom";
 
@@ -78,12 +76,18 @@ export class ConfigEditorPom extends Pom {
   /**
    * The CodeMirror view of the editor.
    * @returns The view.
-   * @throws When CodeMirror holds no view for the editor.
+   * @throws When the root holds no editor element, or CodeMirror holds no view for it.
    */
   private get view(): EditorView {
-    const view = EditorView.findFromDOM(
-      this.root.querySelector(EDITOR_SELECTOR) as HTMLElement
-    );
+    const editor = this.root.querySelector<HTMLElement>(EDITOR_SELECTOR);
+
+    if (editor === null) {
+      throw new Error(
+        `${this.constructor.name} found no element by the selector "${EDITOR_SELECTOR}" in its root`
+      );
+    }
+
+    const view = EditorView.findFromDOM(editor);
 
     if (view === null) {
       throw new Error(`${this.constructor.name} found no CodeMirror view`);
@@ -449,15 +453,18 @@ export class ConfigEditorPom extends Pom {
 
   /**
    * Starts recording the transactions that the current view dispatches. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
-   * @returns What was dispatched, read when you ask for it.
+   * @returns What was dispatched since the recording started, read when you ask for it.
    */
   recordDispatches(): ConfigEditorDispatchRecording {
     const dispatch = jest.spyOn(this.view, "dispatch");
-    const specs = (): object[] => dispatch.mock.calls.flat();
+    const start = dispatch.mock.calls.length;
+    const calls = (): Parameters<EditorView["dispatch"]>[] =>
+      dispatch.mock.calls.slice(start);
+    const specs = (): object[] => calls().flat();
 
     return {
       get count() {
-        return dispatch.mock.calls.length;
+        return calls().length;
       },
       get scrolled() {
         return specs().some((spec) => "scrollIntoView" in spec);
@@ -469,51 +476,59 @@ export class ConfigEditorPom extends Pom {
   }
 
   /**
-   * Starts recording the requests to scroll a range into view, whatever the view. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
-   * @returns The requests, read when you ask for them.
+   * Starts recording the requests to scroll a range into view, whatever the view. It is static because it ignores the instance, and a spec starts it before it renders. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
+   * @returns The requests made since the recording started, read when you ask for them.
    */
-  recordReveals(): ConfigEditorRevealRecording {
+  static recordReveals(): ConfigEditorRevealRecording {
     const scrollIntoView = jest.spyOn(EditorView, "scrollIntoView");
+    const start = scrollIntoView.mock.calls.length;
 
     return {
       get requests() {
-        return scrollIntoView.mock.calls.map(([target, options]) => ({
-          from: typeof target === "number" ? target : target.from,
-          to: typeof target === "number" ? target : target.to,
-          y: options?.y,
-          yMargin: options?.yMargin,
-        }));
+        return scrollIntoView.mock.calls
+          .slice(start)
+          .map(([target, options]) => ({
+            from: typeof target === "number" ? target : target.from,
+            to: typeof target === "number" ? target : target.to,
+            anchor: typeof target === "number" ? target : target.anchor,
+            head: typeof target === "number" ? target : target.head,
+            ...options,
+          }));
       },
     };
   }
 
   /**
-   * Starts recording the views that are destroyed, whatever the view. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
-   * @returns How many were destroyed, read when you ask for it.
+   * Starts recording the views that are destroyed, whatever the view. It is static because it ignores the instance, and a spec starts it before it renders. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
+   * @returns How many were destroyed since the recording started, read when you ask for it.
    */
-  recordDestroys(): ConfigEditorDestroyRecording {
+  static recordDestroys(): ConfigEditorDestroyRecording {
     const destroy = jest.spyOn(EditorView.prototype, "destroy");
+    const start = destroy.mock.calls.length;
 
     return {
       get count() {
-        return destroy.mock.calls.length;
+        return destroy.mock.calls.slice(start).length;
       },
     };
   }
 
   /**
-   * Starts recording the requests for the scroll position of a view, which the editor makes when it unmounts, whatever the view. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
-   * @returns The requests and what they returned, read when you ask for them.
+   * Starts recording the requests for the scroll position of a view, which the editor makes when it unmounts, whatever the view. It is static because it ignores the instance, and a spec starts it before it renders. Restore the spies, as `jest.restoreAllMocks()` does, between tests.
+   * @returns The requests made since the recording started and what they returned, read when you ask for them.
    */
-  recordScrollSnapshots(): ConfigEditorScrollRecording {
+  static recordScrollSnapshots(): ConfigEditorScrollRecording {
     const scrollSnapshot = jest.spyOn(EditorView.prototype, "scrollSnapshot");
+    const start = scrollSnapshot.mock.calls.length;
 
     return {
       get count() {
-        return scrollSnapshot.mock.calls.length;
+        return scrollSnapshot.mock.calls.slice(start).length;
       },
       get values() {
-        return scrollSnapshot.mock.results.map((result) => result.value);
+        return scrollSnapshot.mock.results
+          .slice(start)
+          .map((result) => result.value);
       },
     };
   }

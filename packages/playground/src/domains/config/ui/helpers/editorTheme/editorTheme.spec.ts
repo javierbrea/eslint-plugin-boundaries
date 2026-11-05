@@ -57,7 +57,7 @@ function getThemeRules(css: string): string[] {
     );
 }
 
-describe("EditorTheme", () => {
+describe("editorTheme", () => {
   describe("editorTheme", () => {
     it("should draw the editor as a code area with the tokens of the host", () => {
       // Arrange

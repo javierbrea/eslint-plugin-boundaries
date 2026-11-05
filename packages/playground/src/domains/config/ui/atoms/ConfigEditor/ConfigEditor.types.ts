@@ -30,6 +30,12 @@ export type ConfigEditorProps = {
 /** The severity that the editor draws a problem with. */
 export type ConfigEditorSeverity = "error" | "warning";
 
+/** Every severity that CodeMirror can report for a problem, which is the one of `@codemirror/lint`. */
+export type ConfigEditorDiagnosticSeverity =
+  | ConfigEditorSeverity
+  | "info"
+  | "hint";
+
 /** A problem as the editor holds it, which is what its tooltip is built from. */
 export type ConfigEditorDiagnostic = {
   /** Where it starts, as an offset in the text. */
@@ -37,7 +43,7 @@ export type ConfigEditorDiagnostic = {
   /** Where it ends, as an offset in the text. */
   readonly to: number;
   /** How it is drawn. */
-  readonly severity: string;
+  readonly severity: ConfigEditorDiagnosticSeverity;
   /** The title, the detail and the links, one per line. */
   readonly message: string;
 };
@@ -52,42 +58,50 @@ export type ConfigEditorSelection = {
 
 /** The transactions that the view dispatched since a recording started. */
 export type ConfigEditorDispatchRecording = {
-  /** How many transactions were dispatched. */
+  /** How many transactions were dispatched since the recording started. */
   readonly count: number;
-  /** Whether any of them asked to scroll. */
+  /** Whether any of them, since the recording started, asked to scroll. */
   readonly scrolled: boolean;
-  /** Whether any of them carried effects. */
+  /** Whether any of them, since the recording started, carried effects. */
   readonly hasEffects: boolean;
 };
 
-/** A request to scroll a range into view. */
+/** A request to scroll a range into view, with the options it was made with. */
 export type ConfigEditorRevealRequest = {
   /** Where the range starts, as an offset in the text. */
   readonly from: number;
   /** Where the range ends, as an offset in the text. */
   readonly to: number;
+  /** The end of the range that stays put, which is `to` when the range is reversed. */
+  readonly anchor: number;
+  /** The end of the range that moves, which is `from` when the range is reversed. */
+  readonly head: number;
   /** Where in the view the range is put. */
   readonly y?: string;
   /** The lines kept visible above the range. */
   readonly yMargin?: number;
+  /** Where in the view the range is put horizontally. */
+  readonly x?: string;
+  /** The columns kept visible beside the range. */
+  readonly xMargin?: number;
 };
 
 /** The requests to scroll since a recording started. */
 export type ConfigEditorRevealRecording = {
-  /** The requests, in order. */
+  /** The requests made since the recording started, in order. */
   readonly requests: readonly ConfigEditorRevealRequest[];
 };
 
 /** How many views were destroyed since a recording started. */
 export type ConfigEditorDestroyRecording = {
-  /** How many views were destroyed. */
+  /** How many views were destroyed since the recording started. */
   readonly count: number;
 };
 
 /** The scroll positions that views were asked for since a recording started. */
 export type ConfigEditorScrollRecording = {
-  /** How many times a view was asked for its scroll position. */
+  /** How many times a view was asked for its scroll position since the recording started. */
   readonly count: number;
-  /** What each request returned, in order. */
+  /** What each request made since the recording started returned, in order. */
   readonly values: readonly unknown[];
 };

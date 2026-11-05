@@ -59,7 +59,7 @@ function rangeOf(snippet: string): { from: number; to: number } {
   return { from, to: from + snippet.length };
 }
 
-describe("Highlight", () => {
+describe("editorHighlight", () => {
   describe("highlightField", () => {
     it("should start without highlighted lines", () => {
       // Arrange

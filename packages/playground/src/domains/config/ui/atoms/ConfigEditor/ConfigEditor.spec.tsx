@@ -575,7 +575,7 @@ describe("ConfigEditor", () => {
       // Arrange
       const range = rangeOf('"boundaries/dependencies"');
       const editor = new ConfigEditorPom();
-      const reveals = editor.recordReveals();
+      const reveals = ConfigEditorPom.recordReveals();
       const props = createProps({ reveal: { range, key: 1 } });
 
       // Act
@@ -586,6 +586,8 @@ describe("ConfigEditor", () => {
       expect(reveals.requests).toContainEqual({
         from: range.from,
         to: range.to,
+        anchor: range.from,
+        head: range.to,
         y: "start",
         yMargin: 120,
       });
@@ -639,7 +641,7 @@ describe("ConfigEditor", () => {
     it("should do nothing without a request", () => {
       // Arrange
       const editor = new ConfigEditorPom();
-      const reveals = editor.recordReveals();
+      const reveals = ConfigEditorPom.recordReveals();
 
       // Act
       render(<ConfigEditor {...createProps()} />);
@@ -771,8 +773,7 @@ describe("ConfigEditor", () => {
     it("should leave its scroll in the snapshot when it unmounts", () => {
       // Arrange
       const snapshot = createSnapshot();
-      const editor = new ConfigEditorPom();
-      const scrollSnapshots = editor.recordScrollSnapshots();
+      const scrollSnapshots = ConfigEditorPom.recordScrollSnapshots();
       const { unmount } = render(
         <ConfigEditor {...createProps({ snapshot })} />
       );
@@ -1013,7 +1014,7 @@ describe("ConfigEditor", () => {
     it("should destroy the view on unmount", () => {
       // Arrange
       const editor = new ConfigEditorPom();
-      const destroys = editor.recordDestroys();
+      const destroys = ConfigEditorPom.recordDestroys();
       const { unmount } = render(<ConfigEditor {...createProps()} />);
 
       // Act

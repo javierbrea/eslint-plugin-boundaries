@@ -42,7 +42,7 @@ function renderMessage(problem: ConfigProblem): HTMLElement {
   return (diagnostic.renderMessage as (view: EditorView) => HTMLElement)(view);
 }
 
-describe("Diagnostics", () => {
+describe("editorDiagnostics", () => {
   describe("fitToDocument", () => {
     it("should keep a range that is inside the document", () => {
       // Arrange
