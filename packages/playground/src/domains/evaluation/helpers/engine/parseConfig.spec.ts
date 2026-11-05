@@ -1,15 +1,23 @@
-import { parse } from "@humanwhocodes/momoa";
+import { evaluate, parse } from "@humanwhocodes/momoa";
 
 import type { ConfigProblem } from "./engine.types";
 import { parseConfig } from "./parseConfig";
 
-// The real parser, except where a test makes it throw what momoa does not
-jest.mock<{ parse: typeof parse }>("@humanwhocodes/momoa", () => {
-  const actual = jest.requireActual<{ parse: typeof parse }>(
-    "@humanwhocodes/momoa"
-  );
-  return { ...actual, parse: jest.fn(actual.parse) };
-});
+// The real parser, except where a test makes it throw what momoa does not, or what it throws only on a text too long to write in a test
+jest.mock<{ parse: typeof parse; evaluate: typeof evaluate }>(
+  "@humanwhocodes/momoa",
+  () => {
+    const actual = jest.requireActual<{
+      parse: typeof parse;
+      evaluate: typeof evaluate;
+    }>("@humanwhocodes/momoa");
+    return {
+      ...actual,
+      parse: jest.fn(actual.parse),
+      evaluate: jest.fn(actual.evaluate),
+    };
+  }
+);
 
 const ACCEPTS = "The config must be one JSON5 object with settings and rules.";
 
@@ -220,6 +228,30 @@ describe("ParseConfig", () => {
             range: { from: 0, to: 2, line: 1, column: 1 },
           })
         );
+      });
+    });
+
+    describe("when momoa cannot evaluate the object it read", () => {
+      it("should report what the config accepts and the message of momoa at the whole text, as it does when the text nests deeper than the stack goes", () => {
+        // Arrange
+        const text = "{ settings: {} }";
+        jest.mocked(evaluate).mockImplementationOnce(() => {
+          throw new RangeError("Maximum call stack size exceeded");
+        });
+
+        // Act
+        const problem = getParseProblem(text);
+
+        // Assert
+        expect(problem).toEqual({
+          level: "error",
+          title: ACCEPTS,
+          detail: "Maximum call stack size exceeded",
+          links: [],
+          path: [],
+          range: { from: 0, to: text.length, line: 1, column: 1 },
+          source: "parse",
+        });
       });
     });
 

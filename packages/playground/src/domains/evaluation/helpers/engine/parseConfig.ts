@@ -115,12 +115,15 @@ function getIgnoredKeysProblems(
 /**
  * Reads the text of a config with momoa in JSON5 mode, the grammar that the config node accepts: one object, with comments, unquoted keys and trailing commas, and nothing else, such as a spread or a variable.
  * @param text The config text.
- * @returns The object the text writes and its tree to locate each entry, or a single `parse` problem when the text is not one JSON5 object. The problem is at the position momoa gives, or at the whole value when it is not an object.
+ * @returns The object the text writes and its tree to locate each entry, or a single `parse` problem when the text is not one JSON5 object, or when momoa cannot read it, such as a text that nests deeper than the stack goes. The problem is at the position momoa gives, at the whole value when it is not an object, or at the whole text when momoa gives no position.
  */
 export function parseConfig(text: string): ParsedConfig {
   let ast: DocumentNode;
+  let value: unknown;
   try {
     ast = parse(text, { mode: "json5" });
+    // `evaluate` recurses as deep as the text nests, as `parse` does, and runs out of stack first on some texts that `parse` reads
+    value = evaluate(ast.body);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     return {
@@ -142,11 +145,11 @@ export function parseConfig(text: string): ParsedConfig {
     };
   }
 
-  const value = evaluate(root) as Record<string, unknown>;
+  const object = value as Record<string, unknown>;
   return {
     parsed: true,
     ast,
-    value,
-    problems: getIgnoredKeysProblems(ast, value),
+    value: object,
+    problems: getIgnoredKeysProblems(ast, object),
   };
 }

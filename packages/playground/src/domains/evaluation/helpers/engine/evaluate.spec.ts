@@ -913,6 +913,26 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("when the config nests deeper than the stack goes", () => {
+      // momoa reads and evaluates the text recursively. In Node.js, a list some 2500 to 3500 levels deep was read by \`parse\` and ran out of stack in \`evaluate\`, and a deeper one runs out in \`parse\`
+      it.each([2500, 3000, 3500, 4000, 6000])(
+        "should return an evaluation instead of throwing, with a list %d levels deep",
+        (depth) => {
+          // Arrange
+          const sketch = createSketch(
+            `{ settings: { "boundaries/elements": ${"[".repeat(depth)}${"]".repeat(depth)} } }`,
+            QUICK_START_FILES
+          );
+
+          // Act
+          const evaluateSketch = () => evaluate(sketch);
+
+          // Assert
+          expect(evaluateSketch).not.toThrow();
+        }
+      );
+    });
+
     describe("with a file node that has nodes under it", () => {
       it("should describe the files that the tree shows, as the sketch counts them", () => {
         // Arrange
