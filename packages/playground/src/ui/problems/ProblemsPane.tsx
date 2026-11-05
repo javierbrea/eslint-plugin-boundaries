@@ -1,6 +1,13 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import type { ReactNode } from "react";
 
+import { useProblemList } from "@/domains/problems/modules/hooks/useProblemList";
+import { useProblemTabs } from "@/domains/problems/modules/hooks/useProblemTabs";
+import { useShownTab } from "@/domains/problems/modules/hooks/useShownTab";
+import {
+  toProblemListContent,
+  toProblemsTabs,
+} from "@/domains/problems/ui/helpers/problemItems";
 import {
   useOpen,
   useProblemsCollapsed,
@@ -8,7 +15,6 @@ import {
   useSetProblemsCollapsed,
 } from "@/domains/session/data/store";
 import type { ProblemsTabId } from "@/domains/session/helpers/focus";
-import { useProblemList, useProblemTabs, useShownTab } from "@/ui/state";
 import { Note } from "@/ui-kit/molecules/Note";
 
 import { ProblemList } from "./ProblemList";
@@ -19,13 +25,19 @@ import { ProblemsPanel } from "./ProblemsPanel";
  * @returns The pane, as tall as its container.
  */
 function ProblemsPaneContent(): ReactNode {
-  const tabs = useProblemTabs();
+  const tabFacts = useProblemTabs();
   const shownTab = useShownTab();
-  const { items, empty, rulesNote } = useProblemList();
+  const listFacts = useProblemList();
   const collapsed = useProblemsCollapsed();
   const selectTab = useSelectTab();
   const setProblemsCollapsed = useSetProblemsCollapsed();
   const openTarget = useOpen();
+  // Memoized on the facts, so that the panel and the list render again only when what they show changes
+  const tabs = useMemo(() => toProblemsTabs(tabFacts), [tabFacts]);
+  const { items, empty, rulesNote } = useMemo(
+    () => toProblemListContent(listFacts),
+    [listFacts]
+  );
 
   return (
     <ProblemsPanel<ProblemsTabId>

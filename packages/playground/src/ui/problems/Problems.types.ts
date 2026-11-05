@@ -1,12 +1,22 @@
 import type { ReactNode } from "react";
 
+import type {
+  ProblemItem,
+  ProblemsTab,
+} from "@/domains/problems/ui/helpers/problemItems";
 import type { Target } from "@/domains/session/helpers/focus";
-import type { ProblemItem, ProblemsTab } from "@/ui/state";
+import type { IconName } from "@/ui-kit/atoms/Icon";
+
+/** A tab of {@link ProblemsPanel}: the tab that the problems give, and an icon the panel can draw after the label. */
+export type ProblemsPanelTab<Id extends string = string> = ProblemsTab<Id> & {
+  /** An icon after the label, drawn in the tone of the tab. */
+  readonly icon?: IconName;
+};
 
 /** Props of {@link ProblemsPanel}. */
 export type ProblemsPanelProps<Id extends string> = {
   /** The tabs, in order. The panel handles any number of them. */
-  readonly tabs: readonly ProblemsTab<Id>[];
+  readonly tabs: readonly ProblemsPanelTab<Id>[];
   /** The `id` of the selected tab. It must be the id of one of the tabs. */
   readonly selected: Id;
   /** Called with the `id` of the tab the user selects. */

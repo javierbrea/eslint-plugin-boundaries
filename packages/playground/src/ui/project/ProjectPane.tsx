@@ -10,6 +10,7 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { memo, useId } from "react";
 import type { ReactNode } from "react";
 
+import { useProblemCounts } from "@/domains/problems/modules/hooks/useProblemCounts";
 import {
   useCapabilities,
   useSetView,
@@ -18,7 +19,6 @@ import {
 } from "@/domains/session/data/store";
 import type { ProjectView } from "@/domains/session/helpers/focus";
 import { formatCount } from "@/shared/helpers/formatCount";
-import { useProblemCounts } from "@/ui/state";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 

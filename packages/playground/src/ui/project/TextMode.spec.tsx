@@ -2,12 +2,12 @@ import { act, fireEvent, screen as view } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { Sketch } from "@/contract";
+import { useTextProblems } from "@/domains/problems/modules/hooks/useTextProblems";
 import {
   NO_CAPABILITIES,
   renderInSession,
 } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
-import { useTextProblems } from "@/ui/state";
 
 import { TextMode } from "./TextMode";
 

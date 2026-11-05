@@ -12,8 +12,8 @@ import type {
   Ref,
 } from "react";
 
+import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
 import { formatCount } from "@/shared/helpers/formatCount";
-import type { ProblemCounts } from "@/ui/state";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";

@@ -1,4 +1,8 @@
 import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
+import type {
+  ProblemListFacts,
+  ProblemTabFacts,
+} from "@/domains/problems/helpers/problemSelectors";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 
 import {
@@ -6,7 +10,9 @@ import {
   getCountTone,
   getTabLabel,
   getTextProblemItems,
-} from "./ProblemItems";
+  toProblemListContent,
+  toProblemsTabs,
+} from "./problemItems";
 
 /** The two problems of the mockup's config state, as the engine returns them. */
 const INVALID_OPTIONS: ConfigProblem = {
@@ -28,7 +34,7 @@ const IGNORED_DESCRIPTORS: ConfigProblem = {
   source: "config",
 };
 
-describe("ProblemItems", () => {
+describe("problemItems", () => {
   describe("getConfigProblemItems", () => {
     it("should build the rows of the mockup's config state", () => {
       // Arrange
@@ -302,26 +308,195 @@ describe("ProblemItems", () => {
   describe("getCountTone", () => {
     it("should be bad when any problem is an error", () => {
       // Act
-      const tone = getCountTone(["warning", "error", "deprecation"]);
+      const tone = getCountTone(true);
 
       // Assert
       expect(tone).toBe("bad");
     });
 
-    it("should be warn when there are only warnings and deprecations", () => {
+    it("should be warn when there are only warnings and deprecations, or no problems", () => {
       // Act
-      const tone = getCountTone(["warning", "deprecation"]);
+      const tone = getCountTone(false);
 
       // Assert
       expect(tone).toBe("warn");
     });
+  });
 
-    it("should be warn when there are no problems", () => {
+  describe("toProblemsTabs", () => {
+    const SKETCH_TAB: ProblemTabFacts = {
+      id: "sketch",
+      subject: { kind: "sketch" },
+      count: 3,
+      hasErrors: true,
+    };
+
+    it("should give no tabs for no facts", () => {
       // Act
-      const tone = getCountTone([]);
+      const tabs = toProblemsTabs([]);
 
       // Assert
-      expect(tone).toBe("warn");
+      expect(tabs).toEqual([]);
+    });
+
+    it("should label the tab of the sketch, count its problems and tone the badge by its errors", () => {
+      // Act
+      const tabs = toProblemsTabs([SKETCH_TAB]);
+
+      // Assert
+      expect(tabs).toEqual([
+        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+      ]);
+    });
+
+    it("should tone the badge of a tab without errors as a warning", () => {
+      // Act
+      const tabs = toProblemsTabs([{ ...SKETCH_TAB, hasErrors: false }]);
+
+      // Assert
+      expect(tabs).toEqual([
+        { id: "sketch", label: "Sketch", count: 3, tone: "warn" },
+      ]);
+    });
+
+    it("should label the tab of the config with its path in mono, with its own count and tone", () => {
+      // Act
+      const tabs = toProblemsTabs([
+        SKETCH_TAB,
+        {
+          id: "node",
+          subject: { kind: "config" },
+          count: 2,
+          hasErrors: false,
+        },
+      ]);
+
+      // Assert
+      expect(tabs).toEqual([
+        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        {
+          id: "node",
+          label: "eslint.config.js",
+          mono: true,
+          count: 2,
+          tone: "warn",
+        },
+      ]);
+    });
+
+    it("should name the tab of the file by its folder and its name in mono, without a count", () => {
+      // Act
+      const tabs = toProblemsTabs([
+        SKETCH_TAB,
+        {
+          id: "node",
+          subject: { kind: "file", path: "src/modules/checkout/index.js" },
+        },
+      ]);
+
+      // Assert
+      expect(tabs).toEqual([
+        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        { id: "node", label: "checkout/index.js", mono: true },
+      ]);
+      expect(tabs[1]).not.toHaveProperty("count");
+      expect(tabs[1]).not.toHaveProperty("tone");
+    });
+  });
+
+  describe("toProblemListContent", () => {
+    const SKETCH_FACTS: ProblemListFacts = {
+      subject: { kind: "sketch" },
+      configProblems: [INVALID_OPTIONS],
+      textProblems: [
+        {
+          line: 2,
+          text: "  import { a } from './b'",
+          reason: "Dependencies are not written in text mode yet.",
+        },
+      ],
+      rulesNote: false,
+    };
+
+    it("should list the problems of the config and then the lines of text under the sketch", () => {
+      // Act
+      const content = toProblemListContent(SKETCH_FACTS);
+
+      // Assert
+      expect(content.items.map(({ key }) => key)).toEqual([
+        "config:0",
+        "text:0",
+      ]);
+      expect(content.empty).toBe("No problems in the sketch.");
+      expect(content.rulesNote).toBe(false);
+    });
+
+    it("should list the problems of the config alone under the config", () => {
+      // Act
+      const content = toProblemListContent({
+        subject: { kind: "config" },
+        configProblems: [INVALID_OPTIONS, IGNORED_DESCRIPTORS],
+        textProblems: [],
+        rulesNote: false,
+      });
+
+      // Assert
+      expect(content.items.map(({ key }) => key)).toEqual([
+        "config:0",
+        "config:1",
+      ]);
+      expect(content.empty).toBe("No problems in the config.");
+      expect(content.rulesNote).toBe(false);
+    });
+
+    it("should open each problem of the config at its range", () => {
+      // Act
+      const content = toProblemListContent(SKETCH_FACTS);
+
+      // Assert
+      expect(content.items[0].target).toEqual({
+        kind: "config",
+        range: INVALID_OPTIONS.range,
+      });
+    });
+
+    it("should open no line of text", () => {
+      // Act
+      const content = toProblemListContent({
+        ...SKETCH_FACTS,
+        configProblems: [],
+      });
+
+      // Assert
+      expect(content.items[0].target).toBeUndefined();
+    });
+
+    it("should say that nothing is listed for a file", () => {
+      // Act
+      const content = toProblemListContent({
+        subject: { kind: "file", path: "src/index.js" },
+        configProblems: [],
+        textProblems: [],
+        rulesNote: false,
+      });
+
+      // Assert
+      expect(content).toEqual({
+        items: [],
+        empty: "No problems in this file.",
+        rulesNote: false,
+      });
+    });
+
+    it("should keep the note about the rule options as the facts say", () => {
+      // Act
+      const content = toProblemListContent({
+        ...SKETCH_FACTS,
+        rulesNote: true,
+      });
+
+      // Assert
+      expect(content.rulesNote).toBe(true);
     });
   });
 });

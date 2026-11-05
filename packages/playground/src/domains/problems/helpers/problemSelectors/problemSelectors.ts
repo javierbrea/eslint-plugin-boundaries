@@ -1,32 +1,27 @@
-import type {
-  ConfigProblem,
-  ProblemLevel,
-} from "@/domains/evaluation/helpers/engine";
-import {
-  CONFIG_PATH,
-  readTextProblems,
-} from "@/domains/project/helpers/sketch";
+import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
+import { readTextProblems } from "@/domains/project/helpers/sketch";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Focus, ProblemsTabId } from "@/domains/session/helpers/focus";
 
-import {
-  getConfigProblemItems,
-  getCountTone,
-  getTabLabel,
-  getTextProblemItems,
-} from "./ProblemItems";
 import type {
   ProblemCounts,
-  ProblemListContent,
+  ProblemListFacts,
+  ProblemSubject,
   ProblemSummary,
-  ProblemsTab,
-} from "./Problems.types";
+  ProblemTabFacts,
+} from "./problemSelectors.types";
 
 /** No lines of text mode to report: the same array each time, so that what is derived from it does not change. */
 const NO_TEXT_PROBLEMS: readonly TextProblem[] = [];
 
 /** The problems that name a file or a folder: none until phase 6 evaluates dependencies. */
 const NO_PATH_COUNTS: ProblemCounts["byPath"] = new Map();
+
+/** The subject of the tab and of the list of the sketch. */
+const SKETCH_SUBJECT: ProblemSubject = { kind: "sketch" };
+
+/** The subject of the tab and of the list of the config. */
+const CONFIG_SUBJECT: ProblemSubject = { kind: "config" };
 
 /**
  * Gets the lines of text mode that cannot be read.
@@ -40,24 +35,22 @@ export function getTextProblems(
 }
 
 /**
- * Counts the problems and tells how serious they are.
+ * Counts the problems and tells whether any is an error.
  * @param problems The problems of the config.
  * @param textProblems The lines of text mode that could not be read, each one an error.
- * @returns The counts and tones that the panes show.
+ * @returns The counts and the errors that the panes show.
  */
 export function summarizeProblems(
   problems: readonly ConfigProblem[],
   textProblems: readonly TextProblem[]
 ): ProblemSummary {
-  const configLevels = problems.map(({ level }) => level);
-  const textLevels = textProblems.map((): ProblemLevel => "error");
+  const configHasErrors = problems.some(({ level }) => level === "error");
 
   return {
     configCount: problems.length,
-    configTone: getCountTone(configLevels),
+    configHasErrors,
     total: problems.length + textProblems.length,
-    tone: getCountTone([...configLevels, ...textLevels]),
-    configHasErrors: configLevels.includes("error"),
+    hasErrors: configHasErrors || textProblems.length > 0,
   };
 }
 
@@ -88,7 +81,7 @@ export function getShownTab(
 }
 
 /**
- * Gets the tabs of the problems panel: the sketch's, and the one of the node in focus.
+ * Gets the facts of the tabs of the problems panel: the sketch's, and the one of the node in focus.
  * @param openNode What is in focus.
  * @param summary The summary of the problems.
  * @returns The tabs, in order.
@@ -96,12 +89,12 @@ export function getShownTab(
 export function getProblemTabs(
   openNode: Focus,
   summary: ProblemSummary
-): readonly ProblemsTab<ProblemsTabId>[] {
-  const sketchTab: ProblemsTab<ProblemsTabId> = {
+): readonly ProblemTabFacts[] {
+  const sketchTab: ProblemTabFacts = {
     id: "sketch",
-    label: "Sketch",
+    subject: SKETCH_SUBJECT,
     count: summary.total,
-    tone: summary.tone,
+    hasErrors: summary.hasErrors,
   };
 
   if (openNode.kind === "config") {
@@ -109,30 +102,29 @@ export function getProblemTabs(
       sketchTab,
       {
         id: "node",
-        label: CONFIG_PATH,
-        mono: true,
+        subject: CONFIG_SUBJECT,
         count: summary.configCount,
-        tone: summary.configTone,
+        hasErrors: summary.configHasErrors,
       },
     ];
   }
   if (openNode.kind === "file") {
     return [
       sketchTab,
-      { id: "node", label: getTabLabel(openNode.path), mono: true },
+      { id: "node", subject: { kind: "file", path: openNode.path } },
     ];
   }
   return [sketchTab];
 }
 
 /**
- * Gets what the tab that shows lists: the problems of the config and the lines of text mode for the sketch, the problems of the config for the config node, and nothing for a file until phase 6. The note about invalid rule options goes above the lists of the sketch and of the config.
+ * Gets the facts of what the tab that shows lists: the problems of the config and the lines of text mode for the sketch, the problems of the config for the config node, and nothing for a file until phase 6. The note about invalid rule options goes above the lists of the sketch and of the config.
  * @param tab The tab that shows.
  * @param openNode What is in focus.
  * @param problems The problems of the config.
  * @param rulesValid Whether the rule options are valid.
  * @param textProblems The lines of text mode that could not be read.
- * @returns The rows, the text for no rows, and whether the note shows.
+ * @returns What the list is about, the problems it holds, and whether the note shows.
  */
 export function getProblemList(
   tab: ProblemsTabId,
@@ -140,23 +132,27 @@ export function getProblemList(
   problems: readonly ConfigProblem[],
   rulesValid: boolean,
   textProblems: readonly TextProblem[]
-): ProblemListContent {
+): ProblemListFacts {
   if (tab === "sketch" || openNode.kind === "none") {
     return {
-      items: [
-        ...getConfigProblemItems(problems),
-        ...getTextProblemItems(textProblems),
-      ],
-      empty: "No problems in the sketch.",
+      subject: SKETCH_SUBJECT,
+      configProblems: problems,
+      textProblems,
       rulesNote: !rulesValid,
     };
   }
   if (openNode.kind === "config") {
     return {
-      items: getConfigProblemItems(problems),
-      empty: "No problems in the config.",
+      subject: CONFIG_SUBJECT,
+      configProblems: problems,
+      textProblems: NO_TEXT_PROBLEMS,
       rulesNote: !rulesValid,
     };
   }
-  return { items: [], empty: "No problems in this file.", rulesNote: false };
+  return {
+    subject: { kind: "file", path: openNode.path },
+    configProblems: [],
+    textProblems: NO_TEXT_PROBLEMS,
+    rulesNote: false,
+  };
 }

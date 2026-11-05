@@ -2,9 +2,9 @@ import { fireEvent, render, screen as view } from "@testing-library/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
+import type { ProblemItem } from "@/domains/problems/ui/helpers/problemItems";
 import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
-import type { ProblemItem } from "@/ui/state";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { Note } from "@/ui-kit/molecules/Note";
 

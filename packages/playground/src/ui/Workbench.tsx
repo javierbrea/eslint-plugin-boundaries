@@ -2,6 +2,8 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
+import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
+import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import {
   SessionProvider,
   useProblemsCollapsed,
@@ -15,7 +17,6 @@ import { Regions, TopBar } from "./layout";
 import { NodePane } from "./node";
 import { ProblemsPane } from "./problems";
 import { ProjectPane } from "./project";
-import { useProblemSummary } from "./state";
 import type { WorkbenchProps } from "./Workbench.types";
 
 const Frame = styled("section")({
@@ -38,13 +39,13 @@ const Layout = styled("div")({
  */
 function WorkbenchTopBar(): ReactNode {
   const files = useSessionSelector((state) => state.evaluation.files.size);
-  const { total, tone, configHasErrors } = useProblemSummary();
+  const { total, hasErrors, configHasErrors } = useProblemSummary();
 
   return (
     <TopBar
       files={files}
       problems={total}
-      tone={tone}
+      tone={getCountTone(hasErrors)}
       configHasErrors={configHasErrors}
     />
   );

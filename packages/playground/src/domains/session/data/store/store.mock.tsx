@@ -1,11 +1,12 @@
 /* global jest -- the mock is for specs, which run in Jest */
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import type { RenderResult } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 
 import { SessionProvider } from "./SessionProvider";
+import { EVALUATION_DELAY } from "./store.constants";
 import { useSessionStore } from "./store.hooks";
 import type { SessionStore } from "./store.types";
 
@@ -80,4 +81,65 @@ export function renderInSession(
     store: holder.store as SessionStore,
     onSketchChange,
   };
+}
+
+/** The sketch {@link renderHookInSession} starts from when it is given none: two files and an empty config. */
+export const HOOK_SKETCH: Sketch = {
+  config: "{ settings: {}, rules: {} }",
+  tree: [
+    { path: "src/helpers/format.js", kind: "file" },
+    { path: "src/index.js", kind: "file" },
+  ],
+  dependencies: [],
+};
+
+/** What {@link renderHookInSession} returns. */
+export type HookRender<Result> = {
+  /** The store that the provider created. */
+  readonly store: SessionStore;
+  /** What the hook returned in each render, in order. */
+  readonly results: Result[];
+  /** What the hook returned in the last render. */
+  readonly result: { readonly current: Result };
+};
+
+/**
+ * Renders a hook inside a provider that has a store, so that a spec can drive the store as another pane would.
+ * @param useHook The hook, or a function that calls several.
+ * @param sketch The sketch the store starts from; {@link HOOK_SKETCH} when it is unset.
+ * @returns The store and what the hook returned.
+ */
+export function renderHookInSession<Result>(
+  useHook: () => Result,
+  sketch: Sketch = HOOK_SKETCH
+): HookRender<Result> {
+  const results: Result[] = [];
+
+  /**
+   * Calls the hook in a component and remembers what it returned.
+   * @returns Nothing to render.
+   */
+  function Probe(): null {
+    results.push(useHook());
+    return null;
+  }
+
+  const { store } = renderInSession(<Probe />, { sketch });
+
+  return {
+    store,
+    results,
+    result: {
+      get current(): Result {
+        return results[results.length - 1];
+      },
+    },
+  };
+}
+
+/**
+ * Advances the fake clock past the delay of an evaluation of the config, inside `act` so that the panes render the evaluation. The spec uses `jest.useFakeTimers()`.
+ */
+export function waitForEvaluation(): void {
+  act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
 }

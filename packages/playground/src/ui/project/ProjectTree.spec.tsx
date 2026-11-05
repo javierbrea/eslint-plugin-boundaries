@@ -1,9 +1,9 @@
 import { render, screen as view, within } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
+import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
 import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
-import type { ProblemCounts } from "@/ui/state";
 import type { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 

@@ -7,7 +7,6 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import type { ProblemsTab } from "@/ui/state";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
@@ -15,7 +14,7 @@ import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import type { ProblemsPanelProps } from "./Problems.types";
+import type { ProblemsPanelProps, ProblemsPanelTab } from "./Problems.types";
 
 const Panel = styled("section")({
   display: "flex",
@@ -75,7 +74,7 @@ function getTabElementId(prefix: string, tabId: string): string {
  * @param props.tab The tab.
  * @returns The nodes inside the tab, laid out in a row by the theme of the tab.
  */
-function TabLabel({ tab }: Readonly<{ tab: ProblemsTab<string> }>): ReactNode {
+function TabLabel({ tab }: Readonly<{ tab: ProblemsPanelTab }>): ReactNode {
   const { label, icon, tone, count = 0, mono = false } = tab;
 
   return (

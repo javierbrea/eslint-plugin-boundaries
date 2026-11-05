@@ -1,6 +1,5 @@
 import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
 import type { Target } from "@/domains/session/helpers/focus";
-import type { IconName } from "@/ui-kit/atoms/Icon";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 /** A tab of the problems panel: one level of what is in focus. */
@@ -13,10 +12,8 @@ export type ProblemsTab<Id extends string = string> = {
   readonly mono?: boolean;
   /** How many problems the tab lists. The badge is drawn for a positive count only. */
   readonly count?: number;
-  /** The color of the badge and of the icon. The badge is `bad` when it is unset, and the icon takes the color of the label. */
+  /** The color of the badge and of the icon of the panel's tab. The badge is `bad` when it is unset, and the icon takes the color of the label. */
   readonly tone?: Tone;
-  /** An icon after the label, drawn in the tone of the tab. */
-  readonly icon?: IconName;
 };
 
 /** A row of the problem list. */
@@ -35,30 +32,6 @@ export type ProblemItem = {
   readonly meta: string;
   /** What the row opens. A row without one, such as a line of text mode that is already in front of the user, opens nothing. */
   readonly target?: Target;
-};
-
-/** What the panes show of the problems: how many there are and how serious they are, for the status of the bar, the tabs and the badge of the config node. */
-export type ProblemSummary = {
-  /** Problems of the config. */
-  readonly configCount: number;
-  /** The color of the count of the config. */
-  readonly configTone: Tone;
-  /** Problems of the config and lines of text mode that could not be read. */
-  readonly total: number;
-  /** The color of the total. */
-  readonly tone: Tone;
-  /** Whether any problem of the config is an error. */
-  readonly configHasErrors: boolean;
-};
-
-/** Problems per node of the tree, for its badge. */
-export type ProblemCounts = {
-  /** Problems of the config. */
-  readonly config: number;
-  /** Whether the config node turns red. */
-  readonly configHasErrors: boolean;
-  /** Failing dependencies per file and folder; empty until phase 6. */
-  readonly byPath: ReadonlyMap<string, number>;
 };
 
 /** What the selected tab of the problems panel shows. */

@@ -2,7 +2,6 @@ import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Focus } from "@/domains/session/helpers/focus";
 
-import type { ProblemSummary } from "./Problems.types";
 import {
   getProblemCounts,
   getProblemList,
@@ -10,7 +9,8 @@ import {
   getShownTab,
   getTextProblems,
   summarizeProblems,
-} from "./Selectors";
+} from "./problemSelectors";
+import type { ProblemSummary } from "./problemSelectors.types";
 
 const ERROR: ConfigProblem = {
   level: "error",
@@ -54,7 +54,7 @@ const FILE_FOCUS: Focus = {
   path: "src/modules/checkout/index.js",
 };
 
-describe("Selectors", () => {
+describe("problemSelectors", () => {
   describe("getTextProblems", () => {
     it("should give no lines when there is no draft", () => {
       // Act
@@ -91,45 +91,42 @@ describe("Selectors", () => {
   });
 
   describe("summarizeProblems", () => {
-    it("should count nothing and be a warning tone when there are no problems", () => {
+    it("should count nothing and have no errors when there are no problems", () => {
       // Act
       const summary = summarizeProblems([], []);
 
       // Assert
       expect(summary).toEqual({
         configCount: 0,
-        configTone: "warn",
-        total: 0,
-        tone: "warn",
         configHasErrors: false,
+        total: 0,
+        hasErrors: false,
       });
     });
 
-    it("should be a warning tone when the problems are warnings and deprecations", () => {
+    it("should have no errors when the problems are warnings and deprecations", () => {
       // Act
       const summary = summarizeProblems([WARNING, DEPRECATION], []);
 
       // Assert
       expect(summary).toEqual({
         configCount: 2,
-        configTone: "warn",
-        total: 2,
-        tone: "warn",
         configHasErrors: false,
+        total: 2,
+        hasErrors: false,
       });
     });
 
-    it("should be a bad tone and have errors when a problem of the config is an error", () => {
+    it("should have errors when a problem of the config is an error", () => {
       // Act
       const summary = summarizeProblems([WARNING, ERROR], []);
 
       // Assert
       expect(summary).toEqual({
         configCount: 2,
-        configTone: "bad",
-        total: 2,
-        tone: "bad",
         configHasErrors: true,
+        total: 2,
+        hasErrors: true,
       });
     });
 
@@ -140,10 +137,9 @@ describe("Selectors", () => {
       // Assert
       expect(summary).toEqual({
         configCount: 0,
-        configTone: "warn",
-        total: 1,
-        tone: "bad",
         configHasErrors: false,
+        total: 1,
+        hasErrors: true,
       });
     });
 
@@ -157,10 +153,9 @@ describe("Selectors", () => {
       // Assert
       expect(summary).toEqual({
         configCount: 1,
-        configTone: "warn",
-        total: 3,
-        tone: "bad",
         configHasErrors: false,
+        total: 3,
+        hasErrors: true,
       });
     });
   });
@@ -216,10 +211,9 @@ describe("Selectors", () => {
   describe("getProblemTabs", () => {
     const SUMMARY: ProblemSummary = {
       configCount: 2,
-      configTone: "warn",
-      total: 3,
-      tone: "bad",
       configHasErrors: false,
+      total: 3,
+      hasErrors: true,
     };
 
     it("should give the tab of the sketch alone when nothing is in focus", () => {
@@ -228,78 +222,98 @@ describe("Selectors", () => {
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        {
+          id: "sketch",
+          subject: { kind: "sketch" },
+          count: 3,
+          hasErrors: true,
+        },
       ]);
     });
 
-    it("should add the tab of the config with its own count and tone", () => {
+    it("should add the tab of the config with its own count and errors", () => {
       // Act
       const tabs = getProblemTabs(CONFIG_FOCUS, SUMMARY);
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        {
+          id: "sketch",
+          subject: { kind: "sketch" },
+          count: 3,
+          hasErrors: true,
+        },
         {
           id: "node",
-          label: "eslint.config.js",
-          mono: true,
+          subject: { kind: "config" },
           count: 2,
-          tone: "warn",
+          hasErrors: false,
         },
       ]);
     });
 
-    it("should add the tab of the file in focus, named by its folder and its name, without a count", () => {
+    it("should add the tab of the file in focus, named by its path, without a count", () => {
       // Act
       const tabs = getProblemTabs(FILE_FOCUS, SUMMARY);
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
-        { id: "node", label: "checkout/index.js", mono: true },
+        {
+          id: "sketch",
+          subject: { kind: "sketch" },
+          count: 3,
+          hasErrors: true,
+        },
+        {
+          id: "node",
+          subject: { kind: "file", path: "src/modules/checkout/index.js" },
+        },
       ]);
+      expect(tabs[1]).not.toHaveProperty("count");
+      expect(tabs[1]).not.toHaveProperty("hasErrors");
     });
   });
 
   describe("getProblemList", () => {
     it("should list the problems of the config and the lines of text under the sketch's tab", () => {
       // Act
-      const content = getProblemList("sketch", NO_FOCUS, [ERROR], true, [
+      const facts = getProblemList("sketch", NO_FOCUS, [ERROR], true, [
         TEXT_PROBLEM,
       ]);
 
       // Assert
-      expect(content.items.map(({ key }) => key)).toEqual([
-        "config:0",
-        "text:0",
-      ]);
-      expect(content.empty).toBe("No problems in the sketch.");
-      expect(content.rulesNote).toBe(false);
+      expect(facts).toEqual({
+        subject: { kind: "sketch" },
+        configProblems: [ERROR],
+        textProblems: [TEXT_PROBLEM],
+        rulesNote: false,
+      });
     });
 
     it("should list the sketch whatever the tab when nothing is in focus", () => {
       // Act
-      const content = getProblemList("node", NO_FOCUS, [ERROR], true, []);
+      const facts = getProblemList("node", NO_FOCUS, [ERROR], true, []);
 
       // Assert
-      expect(content.items.map(({ key }) => key)).toEqual(["config:0"]);
-      expect(content.empty).toBe("No problems in the sketch.");
+      expect(facts.subject).toEqual({ kind: "sketch" });
+      expect(facts.configProblems).toEqual([ERROR]);
     });
 
     it("should list the sketch under the sketch's tab although something is in focus", () => {
       // Act
-      const content = getProblemList("sketch", CONFIG_FOCUS, [ERROR], true, [
+      const facts = getProblemList("sketch", CONFIG_FOCUS, [ERROR], true, [
         TEXT_PROBLEM,
       ]);
 
       // Assert
-      expect(content.items).toHaveLength(2);
-      expect(content.empty).toBe("No problems in the sketch.");
+      expect(facts.subject).toEqual({ kind: "sketch" });
+      expect(facts.configProblems).toEqual([ERROR]);
+      expect(facts.textProblems).toEqual([TEXT_PROBLEM]);
     });
 
     it("should list the problems of the config alone under the tab of the config", () => {
       // Act
-      const content = getProblemList(
+      const facts = getProblemList(
         "node",
         CONFIG_FOCUS,
         [ERROR, WARNING],
@@ -308,33 +322,31 @@ describe("Selectors", () => {
       );
 
       // Assert
-      expect(content.items.map(({ key }) => key)).toEqual([
-        "config:0",
-        "config:1",
-      ]);
-      expect(content.empty).toBe("No problems in the config.");
-      expect(content.rulesNote).toBe(false);
-    });
-
-    it("should open each problem of the config at its range", () => {
-      // Act
-      const content = getProblemList("node", CONFIG_FOCUS, [ERROR], true, []);
-
-      // Assert
-      expect(content.items[0].target).toEqual({
-        kind: "config",
-        range: ERROR.range,
+      expect(facts).toEqual({
+        subject: { kind: "config" },
+        configProblems: [ERROR, WARNING],
+        textProblems: [],
+        rulesNote: false,
       });
     });
 
-    it("should open no line of text", () => {
+    it("should hold each problem of the config as the engine gave it, with its range", () => {
       // Act
-      const content = getProblemList("sketch", NO_FOCUS, [], true, [
+      const facts = getProblemList("node", CONFIG_FOCUS, [ERROR], true, []);
+
+      // Assert
+      expect(facts.configProblems[0]).toBe(ERROR);
+      expect(facts.configProblems[0].range).toEqual(ERROR.range);
+    });
+
+    it("should hold each line of text as it was read", () => {
+      // Act
+      const facts = getProblemList("sketch", NO_FOCUS, [], true, [
         TEXT_PROBLEM,
       ]);
 
       // Assert
-      expect(content.items[0].target).toBeUndefined();
+      expect(facts.textProblems[0]).toBe(TEXT_PROBLEM);
     });
 
     it.each<["sketch" | "node", Focus]>([
@@ -344,33 +356,34 @@ describe("Selectors", () => {
       "should say that the rule options are invalid under the %s tab with %j in focus",
       (tab, openNode) => {
         // Act
-        const content = getProblemList(tab, openNode, [], false, []);
+        const facts = getProblemList(tab, openNode, [], false, []);
 
         // Assert
-        expect(content.rulesNote).toBe(true);
+        expect(facts.rulesNote).toBe(true);
       }
     );
 
     it("should list nothing under the tab of a file until dependencies are evaluated", () => {
       // Act
-      const content = getProblemList("node", FILE_FOCUS, [ERROR], true, [
+      const facts = getProblemList("node", FILE_FOCUS, [ERROR], true, [
         TEXT_PROBLEM,
       ]);
 
       // Assert
-      expect(content).toEqual({
-        items: [],
-        empty: "No problems in this file.",
+      expect(facts).toEqual({
+        subject: { kind: "file", path: "src/modules/checkout/index.js" },
+        configProblems: [],
+        textProblems: [],
         rulesNote: false,
       });
     });
 
     it("should not say that the rule options are invalid under the tab of a file", () => {
       // Act
-      const content = getProblemList("node", FILE_FOCUS, [], false, []);
+      const facts = getProblemList("node", FILE_FOCUS, [], false, []);
 
       // Assert
-      expect(content.rulesNote).toBe(false);
+      expect(facts.rulesNote).toBe(false);
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { Sketch } from "@/contract";
-import type { ProblemCounts } from "@/ui/state";
+import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
 
 /** An item of the tree view: the config node, or a node of the sketch. Its id is its path, and the id of the config node is `eslint.config.js` */
 export type ProjectItem = {

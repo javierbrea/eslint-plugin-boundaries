@@ -1,9 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import type { ProjectCapabilities, Sketch } from "@/contract";
+import type { ProjectCapabilities } from "@/contract";
 
-import { EVALUATION_DELAY } from "./store.constants";
 import {
   useAddNode,
   useCancelRename,
@@ -38,75 +37,18 @@ import {
 } from "./store.hooks";
 import {
   ALL_CAPABILITIES,
+  HOOK_SKETCH,
   NO_CAPABILITIES,
+  renderHookInSession,
   renderInSession,
+  waitForEvaluation,
 } from "./store.mock";
 import type { SessionStore } from "./store.types";
-
-const SKETCH: Sketch = {
-  config: "{ settings: {}, rules: {} }",
-  tree: [
-    { path: "src/helpers/format.js", kind: "file" },
-    { path: "src/index.js", kind: "file" },
-  ],
-  dependencies: [],
-};
 
 // A parse error: the only problem is an error
 const BROKEN_CONFIG = "{ settings: ";
 
 const RANGE = { from: 1, to: 2, line: 1, column: 2 };
-
-/** What {@link renderHookInSession} returns. */
-type HookRender<Result> = {
-  /** The store that the provider created. */
-  readonly store: SessionStore;
-  /** What the hook returned in each render, in order. */
-  readonly results: Result[];
-  /** What the hook returned in the last render. */
-  readonly result: { readonly current: Result };
-};
-
-/**
- * Renders a hook inside a provider that has a store, so that a spec can drive the store as another pane would.
- * @param useHook The hook, or a function that calls several.
- * @param sketch The sketch the store starts from.
- * @returns The store and what the hook returned.
- */
-function renderHookInSession<Result>(
-  useHook: () => Result,
-  sketch: Sketch = SKETCH
-): HookRender<Result> {
-  const results: Result[] = [];
-
-  /**
-   * Calls the hook in a component and remembers what it returned.
-   * @returns Nothing to render.
-   */
-  function Probe(): null {
-    results.push(useHook());
-    return null;
-  }
-
-  const { store } = renderInSession(<Probe />, { sketch });
-
-  return {
-    store,
-    results,
-    result: {
-      get current(): Result {
-        return results[results.length - 1];
-      },
-    },
-  };
-}
-
-/**
- * Advances the clock past the delay of an evaluation of the config, inside `act` so that the panes render the evaluation.
- */
-function waitForEvaluation(): void {
-  act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
-}
 
 describe("store hooks", () => {
   beforeEach(() => {
@@ -242,7 +184,7 @@ describe("store hooks", () => {
 
       // Act
       renderInSession(<Probe />, {
-        sketch: SKETCH,
+        sketch: HOOK_SKETCH,
         capabilities: NO_CAPABILITIES,
       });
 
@@ -259,7 +201,7 @@ describe("store hooks", () => {
         "useConfig",
         useConfig,
         (store) => store.changeConfig("{}"),
-        SKETCH.config,
+        HOOK_SKETCH.config,
         "{}",
       ],
       [
@@ -368,7 +310,7 @@ describe("store hooks", () => {
       waitForEvaluation();
 
       // Assert
-      expect(first.sketch).toBe(SKETCH);
+      expect(first.sketch).toBe(HOOK_SKETCH);
       expect(duringDelay).toBe(first);
       expect(result.current.sketch.config).toBe("{}");
     });

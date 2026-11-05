@@ -1,15 +1,29 @@
+import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
 import type {
-  ConfigProblem,
-  ProblemLevel,
-} from "@/domains/evaluation/helpers/engine";
+  ProblemListFacts,
+  ProblemSubject,
+  ProblemTabFacts,
+} from "@/domains/problems/helpers/problemSelectors";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
+import type { ProblemsTabId } from "@/domains/session/helpers/focus";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import type { ProblemItem } from "./Problems.types";
+import type {
+  ProblemItem,
+  ProblemListContent,
+  ProblemsTab,
+} from "./problemItems.types";
 
 /** Where the problems of text mode are placed: they are about the project as a whole, and not about a file. */
 const TEXT_LOCATION = "Project text";
+
+/** What to say when a list has no rows, by what the list is about. */
+const EMPTY_TEXTS: Readonly<Record<ProblemSubject["kind"], string>> = {
+  sketch: "No problems in the sketch.",
+  config: "No problems in the config.",
+  file: "No problems in this file.",
+};
 
 /**
  * Writes the message of a config problem: its title and its detail as one sentence. A row of the list is a button, which cannot hold a link, so the links of the problem are left out; the editor shows them in the tooltip.
@@ -81,9 +95,62 @@ export function getTabLabel(path: string): string {
 
 /**
  * Chooses the color of a count.
- * @param levels The levels of the problems that are counted.
+ * @param hasErrors Whether any of the problems that are counted is an error.
  * @returns `bad` when any of them is an error, and `warn` otherwise.
  */
-export function getCountTone(levels: readonly ProblemLevel[]): Tone {
-  return levels.includes("error") ? "bad" : "warn";
+export function getCountTone(hasErrors: boolean): Tone {
+  return hasErrors ? "bad" : "warn";
+}
+
+/**
+ * Names the tab of a subject.
+ * @param subject What the tab is about.
+ * @returns The text of the tab: `Sketch`, the path of the config, or the folder and the name of the file.
+ */
+function getSubjectLabel(subject: ProblemSubject): string {
+  if (subject.kind === "sketch") {
+    return "Sketch";
+  }
+  return subject.kind === "config" ? CONFIG_PATH : getTabLabel(subject.path);
+}
+
+/**
+ * Turns the facts of the tabs of the problems panel into the tabs it draws.
+ * @param tabFacts The facts of the tabs, as `getProblemTabs` returns them.
+ * @returns One tab for each fact, in the same order. The tab of the sketch is in the sans font and the others in mono; a tab that counts has a badge in the tone of its errors.
+ */
+export function toProblemsTabs(
+  tabFacts: readonly ProblemTabFacts[]
+): ProblemsTab<ProblemsTabId>[] {
+  return tabFacts.map(({ id, subject, count, hasErrors }) => {
+    const tab: ProblemsTab<ProblemsTabId> = {
+      id,
+      label: getSubjectLabel(subject),
+      ...(subject.kind === "sketch" ? {} : { mono: true }),
+    };
+
+    return count === undefined
+      ? tab
+      : { ...tab, count, tone: getCountTone(hasErrors === true) };
+  });
+}
+
+/**
+ * Turns the facts of what the tab that shows lists into what the list draws.
+ * @param listFacts The facts of the list, as `getProblemList` returns them.
+ * @returns The rows, with the problems of the config first, and what to say when there are none.
+ */
+export function toProblemListContent(
+  listFacts: ProblemListFacts
+): ProblemListContent {
+  const { subject, configProblems, textProblems, rulesNote } = listFacts;
+
+  return {
+    items: [
+      ...getConfigProblemItems(configProblems),
+      ...getTextProblemItems(textProblems),
+    ],
+    empty: EMPTY_TEXTS[subject.kind],
+    rulesNote,
+  };
 }
