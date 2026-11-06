@@ -23,8 +23,8 @@ src/
 └─ domains/
    ├─ project/      the sketch as a tree or as text: helpers, ui, modules
    ├─ config/       the eslint.config.js node: ui, modules
-   ├─ files/        an open file: ui
-   ├─ evaluation/   what boundaries says about the sketch: helpers
+   ├─ files/        an open file and its dependencies: ui, modules
+   ├─ evaluation/   what boundaries says about the sketch: helpers, ui
    ├─ problems/     the problems of the sketch: helpers, ui, modules
    ├─ session/      what the user has open and edits in one instance: helpers, data
    ├─ shell/        the frame that places the panes: ui, modules

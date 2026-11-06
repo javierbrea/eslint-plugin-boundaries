@@ -271,6 +271,60 @@ describe("ProblemsPanel", () => {
       expect(icon.wrapperStyle.color).not.toContain("var(--jsb-");
     });
 
+    it.each<
+      [
+        "ok" | "bad" | "warn" | "faint",
+        "check" | "cross" | "warn" | "skip",
+        string,
+      ]
+    >([
+      ["ok", "check", "var(--jsb-ok)"],
+      ["bad", "cross", "var(--jsb-bad)"],
+      ["warn", "warn", "var(--jsb-warn)"],
+      ["faint", "skip", "var(--jsb-faint)"],
+    ])(
+      "should draw the icon of a verdict with the tone %s in the color of the verdict",
+      (iconTone, icon, color) => {
+        // Arrange
+        const tabs: PanelProps["tabs"] = [
+          { id: "line 3", label: "line 3", icon, iconTone },
+        ];
+        render(
+          <ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />
+        );
+        const panel = new ProblemsPanelPom();
+
+        // Act
+        const { icon: drawn } = panel.tab("line 3");
+
+        // Assert
+        expect(drawn.wrapperStyle.color).toBe(color);
+      }
+    );
+
+    it("should prefer the tone of the verdict to the tone of the count for the icon, and keep the count in its tone", () => {
+      // Arrange
+      const tabs: PanelProps["tabs"] = [
+        {
+          id: "line 3",
+          label: "line 3",
+          icon: "check",
+          iconTone: "ok",
+          count: 2,
+          tone: "bad",
+        },
+      ];
+      render(<ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />);
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const tab = panel.tab(/line 3/);
+
+      // Assert
+      expect(tab.icon.wrapperStyle.color).toBe("var(--jsb-ok)");
+      expect(tab.badge.isRendered).toBe(true);
+    });
+
     it("should draw the icon before the count", () => {
       // Arrange
       const tabs: PanelProps["tabs"] = [

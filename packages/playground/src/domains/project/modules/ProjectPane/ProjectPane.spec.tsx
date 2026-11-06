@@ -46,7 +46,15 @@ const SKETCH: Sketch = {
   ],
 };
 
-const QUICK_START_CONFIG = QUICK_START_EXAMPLE.sketch.config;
+const QUICK_START = QUICK_START_EXAMPLE.sketch;
+
+const QUICK_START_CONFIG = QUICK_START.config;
+
+const CHECKOUT = "src/modules/checkout/index.js";
+
+const BUTTON = "src/components/atoms/Button/index.js";
+
+const BUTTON_SPEC = "src/components/atoms/Button/Button.spec.js";
 
 /** The quick-start config with a `default` that is not an option: one error, which turns the config node red. */
 const CONFIG_WITH_ERROR = QUICK_START_CONFIG.replace(
@@ -485,6 +493,68 @@ describe("ProjectPane", () => {
       expect(badges).toEqual(["2 problems"]);
     });
 
+    it("should show the failing dependencies of each file and folder of the quick start", () => {
+      // Act
+      const { pane } = renderPane({ sketch: QUICK_START });
+
+      // Assert
+      expect(pane.tree.badgeNames).toEqual([
+        "2 failing dependencies",
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+      ]);
+      expect(pane.item("src").row.badge("2 failing dependencies").count).toBe(
+        "2"
+      );
+      expect(pane.item(CHECKOUT).row.isBad).toBe(true);
+      expect(pane.item(BUTTON).row.isBad).toBe(false);
+    });
+
+    it("should take the badges of a file and its folders away when its failing dependency is removed", () => {
+      // Arrange
+      const { pane, store } = renderPane({ sketch: QUICK_START });
+
+      // Act
+      act(() => store.removeDependency({ path: CHECKOUT, index: 2 }));
+
+      // Assert
+      expect(pane.tree.badgeNames).toEqual([
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+        "1 failing dependency",
+      ]);
+      expect(pane.item(CHECKOUT).row.isBad).toBe(false);
+    });
+
+    it("should show the badge of a dependency that a new line makes fail", () => {
+      // Arrange
+      const { pane, store } = renderPane({ sketch: QUICK_START });
+
+      // Act
+      act(() =>
+        store.addDependency({
+          from: BUTTON,
+          target: { kind: "node", path: CHECKOUT },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        })
+      );
+
+      // Assert
+      expect(pane.item(BUTTON).row.badge("1 failing dependency").count).toBe(
+        "1"
+      );
+      expect(pane.item("src").row.badge("3 failing dependencies").count).toBe(
+        "3"
+      );
+    });
+
     it("should turn the config red when it has errors, and not otherwise", () => {
       // Arrange
       jest.useFakeTimers();
@@ -525,6 +595,106 @@ describe("ProjectPane", () => {
       // Assert
       expect(whileWaiting).toHaveLength(1);
       expect(pane.item("eslint.config.js").row.badgeNames).toEqual([]);
+    });
+  });
+
+  describe("the target of the dependency in focus", () => {
+    /**
+     * Lists the items of the tree that are outlined as the target.
+     * @param pane The page object of the pane.
+     * @returns The path of each outlined item, in the order the tree draws them.
+     */
+    function getTargets(pane: ProjectPanePom): string[] {
+      return pane.tree.itemPaths.filter((path) => pane.item(path).row.isTarget);
+    }
+
+    it("should outline the item of the node that the dependency in focus points to, and tag it", () => {
+      // Act
+      const { pane } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 2 },
+      });
+
+      // Assert
+      expect(getTargets(pane)).toEqual([BUTTON_SPEC]);
+      expect(pane.item(BUTTON_SPEC).row.targetTag).toBe("target");
+    });
+
+    it("should keep the file of the dependency selected", () => {
+      // Act
+      const { pane } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 2 },
+      });
+
+      // Assert
+      expect(pane.tree.selectedPaths).toEqual([CHECKOUT]);
+    });
+
+    it("should outline the target of the next dependency, and not the one before, when another takes the focus", () => {
+      // Arrange
+      const { pane, store } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 0 },
+      });
+      const first = getTargets(pane);
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: CHECKOUT, index: 2 }));
+
+      // Assert
+      expect(first).toEqual([BUTTON]);
+      expect(getTargets(pane)).toEqual([BUTTON_SPEC]);
+    });
+
+    it("should outline nothing for a dependency on an external module", () => {
+      // Act
+      const { pane } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 3 },
+      });
+
+      // Assert
+      expect(getTargets(pane)).toEqual([]);
+    });
+
+    it("should outline nothing for a position that the file has no dependency at", () => {
+      // Act
+      const { pane } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 9 },
+      });
+
+      // Assert
+      expect(getTargets(pane)).toEqual([]);
+    });
+
+    it("should outline nothing while a file, the config or nothing is in focus", () => {
+      // Arrange
+      const { pane, store } = renderPane({ sketch: QUICK_START });
+      const none = getTargets(pane);
+      act(() => store.open({ kind: "file", path: CHECKOUT }));
+      const file = getTargets(pane);
+
+      // Act
+      act(() => store.open({ kind: "config" }));
+
+      // Assert
+      expect([none, file, getTargets(pane)]).toEqual([[], [], []]);
+    });
+
+    it("should stop outlining the target when the dependency in focus is removed", () => {
+      // Arrange
+      const { pane, store } = renderPane({
+        sketch: QUICK_START,
+        focus: { kind: "dependency", path: CHECKOUT, index: 2 },
+      });
+
+      // Act
+      act(() => store.removeDependency({ path: CHECKOUT, index: 2 }));
+
+      // Assert
+      expect(getTargets(pane)).toEqual([]);
     });
   });
 
@@ -1589,11 +1759,15 @@ describe("ProjectPane", () => {
           "src/components/Button.js",
           "src/components/Price.js",
           "src/index.js",
+          '  import "./components/Button";',
           "index.js",
+          '  import "react";',
           "",
         ].join("\n")
       );
-      expect(pane.layout.head.hint).toBe("One path per line");
+      expect(pane.layout.head.hint).toBe(
+        "One path per line · dependencies indented"
+      );
       expect(pane.tree.isRendered).toBe(false);
     });
 

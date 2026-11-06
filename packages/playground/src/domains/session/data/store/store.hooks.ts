@@ -8,6 +8,7 @@ import type {
 import type {
   ConfigReveal,
   Focus,
+  PolicyHighlight,
   ProjectView,
 } from "@/domains/session/helpers/focus";
 
@@ -126,6 +127,14 @@ export function useReveal(): ConfigReveal | undefined {
 }
 
 /**
+ * Reads the policy that the user opened from a dependency, which the config editor keeps marked.
+ * @returns The highlight, or `undefined` when there is none.
+ */
+export function usePolicyHighlight(): PolicyHighlight | undefined {
+  return useSessionSelector((state) => state.highlight);
+}
+
+/**
  * Reads whether the problems panel shows its head only.
  * @returns Whether the panel is collapsed.
  */
@@ -182,7 +191,7 @@ export function useToggleFolder(): SessionStore["toggleFolder"] {
 }
 
 /**
- * Gets the command that replaces the config text.
+ * Gets the command that replaces the config text, with where the highlighted policy is after an edit of the editor.
  * @returns The stable method of the store.
  */
 export function useChangeConfig(): SessionStore["changeConfig"] {
@@ -227,6 +236,30 @@ export function useCancelRename(): SessionStore["cancelRename"] {
  */
 export function useRemoveNode(): SessionStore["removeNode"] {
   return useSessionStore().removeNode;
+}
+
+/**
+ * Gets the command that adds a dependency and puts it in focus.
+ * @returns The stable method of the store.
+ */
+export function useAddDependency(): SessionStore["addDependency"] {
+  return useSessionStore().addDependency;
+}
+
+/**
+ * Gets the command that replaces a dependency with another one of the same file.
+ * @returns The stable method of the store.
+ */
+export function useReplaceDependency(): SessionStore["replaceDependency"] {
+  return useSessionStore().replaceDependency;
+}
+
+/**
+ * Gets the command that removes a dependency.
+ * @returns The stable method of the store.
+ */
+export function useRemoveDependency(): SessionStore["removeDependency"] {
+  return useSessionStore().removeDependency;
 }
 
 /**

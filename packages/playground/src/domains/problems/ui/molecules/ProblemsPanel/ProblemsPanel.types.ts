@@ -1,13 +1,9 @@
 import type { ReactNode } from "react";
 
 import type { ProblemsTab } from "@/domains/problems/ui/helpers/problemItems";
-import type { IconName } from "@/ui-kit/atoms/Icon";
 
-/** A tab of {@link ProblemsPanel}: the tab that the problems give, and an icon the panel can draw after the label. */
-export type ProblemsPanelTab<Id extends string = string> = ProblemsTab<Id> & {
-  /** An icon after the label, drawn in the tone of the tab. It takes the color of the label when the tab has no tone. */
-  readonly icon?: IconName;
-};
+/** A tab of {@link ProblemsPanel}: the tab that the problems give, which can have an icon after the label, in the tone of the verdict or of the badge, or in the color of the label when it has neither. */
+export type ProblemsPanelTab<Id extends string = string> = ProblemsTab<Id>;
 
 /** Props of {@link ProblemsPanel}. */
 export type ProblemsPanelProps<Id extends string> = {

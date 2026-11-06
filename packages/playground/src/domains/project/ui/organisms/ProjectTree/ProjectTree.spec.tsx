@@ -36,6 +36,7 @@ function createProps(
     tree: TREE,
     counts: NO_COUNTS,
     editable: true,
+    target: undefined,
     selectedId: null,
     collapsed: new Set(),
     renaming: undefined,
@@ -126,8 +127,8 @@ describe("ProjectTree", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 2],
-          ["src/index.js", 1],
+          ["src", { count: 2, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
@@ -152,7 +153,7 @@ describe("ProjectTree", () => {
       const counts: ProblemCounts = {
         config: 0,
         configHasErrors: false,
-        byPath: new Map([["src/index.js", 1]]),
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
 
@@ -175,7 +176,7 @@ describe("ProjectTree", () => {
       const counts: ProblemCounts = {
         config: 0,
         configHasErrors: false,
-        byPath: new Map([["src", 1]]),
+        byPath: new Map([["src", { count: 1, hasErrors: true }]]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
 
@@ -346,6 +347,93 @@ describe("ProjectTree", () => {
       // Assert
       expect(tree.item("src/components/Button.js").isRendered).toBe(false);
       expect(tree.item("src/index.js").isRendered).toBe(true);
+    });
+  });
+
+  describe("target", () => {
+    it("should outline and tag the item that the dependency in focus points to", () => {
+      // Arrange
+      renderInRoot(
+        <ProjectTree {...createProps({ target: "src/index.js" })} />
+      );
+      const tree = new ProjectTreePom();
+
+      // Act
+      const { isTarget, targetTag, targetStyle } =
+        tree.item("src/index.js").row;
+
+      // Assert
+      expect(isTarget).toBe(true);
+      expect(targetTag).toBe("target");
+      expect(targetStyle).toEqual({
+        outline: "1px dashed var(--jsb-accent)",
+        "outline-offset": "-1px",
+      });
+    });
+
+    it("should write the tag in the mono text of 10.5 px", () => {
+      // Arrange
+      renderInRoot(
+        <ProjectTree {...createProps({ target: "src/index.js" })} />
+      );
+      const tree = new ProjectTreePom();
+
+      // Act
+      const { fontFamily, fontSize, fontWeight } =
+        tree.item("src/index.js").row.targetTagStyle;
+
+      // Assert
+      expect(fontFamily).toBe("var(--jsb-font-mono)");
+      expect(fontSize).toBe("10.5px");
+      expect(fontWeight).toBe("400");
+    });
+
+    it("should outline no other item", () => {
+      // Arrange
+      renderInRoot(
+        <ProjectTree {...createProps({ target: "src/index.js" })} />
+      );
+      const tree = new ProjectTreePom();
+
+      // Act
+      const others = [
+        "eslint.config.js",
+        "src",
+        "src/components",
+        "src/components/Button.js",
+        "index.js",
+      ].map((path) => tree.item(path).row.isTarget);
+
+      // Assert
+      expect(others).toEqual([false, false, false, false, false]);
+    });
+
+    it("should outline no item while no dependency is in focus", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+      const tree = new ProjectTreePom();
+
+      // Act
+      const targets = ["src/index.js", "index.js"].map(
+        (path) => tree.item(path).row.isTarget
+      );
+
+      // Assert
+      expect(targets).toEqual([false, false]);
+    });
+
+    it("should move the outline when the dependency in focus changes", () => {
+      // Arrange
+      const props = createProps({ target: "src/index.js" });
+      const { rerender } = render(<ProjectTree {...props} />);
+      const tree = new ProjectTreePom();
+
+      // Act
+      rerender(<ProjectTree {...props} target="index.js" />);
+
+      // Assert
+      expect(tree.item("src/index.js").row.isTarget).toBe(false);
+      expect(tree.item("index.js").row.isTarget).toBe(true);
     });
   });
 

@@ -31,6 +31,7 @@ const TREE_STYLES = {
  * @param props.tree The nodes of the sketch to show.
  * @param props.counts Problems per node, for the badges.
  * @param props.editable Whether nodes can be renamed and removed.
+ * @param props.target The path of the node that the dependency in focus points to, which is outlined.
  * @param props.selectedId The id of the selected item.
  * @param props.collapsed The folders the user closed.
  * @param props.renaming The path of the node being renamed.
@@ -48,6 +49,7 @@ export function ProjectTree({
   tree,
   counts,
   editable,
+  target,
   selectedId,
   collapsed,
   renaming,
@@ -70,6 +72,7 @@ export function ProjectTree({
     () => ({
       counts,
       editable,
+      target,
       renaming,
       focusRequest,
       onFocusDone,
@@ -81,6 +84,7 @@ export function ProjectTree({
     [
       counts,
       editable,
+      target,
       renaming,
       focusRequest,
       onFocusDone,

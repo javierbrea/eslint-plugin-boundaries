@@ -6,11 +6,27 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import { renderInSession } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import type { PolicyHighlight } from "@/domains/session/helpers/focus";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { ProblemsPane } from "./ProblemsPane";
 import { ProblemsPanePom } from "./ProblemsPane.pom";
 
-const QUICK_START = QUICK_START_EXAMPLE.sketch;
+/** The quick start with its nine dependencies, two of which fail */
+const FULL_QUICK_START = QUICK_START_EXAMPLE.sketch;
+
+/** The quick start without dependencies, so that the config and the tree are what the pane lists */
+const QUICK_START: Sketch = { ...FULL_QUICK_START, dependencies: [] };
+
+const FORMAT = "src/helpers/format/index.js";
+
+const BUTTON_SOURCE = "../../components/atoms/Button";
+
+const TEST_MESSAGE =
+  'Dependencies to file of category "test" are not allowed. Denied by policy at index 2';
+
+const DEFAULT_MESSAGE =
+  'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"';
 
 const FILE = "src/modules/checkout/index.js";
 
@@ -234,14 +250,14 @@ describe("ProblemsPane", () => {
       const { store, pane } = renderPane();
 
       // Act
-      typeLines(store, "src/index.js\n  import x from 'y';\n");
+      typeLines(store, "src/index.js\n  import x from './y';\n");
 
       // Assert
       expect(pane.list.row("Project text:2").message).toContain(
-        "Dependencies are not written in text mode yet."
+        '"./y" does not resolve to a file of the sketch: the "node" resolver finds none.'
       );
       expect(pane.list.row("Project text:2").meta).toContain(
-        "  import x from 'y';"
+        "  import x from './y';"
       );
     });
 
@@ -453,6 +469,602 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(getTabs(pane)).toEqual(["Sketch", "eslint.config.js*"]);
+    });
+  });
+
+  describe("the failing dependencies", () => {
+    describe("under the sketch's tab", () => {
+      it("should count them in the tab and list them after the problems, as the mockup does", () => {
+        // Act
+        const { pane } = renderPane(FULL_QUICK_START);
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2*"]);
+        expect(pane.list.rows.map((row) => row.locationWithPosition)).toEqual([
+          `${FORMAT}:1 → ${BUTTON_SOURCE}`,
+          `${FILE}:3 → ${BUTTON_SOURCE}/Button.spec`,
+        ]);
+      });
+
+      it("should say the message of the plugin and the policy that disallowed each", () => {
+        // Act
+        const { pane } = renderPane(FULL_QUICK_START);
+
+        // Assert
+        expect(pane.list.row(`${FORMAT}:1`).message).toBe(DEFAULT_MESSAGE);
+        expect(pane.list.row(`${FORMAT}:1`).meta).toBe("disallowed · default");
+        expect(pane.list.row(`${FILE}:3`).message).toBe(TEST_MESSAGE);
+        expect(pane.list.row(`${FILE}:3`).meta).toBe("disallowed · policy 2");
+      });
+
+      it("should draw each with the cross of an error", () => {
+        // Act
+        const { pane } = renderPane(FULL_QUICK_START);
+
+        // Assert
+        const { icon } = pane.list.row(`${FILE}:3`);
+
+        expect(icon.pathData).toBe(ICON_PATHS.cross);
+        expect(icon.wrapperStyle.color).toBe("var(--jsb-bad)");
+      });
+
+      it("should list them together with the problems of the config", () => {
+        // Act
+        const { pane } = renderPane({
+          ...FULL_QUICK_START,
+          config: MISTAKES.config,
+        });
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2*"]);
+        expect(pane.list.row("eslint.config.js:5:7").opens).toBe(true);
+      });
+
+      it("should draw the failing dependency as a warning when the rule is one, and not count it as an error", () => {
+        // Act
+        const { pane } = renderPane({
+          ...FULL_QUICK_START,
+          config: FULL_QUICK_START.config.replace(
+            '"boundaries/dependencies": [2,',
+            '"boundaries/dependencies": [1,'
+          ),
+        });
+
+        // Assert
+        expect(pane.list.row(`${FILE}:3`).icon.pathData).toBe(ICON_PATHS.warn);
+        expect(pane.list.row(`${FILE}:3`).icon.wrapperStyle.color).toBe(
+          "var(--jsb-warn)"
+        );
+        expect(pane.panel.tab(/Sketch/).badge.isRendered).toBe(true);
+      });
+
+      it("should put the dependency in focus when its row is pressed, and select the tab of the dependency", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        pane.list.row(`${FILE}:3`).press();
+
+        // Assert
+        expect(store.getState().focus).toEqual({
+          kind: "dependency",
+          path: FILE,
+          index: 2,
+        });
+        expect(getTabs(pane)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+      });
+
+      it("should say nothing about dependencies when the sketch has none that fail", () => {
+        // Act
+        const { pane } = renderPane({
+          ...FULL_QUICK_START,
+          dependencies: FULL_QUICK_START.dependencies.slice(0, 3),
+        });
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch*"]);
+        expect(pane.list.emptyText).toBe("No problems in the sketch.");
+      });
+    });
+
+    describe("under the tab of a file", () => {
+      it("should count the failing dependencies of the file and list them with the line and the source", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        act(() => store.open({ kind: "file", path: FILE }));
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2", "checkout/index.js1*"]);
+        expect(pane.list.rows.map((row) => row.text)).toEqual([
+          `:3 ${BUTTON_SOURCE}/Button.spec${TEST_MESSAGE}disallowed · policy 2`,
+        ]);
+        expect(pane.list.row(":3").location).toBe("");
+        expect(pane.list.row(":3").source).toBe(`${BUTTON_SOURCE}/Button.spec`);
+      });
+
+      it("should not list the failing dependencies of other files", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        act(() => store.open({ kind: "file", path: FORMAT }));
+
+        // Assert
+        expect(pane.list.rowCount).toBe(1);
+        expect(pane.list.row(":1").meta).toBe("disallowed · default");
+      });
+
+      it("should say there are no problems in a file that has no failing dependency", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        act(() => store.open({ kind: "file", path: "src/index.js" }));
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2", "src/index.js*"]);
+        expect(pane.list.emptyText).toBe("No problems in this file.");
+      });
+
+      it("should put the dependency in focus when a row is pressed", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        act(() => store.open({ kind: "file", path: FILE }));
+
+        // Act
+        pane.list.row(":3").press();
+
+        // Assert
+        expect(getTabs(pane)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+      });
+    });
+
+    describe("under the tab of a dependency", () => {
+      /**
+       * Puts a dependency of the quick start in focus.
+       * @param store The store of the render.
+       * @param path The file that has it.
+       * @param index Its position among the dependencies of the file.
+       */
+      function focusDependency(
+        store: SessionRender["store"],
+        path: string,
+        index: number
+      ): void {
+        act(() => store.open({ kind: "dependency", path, index }));
+      }
+
+      it("should add the tab of the dependency after the one of its file, with the icon of its verdict and no count, and select it", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 2);
+
+        // Assert
+        expect(getTabs(pane)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+        expect(pane.panel.tab("line 3").icon.pathData).toBe(ICON_PATHS.cross);
+        expect(pane.panel.tab("line 3").icon.wrapperStyle.color).toBe(
+          "var(--jsb-bad)"
+        );
+        expect(pane.panel.tab("line 3").hasBadge).toBe(false);
+      });
+
+      it("should say the verdict, the message and the facts of the dependency", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 2);
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("disallowed · policy 2");
+        expect(pane.detail.verdictColor).toBe("var(--jsb-bad)");
+        expect(pane.detail.message).toBe(TEST_MESSAGE);
+        expect(pane.detail.facts).toEqual([
+          "to src/components/atoms/Button/Button.spec.js",
+          "element component",
+          "file test",
+          "kind value",
+          "syntax import",
+        ]);
+      });
+
+      it("should show the policy that decided it as it is written in the config", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 2);
+
+        // Assert
+        expect(pane.detail.policyCardText).toBe(
+          [
+            "// policies[2]",
+            "{",
+            "  // No element may import a test file, whatever element it belongs to",
+            '  disallow: { to: { file: { categories: "test" } } },',
+            "}",
+          ].join("\n")
+        );
+      });
+
+      it("should show the default as the policy when the default decided", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FORMAT, 0);
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("disallowed · default");
+        expect(pane.detail.policyCardText).toBe('// default\n"disallow"');
+        expect(pane.detail.facts[1]).toBe("element component");
+      });
+
+      it("should say that an allowed dependency is allowed, with its policy and no message", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 0);
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("allowed · policy 1");
+        expect(pane.detail.verdictColor).toBe("var(--jsb-ok)");
+        expect(pane.detail.message).toBeNull();
+        expect(pane.panel.tab("line 1").icon.pathData).toBe(ICON_PATHS.check);
+        expect(pane.panel.tab("line 1").icon.wrapperStyle.color).toBe(
+          "var(--jsb-ok)"
+        );
+      });
+
+      it("should say why a dependency is not checked, in the faint tone of a skipped verdict", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 3);
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("not checked · external");
+        expect(pane.detail.verdictColor).toBe("var(--jsb-faint)");
+        expect(pane.detail.message).toContain("the dependency is not local");
+        expect(pane.panel.tab("line 4").icon.pathData).toBe(ICON_PATHS.skip);
+      });
+
+      it("should offer no policy for a dependency that is not checked, and point to the module", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+
+        // Act
+        focusDependency(store, FILE, 3);
+
+        // Assert
+        expect(pane.detail.facts[0]).toBe("to react");
+        expect(pane.detail.facts[1]).toBe("element null");
+        expect(pane.detail.canOpenPolicy).toBe(false);
+        expect(pane.detail.policyCardText).toBeNull();
+      });
+
+      it("should say that a dependency is not evaluated while no rule is written", () => {
+        // Arrange
+        const { store, pane } = renderPane({
+          ...FULL_QUICK_START,
+          config: "{ settings: {}, rules: {} }",
+        });
+
+        // Act
+        focusDependency(store, FILE, 2);
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("not evaluated");
+        expect(pane.detail.canOpenPolicy).toBe(false);
+        expect(pane.panel.tab("line 3").icon.pathData).toBe(ICON_PATHS.skip);
+      });
+
+      it("should open the config at the policy when Open policy in config is pressed, keeping where it came from", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        pane.detail.openPolicy();
+
+        // Assert
+        const state = store.getState();
+
+        expect(state.focus).toEqual({ kind: "config" });
+        expect(state.highlight?.dependency).toEqual({ path: FILE, index: 2 });
+        expect(state.highlight?.range).toEqual(state.reveal?.range);
+        expect(state.highlight?.range.from).toBe(
+          FULL_QUICK_START.config.indexOf(
+            "{\n          // No element may import a test file"
+          )
+        );
+      });
+
+      it("should name the dependency in the note of the config tab, which has no problems", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        pane.detail.openPolicy();
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2", "eslint.config.js*"]);
+        expect(pane.notes.map((note) => note.text)).toEqual([
+          `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`,
+        ]);
+        expect(pane.list.isRendered).toBe(false);
+      });
+
+      it("should say the default is highlighted when the default decided", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FORMAT, 0);
+
+        // Act
+        pane.detail.openPolicy();
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. The default is highlighted, opened from the dependency at line 1 of ${FORMAT}.`
+        );
+      });
+
+      it("should keep the note while the config stays in focus, and drop it when a file opens", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+
+        // Act
+        pane.panel.tab(/Sketch/).select();
+        const keptWhileSketchShows = store.getState().highlight !== undefined;
+        pane.panel.tab("eslint.config.js").select();
+        const noteAfterReturn = pane.note.isRendered;
+        act(() => store.open({ kind: "file", path: FILE }));
+        act(() => store.open({ kind: "config" }));
+
+        // Assert
+        expect(keptWhileSketchShows).toBe(true);
+        expect(noteAfterReturn).toBe(true);
+        expect(pane.note.isRendered).toBe(false);
+      });
+
+      it("should keep naming the policy when the config is edited before it", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+        const comment = "// A comment before everything\n";
+        const { range } = store.getState().highlight as PolicyHighlight;
+
+        // Act
+        // The editor reports the range of the policy, moved by the edit, with the text
+        act(() =>
+          store.changeConfig(`${comment}${FULL_QUICK_START.config}`, {
+            ...range,
+            from: range.from + comment.length,
+            to: range.to + comment.length,
+            line: range.line + 1,
+          })
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
+      it("should name the policy by its new index when a policy is put before it", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+        const { range } = store.getState().highlight as PolicyHighlight;
+        const policy =
+          '        { allow: { to: { element: { type: "helper" } } } },\n';
+        const at = FULL_QUICK_START.config.lastIndexOf("        {", range.from);
+
+        // Act
+        act(() =>
+          store.changeConfig(
+            FULL_QUICK_START.config.slice(0, at) +
+              policy +
+              FULL_QUICK_START.config.slice(at),
+            {
+              ...range,
+              from: range.from + policy.length,
+              to: range.to + policy.length,
+              line: range.line + 1,
+            }
+          )
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. Policy 3 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
+      it("should leave the number out when no policy starts where the highlight is after the config is evaluated", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+
+        // Act
+        // A text that does not come from the editor says nothing of where the policy went
+        act(() =>
+          store.changeConfig(
+            `// A comment before everything\n${FULL_QUICK_START.config}`
+          )
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. A policy is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
+      it("should say it above the problems of the config when the config has some", () => {
+        // Arrange
+        const { store, pane } = renderPane({
+          ...FULL_QUICK_START,
+          config: FULL_QUICK_START.config.replace(
+            'pattern: "components/*/*"',
+            'patern: "components/*/*"'
+          ),
+        });
+        focusDependency(store, FILE, 2);
+
+        // Act
+        pane.detail.openPolicy();
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+        expect(pane.list.rowCount).toBe(1);
+      });
+
+      it("should show the list of the file when the tab of the file is selected, and the body again when the tab of the dependency is", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        pane.panel.tab(/checkout/).select();
+        const listOfFile = pane.list.rowCount;
+        const bodyHidden = pane.detail.isRendered;
+        pane.panel.tab("line 3").select();
+
+        // Assert
+        expect(listOfFile).toBe(1);
+        expect(bodyHidden).toBe(false);
+        expect(pane.detail.isRendered).toBe(true);
+        expect(getTabs(pane)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+      });
+
+      it("should show the list of the sketch when the tab of the sketch is selected, with the dependency still in focus", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        pane.panel.tab(/Sketch/).select();
+
+        // Assert
+        expect(pane.list.rowCount).toBe(2);
+        expect(store.getState().focus).toEqual({
+          kind: "dependency",
+          path: FILE,
+          index: 2,
+        });
+        expect(getTabs(pane)).toEqual([
+          "Sketch2*",
+          "checkout/index.js1",
+          "line 3",
+        ]);
+      });
+
+      it("should go back to the tab of the file, without the one of the dependency, when the file is opened", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        act(() => store.open({ kind: "file", path: FILE }));
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch2", "checkout/index.js1*"]);
+      });
+
+      it("should move to the next dependency of the file when the one before it is removed", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        act(() => store.removeDependency({ path: FILE, index: 0 }));
+
+        // Assert
+        expect(getTabs(pane)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 2*",
+        ]);
+        expect(pane.detail.verdictText).toBe("disallowed · policy 2");
+      });
+
+      it("should go back to the tab of the file when the dependency in focus is removed", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        act(() => store.removeDependency({ path: FILE, index: 2 }));
+
+        // Assert
+        expect(getTabs(pane)).toEqual(["Sketch1", "checkout/index.js*"]);
+      });
+
+      it("should follow the evaluation of the config", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+
+        // Act
+        act(() =>
+          store.changeConfig(
+            FULL_QUICK_START.config.replace(
+              'categories: "test"',
+              'categories: "style"'
+            )
+          )
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.detail.verdictText).toBe("allowed · policy 1");
+        expect(pane.panel.tab(/line 3/).icon.pathData).toBe(ICON_PATHS.check);
+      });
     });
   });
 

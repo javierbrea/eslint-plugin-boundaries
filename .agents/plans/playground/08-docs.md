@@ -15,6 +15,14 @@ Read first:
 
 Preconditions: phase 7 merged.
 
+## From phase 6
+
+The words the guide documents are in the code, so the page quotes them from there:
+
+- The verdicts and their reasons: `src/domains/evaluation/ui/helpers/verdictText/` (`policy N`, `default`, `not checked · external`, `not read`, `not evaluated`, and the sentence of each skip reason and of each reason why nothing is evaluated).
+- The picker: the labels in `src/domains/files/ui/helpers/dependencyLabels/` (`A file of the sketch`, `An external module`, the kinds and the imported names), the syntaxes `import`, `export … from`, `require()`, `import()` with what each one holds in the table `SYNTAX_FACTS` of `src/domains/project/helpers/sketch/sketch.constants.ts`, which the picker and the checks of a dependency both read, and the statement forms that text mode reads and writes, in `src/domains/project/helpers/sketch/statements.ts`.
+- What differs from running ESLint, for the "Not the same as running ESLint" note: sources are relative paths computed from the sketch, written as the `node` and `typescript` resolvers of `import/resolver` find them back (`node` by default, as ESLint), not resolved from `node_modules`; other resolvers and the other options of those two are not run, and the playground warns at the entry; the selectors of `boundaries/additional-dependency-nodes` are not run either, and the playground warns at the setting; only the `dependencies` rule is evaluated, or `element-types` when it is the one written; a rule entry without options checks nothing, as in the plugin; a syntax that `boundaries/dependency-nodes` leaves out is `not read`.
+
 ## Scope
 
 In: the guide page and its sidebar entry, the buttons on the chosen docs pages with their sketches, the bug template line. Out: any playground feature; docs of `@boundaries/config` and `@boundaries/policies` as packages (their READMEs cover them until an RFC says otherwise).

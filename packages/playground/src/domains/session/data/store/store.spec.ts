@@ -1,6 +1,6 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
-import type { Engine } from "@/domains/evaluation/helpers/engine";
+import type { Engine, TextRange } from "@/domains/evaluation/helpers/engine";
 
 import { createSessionStore } from "./store";
 import { EVALUATION_DELAY } from "./store.constants";
@@ -44,10 +44,63 @@ const SKETCH: Sketch = {
   dependencies: [],
 };
 
+/** A value import of the format helper by `src/index.js` */
+const INDEX_IMPORTS_FORMAT: SketchDependency = {
+  from: "src/index.js",
+  target: { kind: "node", path: "src/helpers/format.js" },
+  syntax: "import",
+  importKind: "value",
+  specifiers: [{ kind: "named", name: "format" }],
+};
+
+/** A require of `react` by `src/index.js` */
+const INDEX_REQUIRES_REACT: SketchDependency = {
+  from: "src/index.js",
+  target: { kind: "external", name: "react" },
+  syntax: "require",
+  importKind: "value",
+  specifiers: [],
+};
+
+const SKETCH_WITH_DEPENDENCY: Sketch = {
+  ...SKETCH,
+  dependencies: [INDEX_IMPORTS_FORMAT],
+};
+
 const OTHER_SKETCH: Sketch = {
   ...SKETCH,
   tree: [{ path: "main.js", kind: "file" }],
 };
+
+/** A config with two policies, one per line */
+const POLICY_CONFIG = [
+  "{",
+  '  settings: { "boundaries/elements": [{ type: "helper", pattern: "src/helpers/*" }] },',
+  "  rules: {",
+  '    "boundaries/dependencies": [2, {',
+  '      default: "disallow",',
+  "      policies: [",
+  '        { allow: { to: { element: { type: "helper" } } } },',
+  '        { disallow: { to: { file: { categories: "test" } } } },',
+  "      ],",
+  "    }],",
+  "  },",
+  "}",
+].join("\n");
+
+/** The policy that an edit puts before the second one */
+const INSERTED_POLICY =
+  '        { allow: { to: { element: { type: "main" } } } },\n';
+
+const SECOND_POLICY_AT = POLICY_CONFIG.indexOf("        { disallow");
+
+/** The config with a policy before the second one, which is the third now */
+const EDITED_POLICY_CONFIG =
+  POLICY_CONFIG.slice(0, SECOND_POLICY_AT) +
+  INSERTED_POLICY +
+  POLICY_CONFIG.slice(SECOND_POLICY_AT);
+
+const POLICY_SKETCH: Sketch = { ...SKETCH, config: POLICY_CONFIG };
 
 describe("createSessionStore", () => {
   beforeEach(() => {
@@ -440,6 +493,47 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("open with a dependency", () => {
+    it("should put the dependency in focus and select its tab", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      // Act
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+      expect(store.getState().tab).toBe("dependency");
+    });
+
+    it("should keep the policy that a config target came from highlighted", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+      const range = { from: 1, to: 2, line: 1, column: 2 };
+      const dependency = { path: "src/index.js", index: 0 };
+
+      // Act
+      store.open({ kind: "config", range, policy: 0, dependency });
+
+      // Assert
+      expect(store.getState().highlight).toEqual({
+        range,
+        policy: 0,
+        dependency,
+      });
+    });
+  });
+
   describe("selectItem", () => {
     it("should select a folder", () => {
       // Arrange
@@ -503,6 +597,111 @@ describe("createSessionStore", () => {
 
       // Assert
       expect(store.getState().sketch).toEqual({ ...SKETCH, config: "{}" });
+    });
+
+    describe("with the highlighted policy", () => {
+      const DEPENDENCY = { path: "src/index.js", index: 0 };
+
+      /**
+       * Creates a store with the config open at its second policy.
+       * @returns The store, and the range that the second policy has after an edit that puts a policy before it, as the editor reports it.
+       */
+      function openSecondPolicy(): {
+        store: SessionStore;
+        moved: TextRange;
+      } {
+        const store = createSessionStore(POLICY_SKETCH, ALL_CAPABILITIES);
+        const second = store.getState().evaluation.policies[1];
+
+        store.open({
+          kind: "config",
+          range: second.range,
+          policy: 1,
+          dependency: DEPENDENCY,
+        });
+
+        return {
+          store,
+          moved: {
+            ...second.range,
+            from: second.range.from + INSERTED_POLICY.length,
+            to: second.range.to + INSERTED_POLICY.length,
+            line: second.range.line + 1,
+          },
+        };
+      }
+
+      it("should move the range with the text in one notification", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+        const listener = jest.fn(() => {
+          const { sketch, highlight } = store.getState();
+
+          expect(sketch.config).toBe(EDITED_POLICY_CONFIG);
+          expect(highlight?.range).toEqual(moved);
+        });
+        store.subscribe(listener);
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+
+        // Assert
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
+      it("should keep the index of the policy until the config is evaluated, and find it again then", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+        const whileBehind = store.getState().highlight?.policy;
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+
+        // Assert
+        expect(whileBehind).toBe(1);
+        expect(store.getState().highlight).toEqual({
+          range: moved,
+          policy: 2,
+          dependency: DEPENDENCY,
+        });
+      });
+
+      it("should find the policy again with the evaluation that an edit of the tree makes at once", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+
+        // Act
+        store.addNode("folder");
+
+        // Assert
+        expect(store.getState().highlight?.policy).toBe(2);
+      });
+
+      it("should drop the highlight when the editor says it has none", () => {
+        // Arrange
+        const { store } = openSecondPolicy();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, null);
+
+        // Assert
+        expect(store.getState().highlight).toBeUndefined();
+      });
+
+      it("should leave the highlight alone when the text changes without a range", () => {
+        // Arrange
+        const { store } = openSecondPolicy();
+        const { highlight } = store.getState();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG);
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+
+        // Assert
+        expect(store.getState().highlight?.range).toBe(highlight?.range);
+      });
     });
   });
 
@@ -625,6 +824,168 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("addDependency", () => {
+    it("should add the dependency and put it in focus", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, focus: openNode, tab } = store.getState();
+
+      expect(sketch.dependencies).toEqual([INDEX_IMPORTS_FORMAT]);
+      expect(openNode).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+      expect(tab).toBe("dependency");
+    });
+
+    it("should evaluate the dependency at once, without waiting for a timer", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(evaluation.sketch).toBe(sketch);
+      expect(evaluation.dependencies).toHaveLength(1);
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should evaluate the config edit that was waiting too", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      store.changeConfig("{ settings: {}, rules: {}, }");
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(evaluation.sketch).toBe(sketch);
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should call the listener once", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it("should change nothing and notify no listener when the dependency points to its own file", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+      const before = store.getState();
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.addDependency({
+        ...INDEX_IMPORTS_FORMAT,
+        target: { kind: "node", path: "src/index.js" },
+      });
+
+      // Assert
+      expect(store.getState()).toBe(before);
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("replaceDependency", () => {
+    it("should replace the dependency in its position, and evaluate the new one at once", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      // Act
+      store.replaceDependency(
+        { path: "src/index.js", index: 0 },
+        INDEX_REQUIRES_REACT
+      );
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(sketch.dependencies).toEqual([INDEX_REQUIRES_REACT]);
+      expect(evaluation.sketch).toBe(sketch);
+      expect(evaluation.dependencies[0].source).toBe("react");
+    });
+
+    it("should change nothing without editDependencies", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH_WITH_DEPENDENCY, NO_CAPABILITIES);
+      const before = store.getState();
+
+      // Act
+      store.replaceDependency(
+        { path: "src/index.js", index: 0 },
+        INDEX_REQUIRES_REACT
+      );
+
+      // Assert
+      expect(store.getState()).toBe(before);
+    });
+  });
+
+  describe("removeDependency", () => {
+    it("should remove the dependency, and the focus goes to its file when it was in focus", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 });
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      const { sketch, focus: openNode, tab, evaluation } = store.getState();
+
+      expect(sketch.dependencies).toEqual([]);
+      expect(openNode).toEqual({ kind: "file", path: "src/index.js" });
+      expect(tab).toBe("node");
+      expect(evaluation.dependencies).toEqual([]);
+    });
+
+    it("should change nothing without editDependencies", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH_WITH_DEPENDENCY, NO_CAPABILITIES);
+      const before = store.getState();
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState()).toBe(before);
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
   describe("setView", () => {
     it("should change how the project is shown", () => {
       // Arrange
@@ -662,6 +1023,133 @@ describe("createSessionStore", () => {
       ]);
       expect(afterRead.textDraft).toBe("src/index.js\nmain.js\n");
       expect(store.getState().textDraft).toBeUndefined();
+    });
+  });
+
+  describe("a dependency edited while text mode shows", () => {
+    // The text of the sketch with its dependency, and a line under it that cannot be read
+    const STALE_TEXT = [
+      "src/helpers/format.js",
+      "src/index.js",
+      '  import { format } from "./helpers/format";',
+      "  nonsense",
+      "",
+    ].join("\n");
+
+    it.each<
+      [string, (store: SessionStore) => void, readonly SketchDependency[]]
+    >([
+      [
+        "addDependency",
+        (store) => store.addDependency(INDEX_REQUIRES_REACT),
+        [INDEX_IMPORTS_FORMAT, INDEX_REQUIRES_REACT],
+      ],
+      [
+        "replaceDependency",
+        (store) =>
+          store.replaceDependency(
+            { path: "src/index.js", index: 0 },
+            INDEX_REQUIRES_REACT
+          ),
+        [INDEX_REQUIRES_REACT],
+      ],
+      [
+        "removeDependency",
+        (store) => store.removeDependency({ path: "src/index.js", index: 0 }),
+        [],
+      ],
+    ])(
+      "should drop the draft with %s, so that reading the text keeps the edit",
+      (_name, edit, expected) => {
+        // Arrange
+        const store = createSessionStore(
+          SKETCH_WITH_DEPENDENCY,
+          ALL_CAPABILITIES
+        );
+
+        store.setView("text");
+        store.setTextDraft(STALE_TEXT);
+        store.readText();
+
+        // Act
+        edit(store);
+        const edited = store.getState();
+
+        store.readText();
+        store.settleText();
+
+        // Assert
+        expect(edited.textDraft).toBeUndefined();
+        expect(edited.sketch.dependencies).toEqual(expected);
+        expect(store.getState().sketch.dependencies).toEqual(expected);
+      }
+    );
+
+    it("should evaluate the edit at once and keep the view", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      store.setView("text");
+      store.setTextDraft(STALE_TEXT);
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState().view).toBe("text");
+      expect(store.getState().evaluation.dependencies).toEqual([]);
+    });
+  });
+
+  describe("text mode without editDependencies", () => {
+    const NO_DEPENDENCY_EDITS = {
+      ...ALL_CAPABILITIES,
+      editDependencies: false,
+    };
+
+    it("should settle a draft whose dependency lines cannot be read, and keep the dependencies of the sketch", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        NO_DEPENDENCY_EDITS
+      );
+
+      store.setView("text");
+      store.setTextDraft(
+        "src/helpers/format.js\nsrc/index.js\n  nonsense\n  import { a } from './missing'\nmain.js\n"
+      );
+
+      // Act
+      store.settleText();
+
+      // Assert
+      const { textDraft, sketch } = store.getState();
+
+      expect(textDraft).toBeUndefined();
+      expect(sketch.tree.map(({ path }) => path)).toEqual([
+        "src/helpers/format.js",
+        "src/index.js",
+        "main.js",
+      ]);
+      expect(sketch.dependencies).toEqual([INDEX_IMPORTS_FORMAT]);
+    });
+
+    it("should keep the draft of a node line that cannot be read", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, NO_DEPENDENCY_EDITS);
+      const draft = "src/index.js\nsrc/index.js\n";
+
+      store.setView("text");
+      store.setTextDraft(draft);
+
+      // Act
+      store.settleText();
+
+      // Assert
+      expect(store.getState().textDraft).toBe(draft);
     });
   });
 
@@ -703,6 +1191,10 @@ describe("createSessionStore", () => {
       ["removing a node", (store) => store.removeNode("src/index.js")],
       ["changing the config", (store) => store.changeConfig("{}")],
       ["typing in text mode", (store) => store.setTextDraft("main.js\n")],
+      [
+        "adding a dependency",
+        (store) => store.addDependency(INDEX_IMPORTS_FORMAT),
+      ],
     ])(
       "should change nothing, notify no listener and evaluate nothing when %s is not allowed",
       (_title, edit) => {

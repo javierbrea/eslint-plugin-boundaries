@@ -81,15 +81,17 @@ class ProblemRowPom extends Pom {
 
   /**
    * What the problem is about, without the position.
-   * @returns The first text of the location.
+   * @returns The first text of the location, or an empty string when the row has none, as the rows of the list of a file.
    */
   get location(): string {
-    return this.where.childNodes[0].textContent ?? "";
+    const [first] = this.where.childNodes;
+
+    return first instanceof Text ? first.textContent : "";
   }
 
   /**
-   * Where the problem is, with the position next to it.
-   * @returns The text of the location, such as `eslint.config.js:15:16`.
+   * Where the problem is, with the position next to it, and the source of a dependency when the row has one.
+   * @returns The text of the location, such as `eslint.config.js:15:16` or `src/index.js:3 → ./format`.
    */
   get locationWithPosition(): string {
     return this.where.textContent;
@@ -101,6 +103,18 @@ class ProblemRowPom extends Pom {
    */
   get position(): string | null {
     return this.positionElement?.textContent ?? null;
+  }
+
+  /**
+   * The source of the statement of a dependency, as the user reads it after the position.
+   * @returns The text after the position, such as `→ ../../components/atoms/Button` in the list of the sketch and `../../components/atoms/Button` in the list of a file, or null when the row has no source.
+   */
+  get source(): string | null {
+    const last = this.where.lastChild;
+
+    return this.positionElement !== undefined && last instanceof Text
+      ? last.textContent.trim()
+      : null;
   }
 
   /**

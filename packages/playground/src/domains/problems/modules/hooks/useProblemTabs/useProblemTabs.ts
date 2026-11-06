@@ -3,15 +3,21 @@ import { useMemo } from "react";
 import { getProblemTabs } from "@/domains/problems/helpers/problemSelectors";
 import type { ProblemTabFacts } from "@/domains/problems/helpers/problemSelectors";
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
-import { useFocus } from "@/domains/session/data/store";
+import { useFocus, useSessionSelector } from "@/domains/session/data/store";
 
 /**
  * Reads the facts of the tabs of the problems panel.
- * @returns The tabs, in order; the same array while the focus and the problems do not change.
+ * @returns The tabs, in order; the same array while the focus, the problems and the verdicts do not change.
  */
 export function useProblemTabs(): readonly ProblemTabFacts[] {
   const openNode = useFocus();
   const summary = useProblemSummary();
+  const dependencies = useSessionSelector(
+    (state) => state.evaluation.dependencies
+  );
 
-  return useMemo(() => getProblemTabs(openNode, summary), [openNode, summary]);
+  return useMemo(
+    () => getProblemTabs(openNode, summary, dependencies),
+    [openNode, summary, dependencies]
+  );
 }

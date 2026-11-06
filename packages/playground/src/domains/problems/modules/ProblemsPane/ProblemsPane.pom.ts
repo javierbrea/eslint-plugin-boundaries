@@ -1,16 +1,17 @@
+import { DependencyDetailPom } from "@/domains/problems/ui/molecules/DependencyDetail/DependencyDetail.pom";
 import { ProblemListPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
+import { ProblemNotePom } from "@/domains/problems/ui/molecules/ProblemNote/ProblemNote.pom";
 import { ProblemsPanelPom } from "@/domains/problems/ui/molecules/ProblemsPanel/ProblemsPanel.pom";
 import type {
   ProblemsTabPanelPom,
   ProblemsTabPom,
   ProblemsToggleButtonPom,
 } from "@/domains/problems/ui/molecules/ProblemsPanel/ProblemsPanel.pom";
-import { RulesNotePom } from "@/domains/problems/ui/molecules/RulesNote/RulesNote.pom";
 import { Pom } from "@/shared/testing/pom";
 
 import { PROBLEMS_PANE_TEST_ID } from "./ProblemsPane.constants";
 
-/** Page object of the problems pane, which is the panel with the note and the list of the tab that shows. */
+/** Page object of the problems pane, which is the panel with the notes and the list of the tab that shows, or the body of the dependency in focus. */
 export class ProblemsPanePom extends Pom {
   protected readonly defaultTestId = PROBLEMS_PANE_TEST_ID;
 
@@ -57,11 +58,37 @@ export class ProblemsPanePom extends Pom {
   }
 
   /**
-   * The note that says the rules are not evaluated.
-   * @returns The page object of the note, which is not rendered while the rule options are valid.
+   * The first note above the problems of the tab that shows.
+   * @returns The page object of the note, which is not rendered while the tab has none.
    */
-  get note(): RulesNotePom {
-    return this.childPom(RulesNotePom);
+  get note(): ProblemNotePom {
+    return this.childPom(ProblemNotePom);
+  }
+
+  /**
+   * How many notes the tab that shows has above its problems.
+   * @returns The number of notes.
+   */
+  get noteCount(): number {
+    return this.scope.queryAllByRole("note").length;
+  }
+
+  /**
+   * The notes above the problems of the tab that shows, in order.
+   * @returns One page object for each note.
+   */
+  get notes(): ProblemNotePom[] {
+    return Array.from({ length: this.noteCount }, (_, index) =>
+      this.childPom(ProblemNotePom, { index })
+    );
+  }
+
+  /**
+   * The body of the tab of a dependency.
+   * @returns The page object of the body, which is not rendered while another tab shows.
+   */
+  get detail(): DependencyDetailPom {
+    return this.childPom(DependencyDetailPom);
   }
 
   /**

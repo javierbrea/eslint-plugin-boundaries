@@ -150,19 +150,44 @@
         stroke-linejoin: round;
       }
 
+      /* Text in a state color mixes 15% of --jsb-ink into the token, for contrast; "not checked" text is
+         --jsb-muted. Icons, count badges, outlines and the colors inside code areas keep the plain tokens. */
       .ok {
-        color: var(--jsb-ok);
+        color: color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink));
       }
 
       .bad {
-        color: var(--jsb-bad);
+        color: color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink));
       }
 
       .warn {
-        color: var(--jsb-warn);
+        color: color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink));
       }
 
       .faint {
+        color: var(--jsb-muted);
+      }
+
+      .icon.ok,
+      .ok .icon,
+      .count.ok {
+        color: var(--jsb-ok);
+      }
+
+      .icon.bad,
+      .bad .icon,
+      .count.bad {
+        color: var(--jsb-bad);
+      }
+
+      .icon.warn,
+      .warn .icon,
+      .count.warn {
+        color: var(--jsb-warn);
+      }
+
+      .icon.faint,
+      .faint .icon {
         color: var(--jsb-faint);
       }
 
@@ -441,7 +466,7 @@
       }
 
       .tree li.is-bad .name {
-        color: var(--jsb-bad);
+        color: color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink));
       }
 
       .tree li.is-target {
@@ -527,10 +552,6 @@
         font: 12px/20px var(--jsb-font-mono);
         color: var(--jsb-ink);
         white-space: pre;
-      }
-
-      .text-mode .dep {
-        color: var(--jsb-muted);
       }
 
       .text-mode .caret {
@@ -1196,6 +1217,10 @@
         position: relative;
       }
 
+      .field .flip {
+        transform: rotate(180deg);
+      }
+
       .listbox {
         position: absolute;
         z-index: 1;
@@ -1568,19 +1593,19 @@
           <pre class="text-mode" data-show="text" aria-label="Project as text">eslint.config.js
 src/components/atoms/Button/Button.css
 src/components/atoms/Button/Button.spec.js
-<span class="dep">  import { Button } from "./index";</span>
+  import { Button } from "./index";
 src/components/atoms/Button/index.js
-<span class="dep">  import { format } from "../../../helpers/format";</span>
-<span class="dep">  import "./Button.css";</span>
+  import { format } from "../../../helpers/format";
+  import "./Button.css";
 src/helpers/format/index.js
-<span class="dep">  import { Button } from "../../components/atoms/Button";</span>
+  import { Button } from "../../components/atoms/Button";
 src/modules/checkout/index.js
-<span class="dep">  import { Button } from "../../components/atoms/Button";</span>
-<span class="dep">  import { format } from "../../helpers/format";</span>
-<span class="dep">  import { renderButton } from "../../components/atoms/Button/Button.spec";</span>
-<span class="dep">  import React from "react";</span>
+  import { Button } from "../../components/atoms/Button";
+  import { format } from "../../helpers/format";
+  import { renderButton } from "../../components/atoms/Button/Button.spec";
+  import React from "react";
 src/index.js
-<span class="dep">  import "./modules/checkout";</span>
+  import "./modules/checkout";
 src/pages/<span class="caret"></span>
 </pre>
 
@@ -1645,18 +1670,18 @@ src/pages/<span class="caret"></span>
             <ol class="lines">
               <li class="line"><span class="gut"></span><span class="ln">1</span><span class="stmt">{</span></li>
               <li class="line"><span class="gut"></span><span class="ln">2</span><span class="stmt">  <span class="key">settings</span>: {</span></li>
-              <li class="line"><span class="gut"></span><span class="ln">3</span><span class="stmt">    <span class="str">"boundaries/elements"</span>: [</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">3</span><span class="stmt">    <span class="key">"boundaries/elements"</span>: [</span></li>
               <li class="line"><span class="gut"></span><span class="ln">4</span><span class="stmt">      { <span class="key">type</span>: <span class="str">"helper"</span>, <span class="key">pattern</span>: <span class="str">"helpers/*"</span> },</span></li>
               <li class="line"><span class="gut"><svg class="icon" style="color: var(--jsb-code-number)" data-show="config"><use href="#i-warn" /></svg></span><span class="ln">5</span><span class="stmt">      <span data-class-in="config:u-warn">{ <span class="key">type</span>: <span class="str">"component"</span>, <span class="key"><span data-show="config">patern</span><span data-show="policy">pattern</span></span>: <span class="str">"components/*/*"</span> }</span>,</span></li>
               <li class="line"><span class="gut"></span><span class="ln">6</span><span class="stmt">      { <span class="key">type</span>: <span class="str">"module"</span>, <span class="key">pattern</span>: <span class="str">"modules/*"</span> },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">7</span><span class="stmt">    ],</span></li>
-              <li class="line"><span class="gut"></span><span class="ln">8</span><span class="stmt">    <span class="str">"boundaries/files"</span>: [</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">8</span><span class="stmt">    <span class="key">"boundaries/files"</span>: [</span></li>
               <li class="line"><span class="gut"></span><span class="ln">9</span><span class="stmt">      { <span class="key">pattern</span>: <span class="str">"**/*.spec.js"</span>, <span class="key">category</span>: <span class="str">"test"</span> },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">10</span><span class="stmt">      { <span class="key">pattern</span>: <span class="str">"**/*.css"</span>, <span class="key">category</span>: <span class="str">"style"</span> },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">11</span><span class="stmt">    ],</span></li>
               <li class="line"><span class="gut"></span><span class="ln">12</span><span class="stmt">  },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">13</span><span class="stmt">  <span class="key">rules</span>: {</span></li>
-              <li class="line"><span class="gut"></span><span class="ln">14</span><span class="stmt">    <span class="str">"boundaries/dependencies"</span>: [<span class="num">2</span>, {</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">14</span><span class="stmt">    <span class="key">"boundaries/dependencies"</span>: [<span class="num">2</span>, {</span></li>
               <li class="line" data-active-in="config"><span class="gut"><svg class="icon" style="color: var(--jsb-code-error)" data-show="config"><use href="#i-cross" /></svg></span><span class="ln">15</span><span class="stmt">      <span class="key">default</span>: <span class="str" data-class-in="config:u-error"><span data-show="config">"dissallow"</span><span data-show="policy">"disallow"</span></span>,</span></li>
               <li class="line"><span class="gut"></span><span class="ln">16</span><span class="stmt">      <span class="key">policies</span>: [</span></li>
               <li class="line"><span class="gut"></span><span class="ln">17</span><span class="stmt">        {</span></li>
@@ -1675,6 +1700,8 @@ src/pages/<span class="caret"></span>
               <li class="line"><span class="gut"></span><span class="ln">30</span><span class="stmt">    }],</span></li>
               <li class="line"><span class="gut"></span><span class="ln">31</span><span class="stmt">  },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">32</span><span class="stmt">}</span></li>
+              <!-- The config text ends with a newline, so the editor shows an empty last line -->
+              <li class="line"><span class="gut"></span><span class="ln">33</span><span class="stmt"></span></li>
             </ol>
             <!-- Above the range and from its start, where @codemirror/lint opens its hover tooltip -->
             <div class="lint-tip" style="top: 240px; left: 167px" data-show="config">
@@ -1788,7 +1815,7 @@ src/pages/<span class="caret"></span>
               <button class="tab mono-label" role="tab" data-show="policy" data-selected-tab-in="policy">eslint.config.js</button>
             </div>
             <span class="spacer"></span>
-            <button class="icon-btn" type="button" aria-label="Collapse the problems"><svg class="icon"><use href="#i-collapse" /></svg></button>
+            <button class="btn text icon-only" type="button" aria-label="Collapse the problems" title="Collapse the problems"><svg class="icon"><use href="#i-collapse" /></svg></button>
           </div>
 
           <!-- Sketch tab -->
@@ -1890,11 +1917,15 @@ src/pages/<span class="caret"></span>
                   <span class="floating">File</span>
                   src/helpers/format/index.js
                   <span class="spacer"></span>
-                  <svg class="icon muted"><use href="#i-chev-d" /></svg>
+                  <!-- The chevron points up while the list is open -->
+                  <svg class="icon muted flip"><use href="#i-chev-d" /></svg>
                 </div>
+                <!-- Every file of the sketch except the open one, in the order of the tree -->
                 <div class="listbox" role="listbox">
-                  <div class="on"><span>src/helpers/format/index.js</span><small>helper</small></div>
+                  <div><span>src/components/atoms/Button/Button.css</span><small>component</small></div>
+                  <div><span>src/components/atoms/Button/Button.spec.js</span><small>component</small></div>
                   <div><span>src/components/atoms/Button/index.js</span><small>component</small></div>
+                  <div class="on"><span>src/helpers/format/index.js</span><small>helper</small></div>
                   <div><span>src/index.js</span><small>no element</small></div>
                 </div>
               </div>

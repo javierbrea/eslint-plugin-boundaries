@@ -65,6 +65,19 @@ describe("InspectorPane", () => {
       expect(pane.project.count("files")).toBe("6");
     });
 
+    it("should count the dependencies of the sketch and what the engine decided about them", () => {
+      // Act
+      const { pane } = renderPane();
+
+      // Assert
+      expect(pane.project.count("dependencies")).toBe("9");
+      expect(pane.project.count("disallowed")).toBe("2");
+      expect(pane.project.verdictCounts.map(({ text }) => text)).toEqual([
+        "3 allowed",
+        "4 not checked",
+      ]);
+    });
+
     it("should count the files at once after a node is removed", () => {
       // Arrange
       jest.useFakeTimers();
@@ -127,6 +140,57 @@ describe("InspectorPane", () => {
       expect(pane.file.facet("element").entries.types).toBe('[ "module" ]');
     });
 
+    it("should count the dependencies of the file in focus and what the engine decided about them", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Assert
+      expect(pane.file.summary.total).toBe("4 dependencies");
+      expect(pane.file.summary.countTexts.map(({ text }) => text)).toEqual([
+        "2",
+        "1",
+        "1 not checked",
+      ]);
+    });
+
+    it("should keep describing the file when one of its dependencies takes the focus", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 2 }));
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.title(FILE).isRendered).toBe(true);
+      expect(pane.file.summary.total).toBe("4 dependencies");
+    });
+
+    it("should describe the file of a dependency that is in focus when no file was open", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({
+          kind: "dependency",
+          path: "src/helpers/format/index.js",
+          index: 0,
+        })
+      );
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.title("src/helpers/format/index.js").isRendered).toBe(
+        true
+      );
+      expect(pane.file.facet("element").entries.types).toBe('[ "helper" ]');
+    });
+
     it("should describe the renamed file at once, without lagging behind the rename", () => {
       // Arrange
       jest.useFakeTimers();
@@ -174,6 +238,22 @@ describe("InspectorPane", () => {
       expect(pane.config.group("Policies").isRendered).toBe(true);
     });
 
+    it("should list the policies of the rule with the dependencies each decided", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() => store.open({ kind: "config" }));
+
+      // Assert
+      expect(pane.config.group("Policies").rowTexts).toEqual([
+        "0 · component → helper | 1 dependency",
+        "1 · module → component, helper | 2 dependencies",
+        "2 · disallow → test | 1 dependency",
+        "default · disallow | 1 dependency",
+      ]);
+    });
+
     it("should open the config at the entry of the row that is pressed", () => {
       // Arrange
       const { pane, store } = renderPane();
@@ -217,17 +297,17 @@ describe("InspectorPane", () => {
       );
     });
 
-    it("should open the config at the rule that is pressed", () => {
+    it("should open the config at the policy that is pressed", () => {
       // Arrange
       const { pane, store } = renderPane();
       act(() => store.open({ kind: "config" }));
 
       // Act
-      pane.config.row(/^boundaries\/dependencies/).press();
+      pane.config.row(/^2 · disallow/).press();
 
       // Assert
       expect(store.getState().reveal?.range).toEqual(
-        evaluate(QUICK_START).rules[0].range
+        evaluate(QUICK_START).policies[2].range
       );
     });
   });

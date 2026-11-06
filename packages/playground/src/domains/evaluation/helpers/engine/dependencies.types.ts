@@ -1,0 +1,27 @@
+import type { SettingsNormalized } from "@boundaries/config";
+
+import type { Sketch } from "@/contract";
+import type { SourceResolver } from "@/domains/project/helpers/sketch";
+
+import type { EvaluatedRule } from "./evaluatedRule.types";
+
+/** What the dependencies of a sketch are decided with */
+export type DependenciesInput = {
+  readonly sketch: Sketch;
+  /** The paths of the files of the sketch, as `getFiles` gives them, to write the sources of the statements */
+  readonly paths: readonly string[];
+  /** The normalized settings */
+  readonly settings: SettingsNormalized;
+  /** The rule that decides, or `undefined` when no dependency is evaluated */
+  readonly rule: EvaluatedRule | undefined;
+  /** The resolvers that the sources of the statements are written for, as `Evaluation.resolvers` has them */
+  readonly resolvers: readonly SourceResolver[];
+};
+
+/** What the rule decides a dependency with */
+export type DependencyJudgment = {
+  readonly settings: SettingsNormalized;
+  /** The node kinds whose syntaxes the playground reads, from the built-in selectors of the settings */
+  readonly readNodeKinds: ReadonlySet<string>;
+  readonly rule: EvaluatedRule;
+};

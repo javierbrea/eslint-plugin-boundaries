@@ -4,6 +4,8 @@ import type { Tone } from "@/ui-kit/helpers/tone";
 export type TopBarProps = {
   /** How many files the sketch has. */
   readonly files: number;
+  /** How many dependencies the sketch has, whether or not they are evaluated. */
+  readonly dependencies: number;
   /** How many problems the sketch has: those of the config and the lines of text mode that could not be read. */
   readonly problems: number;
   /** The color of the number of problems: `bad` when any is an error, `warn` when they are all warnings. */

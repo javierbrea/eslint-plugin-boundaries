@@ -1,9 +1,24 @@
-export { CONFIG_PATH } from "./sketch.constants";
+export {
+  CONFIG_PATH,
+  DEFAULT_RESOLVER_EXTENSIONS,
+  DEFAULT_RESOLVERS,
+  SOURCE_RESOLVER_NAMES,
+  SYNTAX_FACTS,
+} from "./sketch.constants";
 export type {
+  DependencyRef,
   EditResult,
+  ImportKind,
   NormalizedPath,
+  ParsedStatement,
   RenameResult,
+  SourceResolver,
+  SourceResolverName,
+  SpecifierKind,
+  StatementToken,
+  SyntaxFacts,
   TextProblem,
+  TextReadOptions,
   TextResult,
   TreeItem,
 } from "./sketch.types";
@@ -24,5 +39,21 @@ export {
   renameNode,
   setConfig,
 } from "./edit";
-export { isSameProject } from "./compare";
+export {
+  addDependency,
+  getDependency,
+  getDependencyError,
+  getFileDependencies,
+  getSyntaxFacts,
+  removeDependency,
+  replaceDependency,
+} from "./dependencies";
+export {
+  getDependencySource,
+  parseStatement,
+  resolveSource,
+  toStatement,
+  toStatementTokens,
+} from "./statements";
+export { isSameDependency, isSameProject } from "./compare";
 export { fromText, readTextProblems, toText } from "./textMode";

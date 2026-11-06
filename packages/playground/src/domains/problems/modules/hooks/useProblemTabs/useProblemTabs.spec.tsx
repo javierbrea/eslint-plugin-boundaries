@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { useView } from "@/domains/session/data/store";
 import { renderHookInSession } from "@/domains/session/data/store/store.mock";
 
@@ -73,6 +74,51 @@ describe("useProblemTabs", () => {
       ["sketch", { kind: "sketch" }],
       ["node", { kind: "file", path: "src/helpers/format.js" }],
     ]);
+  });
+
+  it("should add the tab of the dependency in focus, with its verdict, after the tab of its file", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(
+      useProblemTabs,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Act
+    act(() =>
+      store.open({
+        kind: "dependency",
+        path: "src/modules/checkout/index.js",
+        index: 2,
+      })
+    );
+
+    // Assert
+    expect(result.current.map(({ id, subject }) => [id, subject])).toEqual([
+      ["sketch", { kind: "sketch" }],
+      ["node", { kind: "file", path: "src/modules/checkout/index.js" }],
+      [
+        "dependency",
+        {
+          kind: "dependency",
+          ref: { path: "src/modules/checkout/index.js", index: 2 },
+        },
+      ],
+    ]);
+    expect(result.current[1].badge).toEqual({ count: 1, hasErrors: true });
+    expect(result.current[2].verdict).toEqual(
+      expect.objectContaining({ status: "disallowed", level: "error" })
+    );
+  });
+
+  it("should count the failing dependencies in the tab of the sketch", () => {
+    // Act
+    const { result } = renderHookInSession(
+      useProblemTabs,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Assert
+    expect(result.current[0].badge).toEqual({ count: 2, hasErrors: true });
   });
 
   it("should give the same array while the focus and the problems do not change", () => {

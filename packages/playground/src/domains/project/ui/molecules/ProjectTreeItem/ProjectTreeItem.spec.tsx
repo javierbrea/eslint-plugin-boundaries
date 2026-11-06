@@ -64,6 +64,7 @@ function renderItems(
   const initial: ProjectTreeContextValue = {
     counts: NO_COUNTS,
     editable: true,
+    target: undefined,
     renaming: undefined,
     focusRequest: undefined,
     onFocusDone: jest.fn(),
@@ -219,8 +220,8 @@ describe("ProjectTreeItem", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 3],
-          ["src/index.js", 1],
+          ["src", { count: 3, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       renderItems({ counts });
@@ -255,8 +256,8 @@ describe("ProjectTreeItem", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 1],
-          ["src/index.js", 1],
+          ["src", { count: 1, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       renderItems({ counts, editable: false });
@@ -270,12 +271,112 @@ describe("ProjectTreeItem", () => {
       expect(folder).not.toContain(ICON_PATHS.cross);
     });
 
+    it("should draw the badge of a failing file and of its folder in the color of errors", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([
+          ["src", { count: 1, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
+        ]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const file = item("src/index.js").row.badge().color;
+      const folder = item("src").row.badge().color;
+
+      // Assert
+      expect(file).toBe("var(--jsb-bad)");
+      expect(folder).toBe("var(--jsb-bad)");
+    });
+
+    it("should draw the failures of a file in the color of warnings, with a triangle in place of the cross and its name not in red, when all of them are warnings", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([
+          ["src", { count: 2, hasErrors: false }],
+          ["src/index.js", { count: 2, hasErrors: false }],
+        ]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { row } = item("src/index.js");
+
+      // Assert
+      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.iconPaths).toEqual([ICON_PATHS.warn]);
+      expect(row.failureColor).toBe("var(--jsb-warn)");
+      expect(row.isBad).toBe(false);
+    });
+
+    it("should draw the cross and the name in red for a file with an error among its warnings", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { iconPaths, isBad, failureColor } = item("src/index.js").row;
+
+      // Assert
+      expect(iconPaths).toEqual([ICON_PATHS.cross]);
+      expect(failureColor).toBe("var(--jsb-bad)");
+      expect(isBad).toBe(true);
+    });
+
+    it("should write the name of a failing file in the text color of errors, which its cross and its badge do not take", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const failing = item("src/index.js").row;
+      const folder = item("src").row;
+
+      // Assert
+      expect(failing.nameColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
+      expect(failing.failureColor).toBe("var(--jsb-bad)");
+      expect(failing.badge().color).toBe("var(--jsb-bad)");
+      expect(folder.nameColor).toBe("var(--jsb-muted)");
+    });
+
+    it("should draw the badge of a folder in the color of warnings when the failures under it are all warnings, and not turn its name red", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src", { count: 1, hasErrors: false }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { row } = item("src");
+
+      // Assert
+      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.isBad).toBe(false);
+    });
+
     it("should draw the row of a failing file in red, and the row of the config only when it has errors", () => {
       // Arrange
       const counts: ProblemCounts = {
         config: 1,
         configHasErrors: true,
-        byPath: new Map([["src/index.js", 1]]),
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
       };
       const page = renderItems({ counts });
       const redFile = item("src/index.js").row.isBad;
@@ -288,6 +389,116 @@ describe("ProjectTreeItem", () => {
       expect(redFile).toBe(true);
       expect(redConfigWithErrors).toBe(true);
       expect(item("eslint.config.js").row.isBad).toBe(false);
+    });
+  });
+
+  describe("target", () => {
+    it("should mark the item that the dependency in focus points to", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const { isTarget } = item("src/index.js").row;
+
+      // Assert
+      expect(isTarget).toBe(true);
+    });
+
+    it("should tag the item as the target, in the accent color, at the end of its row", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const { targetTag, targetTagColor, text } = item("src/index.js").row;
+
+      // Assert
+      expect(targetTag).toBe("target");
+      expect(targetTagColor).toBe("var(--jsb-accent)");
+      expect(text).toBe(`index.js${targetTag}`);
+    });
+
+    it("should put the tag after the actions, so that their gap is never between the tag and the end of the row", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
+      };
+      renderItems({ target: "src/index.js", counts });
+
+      // Act
+      const { endParts } = item("src/index.js").row;
+
+      // Assert
+      expect(endParts).toEqual(["actions", "target tag", "failure", "badge"]);
+    });
+
+    it("should outline and tag only that item", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const rows = [
+        "eslint.config.js",
+        "src",
+        "src/components/Button.js",
+        "index.js",
+      ].map((path) => item(path).row);
+
+      // Assert
+      expect(rows.map(({ isTarget }) => isTarget)).toEqual([
+        false,
+        false,
+        false,
+        false,
+      ]);
+      expect(rows.map(({ targetTag }) => targetTag)).toEqual([
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    it("should outline no item while no dependency is in focus", () => {
+      // Arrange
+      renderItems();
+
+      // Act
+      const { isTarget, targetTag } = item("src/index.js").row;
+
+      // Assert
+      expect(isTarget).toBe(false);
+      expect(targetTag).toBeNull();
+    });
+
+    it("should move the outline when the dependency in focus changes", () => {
+      // Arrange
+      const page = renderItems({ target: "src/index.js" });
+
+      // Act
+      page.update({ target: "index.js" });
+
+      // Assert
+      expect(item("src/index.js").row.isTarget).toBe(false);
+      expect(item("index.js").row.isTarget).toBe(true);
+    });
+
+    it("should keep the badge and the cross of a failing file that is the target", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
+      };
+      renderItems({ target: "src/index.js", counts });
+
+      // Act
+      const { badgeNames, targetTag } = item("src/index.js").row;
+
+      // Assert
+      expect(targetTag).toBe("target");
+      expect(badgeNames).toEqual(["2 failing dependencies"]);
     });
   });
 

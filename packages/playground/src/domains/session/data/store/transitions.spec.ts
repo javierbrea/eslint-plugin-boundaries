@@ -1,23 +1,26 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type {
   Evaluation,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import { toText } from "@/domains/project/helpers/sketch";
+import { DEFAULT_RESOLVERS, toText } from "@/domains/project/helpers/sketch";
 import type { Focus } from "@/domains/session/helpers/focus";
 
 import type { SessionState } from "./sessionState.types";
 import { ALL_CAPABILITIES } from "./store.mock";
 import {
+  addDependency,
   addNode,
   cancelRename,
   changeConfig,
   createSessionState,
   openTarget,
   readText,
+  removeDependency,
   removeNode,
   renameNode,
+  replaceDependency,
   selectItem,
   selectTab,
   setEvaluation,
@@ -94,6 +97,91 @@ function getPaths(state: SessionState): string[] {
   return state.sketch.tree.map((node) => node.path);
 }
 
+/**
+ * Builds a value import of a file of the sketch from another one.
+ * @param from The file that has the dependency.
+ * @param to The file it points to.
+ * @returns The dependency, a new object each time.
+ */
+function importOf(from: string, to: string): SketchDependency {
+  return {
+    from,
+    target: { kind: "node", path: to },
+    syntax: "import",
+    importKind: "value",
+    specifiers: [],
+  };
+}
+
+/**
+ * Builds a value import of an external module.
+ * @param from The file that has the dependency.
+ * @param moduleName The name of the module.
+ * @returns The dependency, a new object each time.
+ */
+function importModule(from: string, moduleName: string): SketchDependency {
+  return {
+    from,
+    target: { kind: "external", name: moduleName },
+    syntax: "import",
+    importKind: "value",
+    specifiers: [{ kind: "default", name: "x" }],
+  };
+}
+
+/** The dependencies of `src/index.js` are, in order, to the format helper, to `react` and to `main.js`; `main.js` has one to `src/index.js` */
+const DEPENDENCIES: readonly SketchDependency[] = [
+  importOf("src/index.js", "src/helpers/format.js"),
+  importModule("src/index.js", "react"),
+  importOf("src/index.js", "main.js"),
+  importOf("main.js", "src/index.js"),
+];
+
+const DEPENDENCY_SKETCH: Sketch = { ...SKETCH, dependencies: DEPENDENCIES };
+
+const DEPENDENCY_EVALUATION: Evaluation =
+  createEngine().evaluate(DEPENDENCY_SKETCH);
+
+/**
+ * Creates a session state for the sketch with dependencies.
+ * @param overrides What differs from the first state.
+ * @returns The state.
+ */
+function createDependencyState(
+  overrides: Partial<SessionState> = {}
+): SessionState {
+  return {
+    ...createSessionState(
+      DEPENDENCY_SKETCH,
+      DEPENDENCY_EVALUATION,
+      ALL_CAPABILITIES
+    ),
+    ...overrides,
+  };
+}
+
+/**
+ * Builds the focus on a dependency of the sketch with dependencies.
+ * @param path The file of the dependency.
+ * @param index Its position among the dependencies of the file.
+ * @returns The focus.
+ */
+function onDependency(path: string, index: number): Focus {
+  return { kind: "dependency", path, index };
+}
+
+/**
+ * Gets what the dependencies of a state point to, to tell which one is which after an edit.
+ * @param state The state.
+ * @returns For each dependency of the sketch, its file and where it points to, as `from -> to`.
+ */
+function getEdges(state: SessionState): string[] {
+  return state.sketch.dependencies.map(
+    ({ from, target }) =>
+      `${from} -> ${target.kind === "node" ? target.path : target.name}`
+  );
+}
+
 describe("Transitions", () => {
   describe("createSessionState", () => {
     it("should start with nothing in focus, the tree with every folder open and the sketch tab", () => {
@@ -109,6 +197,7 @@ describe("Transitions", () => {
         tab: "sketch",
         problemsCollapsed: false,
         reveal: undefined,
+        highlight: undefined,
         revealCount: 0,
         view: "tree",
         textDraft: undefined,
@@ -594,6 +683,22 @@ describe("Transitions", () => {
 
       // Assert
       expect(getPaths(state)).toContain("src/helpers/new-file.js");
+    });
+
+    it("should add the node in the folder of the file whose dependency is in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 0),
+        tab: "dependency",
+      });
+
+      // Act
+      const file = addNode(before, "file");
+      const folder = addNode(before, "folder");
+
+      // Assert
+      expect(getPaths(file)).toContain("src/new-file.js");
+      expect(getPaths(folder)).toContain("src/new-folder");
     });
 
     it("should add the node at the root when the open file is at the root", () => {
@@ -1574,7 +1679,7 @@ describe("Transitions", () => {
       // Arrange
       const before = createState({
         view: "text",
-        textDraft: `${toText(SKETCH)}  import bad\n`,
+        textDraft: `${toText(SKETCH, DEFAULT_RESOLVERS)}  import bad\n`,
       });
 
       // Act
@@ -1602,13 +1707,72 @@ describe("Transitions", () => {
 
     it("should return the same state for the draft of the same project", () => {
       // Arrange
-      const before = createState({ view: "text", textDraft: toText(SKETCH) });
+      const before = createState({
+        view: "text",
+        textDraft: toText(SKETCH, DEFAULT_RESOLVERS),
+      });
 
       // Act
       const state = readText(before);
 
       // Assert
       expect(state).toBe(before);
+    });
+
+    describe("when the draft writes a source that only the typescript resolver resolves", () => {
+      const TYPED = 'src/a.ts\n  import "./b";\nsrc/b.ts\n';
+
+      /**
+       * Creates a state for a sketch of two TypeScript files, whose config sets the resolvers given.
+       * @param settings The text of the settings of the config.
+       * @returns The state, with the draft of the text and the evaluation of its config.
+       */
+      function createTypescriptState(settings: string): SessionState {
+        const sketch: Sketch = {
+          config: `{ settings: ${settings}, rules: {} }`,
+          tree: [
+            { path: "src/a.ts", kind: "file" },
+            { path: "src/b.ts", kind: "file" },
+          ],
+          dependencies: [],
+        };
+
+        return {
+          ...createSessionState(
+            sketch,
+            createEngine().evaluate(sketch),
+            ALL_CAPABILITIES
+          ),
+          view: "text",
+          textDraft: TYPED,
+        };
+      }
+
+      it("should read the source with the resolvers of the evaluation of the state", () => {
+        // Arrange
+        const before = createTypescriptState(
+          '{ "import/resolver": "typescript" }'
+        );
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual(["src/a.ts -> src/b.ts"]);
+        expect(state.textDraft).toBeUndefined();
+      });
+
+      it("should leave the line out, and keep the draft, when the resolvers of the evaluation do not resolve it", () => {
+        // Arrange
+        const before = createTypescriptState("{}");
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual([]);
+        expect(state.textDraft).toBe(TYPED);
+      });
     });
   });
 
@@ -1630,7 +1794,10 @@ describe("Transitions", () => {
 
     it("should drop the draft of the same project and keep its sketch", () => {
       // Arrange
-      const before = createState({ view: "text", textDraft: toText(SKETCH) });
+      const before = createState({
+        view: "text",
+        textDraft: toText(SKETCH, DEFAULT_RESOLVERS),
+      });
 
       // Act
       const state = settleText(before);
@@ -1652,6 +1819,1860 @@ describe("Transitions", () => {
       expect(state.textDraft).toBe(draft);
       expect(getPaths(state)).toEqual(["main.js"]);
     });
+
+    describe("without editDependencies", () => {
+      const NO_DEPENDENCY_EDITS = {
+        ...ALL_CAPABILITIES,
+        editDependencies: false,
+      };
+
+      it("should drop the draft although a dependency line cannot be read, because the dependency lines are ignored", () => {
+        // Arrange
+        const before = createState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: "main.js\n  import bad\n  import { a } from './missing'\n",
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(getPaths(state)).toEqual(["main.js"]);
+      });
+
+      it("should keep the draft of a line of a node that cannot be read", () => {
+        // Arrange
+        const draft = "main.js\nmain.js\n  import bad\n";
+        const before = createState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: draft,
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBe(draft);
+        expect(getPaths(state)).toEqual(["main.js"]);
+      });
+
+      it("should keep the dependencies of the sketch when the draft settles", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: `${toText({ tree: SKETCH.tree, dependencies: [] }, DEFAULT_RESOLVERS)}  import bad\n`,
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(getEdges(state)).toEqual(getEdges(before));
+      });
+    });
+  });
+
+  describe("openTarget with a dependency", () => {
+    it("should put the dependency in focus and select the tab of the dependency", () => {
+      // Act
+      const state = openTarget(createDependencyState(), {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should replace the focus of a file, even when the user had selected the sketch's tab", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: INDEX_FOCUS,
+        tab: "sketch",
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("main.js", 0));
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should replace the focus of another dependency of the same file", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 0),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 2,
+      });
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 2));
+    });
+
+    it("should keep the same focus object when the dependency already is in focus", () => {
+      // Arrange
+      const openNode = onDependency("src/index.js", 1);
+      const before = createDependencyState({
+        focus: openNode,
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.focus).toBe(openNode);
+    });
+
+    it("should open the closed folders above the file of the dependency and no others", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src", "docs"]),
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual(["docs"]);
+    });
+
+    it("should open the closed folders above the target of the dependency too, so that the outline shows", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src/helpers", "docs"]),
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual(["docs"]);
+    });
+
+    it("should open the folders above the target of a dependency whose file is at the root", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src"]),
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual([]);
+    });
+
+    it("should leave the closed folders as they are when the dependency is on an external module", () => {
+      // Arrange
+      const closedFolders = new Set(["src/helpers", "docs"]);
+      const before = createDependencyState({ closedFolders });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.closedFolders).toBe(closedFolders);
+    });
+
+    it("should drop the folder the user selected, the request to reveal and the highlight", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: { kind: "config" },
+        tab: "node",
+        pickedFolder: "docs",
+        reveal: { range: RANGE, key: 1 },
+        revealCount: 1,
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 0 },
+        },
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state.pickedFolder).toBeUndefined();
+      expect(state.reveal).toBeUndefined();
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it("should put the file in focus and select the tab of the node when it opens while one of its dependencies is in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, { kind: "file", path: "src/index.js" });
+
+      // Assert
+      expect(state.focus).toEqual(INDEX_FOCUS);
+      expect(state.tab).toBe("node");
+    });
+
+    it("should put another file in focus and select the tab of the node when a dependency was in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, { kind: "file", path: "main.js" });
+
+      // Assert
+      expect(state.focus).toEqual({ kind: "file", path: "main.js" });
+      expect(state.tab).toBe("node");
+    });
+
+    it("should put the config in focus and select the tab of the node when a dependency was in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, { kind: "config" });
+
+      // Assert
+      expect(state.focus).toEqual({ kind: "config" });
+      expect(state.tab).toBe("node");
+    });
+  });
+
+  describe("the highlight of a policy", () => {
+    const FROM = { path: "src/index.js", index: 2 };
+
+    it("should be set by a config target that has a range and the dependency it came from, which also asks to reveal the range", () => {
+      // Act
+      const state = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+      expect(state.reveal).toEqual({ range: RANGE, key: 1 });
+      expect(state.focus).toEqual({ kind: "config" });
+    });
+
+    it("should be set when the target comes from the dependency in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 2),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+      expect(state.tab).toBe("node");
+    });
+
+    it("should be kept while the config stays in focus, whatever the user does in the panel or in the text", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Act
+      const selected = selectTab(opened, "sketch");
+      const typed = changeConfig(selected, "{ settings: {}, rules: {}, }");
+      const evaluated = setEvaluation(typed, EVALUATION);
+
+      // Assert
+      expect(evaluated.highlight).toBe(opened.highlight);
+    });
+
+    it("should be replaced when another policy is opened from a dependency", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+      const other = { path: "main.js", index: 0 };
+
+      // Act
+      const state = openTarget(opened, {
+        kind: "config",
+        range: OTHER_RANGE,
+        policy: 0,
+        dependency: other,
+      });
+
+      // Assert
+      expect(state.highlight).toEqual({
+        range: OTHER_RANGE,
+        policy: 0,
+        dependency: other,
+      });
+    });
+
+    it("should be dropped when the config opens with a range and no dependency, which still asks to reveal the range", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Act
+      const state = openTarget(opened, { kind: "config", range: OTHER_RANGE });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+      expect(state.reveal).toEqual({ range: OTHER_RANGE, key: 2 });
+    });
+
+    it("should be dropped when the config opens with nothing else", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Act
+      const state = openTarget(opened, { kind: "config" });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it("should keep the index of the policy, and null for the default", () => {
+      // Act
+      const policy = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 1,
+        dependency: FROM,
+      });
+      const byDefault = openTarget(createDependencyState(), {
+        kind: "config",
+        range: OTHER_RANGE,
+        policy: null,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(policy.highlight?.policy).toBe(1);
+      expect(byDefault.highlight?.policy).toBeNull();
+    });
+
+    it("should not be set by a target that has a range and a dependency and does not say which policy it is", () => {
+      // Act
+      const state = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+      expect(state.reveal).toEqual({ range: RANGE, key: 1 });
+    });
+
+    it("should not be set by a target that has a dependency and no range", () => {
+      // Act
+      const state = openTarget(createDependencyState(), {
+        kind: "config",
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it("should be dropped when a file opens", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Act
+      const state = openTarget(opened, { kind: "file", path: "main.js" });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it("should be dropped when a dependency opens", () => {
+      // Arrange
+      const opened = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
+
+      // Act
+      const state = openTarget(opened, {
+        kind: "dependency",
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+    });
+  });
+
+  describe("the highlight of a policy, after the config was edited", () => {
+    const FROM = { path: "src/index.js", index: 2 };
+
+    /** A config with two policies and a default, one policy per line, so that an edit can put a policy before the second one */
+    const POLICY_CONFIG = [
+      "{",
+      '  settings: { "boundaries/elements": [{ type: "helper", pattern: "src/helpers/*" }] },',
+      "  rules: {",
+      '    "boundaries/dependencies": [2, {',
+      '      default: "disallow",',
+      "      policies: [",
+      '        { allow: { to: { element: { type: "helper" } } } },',
+      '        { disallow: { to: { file: { categories: "test" } } } },',
+      "      ],",
+      "    }],",
+      "  },",
+      "}",
+    ].join("\n");
+
+    /** The policy that the edit puts before the second one */
+    const INSERTED =
+      '        { allow: { to: { element: { type: "main" } } } },\n';
+
+    const SECOND_AT = POLICY_CONFIG.indexOf("        { disallow");
+
+    const EDITED_CONFIG =
+      POLICY_CONFIG.slice(0, SECOND_AT) +
+      INSERTED +
+      POLICY_CONFIG.slice(SECOND_AT);
+
+    const POLICY_SKETCH: Sketch = { ...SKETCH, config: POLICY_CONFIG };
+
+    const POLICY_EVALUATION = createEngine().evaluate(POLICY_SKETCH);
+
+    const EDITED_EVALUATION = createEngine().evaluate({
+      ...SKETCH,
+      config: EDITED_CONFIG,
+    });
+
+    /** The second policy, as the evaluation of the config before the edit places it, and the default */
+    const [, SECOND, DEFAULT] = POLICY_EVALUATION.policies;
+
+    /** Where the editor says the second policy is after the edit: the lines of the policy that was put before it are above */
+    const MOVED: TextRange = {
+      ...SECOND.range,
+      from: SECOND.range.from + INSERTED.length,
+      to: SECOND.range.to + INSERTED.length,
+      line: SECOND.range.line + 1,
+    };
+
+    /**
+     * Creates the state after the config was opened at the second policy.
+     * @param overrides What differs from it.
+     * @returns The state, whose evaluation is the one of the config before the edit.
+     */
+    function createOpened(overrides: Partial<SessionState> = {}): SessionState {
+      return createState({
+        sketch: POLICY_SKETCH,
+        evaluation: POLICY_EVALUATION,
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: { range: SECOND.range, policy: 1, dependency: FROM },
+        ...overrides,
+      });
+    }
+
+    it("should have an evaluation whose policies are the two of the rule and its default, which the cases below tell apart", () => {
+      // Act
+      const indexes = EDITED_EVALUATION.policies.map(({ index }) => index);
+
+      // Assert
+      expect(POLICY_EVALUATION.policies.map(({ index }) => index)).toEqual([
+        0,
+        1,
+        null,
+      ]);
+      expect(indexes).toEqual([0, 1, 2, null]);
+      expect(EDITED_EVALUATION.policies[2].range.from).toBe(MOVED.from);
+    });
+
+    describe("the edit", () => {
+      it("should move the range with the text, in one state", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toEqual({
+          range: MOVED,
+          policy: 1,
+          dependency: FROM,
+        });
+      });
+
+      it("should keep the index of the policy, which the evaluation finds again", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state.highlight?.policy).toBe(1);
+        expect(state.evaluation).toBe(POLICY_EVALUATION);
+      });
+
+      it("should drop the highlight when the editor says it has none, with the text", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, null);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toBeUndefined();
+      });
+
+      it("should keep the highlight when the text changes without the editor, which says nothing of it", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = changeConfig(before, EDITED_CONFIG);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toBe(before.highlight);
+      });
+
+      it("should take the range though the text is the same", () => {
+        // Act
+        const state = changeConfig(createOpened(), POLICY_CONFIG, MOVED);
+
+        // Assert
+        expect(state.sketch).toBe(POLICY_SKETCH);
+        expect(state.highlight?.range).toEqual(MOVED);
+      });
+
+      it("should return the same state when neither the text nor the range changes", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = changeConfig(before, POLICY_CONFIG, SECOND.range);
+
+        // Assert
+        expect(state).toBe(before);
+      });
+
+      it("should not move the range without editConfig", () => {
+        // Arrange
+        const before = createOpened({ capabilities: CONFIG_LOCKED });
+
+        // Act
+        const state = changeConfig(before, EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state).toBe(before);
+      });
+
+      it("should leave no highlight when there was none", () => {
+        // Act
+        const state = changeConfig(
+          createOpened({ highlight: undefined }),
+          EDITED_CONFIG,
+          MOVED
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+      });
+    });
+
+    describe("the evaluation", () => {
+      it("should find the policy again by where the range starts, when the policies moved", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Act
+        const state = setEvaluation(edited, EDITED_EVALUATION);
+
+        // Assert
+        expect(state.highlight).toEqual({
+          range: MOVED,
+          policy: 2,
+          dependency: FROM,
+        });
+        expect(state.evaluation).toBe(EDITED_EVALUATION);
+      });
+
+      it("should find the default again", () => {
+        // Arrange
+        const before = createOpened({
+          highlight: { range: DEFAULT.range, policy: 1, dependency: FROM },
+        });
+
+        // Act
+        const state = setEvaluation(
+          changeConfig(before, POLICY_CONFIG, DEFAULT.range),
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBeNull();
+      });
+
+      it("should leave the index unknown when no policy starts where the range starts", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), EDITED_CONFIG, {
+          ...MOVED,
+          from: MOVED.from + 1,
+        });
+
+        // Act
+        const state = setEvaluation(edited, EDITED_EVALUATION);
+
+        // Assert
+        expect(state.highlight).toEqual({
+          range: { ...MOVED, from: MOVED.from + 1 },
+          policy: undefined,
+          dependency: FROM,
+        });
+      });
+
+      it("should find the policy again after the index was unknown", () => {
+        // Arrange
+        const lost = setEvaluation(
+          changeConfig(createOpened(), EDITED_CONFIG, {
+            ...MOVED,
+            from: MOVED.from + 1,
+          }),
+          EDITED_EVALUATION
+        );
+        const restored = changeConfig(lost, EDITED_CONFIG, MOVED);
+
+        // Act
+        const state = setEvaluation(
+          restored,
+          createEngine().evaluate({ ...SKETCH, config: EDITED_CONFIG })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBe(2);
+      });
+
+      it("should leave the index unknown when the evaluation has no policies", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), "{}", MOVED);
+
+        // Act
+        const state = setEvaluation(
+          edited,
+          createEngine().evaluate({ ...SKETCH, config: "{}" })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBeUndefined();
+      });
+
+      it("should keep the index it had while the evaluation is behind the text, though a policy of it starts at the range", () => {
+        // Arrange
+        // The index is not the one of the policy that starts at the range, so that finding it again would show
+        const edited = changeConfig(
+          createOpened({
+            highlight: { range: SECOND.range, policy: 5, dependency: FROM },
+          }),
+          EDITED_CONFIG,
+          SECOND.range
+        );
+        const behind = createEngine().evaluate({
+          ...POLICY_SKETCH,
+          config: `${POLICY_CONFIG}\n`,
+        });
+
+        // Act
+        const state = setEvaluation(edited, behind);
+
+        // Assert
+        expect(state.evaluation).toBe(behind);
+        expect(state.highlight).toBe(edited.highlight);
+        expect(state.highlight?.policy).toBe(5);
+      });
+
+      it("should keep the same highlight when the index is the one it had", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = setEvaluation(
+          before,
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight).toBe(before.highlight);
+      });
+
+      it("should leave no highlight when there was none", () => {
+        // Act
+        const state = setEvaluation(
+          createOpened({ highlight: undefined }),
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+      });
+    });
+  });
+
+  describe("addDependency", () => {
+    it("should return the same state without editDependencies", () => {
+      // Arrange
+      const before = createDependencyState({
+        capabilities: { ...ALL_CAPABILITIES, editDependencies: false },
+      });
+
+      // Act
+      const state = addDependency(
+        before,
+        importOf("main.js", "src/helpers/format.js")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should add the dependency after the ones of its file, and put it in focus", () => {
+      // Act
+      const state = addDependency(
+        createDependencyState(),
+        importOf("main.js", "src/helpers/format.js")
+      );
+
+      // Assert
+      expect(getEdges(state)).toEqual([
+        "src/index.js -> src/helpers/format.js",
+        "src/index.js -> react",
+        "src/index.js -> main.js",
+        "main.js -> src/index.js",
+        "main.js -> src/helpers/format.js",
+      ]);
+      expect(state.focus).toEqual(onDependency("main.js", 1));
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should give the first index to the dependency of a file that had none", () => {
+      // Act
+      const state = addDependency(
+        createDependencyState(),
+        importOf("src/helpers/format.js", "main.js")
+      );
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/helpers/format.js", 0));
+    });
+
+    it("should replace the focus that was on a file or on the config", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: { kind: "config" },
+        tab: "node",
+      });
+
+      // Act
+      const state = addDependency(
+        before,
+        importOf("main.js", "src/helpers/format.js")
+      );
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("main.js", 1));
+    });
+
+    it("should open the folders above the file of the dependency", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src", "docs"]),
+      });
+
+      // Act
+      const state = addDependency(before, importOf("src/index.js", "main.js"));
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual(["docs"]);
+    });
+
+    it("should drop the highlight, which belongs to the config", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 0 },
+        },
+      });
+
+      // Act
+      const state = addDependency(
+        before,
+        importOf("main.js", "src/helpers/format.js")
+      );
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it("should add it without editTree and without editConfig", () => {
+      // Arrange
+      const before = createDependencyState({
+        capabilities: {
+          editTree: false,
+          editDependencies: true,
+          editConfig: false,
+        },
+      });
+
+      // Act
+      const state = addDependency(
+        before,
+        importOf("main.js", "src/helpers/format.js")
+      );
+
+      // Assert
+      expect(state.sketch.dependencies).toHaveLength(5);
+    });
+
+    it("should return the same state when the dependency points to its own file", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = addDependency(before, importOf("main.js", "main.js"));
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should return the same state when the target is not a file of the sketch", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = addDependency(before, importOf("main.js", "missing.js"));
+
+      // Assert
+      expect(state).toBe(before);
+    });
+  });
+
+  describe("replaceDependency", () => {
+    const REF = { path: "src/index.js", index: 1 };
+
+    it("should return the same state without editDependencies", () => {
+      // Arrange
+      const before = createDependencyState({
+        capabilities: { ...ALL_CAPABILITIES, editDependencies: false },
+      });
+
+      // Act
+      const state = replaceDependency(
+        before,
+        REF,
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should replace the dependency in its position", () => {
+      // Act
+      const state = replaceDependency(
+        createDependencyState(),
+        REF,
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(getEdges(state)).toEqual([
+        "src/index.js -> src/helpers/format.js",
+        "src/index.js -> lodash",
+        "src/index.js -> main.js",
+        "main.js -> src/index.js",
+      ]);
+    });
+
+    it("should keep it in focus, with the tab the user had selected, when it was", () => {
+      // Arrange
+      const openNode = onDependency("src/index.js", 1);
+      const before = createDependencyState({ focus: openNode, tab: "sketch" });
+
+      // Act
+      const state = replaceDependency(
+        before,
+        REF,
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state.focus).toBe(openNode);
+      expect(state.tab).toBe("sketch");
+    });
+
+    it("should keep another dependency in focus", () => {
+      // Arrange
+      const openNode = onDependency("src/index.js", 2);
+      const before = createDependencyState({
+        focus: openNode,
+        tab: "dependency",
+      });
+
+      // Act
+      const state = replaceDependency(
+        before,
+        REF,
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state.focus).toBe(openNode);
+    });
+
+    it("should not put it in focus when it was not", () => {
+      // Act
+      const state = replaceDependency(
+        createDependencyState(),
+        REF,
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state.focus).toEqual({ kind: "none" });
+    });
+
+    it("should return the same state when there is no dependency at the position", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = replaceDependency(
+        before,
+        { path: "src/index.js", index: 7 },
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should return the same state when the new dependency is of another file", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = replaceDependency(
+        before,
+        REF,
+        importModule("main.js", "lodash")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should return the same state when the sketch cannot hold the new dependency", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = replaceDependency(
+        before,
+        REF,
+        importOf("src/index.js", "src/index.js")
+      );
+
+      // Assert
+      expect(state).toBe(before);
+    });
+  });
+
+  describe("removeDependency", () => {
+    it("should return the same state without editDependencies", () => {
+      // Arrange
+      const before = createDependencyState({
+        capabilities: { ...ALL_CAPABILITIES, editDependencies: false },
+      });
+
+      // Act
+      const state = removeDependency(before, {
+        path: "src/index.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should remove the dependency, and the ones after it in its file move up", () => {
+      // Act
+      const state = removeDependency(createDependencyState(), {
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(getEdges(state)).toEqual([
+        "src/index.js -> src/helpers/format.js",
+        "src/index.js -> main.js",
+        "main.js -> src/index.js",
+      ]);
+    });
+
+    it("should put the file in focus, and select the tab of the node, when the dependency in focus is removed", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = removeDependency(before, {
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.focus).toEqual(INDEX_FOCUS);
+      expect(state.tab).toBe("node");
+    });
+
+    it("should leave the tab the user selected when the dependency in focus is removed", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "sketch",
+      });
+
+      // Act
+      const state = removeDependency(before, {
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.focus).toEqual(INDEX_FOCUS);
+      expect(state.tab).toBe("sketch");
+    });
+
+    it("should shift the index of the dependency in focus when one before it in its file is removed", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 2),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = removeDependency(before, {
+        path: "src/index.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 1));
+      expect(state.tab).toBe("dependency");
+      expect(getEdges(state)[1]).toBe("src/index.js -> main.js");
+    });
+
+    it("should keep the focus when the dependency removed is after it, or of another file", () => {
+      // Arrange
+      const openNode = onDependency("src/index.js", 1);
+      const before = createDependencyState({
+        focus: openNode,
+        tab: "dependency",
+      });
+
+      // Act
+      const after = removeDependency(before, {
+        path: "src/index.js",
+        index: 2,
+      });
+      const other = removeDependency(before, { path: "main.js", index: 0 });
+
+      // Assert
+      expect(after.focus).toBe(openNode);
+      expect(other.focus).toBe(openNode);
+    });
+
+    it("should leave nothing in focus as it was", () => {
+      // Act
+      const state = removeDependency(createDependencyState(), {
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(state.focus).toEqual({ kind: "none" });
+      expect(state.tab).toBe("sketch");
+    });
+
+    it("should return the same state when there is no dependency at the position", () => {
+      // Arrange
+      const before = createDependencyState();
+
+      // Act
+      const state = removeDependency(before, { path: "main.js", index: 1 });
+
+      // Assert
+      expect(state).toBe(before);
+    });
+
+    it("should move the dependency a highlight came from with the ones before it, and drop the highlight when it is removed", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        },
+      });
+
+      // Act
+      const moved = removeDependency(before, {
+        path: "src/index.js",
+        index: 0,
+      });
+      const removed = removeDependency(before, {
+        path: "src/index.js",
+        index: 2,
+      });
+
+      // Assert
+      expect(moved.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: { path: "src/index.js", index: 1 },
+      });
+      expect(removed.highlight).toBeUndefined();
+      expect(removed.focus).toEqual({ kind: "config" });
+    });
+  });
+
+  describe("the text draft when a dependency is edited", () => {
+    // The text of the sketch, as text mode shows it, with a line below it that could not be read
+    const STALE_DRAFT = `${toText(DEPENDENCY_SKETCH, DEFAULT_RESOLVERS)}  import bad\n`;
+
+    const MISSING = { path: "src/index.js", index: 9 };
+
+    const EDITS: [
+      string,
+      (state: SessionState) => SessionState,
+      (state: SessionState) => SessionState,
+    ][] = [
+      [
+        "addDependency",
+        (state) =>
+          addDependency(state, importOf("main.js", "src/helpers/format.js")),
+        (state) => addDependency(state, importOf("main.js", "main.js")),
+      ],
+      [
+        "replaceDependency",
+        (state) =>
+          replaceDependency(
+            state,
+            { path: "src/index.js", index: 1 },
+            importModule("src/index.js", "lodash")
+          ),
+        (state) =>
+          replaceDependency(
+            state,
+            MISSING,
+            importModule("src/index.js", "lodash")
+          ),
+      ],
+      [
+        "removeDependency",
+        (state) => removeDependency(state, { path: "src/index.js", index: 1 }),
+        (state) => removeDependency(state, MISSING),
+      ],
+    ];
+
+    it.each(EDITS)(
+      "should drop the draft when %s changes the sketch, and stay in text mode",
+      (_name, edit) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+
+        // Act
+        const state = edit(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(state.view).toBe("text");
+      }
+    );
+
+    it.each(EDITS)(
+      "should not let a later read of the text undo the edit of %s",
+      (_name, edit) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+        const edited = edit(before);
+
+        // Act
+        const read = readText(edited);
+        const settled = settleText(edited);
+
+        // Assert
+        expect(getEdges(edited)).not.toEqual(getEdges(before));
+        expect(getEdges(read)).toEqual(getEdges(edited));
+        expect(getEdges(settled)).toEqual(getEdges(edited));
+      }
+    );
+
+    it.each(EDITS)(
+      "should keep the draft when %s is refused, because the sketch did not change",
+      (_name, _edit, refused) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+
+        // Act
+        const state = refused(before);
+
+        // Assert
+        expect(state).toBe(before);
+        expect(state.textDraft).toBe(STALE_DRAFT);
+      }
+    );
+
+    it("should keep the focus on the dependency that was edited while the text shows", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        textDraft: STALE_DRAFT,
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = replaceDependency(
+        before,
+        { path: "src/index.js", index: 1 },
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 1));
+      expect(state.tab).toBe("dependency");
+    });
+  });
+
+  describe("a dependency in focus when the tree is edited", () => {
+    describe("renameNode", () => {
+      it("should follow the file when it is renamed, and keep its index and the tab", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 2),
+          tab: "dependency",
+        });
+
+        // Act
+        const { state, path } = getRenamed(
+          renameNode(before, "src/index.js", "app.js")
+        );
+
+        // Assert
+        expect(path).toBe("src/app.js");
+        expect(state.focus).toEqual(onDependency("src/app.js", 2));
+        expect(state.tab).toBe("dependency");
+        expect(getEdges(state)[2]).toBe("src/app.js -> main.js");
+      });
+
+      it("should follow the file when the folder above it is renamed", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 0),
+          tab: "dependency",
+        });
+
+        // Act
+        const { state } = getRenamed(renameNode(before, "src", "lib"));
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("lib/index.js", 0));
+      });
+
+      it("should keep the same focus object when the file is not moved, even if the target of the dependency is", () => {
+        // Arrange
+        const openNode = onDependency("src/index.js", 2);
+        const before = createDependencyState({
+          focus: openNode,
+          tab: "dependency",
+        });
+
+        // Act
+        const { state } = getRenamed(renameNode(before, "main.js", "root.js"));
+
+        // Assert
+        expect(state.focus).toBe(openNode);
+        expect(getEdges(state)[2]).toBe("src/index.js -> root.js");
+      });
+
+      it("should move the dependency a highlight came from with its file, and keep the highlight when the file is elsewhere", () => {
+        // Arrange
+        const highlight = {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        };
+        const before = createDependencyState({
+          focus: { kind: "config" },
+          tab: "node",
+          highlight,
+        });
+
+        // Act
+        const moved = getRenamed(
+          renameNode(before, "src/index.js", "app.js")
+        ).state;
+        const kept = getRenamed(renameNode(before, "main.js", "root.js")).state;
+
+        // Assert
+        expect(moved.highlight).toEqual({
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/app.js", index: 2 },
+        });
+        expect(kept.highlight).toBe(highlight);
+      });
+    });
+
+    describe("removeNode", () => {
+      it("should leave nothing in focus, and select the tab of the sketch, when the file of the dependency is removed", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 1),
+          tab: "dependency",
+        });
+
+        // Act
+        const state = removeNode(before, "src/index.js");
+
+        // Assert
+        expect(state.focus).toEqual({ kind: "none" });
+        expect(state.tab).toBe("sketch");
+      });
+
+      it("should leave nothing in focus when the folder above the file of the dependency is removed", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 1),
+          tab: "dependency",
+        });
+
+        // Act
+        const state = removeNode(before, "src");
+
+        // Assert
+        expect(state.focus).toEqual({ kind: "none" });
+      });
+
+      it("should put the file in focus, and select the tab of the node, when only the target of the dependency is removed", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 2),
+          tab: "dependency",
+        });
+
+        // Act
+        const state = removeNode(before, "main.js");
+
+        // Assert
+        expect(state.focus).toEqual(INDEX_FOCUS);
+        expect(state.tab).toBe("node");
+      });
+
+      it("should shift the index when the target of a dependency before it in its file is removed", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: onDependency("src/index.js", 2),
+          tab: "dependency",
+        });
+
+        // Act
+        const state = removeNode(before, "src/helpers/format.js");
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("src/index.js", 1));
+        expect(state.tab).toBe("dependency");
+        expect(getEdges(state)[1]).toBe("src/index.js -> main.js");
+      });
+
+      it("should keep the same focus object when the removal leaves the dependency where it is", () => {
+        // Arrange
+        const openNode = onDependency("src/index.js", 1);
+        const before = createDependencyState({
+          focus: openNode,
+          tab: "dependency",
+        });
+
+        // Act
+        const state = removeNode(before, "main.js");
+
+        // Assert
+        expect(state.focus).toBe(openNode);
+      });
+
+      it("should move the dependency a highlight came from with the ones before it, and drop the highlight when it goes", () => {
+        // Arrange
+        const before = createDependencyState({
+          focus: { kind: "config" },
+          tab: "node",
+          highlight: {
+            range: RANGE,
+            policy: 2,
+            dependency: { path: "src/index.js", index: 2 },
+          },
+        });
+
+        // Act
+        const moved = removeNode(before, "src/helpers/format.js");
+        const gone = removeNode(before, "main.js");
+
+        // Assert
+        expect(moved.highlight).toEqual({
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 1 },
+        });
+        expect(gone.highlight).toBeUndefined();
+        expect(gone.focus).toEqual({ kind: "config" });
+      });
+    });
+  });
+
+  describe.each([
+    ["readText", readText],
+    ["settleText", settleText],
+  ])("%s with dependencies", (_name, read) => {
+    /**
+     * Writes the text of the sketch with dependencies, with the dependencies and the files that a spec changes.
+     * @param dependencies The dependencies of the text.
+     * @param paths The files of the text, which are all the nodes of the sketch when it is unset.
+     * @returns The text, as text mode shows it.
+     */
+    function writeText(
+      dependencies: readonly SketchDependency[],
+      paths?: readonly string[]
+    ): string {
+      return toText(
+        {
+          tree:
+            paths === undefined
+              ? SKETCH.tree
+              : paths.map((path) => ({ path, kind: "file" })),
+          dependencies,
+        },
+        DEFAULT_RESOLVERS
+      );
+    }
+
+    it("should read the dependency lines into the sketch", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        textDraft: writeText([
+          ...DEPENDENCIES,
+          importOf("main.js", "src/helpers/format.js"),
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(getEdges(state)).toEqual([
+        "src/index.js -> src/helpers/format.js",
+        "src/index.js -> react",
+        "src/index.js -> main.js",
+        "main.js -> src/index.js",
+        "main.js -> src/helpers/format.js",
+      ]);
+    });
+
+    it("should drop the dependencies that the text no longer has", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        textDraft: writeText([DEPENDENCIES[3]]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(getEdges(state)).toEqual(["main.js -> src/index.js"]);
+    });
+
+    it("should keep the dependency in focus when its line was edited in the text", () => {
+      // Arrange
+      const openNode = onDependency("src/index.js", 1);
+      const before = createDependencyState({
+        view: "text",
+        focus: openNode,
+        tab: "dependency",
+        textDraft: writeText([
+          importOf("src/index.js", "src/helpers/format.js"),
+          importModule("src/index.js", "lodash"),
+          importOf("src/index.js", "main.js"),
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toBe(openNode);
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should keep the dependency in focus on its own line when a line before it was deleted in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+        textDraft: writeText([
+          DEPENDENCIES[1],
+          DEPENDENCIES[2],
+          DEPENDENCIES[3],
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 0));
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should keep the dependency in focus on its own line when a line before it was added in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+        textDraft: writeText([
+          importOf("src/index.js", "src/helpers/format.js"),
+          importModule("src/index.js", "lodash"),
+          ...DEPENDENCIES,
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 3));
+    });
+
+    it("should put the file in focus, and select the tab of the node, when the text deleted the line of the dependency", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 2),
+        tab: "dependency",
+        textDraft: writeText([DEPENDENCIES[0]]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual(INDEX_FOCUS);
+      expect(state.tab).toBe("node");
+    });
+
+    it("should leave nothing in focus when the text no longer has the file of the dependency", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+        textDraft: writeText([], ["main.js", "src/helpers/format.js"]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual({ kind: "none" });
+      expect(state.tab).toBe("sketch");
+    });
+
+    it("should move the dependency a highlight came from to the same index of the same file, and drop it when the file has no dependency there", () => {
+      // Arrange
+      const config = createDependencyState({
+        view: "text",
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        },
+      });
+
+      // Act
+      const same = read({
+        ...config,
+        textDraft: writeText([
+          ...DEPENDENCIES.slice(0, 2),
+          importOf("src/index.js", "src/helpers/format.js"),
+        ]),
+      });
+      const gone = read({
+        ...config,
+        textDraft: writeText([DEPENDENCIES[0]]),
+      });
+
+      // Assert
+      expect(same.highlight).toEqual(config.highlight);
+      expect(gone.highlight).toBeUndefined();
+    });
+
+    it("should move the dependency a highlight came from to its own line when a line before it was deleted in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        },
+        textDraft: writeText([DEPENDENCIES[1], DEPENDENCIES[2]]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: { path: "src/index.js", index: 1 },
+      });
+    });
+
+    describe("without editDependencies", () => {
+      const NO_DEPENDENCY_EDITS = {
+        ...ALL_CAPABILITIES,
+        editDependencies: false,
+      };
+
+      it("should keep the dependencies of the sketch when the text has none", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: writeText([]),
+        });
+
+        // Act
+        const state = read(before);
+
+        // Assert
+        expect(state.sketch).toBe(DEPENDENCY_SKETCH);
+      });
+
+      it("should ignore the dependency lines of the text", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: writeText([
+            importOf("main.js", "src/helpers/format.js"),
+            importModule("main.js", "lodash"),
+          ]),
+        });
+
+        // Act
+        const state = read(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual(getEdges(before));
+      });
+
+      it("should keep the order of the dependencies of the sketch when the files are written in another order", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: writeText(
+            [],
+            ["main.js", "src/index.js", "src/helpers/format.js"]
+          ),
+        });
+
+        // Act
+        const state = read(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual(getEdges(before));
+      });
+
+      it("should drop the dependencies whose file is no longer in the text", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: writeText([], ["src/index.js", "src/helpers/format.js"]),
+        });
+
+        // Act
+        const state = read(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual([
+          "src/index.js -> src/helpers/format.js",
+          "src/index.js -> react",
+        ]);
+      });
+
+      it("should drop the dependencies whose node target is no longer in the text, and keep the external ones", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: writeText([], ["src/index.js", "main.js"]),
+        });
+
+        // Act
+        const state = read(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual([
+          "src/index.js -> react",
+          "src/index.js -> main.js",
+          "main.js -> src/index.js",
+        ]);
+      });
+
+      it("should keep the dependency in focus where it is, and put its file in focus when its target went", () => {
+        // Arrange
+        const text = writeText([], ["src/index.js", "main.js"]);
+        const withExternal = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          focus: onDependency("src/index.js", 1),
+          tab: "dependency",
+          textDraft: text,
+        });
+
+        // Act
+        const shifted = read(withExternal);
+        const lost = read({
+          ...withExternal,
+          focus: onDependency("src/index.js", 0),
+        });
+
+        // Assert
+        expect(shifted.focus).toEqual(onDependency("src/index.js", 0));
+        expect(lost.focus).toEqual(INDEX_FOCUS);
+        expect(lost.tab).toBe("node");
+      });
+    });
   });
 
   describe("selectTab", () => {
@@ -1664,6 +3685,25 @@ describe("Transitions", () => {
 
       // Assert
       expect(state.tab).toBe("sketch");
+    });
+
+    it("should accept the tab of the node and the one of the sketch while a dependency is in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const node = selectTab(before, "node");
+      const sketch = selectTab(node, "sketch");
+      const dependency = selectTab(sketch, "dependency");
+
+      // Assert
+      expect(node.tab).toBe("node");
+      expect(sketch.tab).toBe("sketch");
+      expect(dependency.tab).toBe("dependency");
+      expect(sketch.focus).toBe(before.focus);
     });
 
     it("should expand the panel, because a tab is pressed to be read", () => {

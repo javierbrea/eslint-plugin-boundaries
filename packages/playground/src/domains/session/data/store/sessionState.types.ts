@@ -3,6 +3,7 @@ import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import type {
   ConfigReveal,
   Focus,
+  PolicyHighlight,
   ProblemsTabId,
   ProjectView,
 } from "@/domains/session/helpers/focus";
@@ -17,17 +18,19 @@ export type SessionState = {
   readonly capabilities: ProjectCapabilities;
   /** What is in focus. */
   readonly focus: Focus;
-  /** The selected tab of the problems panel. It is `node` only while something is in focus. */
+  /** The selected tab of the problems panel. It is `node` only while a file, the config or a dependency is in focus, and `dependency` only while a dependency is. */
   readonly tab: ProblemsTabId;
   /** Whether the problems panel shows its head only. */
   readonly problemsCollapsed: boolean;
   /** The range that the config editor must scroll to. It is set only while the config is in focus. */
   readonly reveal: ConfigReveal | undefined;
+  /** The policy that the user opened from a dependency, which the config editor keeps marked. It is kept while the config stays in focus: the focus leaving the config, or the config opening without a dependency, drops it. Its range moves with each edit of the config, as the editor reports it with the text, and an edit that deletes the policy drops it; its policy is found again after each evaluation of the text. */
+  readonly highlight: PolicyHighlight | undefined;
   /** How many ranges were revealed so far: the key of the next request is the next number, so that a key is never used twice even when the request before it was dropped. */
   readonly revealCount: number;
   /** How the project pane shows the sketch. */
   readonly view: ProjectView;
-  /** What the user typed in text mode since the text was last in sync with the sketch; `undefined` shows the text of the sketch. Leaving text mode drops it. */
+  /** What the user typed in text mode since the text was last in sync with the sketch; `undefined` shows the text of the sketch. Leaving text mode drops it, and so does adding, replacing or removing a dependency, which the file pane can do in text mode: the next read of a stale draft would bring back the dependencies the edit changed, so the edit wins and the lines of the draft that could not be read are lost. */
   readonly textDraft: string | undefined;
   /** The folder the user selected in the tree: it does not take the focus, which stays on the open file, but it is where a new node goes. It can be gone or be a file after an edit. */
   readonly pickedFolder: string | undefined;

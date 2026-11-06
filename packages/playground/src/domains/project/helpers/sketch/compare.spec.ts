@@ -5,7 +5,7 @@ import type {
   SketchSpecifier,
 } from "@/contract";
 
-import { isSameProject } from "./compare";
+import { isSameDependency, isSameProject } from "./compare";
 
 /**
  * Creates a dependency of a file on a node of the sketch.
@@ -285,6 +285,52 @@ describe("Compare", () => {
 
       // Act
       const result = isSameProject(first, second);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isSameDependency", () => {
+    it("should be true for two objects that hold the same data", () => {
+      // Arrange
+      const first = toNode("src/index.js", "src/helpers/format.js", {
+        specifiers: [{ kind: "named", name: "format", alias: "fmt" }],
+      });
+      const second = toNode("src/index.js", "src/helpers/format.js", {
+        specifiers: [{ kind: "named", name: "format", alias: "fmt" }],
+      });
+
+      // Act
+      const result = isSameDependency(first, second);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it.each([
+      ["file", toNode("src/other.js", "src/helpers/format.js")],
+      ["target", toNode("src/index.js", "src/other.js")],
+      [
+        "syntax",
+        toNode("src/index.js", "src/helpers/format.js", { syntax: "require" }),
+      ],
+      [
+        "kind",
+        toNode("src/index.js", "src/helpers/format.js", { importKind: "type" }),
+      ],
+      [
+        "names",
+        toNode("src/index.js", "src/helpers/format.js", {
+          specifiers: [{ kind: "named", name: "format" }],
+        }),
+      ],
+    ])("should be false when the %s differs", (_label, other) => {
+      // Arrange
+      const dependency = toNode("src/index.js", "src/helpers/format.js");
+
+      // Act
+      const result = isSameDependency(dependency, other);
 
       // Assert
       expect(result).toBe(false);

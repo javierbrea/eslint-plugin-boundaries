@@ -15,6 +15,7 @@ import {
 } from "./ProjectTreeItem.constants";
 import type {
   ProjectRowGlyphStyle,
+  ProjectRowTagStyle,
   ProjectRowTextStyle,
 } from "./ProjectTreeItem.types";
 
@@ -77,6 +78,90 @@ class ProjectRowPom extends Pom {
    */
   get isBad(): boolean {
     return this.root.hasAttribute("data-bad");
+  }
+
+  /**
+   * Whether the row is outlined as the target of the dependency in focus.
+   * @returns True when the row has a `data-target` attribute.
+   */
+  get isTarget(): boolean {
+    return this.root.hasAttribute("data-target");
+  }
+
+  /**
+   * What the row looks like as the target of the dependency in focus, which jsdom cannot tell from the other rows: it is read from the rule that applies to the rows that have the attribute.
+   * @returns The declarations of that rule.
+   */
+  get targetStyle(): Record<string, string> {
+    return getStyle(this.root, `${OWN_CLASS}[data-target]`);
+  }
+
+  /**
+   * The tag that says the item is the target, which the row draws at its end.
+   * @returns The text of the tag, or null when the row draws none.
+   */
+  get targetTag(): string | null {
+    return this.root.querySelector("[data-target-tag]")?.textContent ?? null;
+  }
+
+  /**
+   * The color of the tag of the target.
+   * @returns The computed color of the tag, or an empty string when the row draws none.
+   */
+  get targetTagColor(): string {
+    const tag = this.root.querySelector("[data-target-tag]");
+
+    return tag === null ? "" : getComputedStyle(tag).color;
+  }
+
+  /**
+   * The text styles of the tag of the target.
+   * @returns The computed font family, size and weight of the tag, or empty strings when the row draws none.
+   */
+  get targetTagStyle(): ProjectRowTagStyle {
+    const tag = this.root.querySelector("[data-target-tag]");
+    const { fontFamily, fontSize, fontWeight } =
+      tag === null
+        ? { fontFamily: "", fontSize: "", fontWeight: "" }
+        : getComputedStyle(tag);
+
+    return { fontFamily, fontSize, fontWeight };
+  }
+
+  /**
+   * The color of the name of the row, which the row sets and the icons and the badge at its end do not take.
+   * @returns The computed color of the row.
+   */
+  get nameColor(): string {
+    return getComputedStyle(this.root).color;
+  }
+
+  /**
+   * What the end of the row holds, from the left: the actions, the tag of the target, the mark of a failing file and the badge.
+   * @returns A word for each part that the row draws, in order.
+   */
+  get endParts(): string[] {
+    const end = this.root.lastElementChild as HTMLElement;
+
+    return Array.from(end.children).map((part) => {
+      if (part.hasAttribute("data-actions")) {
+        return "actions";
+      }
+      if (part.hasAttribute("data-target-tag")) {
+        return "target tag";
+      }
+      return part.hasAttribute("data-failure") ? "failure" : "badge";
+    });
+  }
+
+  /**
+   * The color of the mark that a file with failing dependencies has at the end of its row: the cross of errors, or the triangle of warnings.
+   * @returns The computed color of the mark, or an empty string when the row draws none.
+   */
+  get failureColor(): string {
+    const mark = this.root.querySelector("[data-failure]");
+
+    return mark === null ? "" : getComputedStyle(mark).color;
   }
 
   /**

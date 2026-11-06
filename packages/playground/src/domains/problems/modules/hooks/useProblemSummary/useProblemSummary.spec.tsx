@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { useFocus } from "@/domains/session/data/store";
 import {
   renderHookInSession,
@@ -11,7 +12,7 @@ import { useProblemSummary } from "./useProblemSummary";
 // A parse error: the only problem is an error
 const BROKEN_CONFIG = "{ settings: ";
 
-// A line that text mode cannot read: dependencies are not written in it yet
+// A line that text mode cannot read: its source does not resolve to a file of the sketch
 const UNREADABLE_LINE = "  import { a } from './b'";
 
 describe("useProblemSummary", () => {
@@ -87,6 +88,65 @@ describe("useProblemSummary", () => {
       configHasErrors: true,
       total: 1,
       hasErrors: true,
+    });
+  });
+
+  it("should count the failing dependencies of the quick start with the problems of the config", () => {
+    // Act
+    const { result } = renderHookInSession(
+      useProblemSummary,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Assert
+    expect(result.current).toEqual({
+      configCount: 0,
+      configHasErrors: false,
+      total: 2,
+      hasErrors: true,
+    });
+  });
+
+  it("should count a failing dependency again when it is removed, and stop counting it", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(
+      useProblemSummary,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Act
+    act(() =>
+      store.removeDependency({ path: "src/helpers/format/index.js", index: 0 })
+    );
+
+    // Assert
+    expect(result.current.total).toBe(1);
+  });
+
+  it("should not count a failing dependency as an error when the rule is a warning", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(
+      useProblemSummary,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Act
+    act(() =>
+      store.changeConfig(
+        QUICK_START_EXAMPLE.sketch.config.replace(
+          '"boundaries/dependencies": [2,',
+          '"boundaries/dependencies": [1,'
+        )
+      )
+    );
+    waitForEvaluation();
+
+    // Assert
+    expect(result.current).toEqual({
+      configCount: 0,
+      configHasErrors: false,
+      total: 2,
+      hasErrors: false,
     });
   });
 

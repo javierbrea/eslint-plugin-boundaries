@@ -16,6 +16,9 @@ import {
   renameNode,
   cancelRename,
   removeNode,
+  addDependency,
+  replaceDependency,
+  removeDependency,
   setView,
   setTextDraft,
   readText,
@@ -83,7 +86,8 @@ export function createSessionStore(
     open: (target) => set(openTarget(state, target)),
     selectItem: (id) => set(selectItem(state, id)),
     toggleFolder: (path, isOpen) => set(toggleFolder(state, path, isOpen)),
-    changeConfig: (config) => set(changeConfig(state, config)),
+    changeConfig: (config, highlight) =>
+      set(changeConfig(state, config, highlight)),
     addNode: (kind) => set(addNode(state, kind)),
     startRename: (path) => set(startRename(state, path)),
     renameNode: (path, typedName) => {
@@ -97,6 +101,10 @@ export function createSessionStore(
     },
     cancelRename: () => set(cancelRename(state)),
     removeNode: (path) => set(removeNode(state, path)),
+    addDependency: (dependency) => set(addDependency(state, dependency)),
+    replaceDependency: (ref, dependency) =>
+      set(replaceDependency(state, ref, dependency)),
+    removeDependency: (ref) => set(removeDependency(state, ref)),
     setView: (view) => set(setView(state, view)),
     setTextDraft: (text) => set(setTextDraft(state, text)),
     readText: () => set(readText(state)),
