@@ -5,11 +5,12 @@ import type { ReactNode } from "react";
 import type { DependencyResult } from "@/domains/evaluation/helpers/engine";
 import { countVerdicts } from "@/domains/evaluation/helpers/verdictCounts";
 import { VerdictCount } from "@/domains/evaluation/ui/atoms/VerdictCount";
+import { VERDICT_ICON_LABELS } from "@/domains/evaluation/ui/helpers/verdictText";
 import { formatValue } from "@/domains/files/ui/helpers/formatValue";
 import type { DescribedValue } from "@/domains/files/ui/helpers/formatValue";
-import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
+import { getCountTone } from "@/ui-kit/helpers/tone";
 
 import { FILE_INSPECTOR_TEST_ID } from "./FileInspector.constants";
 import type { FileInspectorProps } from "./FileInspector.types";
@@ -102,7 +103,7 @@ type DependencySummaryProps = {
 };
 
 /**
- * How many dependencies a file has and what the engine decided about them, such as `4 dependencies  ✓ 2  ✕ 1  – 1 not checked`. The disallowed ones are red with the cross when any is an error, and in the color of warnings with the triangle of their line when all of them are warnings. A count of 0 is left out, and so are all the counts while the dependencies are not evaluated.
+ * How many dependencies a file has and what the engine decided about them, such as `4 dependencies  ✓ 2  ✕ 1  – 1 not checked`. The disallowed ones are red with the cross when any is an error, and in the color of warnings with the triangle of their line when all of them are warnings. A count of 0 is left out, and so are all the counts while the dependencies are not evaluated. The allowed and disallowed counts are bare numbers, so their icons say `allowed`, `disallowed` or `disallowed, as a warning` to assistive technology, which reads `4 dependencies allowed 2 disallowed 1 1 not checked`.
  * @param props DependencySummary props.
  * @param props.results The dependencies of the file.
  * @param props.isEvaluated Whether the engine evaluated them.
@@ -115,6 +116,7 @@ function DependencySummary({
   const counts = countVerdicts(results);
   const total = formatCount(counts.total, "dependency", "dependencies");
   const hasErrors = counts.errors > 0;
+  const disallowedIcon = hasErrors ? "cross" : "warn";
 
   if (!isEvaluated) {
     return (
@@ -127,14 +129,19 @@ function DependencySummary({
     <Summary>
       <span>{total}</span>
       {counts.allowed > 0 ? (
-        <VerdictCount tone="ok" icon="check">
+        <VerdictCount
+          tone="ok"
+          icon="check"
+          iconLabel={VERDICT_ICON_LABELS.check}
+        >
           {counts.allowed}
         </VerdictCount>
       ) : null}
       {counts.disallowed > 0 ? (
         <VerdictCount
           tone={getCountTone(hasErrors)}
-          icon={hasErrors ? "cross" : "warn"}
+          icon={disallowedIcon}
+          iconLabel={VERDICT_ICON_LABELS[disallowedIcon]}
         >
           {counts.disallowed}
         </VerdictCount>

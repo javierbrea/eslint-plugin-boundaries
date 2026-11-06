@@ -32,7 +32,7 @@ import {
   getSyntaxFacts,
 } from "@/domains/project/helpers/sketch";
 import { Icon } from "@/ui-kit/atoms/Icon";
-import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
 import {
   ADD_LABEL,

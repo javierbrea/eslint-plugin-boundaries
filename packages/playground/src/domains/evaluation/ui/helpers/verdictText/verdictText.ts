@@ -1,15 +1,14 @@
 import type {
   DependencyVerdict,
+  DisallowedVerdict,
   NotEvaluatedReason,
   PolicyRef,
   PolicySummary,
   SkipReason,
 } from "@/domains/evaluation/helpers/engine";
+import type { StateTone } from "@/ui-kit/helpers/tone";
 
-import type { VerdictIcon, VerdictTone } from "./verdictText.types";
-
-/** A verdict of a dependency that was disallowed */
-type DisallowedVerdict = Extract<DependencyVerdict, { status: "disallowed" }>;
+import type { VerdictIcon } from "./verdictText.types";
 
 /** How each skip reason is called next to a verdict. The reasons that are not here are written as they are */
 const SKIP_REASON_LABELS: Readonly<Partial<Record<SkipReason, string>>> = {
@@ -61,7 +60,7 @@ const ACTION_LABELS: Readonly<Record<PolicySummary["action"], string>> = {
  * @param verdict What the engine says about a dependency.
  * @returns `ok` for an allowed dependency, `bad` for a disallowed one, `warn` when the rule is a warning, and `faint` for one that is not checked or not evaluated.
  */
-export function getVerdictTone(verdict: DependencyVerdict): VerdictTone {
+export function getVerdictTone(verdict: DependencyVerdict): StateTone {
   if (verdict.status === "allowed") {
     return "ok";
   }

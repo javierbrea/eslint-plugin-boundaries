@@ -6,7 +6,6 @@ import Tooltip from "@mui/material/Tooltip";
 import { useId } from "react";
 import type { ReactNode } from "react";
 
-import { VERDICT_COLORS } from "@/domains/problems/ui/helpers/verdictColors";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
@@ -90,7 +89,7 @@ function getIconColor({
   iconTone,
 }: ProblemsPanelTab): string | undefined {
   if (iconTone !== undefined) {
-    return VERDICT_COLORS[iconTone];
+    return TONE_COLORS[iconTone];
   }
   return tone === undefined ? undefined : TONE_COLORS[tone];
 }

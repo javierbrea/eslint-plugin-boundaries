@@ -205,6 +205,22 @@ describe("FileInspector", () => {
       ]);
     });
 
+    it("should name each count by its verdict for assistive technology, with the icon of the verdict before its number", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { total, countReadings } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("4 dependencies");
+      expect(countReadings).toEqual([
+        { iconName: "allowed", text: "2" },
+        { iconName: "disallowed", text: "1" },
+        { iconName: undefined, text: "1 not checked" },
+      ]);
+    });
+
     it("should place the summary after the three facets", () => {
       // Arrange
       const inspector = renderInspector(FILE);
@@ -331,6 +347,28 @@ describe("FileInspector", () => {
         "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
       );
       expect(counts[1].icon.pathData).toBe(ICON_PATHS.warn);
+    });
+
+    it("should name the dependencies that a warning disallows as disallowed, as a warning, for assistive technology", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { countReadings } = inspector.summary;
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(countReadings[1]).toEqual({
+        iconName: "disallowed, as a warning",
+        text: "1",
+      });
     });
   });
 });

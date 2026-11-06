@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
 import type { TopBarProps } from "./TopBar.types";
 

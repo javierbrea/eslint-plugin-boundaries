@@ -11,7 +11,7 @@ import type { ConfigRow } from "@/domains/config/ui/helpers/configRows";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { Target } from "@/domains/session/helpers/focus";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
-import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import { CONFIG_INSPECTOR_TEST_ID } from "./ConfigInspector.constants";

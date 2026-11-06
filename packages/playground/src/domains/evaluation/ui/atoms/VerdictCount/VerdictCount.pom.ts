@@ -51,6 +51,14 @@ export class VerdictCountPom extends Pom {
   }
 
   /**
+   * What the icon of the count says to assistive technology.
+   * @returns The accessible name of the icon when it is read as an image, and undefined when it is hidden as decoration.
+   */
+  get iconName(): string | undefined {
+    return this.accessibleNames("img").at(0);
+  }
+
+  /**
    * The icon of the count.
    * @returns The page object of the icon.
    */

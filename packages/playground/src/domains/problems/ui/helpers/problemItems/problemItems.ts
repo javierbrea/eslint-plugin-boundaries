@@ -16,7 +16,7 @@ import { toDependencyDetail } from "@/domains/problems/ui/helpers/dependencyDeta
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { ProblemsTabId } from "@/domains/session/helpers/focus";
-import type { Tone } from "@/ui-kit/helpers/tone";
+import { getCountTone } from "@/ui-kit/helpers/tone";
 
 import type {
   ProblemItem,
@@ -124,15 +124,6 @@ export function getDependencyProblemItems(
  */
 export function getTabLabel(path: string): string {
   return path.split("/").slice(-2).join("/");
-}
-
-/**
- * Chooses the color of a count.
- * @param hasErrors Whether any of the problems that are counted is an error.
- * @returns `bad` when any of them is an error, and `warn` otherwise.
- */
-export function getCountTone(hasErrors: boolean): Tone {
-  return hasErrors ? "bad" : "warn";
 }
 
 /**

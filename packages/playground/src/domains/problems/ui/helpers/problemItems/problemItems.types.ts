@@ -1,11 +1,8 @@
 import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
-import type {
-  VerdictIcon,
-  VerdictTone,
-} from "@/domains/evaluation/ui/helpers/verdictText";
+import type { VerdictIcon } from "@/domains/evaluation/ui/helpers/verdictText";
 import type { DependencyDetailContent } from "@/domains/problems/ui/helpers/dependencyDetail";
 import type { Target } from "@/domains/session/helpers/focus";
-import type { Tone } from "@/ui-kit/helpers/tone";
+import type { StateTone, Tone } from "@/ui-kit/helpers/tone";
 
 /** A tab of the problems panel: one level of what is in focus. */
 export type ProblemsTab<Id extends string = string> = {
@@ -22,7 +19,7 @@ export type ProblemsTab<Id extends string = string> = {
   /** An icon after the label, such as the one of the verdict of a dependency. */
   readonly icon?: VerdictIcon;
   /** The color of the icon, which a verdict gives in more tones than a count has. The icon takes the `tone` of the tab when it is unset. */
-  readonly iconTone?: VerdictTone;
+  readonly iconTone?: StateTone;
 };
 
 /** A row of the problem list. */

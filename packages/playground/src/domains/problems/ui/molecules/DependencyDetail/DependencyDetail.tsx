@@ -4,11 +4,10 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 
 import type { ConfigTokenKind } from "@/domains/evaluation/helpers/engine";
-import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
 import type { PolicyCardContent } from "@/domains/problems/ui/helpers/dependencyDetail";
-import { VERDICT_COLORS } from "@/domains/problems/ui/helpers/verdictColors";
 import { Icon } from "@/ui-kit/atoms/Icon";
-import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT, TONE_COLORS } from "@/ui-kit/helpers/tone";
+import type { StateTone } from "@/ui-kit/helpers/tone";
 
 import { DEPENDENCY_DETAIL_TEST_ID } from "./DependencyDetail.constants";
 import type { DependencyDetailProps } from "./DependencyDetail.types";
@@ -23,7 +22,7 @@ const Root = styled("div")({
 
 const VerdictLine = styled("div", {
   shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone: VerdictTone }>(({ theme, tone }) => ({
+})<{ tone: StateTone }>(({ theme, tone }) => ({
   display: "flex",
   alignItems: "center",
   gap: 8,
@@ -31,13 +30,13 @@ const VerdictLine = styled("div", {
   fontWeight: theme.typography.fontWeightMedium,
   lineHeight: 1.4,
   // The icon is a shape and keeps the token
-  color: VERDICT_COLORS[tone],
+  color: TONE_COLORS[tone],
 }));
 
 // The text mixes the ink into the token, for contrast
 const VerdictText = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone: VerdictTone }>(({ tone }) => ({
+})<{ tone: StateTone }>(({ tone }) => ({
   color: STATE_TEXT[tone],
 }));
 

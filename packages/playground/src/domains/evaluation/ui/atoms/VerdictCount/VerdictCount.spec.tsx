@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 
-import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
+import type { StateTone } from "@/ui-kit/helpers/tone";
 
 import { VerdictCount } from "./VerdictCount";
 import { VerdictCountPom } from "./VerdictCount.pom";
@@ -23,7 +23,7 @@ describe("VerdictCount", () => {
     expect(text).toBe("4 not checked");
   });
 
-  it.each<[VerdictTone, string, string]>([
+  it.each<[StateTone, string, string]>([
     [
       "ok",
       "var(--jsb-ok)",
@@ -75,6 +75,33 @@ describe("VerdictCount", () => {
     // Assert
     expect(pathData).toBe(ICON_PATHS.cross);
     expect(isHidden).toBe(true);
+  });
+
+  it("should name its icon for assistive technology when it is given a label", () => {
+    // Arrange
+    render(
+      <VerdictCount tone="ok" icon="check" iconLabel="allowed">
+        2
+      </VerdictCount>
+    );
+    const { iconName, text } = new VerdictCountPom();
+
+    // Assert
+    expect(iconName).toBe("allowed");
+    expect(text).toBe("2");
+  });
+
+  it("should leave its icon out of the accessible text when it is given no label", () => {
+    // Arrange
+    render(
+      <VerdictCount tone="ok" icon="check">
+        3 allowed
+      </VerdictCount>
+    );
+    const { iconName } = new VerdictCountPom();
+
+    // Assert
+    expect(iconName).toBeUndefined();
   });
 
   it("should list the counts of its parent", () => {

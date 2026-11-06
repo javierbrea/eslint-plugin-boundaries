@@ -22,12 +22,7 @@ import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 
 import { createPlaygroundTheme } from "./theme";
-import {
-  FOCUS_RING,
-  HOVER_BACKGROUND,
-  ROOT_CLASS,
-  STATE_TEXT,
-} from "./theme.constants";
+import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
 import { TYPOGRAPHY } from "./typography";
 
 /** A variant of the type scale, which the specs read from the theme. */
@@ -58,25 +53,6 @@ describe("tokens", () => {
     expect(HOVER_BACKGROUND).toBe(
       "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)"
     );
-  });
-});
-
-describe("STATE_TEXT", () => {
-  it.each<[keyof typeof STATE_TEXT, string]>([
-    ["ok", "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))"],
-    ["bad", "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"],
-    ["warn", "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"],
-  ])(
-    "should mix 15%% of the ink into the token of the %s state, for contrast",
-    (state, color) => {
-      // Assert
-      expect(STATE_TEXT[state]).toBe(color);
-    }
-  );
-
-  it("should read not-checked text in the muted color, which already passes the contrast", () => {
-    // Assert
-    expect(STATE_TEXT.faint).toBe("var(--jsb-muted)");
   });
 });
 

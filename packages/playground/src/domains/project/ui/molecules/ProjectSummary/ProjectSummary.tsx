@@ -3,9 +3,8 @@ import type { ReactNode } from "react";
 
 import { countVerdicts } from "@/domains/evaluation/helpers/verdictCounts";
 import { VerdictCount } from "@/domains/evaluation/ui/atoms/VerdictCount";
-import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
-import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT, getCountTone } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {

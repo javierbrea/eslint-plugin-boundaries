@@ -5,10 +5,10 @@ import Tooltip from "@mui/material/Tooltip";
 import { useEffect, useRef } from "react";
 import type { ElementType, ReactNode } from "react";
 
-import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
 import { Statement } from "@/domains/files/ui/atoms/Statement";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
+import type { StateTone } from "@/ui-kit/helpers/tone";
 
 import {
   DELETE_ACTION_LABEL,
@@ -18,7 +18,7 @@ import {
 import type { DependencyLinesProps } from "./DependencyLines.types";
 
 /** The color of each verdict inside a code area, from the tokens of the host. */
-const CODE_VERDICT_COLORS: Readonly<Record<VerdictTone, string>> = {
+const CODE_VERDICT_COLORS: Readonly<Record<StateTone, string>> = {
   ok: "var(--jsb-code-string)",
   bad: "var(--jsb-code-error)",
   warn: "var(--jsb-code-number)",
@@ -98,7 +98,7 @@ const ActionButton = styled(IconButton)({
 });
 
 // In its own column, so that it stays at the end of the line when the line has no actions
-const Verdict = styled("span")<{ tone: VerdictTone }>(({ theme, tone }) => ({
+const Verdict = styled("span")<{ tone: StateTone }>(({ theme, tone }) => ({
   gridColumn: 4,
   display: "inline-flex",
   alignItems: "center",

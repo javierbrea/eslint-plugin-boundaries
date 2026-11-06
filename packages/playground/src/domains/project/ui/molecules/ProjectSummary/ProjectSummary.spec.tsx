@@ -187,6 +187,24 @@ describe("ProjectSummary", () => {
       ]);
     });
 
+    it("should label no icon of the counts, since their text already says what they count", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const { verdictCounts } = summary;
+
+      // Assert
+      expect(verdictCounts.map(({ text }) => text)).toEqual([
+        "3 allowed",
+        "4 not checked",
+      ]);
+      expect(verdictCounts.map(({ iconName }) => iconName)).toEqual([
+        undefined,
+        undefined,
+      ]);
+    });
+
     it("should mark the allowed with a check and the ones not checked with a skip", () => {
       // Arrange
       const summary = renderSummary();

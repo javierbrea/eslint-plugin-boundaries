@@ -1,16 +1,14 @@
 import type { ConfigToken } from "@/domains/evaluation/helpers/engine";
-import type {
-  VerdictIcon,
-  VerdictTone,
-} from "@/domains/evaluation/ui/helpers/verdictText";
+import type { VerdictIcon } from "@/domains/evaluation/ui/helpers/verdictText";
 import type { Target } from "@/domains/session/helpers/focus";
+import type { StateTone } from "@/ui-kit/helpers/tone";
 
 /** The verdict line of the dependency tab: the icon, the color and the words of what the engine says. */
 export type VerdictLineContent = {
   /** The icon of the verdict. */
   readonly icon: VerdictIcon;
   /** The color of the icon and of the words. */
-  readonly tone: VerdictTone;
+  readonly tone: StateTone;
   /** What the engine says, such as `disallowed · policy 2` or `not checked · external`. */
   readonly text: string;
 };

@@ -69,6 +69,14 @@ class DependencySummaryPom extends Pom {
   }
 
   /**
+   * What assistive technology reads for each count: the name of its icon, when the icon is an image, and then its words.
+   * @returns The accessible name of the icon, which is undefined when the icon is hidden, and the text of each count, in order.
+   */
+  get countReadings(): { iconName: string | undefined; text: string }[] {
+    return this.counts.map(({ iconName, text }) => ({ iconName, text }));
+  }
+
+  /**
    * The color of the words of each count, which is not the one of its icon.
    * @returns The computed color of the text of each count, in order.
    */

@@ -14,7 +14,6 @@ import type { TextProblem } from "@/domains/project/helpers/sketch";
 
 import {
   getConfigProblemItems,
-  getCountTone,
   getDependencyProblemItems,
   getTabLabel,
   getTextProblemItems,
@@ -435,24 +434,6 @@ describe("problemItems", () => {
 
       // Assert
       expect(label).toBe("eslint.config.js");
-    });
-  });
-
-  describe("getCountTone", () => {
-    it("should be bad when any problem is an error", () => {
-      // Act
-      const tone = getCountTone(true);
-
-      // Assert
-      expect(tone).toBe("bad");
-    });
-
-    it("should be warn when there are only warnings and deprecations, or no problems", () => {
-      // Act
-      const tone = getCountTone(false);
-
-      // Assert
-      expect(tone).toBe("warn");
     });
   });
 

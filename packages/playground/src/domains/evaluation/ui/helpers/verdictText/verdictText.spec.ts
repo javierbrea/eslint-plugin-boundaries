@@ -1,5 +1,6 @@
 import type {
   DependencyVerdict,
+  DisallowedVerdict,
   NotEvaluatedReason,
   PolicyRef,
   PolicySummary,
@@ -18,9 +19,7 @@ import {
   getVerdictMeta,
   getVerdictTone,
 } from "./verdictText";
-
-/** A verdict of a dependency that was disallowed */
-type DisallowedVerdict = Extract<DependencyVerdict, { status: "disallowed" }>;
+import { VERDICT_ICON_LABELS } from "./verdictText.constants";
 
 const RANGE: TextRange = { from: 10, to: 20, line: 3, column: 5 };
 
@@ -89,6 +88,20 @@ function summaryOf(summary: Partial<PolicySummary>): PolicySummary {
 }
 
 describe("VerdictText", () => {
+  describe("vERDICT_ICON_LABELS", () => {
+    it("should name the icon of an allowed and of a disallowed verdict, and of one that only warns", () => {
+      // Assert
+      expect(VERDICT_ICON_LABELS.check).toBe("allowed");
+      expect(VERDICT_ICON_LABELS.cross).toBe("disallowed");
+      expect(VERDICT_ICON_LABELS.warn).toBe("disallowed, as a warning");
+    });
+
+    it("should leave the skip icon with no name, since the text of the verdict says it", () => {
+      // Assert
+      expect(VERDICT_ICON_LABELS).toHaveProperty("skip", undefined);
+    });
+  });
+
   describe("getVerdictTone", () => {
     it.each<[string, DependencyVerdict, string]>([
       ["allowed by a policy", ALLOWED_BY_POLICY, "ok"],

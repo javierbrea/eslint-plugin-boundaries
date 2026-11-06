@@ -1,5 +1,6 @@
 import type { DependencyResult } from "@/domains/evaluation/helpers/engine";
 import {
+  VERDICT_ICON_LABELS,
   getSkipReasonSentence,
   getVerdictIcon,
   getVerdictLabel,
@@ -7,7 +8,6 @@ import {
 } from "@/domains/evaluation/ui/helpers/verdictText";
 import { toStatementTokens } from "@/domains/project/helpers/sketch";
 
-import { VERDICT_ICON_LABELS } from "./dependencyLines.constants";
 import type { DependencyLine } from "./dependencyLines.types";
 
 /**

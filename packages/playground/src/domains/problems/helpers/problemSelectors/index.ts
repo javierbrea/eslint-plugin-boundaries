@@ -1,6 +1,5 @@
 export type {
   DependencyDetailFacts,
-  DisallowedVerdict,
   FailingDependency,
   HighlightFacts,
   PathCount,

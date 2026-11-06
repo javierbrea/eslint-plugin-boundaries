@@ -3,6 +3,7 @@ import type {
   ConfigToken,
   DependencyResult,
   DependencyVerdict,
+  DisallowedVerdict,
   Evaluation,
   FileDescription,
   NotEvaluatedReason,
@@ -17,12 +18,6 @@ import type {
   PolicyHighlight,
   ProblemsTabId,
 } from "@/domains/session/helpers/focus";
-
-/** The verdict of a dependency that the rule disallows. */
-export type DisallowedVerdict = Extract<
-  DependencyVerdict,
-  { status: "disallowed" }
->;
 
 /** A dependency that fails: the rule disallows it, as an error or as a warning. */
 export type FailingDependency = DependencyResult & {

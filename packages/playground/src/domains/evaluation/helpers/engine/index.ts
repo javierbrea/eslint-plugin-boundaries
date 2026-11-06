@@ -4,6 +4,7 @@ export type {
   ConfigTokenKind,
   DependencyResult,
   DependencyVerdict,
+  DisallowedVerdict,
   ElementTypeSummary,
   Engine,
   Evaluation,

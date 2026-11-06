@@ -7,8 +7,8 @@ import type {
   RuleSummary,
 } from "@/domains/evaluation/helpers/engine";
 import { getPolicyRowName } from "@/domains/evaluation/ui/helpers/verdictText";
-import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { formatCount } from "@/shared/helpers/formatCount";
+import { getCountTone } from "@/ui-kit/helpers/tone";
 
 import type { ConfigRow } from "./configRows.types";
 

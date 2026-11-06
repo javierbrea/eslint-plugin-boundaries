@@ -158,6 +158,12 @@ export type DependencyVerdict =
       readonly status: "not-evaluated";
     };
 
+/** The verdict of a dependency that the rule disallows, as an error or as a warning */
+export type DisallowedVerdict = Extract<
+  DependencyVerdict,
+  { status: "disallowed" }
+>;
+
 /** A dependency of the sketch with its verdict */
 export type DependencyResult = {
   readonly dependency: SketchDependency;

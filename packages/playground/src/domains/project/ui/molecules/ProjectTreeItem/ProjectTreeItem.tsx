@@ -8,7 +8,6 @@ import { useEffect, useId } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
 import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
-import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { RenameField } from "@/domains/project/ui/atoms/RenameField";
 import { useProjectTreeContext } from "@/domains/project/ui/contexts/ProjectTreeContext";
 import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
@@ -16,12 +15,8 @@ import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import type { IconName } from "@/ui-kit/atoms/Icon";
-import {
-  FOCUS_RING,
-  HOVER_BACKGROUND,
-  STATE_TEXT,
-} from "@/ui-kit/helpers/theme";
-import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT, TONE_COLORS, getCountTone } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {

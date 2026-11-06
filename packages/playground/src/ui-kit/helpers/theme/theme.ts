@@ -1,12 +1,9 @@
 import { createTheme } from "@mui/material/styles";
 import type { Components, PaletteOptions, Theme } from "@mui/material/styles";
 
-import {
-  FOCUS_RING,
-  HOVER_BACKGROUND,
-  ROOT_CLASS,
-  STATE_TEXT,
-} from "./theme.constants";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
+
+import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
 import { TYPOGRAPHY } from "./typography";
 
 /** Prefix of the MUI variables of the playground, so that they never collide with those of a host that uses MUI */

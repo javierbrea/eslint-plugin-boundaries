@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
-import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { useSessionSelector } from "@/domains/session/data/store";
 import { TopBar } from "@/domains/shell/ui/atoms/TopBar";
+import { getCountTone } from "@/ui-kit/helpers/tone";
 
 import { SHELL_TOP_BAR_TEST_ID } from "./ShellTopBar.constants";
 
