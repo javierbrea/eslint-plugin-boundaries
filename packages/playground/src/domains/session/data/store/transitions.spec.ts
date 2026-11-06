@@ -685,6 +685,22 @@ describe("Transitions", () => {
       expect(getPaths(state)).toContain("src/helpers/new-file.js");
     });
 
+    it("should add the node in the folder of the file whose dependency is in focus", () => {
+      // Arrange
+      const before = createDependencyState({
+        focus: onDependency("src/index.js", 0),
+        tab: "dependency",
+      });
+
+      // Act
+      const file = addNode(before, "file");
+      const folder = addNode(before, "folder");
+
+      // Assert
+      expect(getPaths(file)).toContain("src/new-file.js");
+      expect(getPaths(folder)).toContain("src/new-folder");
+    });
+
     it("should add the node at the root when the open file is at the root", () => {
       // Arrange
       const before = createState({
@@ -1890,6 +1906,56 @@ describe("Transitions", () => {
       expect(Array.from(state.closedFolders)).toEqual(["docs"]);
     });
 
+    it("should open the closed folders above the target of the dependency too, so that the outline shows", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src/helpers", "docs"]),
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual(["docs"]);
+    });
+
+    it("should open the folders above the target of a dependency whose file is at the root", () => {
+      // Arrange
+      const before = createDependencyState({
+        closedFolders: new Set(["src"]),
+      });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "main.js",
+        index: 0,
+      });
+
+      // Assert
+      expect(Array.from(state.closedFolders)).toEqual([]);
+    });
+
+    it("should leave the closed folders as they are when the dependency is on an external module", () => {
+      // Arrange
+      const closedFolders = new Set(["src/helpers", "docs"]);
+      const before = createDependencyState({ closedFolders });
+
+      // Act
+      const state = openTarget(before, {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+
+      // Assert
+      expect(state.closedFolders).toBe(closedFolders);
+    });
+
     it("should drop the folder the user selected, the request to reveal and the highlight", () => {
       // Arrange
       const before = createDependencyState({
@@ -1900,6 +1966,7 @@ describe("Transitions", () => {
         revealCount: 1,
         highlight: {
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 0 },
         },
       });
@@ -1971,11 +2038,16 @@ describe("Transitions", () => {
       const state = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
       // Assert
-      expect(state.highlight).toEqual({ range: RANGE, dependency: FROM });
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
       expect(state.reveal).toEqual({ range: RANGE, key: 1 });
       expect(state.focus).toEqual({ kind: "config" });
     });
@@ -1991,11 +2063,16 @@ describe("Transitions", () => {
       const state = openTarget(before, {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
       // Assert
-      expect(state.highlight).toEqual({ range: RANGE, dependency: FROM });
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: FROM,
+      });
       expect(state.tab).toBe("node");
     });
 
@@ -2004,6 +2081,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
@@ -2021,6 +2099,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
       const other = { path: "main.js", index: 0 };
@@ -2029,12 +2108,14 @@ describe("Transitions", () => {
       const state = openTarget(opened, {
         kind: "config",
         range: OTHER_RANGE,
+        policy: 0,
         dependency: other,
       });
 
       // Assert
       expect(state.highlight).toEqual({
         range: OTHER_RANGE,
+        policy: 0,
         dependency: other,
       });
     });
@@ -2044,6 +2125,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
@@ -2060,6 +2142,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
@@ -2068,6 +2151,39 @@ describe("Transitions", () => {
 
       // Assert
       expect(state.highlight).toBeUndefined();
+    });
+
+    it("should keep the index of the policy, and null for the default", () => {
+      // Act
+      const policy = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 1,
+        dependency: FROM,
+      });
+      const byDefault = openTarget(createDependencyState(), {
+        kind: "config",
+        range: OTHER_RANGE,
+        policy: null,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(policy.highlight?.policy).toBe(1);
+      expect(byDefault.highlight?.policy).toBeNull();
+    });
+
+    it("should not be set by a target that has a range and a dependency and does not say which policy it is", () => {
+      // Act
+      const state = openTarget(createDependencyState(), {
+        kind: "config",
+        range: RANGE,
+        dependency: FROM,
+      });
+
+      // Assert
+      expect(state.highlight).toBeUndefined();
+      expect(state.reveal).toEqual({ range: RANGE, key: 1 });
     });
 
     it("should not be set by a target that has a dependency and no range", () => {
@@ -2086,6 +2202,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
@@ -2101,6 +2218,7 @@ describe("Transitions", () => {
       const opened = openTarget(createDependencyState(), {
         kind: "config",
         range: RANGE,
+        policy: 2,
         dependency: FROM,
       });
 
@@ -2200,6 +2318,7 @@ describe("Transitions", () => {
         tab: "node",
         highlight: {
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 0 },
         },
       });
@@ -2525,6 +2644,7 @@ describe("Transitions", () => {
         tab: "node",
         highlight: {
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 2 },
         },
       });
@@ -2542,6 +2662,7 @@ describe("Transitions", () => {
       // Assert
       expect(moved.highlight).toEqual({
         range: RANGE,
+        policy: 2,
         dependency: { path: "src/index.js", index: 1 },
       });
       expect(removed.highlight).toBeUndefined();
@@ -2722,6 +2843,7 @@ describe("Transitions", () => {
         // Arrange
         const highlight = {
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 2 },
         };
         const before = createDependencyState({
@@ -2739,6 +2861,7 @@ describe("Transitions", () => {
         // Assert
         expect(moved.highlight).toEqual({
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/app.js", index: 2 },
         });
         expect(kept.highlight).toBe(highlight);
@@ -2828,6 +2951,7 @@ describe("Transitions", () => {
           tab: "node",
           highlight: {
             range: RANGE,
+            policy: 2,
             dependency: { path: "src/index.js", index: 2 },
           },
         });
@@ -2839,6 +2963,7 @@ describe("Transitions", () => {
         // Assert
         expect(moved.highlight).toEqual({
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 1 },
         });
         expect(gone.highlight).toBeUndefined();
@@ -2907,7 +3032,7 @@ describe("Transitions", () => {
       expect(getEdges(state)).toEqual(["main.js -> src/index.js"]);
     });
 
-    it("should keep the dependency in focus when its file has a dependency at the same index in the text", () => {
+    it("should keep the dependency in focus when its line was edited in the text", () => {
       // Arrange
       const openNode = onDependency("src/index.js", 1);
       const before = createDependencyState({
@@ -2915,8 +3040,9 @@ describe("Transitions", () => {
         focus: openNode,
         tab: "dependency",
         textDraft: writeText([
-          importOf("src/index.js", "main.js"),
+          importOf("src/index.js", "src/helpers/format.js"),
           importModule("src/index.js", "lodash"),
+          importOf("src/index.js", "main.js"),
         ]),
       });
 
@@ -2928,13 +3054,54 @@ describe("Transitions", () => {
       expect(state.tab).toBe("dependency");
     });
 
-    it("should put the file in focus, and select the tab of the node, when the text has fewer dependencies in it", () => {
+    it("should keep the dependency in focus on its own line when a line before it was deleted in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+        textDraft: writeText([
+          DEPENDENCIES[1],
+          DEPENDENCIES[2],
+          DEPENDENCIES[3],
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 0));
+      expect(state.tab).toBe("dependency");
+    });
+
+    it("should keep the dependency in focus on its own line when a line before it was added in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+        textDraft: writeText([
+          importOf("src/index.js", "src/helpers/format.js"),
+          importModule("src/index.js", "lodash"),
+          ...DEPENDENCIES,
+        ]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 3));
+    });
+
+    it("should put the file in focus, and select the tab of the node, when the text deleted the line of the dependency", () => {
       // Arrange
       const before = createDependencyState({
         view: "text",
         focus: onDependency("src/index.js", 2),
         tab: "dependency",
-        textDraft: writeText([importOf("src/index.js", "main.js")]),
+        textDraft: writeText([DEPENDENCIES[0]]),
       });
 
       // Act
@@ -2970,6 +3137,7 @@ describe("Transitions", () => {
         tab: "node",
         highlight: {
           range: RANGE,
+          policy: 2,
           dependency: { path: "src/index.js", index: 2 },
         },
       });
@@ -2990,6 +3158,31 @@ describe("Transitions", () => {
       // Assert
       expect(same.highlight).toEqual(config.highlight);
       expect(gone.highlight).toBeUndefined();
+    });
+
+    it("should move the dependency a highlight came from to its own line when a line before it was deleted in the text", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        },
+        textDraft: writeText([DEPENDENCIES[1], DEPENDENCIES[2]]),
+      });
+
+      // Act
+      const state = read(before);
+
+      // Assert
+      expect(state.highlight).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: { path: "src/index.js", index: 1 },
+      });
     });
 
     describe("without editDependencies", () => {

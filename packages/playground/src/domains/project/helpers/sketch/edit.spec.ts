@@ -377,6 +377,28 @@ describe("Edit", () => {
       expect(error).toBe("The path has an empty segment.");
     });
 
+    it("should refuse a new path with a quote, so that no dependency is left that a statement cannot write", () => {
+      // Arrange
+      const withDependencies = createSketch(SKETCH.tree, [
+        toNode("src/index.js", "src/helpers/format.js"),
+        toNode("src/components/Price/index.js", "src/helpers/format.js"),
+      ]);
+
+      // Act
+      const errors = [
+        getError(
+          renameNode(withDependencies, "src/helpers/format.js", "src/it's.js")
+        ),
+        getError(renameNode(withDependencies, "src/helpers", 'src/say"hi"')),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        "A path cannot have quotes or backslashes.",
+        "A path cannot have quotes or backslashes.",
+      ]);
+    });
+
     it("should refuse a new path under the config node", () => {
       // Act
       const error = getError(

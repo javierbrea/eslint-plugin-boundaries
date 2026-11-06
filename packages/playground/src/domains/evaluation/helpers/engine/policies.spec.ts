@@ -85,14 +85,19 @@ function allowedBy(rule: EvaluatedRule, index: number | null) {
  * Builds the result of a dependency that a policy disallowed.
  * @param rule The rule.
  * @param index The index of the policy, or `null` for the default.
+ * @param level The level of the verdict: `error` unless the rule is a warning.
  * @returns The result.
  */
-function disallowedBy(rule: EvaluatedRule, index: number | null) {
+function disallowedBy(
+  rule: EvaluatedRule,
+  index: number | null,
+  level: "error" | "warning" = "error"
+) {
   return resultOf({
     status: "disallowed",
     policy: index === null ? rule.defaultPolicy : rule.policies[index],
     message: "Not allowed",
-    level: "error",
+    level,
   });
 }
 
@@ -141,6 +146,34 @@ describe("Policies", () => {
 
       // Assert
       expect(summaries[2]).toMatchObject({ decided: 3, disallowed: 2 });
+    });
+
+    it("should count how many of the dependencies that a policy disallowed are errors, the others being warnings", () => {
+      // Arrange
+      const rule = selectEvaluatedRule(QUICK_START_CONFIG);
+      const results = [
+        disallowedBy(rule, 2, "warning"),
+        disallowedBy(rule, 2, "error"),
+        disallowedBy(rule, null, "warning"),
+        allowedBy(rule, 1),
+      ];
+
+      // Act
+      const summaries = summarizePolicies(rule, results);
+
+      // Assert
+      expect(
+        summaries.map(({ index, disallowed, errors }) => [
+          index,
+          disallowed,
+          errors,
+        ])
+      ).toEqual([
+        [0, 0, 0],
+        [1, 0, 0],
+        [2, 2, 1],
+        [null, 1, 0],
+      ]);
     });
 
     it("should count nothing for a policy that decided no dependency", () => {
@@ -271,6 +304,7 @@ describe("Policies", () => {
           to: [],
           decided: 1,
           disallowed: 0,
+          errors: 0,
           range: rule.defaultPolicy.range,
         },
       ]);

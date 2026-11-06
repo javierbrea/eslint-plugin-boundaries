@@ -220,8 +220,8 @@ describe("ProjectTreeItem", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 3],
-          ["src/index.js", 1],
+          ["src", { count: 3, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       renderItems({ counts });
@@ -256,8 +256,8 @@ describe("ProjectTreeItem", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 1],
-          ["src/index.js", 1],
+          ["src", { count: 1, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       renderItems({ counts, editable: false });
@@ -271,12 +271,90 @@ describe("ProjectTreeItem", () => {
       expect(folder).not.toContain(ICON_PATHS.cross);
     });
 
+    it("should draw the badge of a failing file and of its folder in the color of errors", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([
+          ["src", { count: 1, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
+        ]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const file = item("src/index.js").row.badge().color;
+      const folder = item("src").row.badge().color;
+
+      // Assert
+      expect(file).toBe("var(--jsb-bad)");
+      expect(folder).toBe("var(--jsb-bad)");
+    });
+
+    it("should draw the failures of a file in the color of warnings, with a triangle in place of the cross and its name not in red, when all of them are warnings", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([
+          ["src", { count: 2, hasErrors: false }],
+          ["src/index.js", { count: 2, hasErrors: false }],
+        ]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { row } = item("src/index.js");
+
+      // Assert
+      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.iconPaths).toEqual([ICON_PATHS.warn]);
+      expect(row.failureColor).toBe("var(--jsb-warn)");
+      expect(row.isBad).toBe(false);
+    });
+
+    it("should draw the cross and the name in red for a file with an error among its warnings", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { iconPaths, isBad, failureColor } = item("src/index.js").row;
+
+      // Assert
+      expect(iconPaths).toEqual([ICON_PATHS.cross]);
+      expect(failureColor).toBe("var(--jsb-bad)");
+      expect(isBad).toBe(true);
+    });
+
+    it("should draw the badge of a folder in the color of warnings when the failures under it are all warnings, and not turn its name red", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src", { count: 1, hasErrors: false }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const { row } = item("src");
+
+      // Assert
+      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.isBad).toBe(false);
+    });
+
     it("should draw the row of a failing file in red, and the row of the config only when it has errors", () => {
       // Arrange
       const counts: ProblemCounts = {
         config: 1,
         configHasErrors: true,
-        byPath: new Map([["src/index.js", 1]]),
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
       };
       const page = renderItems({ counts });
       const redFile = item("src/index.js").row.isBad;
@@ -373,7 +451,7 @@ describe("ProjectTreeItem", () => {
       const counts: ProblemCounts = {
         config: 0,
         configHasErrors: false,
-        byPath: new Map([["src/index.js", 2]]),
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
       };
       renderItems({ target: "src/index.js", counts });
 

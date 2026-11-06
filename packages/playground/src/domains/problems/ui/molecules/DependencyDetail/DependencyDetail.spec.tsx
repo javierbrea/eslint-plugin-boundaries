@@ -28,6 +28,7 @@ const DISALLOWED: DependencyDetailContent = {
     target: {
       kind: "config",
       range: { from: 40, to: 90, line: 3, column: 9 },
+      policy: 2,
       dependency: { path: "src/modules/checkout/index.js", index: 2 },
     },
   },
@@ -234,6 +235,7 @@ describe("DependencyDetail", () => {
       expect(onOpen).toHaveBeenCalledWith({
         kind: "config",
         range: { from: 40, to: 90, line: 3, column: 9 },
+        policy: 2,
         dependency: { path: "src/modules/checkout/index.js", index: 2 },
       });
     });

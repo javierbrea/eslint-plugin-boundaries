@@ -9,6 +9,9 @@ import type { EvaluatedRule } from "./evaluatedRule.types";
 import type { PolicyCount } from "./policies.types";
 import { readSelectorNames } from "./selectorNames";
 
+/** What a policy that decided no dependency has counted */
+const NO_DECISIONS: PolicyCount = { decided: 0, disallowed: 0, errors: 0 };
+
 /**
  * Counts the dependencies that each policy decided.
  * @param results The dependencies of the sketch with their verdicts.
@@ -27,10 +30,13 @@ function countDecisions(
     if (policy === undefined) {
       continue;
     }
-    const known = counts.get(policy.index) ?? { decided: 0, disallowed: 0 };
+    const known = counts.get(policy.index) ?? NO_DECISIONS;
+    const isDisallowed = verdict.status === "disallowed";
     counts.set(policy.index, {
       decided: known.decided + 1,
-      disallowed: known.disallowed + (verdict.status === "disallowed" ? 1 : 0),
+      disallowed: known.disallowed + (isDisallowed ? 1 : 0),
+      errors:
+        known.errors + (isDisallowed && verdict.level === "error" ? 1 : 0),
     });
   }
   return counts;
@@ -57,7 +63,7 @@ function getAction({
  * Summarizes the policies of the rule that is evaluated, and its default.
  * @param rule The rule, with the places of its policies in the config text.
  * @param results The dependencies of the sketch with their verdicts.
- * @returns One summary for each policy of the rule, in their order, then one for the default. Each counts the dependencies it decided and the ones it disallowed, from the verdicts.
+ * @returns One summary for each policy of the rule, in their order, then one for the default. Each counts the dependencies it decided, the ones it disallowed and how many of those are errors, from the verdicts.
  */
 export function summarizePolicies(
   rule: EvaluatedRule,
@@ -65,7 +71,7 @@ export function summarizePolicies(
 ): PolicySummary[] {
   const counts = countDecisions(results);
   const countOf = ({ index }: PolicyRef): PolicyCount =>
-    counts.get(index) ?? { decided: 0, disallowed: 0 };
+    counts.get(index) ?? NO_DECISIONS;
 
   return [
     ...rule.policies.map(

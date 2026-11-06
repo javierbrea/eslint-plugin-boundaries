@@ -63,13 +63,13 @@ describe("useProblemCounts", () => {
 
     // Assert
     expect(Object.fromEntries(result.current.byPath)).toEqual({
-      "src/helpers/format/index.js": 1,
-      "src/helpers/format": 1,
-      "src/helpers": 1,
-      "src/modules/checkout/index.js": 1,
-      "src/modules/checkout": 1,
-      "src/modules": 1,
-      src: 2,
+      "src/helpers/format/index.js": { count: 1, hasErrors: true },
+      "src/helpers/format": { count: 1, hasErrors: true },
+      "src/helpers": { count: 1, hasErrors: true },
+      "src/modules/checkout/index.js": { count: 1, hasErrors: true },
+      "src/modules/checkout": { count: 1, hasErrors: true },
+      "src/modules": { count: 1, hasErrors: true },
+      src: { count: 2, hasErrors: true },
     });
   });
 
@@ -110,10 +110,10 @@ describe("useProblemCounts", () => {
 
     expect(last).not.toBe(results[0]);
     expect(Object.fromEntries(last.byPath)).toEqual({
-      "src/modules/checkout/index.js": 1,
-      "src/modules/checkout": 1,
-      "src/modules": 1,
-      src: 1,
+      "src/modules/checkout/index.js": { count: 1, hasErrors: true },
+      "src/modules/checkout": { count: 1, hasErrors: true },
+      "src/modules": { count: 1, hasErrors: true },
+      src: { count: 1, hasErrors: true },
     });
   });
 
@@ -135,6 +135,31 @@ describe("useProblemCounts", () => {
     expect(last.evaluation).not.toBe(first.evaluation);
     expect(last.summary).not.toBe(first.summary);
     expect(last.counts).toBe(first.counts);
+  });
+
+  it("should give a new object, saying the failing dependencies are warnings, when the rule becomes a warning", () => {
+    // Arrange
+    const { store, results } = renderHookInSession(
+      useProblemCounts,
+      QUICK_START_EXAMPLE.sketch
+    );
+
+    // Act
+    act(() =>
+      store.changeConfig(
+        QUICK_START_EXAMPLE.sketch.config.replace(
+          '"boundaries/dependencies": [2,',
+          '"boundaries/dependencies": ["warn",'
+        )
+      )
+    );
+    waitForEvaluation();
+
+    // Assert
+    const [first, last] = [results[0], results[results.length - 1]];
+
+    expect(last).not.toBe(first);
+    expect(last.byPath.get("src")).toEqual({ count: 2, hasErrors: false });
   });
 
   it("should give a new object when the config has an error", () => {

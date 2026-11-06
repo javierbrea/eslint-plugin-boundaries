@@ -50,7 +50,7 @@ describe("ProjectSummary", () => {
     ]);
   });
 
-  it("should add the policies of every rule of the plugin", () => {
+  it("should count the policies of the evaluated rule only, and not the ones of the other rules of the plugin", () => {
     // Arrange
     const sketch: Sketch = {
       config: `{
@@ -70,7 +70,50 @@ describe("ProjectSummary", () => {
     const { numbers } = summary;
 
     // Assert
-    expect(numbers[4]).toBe("3policies");
+    expect(numbers[4]).toBe("2policies");
+  });
+
+  it("should count the policies of the deprecated rule when it is the one that is evaluated", () => {
+    // Arrange
+    const sketch: Sketch = {
+      config: `{
+          settings: {},
+          rules: {
+            "boundaries/element-types": [2, { default: "disallow", rules: [{ from: "a", allow: ["b"] }] }],
+          },
+        }`,
+      tree: [],
+      dependencies: [],
+    };
+    const summary = renderSummary(evaluate(sketch));
+
+    // Act
+    const { numbers } = summary;
+
+    // Assert
+    expect(numbers[4]).toBe("1policies");
+  });
+
+  it("should count no policy when no rule is evaluated, though another rule of the plugin has some", () => {
+    // Arrange
+    const sketch: Sketch = {
+      config: `{
+          settings: {},
+          rules: {
+            "boundaries/no-unknown": 2,
+            "boundaries/entry-point": [2, { default: "disallow", rules: [{ target: "a", allow: "*.js" }] }],
+          },
+        }`,
+      tree: [],
+      dependencies: [],
+    };
+    const summary = renderSummary(evaluate(sketch));
+
+    // Act
+    const { numbers } = summary;
+
+    // Assert
+    expect(numbers[4]).toBe("0policies");
   });
 
   it("should show zeros for a config that cannot be read, and the files all the same", () => {
@@ -150,6 +193,23 @@ describe("ProjectSummary", () => {
 
       // Assert
       expect(color).toBe("var(--jsb-bad)");
+    });
+
+    it("should draw the disallowed dependencies in the color of warnings when the rule is a warning", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const summary = renderSummary(evaluate({ ...QUICK_START, config }));
+
+      // Act
+      const color = summary.countColor("disallowed");
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(summary.count("disallowed")).toBe("2");
+      expect(color).toBe("var(--jsb-warn)");
     });
 
     it("should draw the disallowed dependencies as the other numbers when there are none", () => {

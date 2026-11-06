@@ -24,6 +24,7 @@ import type {
   DependencyDetailFacts,
   FailingDependency,
   HighlightFacts,
+  PathCount,
   PolicyFacts,
   ProblemCounts,
   ProblemEvaluation,
@@ -136,32 +137,45 @@ export function summarizeProblems(
 }
 
 /**
- * Adds one to the count of a path.
+ * Adds one failing dependency to the count of a path.
  * @param counts The counts by path.
  * @param path The path.
+ * @param isFailureAnError Whether the dependency is an error, which makes the path have errors.
  */
-function increment(counts: Map<string, number>, path: string): void {
-  counts.set(path, (counts.get(path) ?? 0) + 1);
+function increment(
+  counts: Map<string, PathCount>,
+  path: string,
+  isFailureAnError: boolean
+): void {
+  const known = counts.get(path);
+
+  counts.set(path, {
+    count: (known?.count ?? 0) + 1,
+    hasErrors: (known?.hasErrors ?? false) || isFailureAnError,
+  });
 }
 
 /**
- * Counts the failing dependencies of each file and, summed, of each folder above it.
+ * Counts the failing dependencies of each file and, summed, of each folder above it, and tells which of them have errors.
  * @param failing The dependencies that fail.
  * @returns The counts by path; the shared empty map when there are none.
  */
 function countByPath(
   failing: readonly FailingDependency[]
 ): ProblemCounts["byPath"] {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, PathCount>();
 
-  for (const { ref } of failing) {
-    increment(counts, ref.path);
+  for (const dependency of failing) {
+    const { ref } = dependency;
+    const isFailureAnError = isError(dependency);
+
+    increment(counts, ref.path, isFailureAnError);
     for (
       let folder = getParentPath(ref.path);
       folder !== "";
       folder = getParentPath(folder)
     ) {
-      increment(counts, folder);
+      increment(counts, folder, isFailureAnError);
     }
   }
   return counts.size === 0 ? NO_PATH_COUNTS : counts;
@@ -187,7 +201,7 @@ export function getProblemCounts(
 }
 
 /**
- * Tells whether two counts say the same: the same problems of the config, and the same count for each path.
+ * Tells whether two counts say the same: the same problems of the config, and the same count, with the same errors, for each path.
  * @param first The counts.
  * @param second The other counts.
  */
@@ -196,9 +210,13 @@ function isSameCounts(first: ProblemCounts, second: ProblemCounts): boolean {
     first.config === second.config &&
     first.configHasErrors === second.configHasErrors &&
     first.byPath.size === second.byPath.size &&
-    Array.from(first.byPath).every(
-      ([path, count]) => second.byPath.get(path) === count
-    )
+    Array.from(first.byPath).every(([path, count]) => {
+      const other = second.byPath.get(path);
+
+      return (
+        other?.count === count.count && other.hasErrors === count.hasErrors
+      );
+    })
   );
 }
 
@@ -382,27 +400,16 @@ function getDependencyDetail(
 }
 
 /**
- * Finds the policy that a highlight marks among the policies of the evaluation, by where it is written.
+ * Gives the policy that a highlight names. The highlight carries the index of the policy it was opened with, because its range moves when the user edits the config and the editor keeps the lines marked, so that the note keeps saying which policy it is.
  * @param highlight The policy that the user opened from a dependency, if any.
- * @param evaluation What the engine says about the sketch.
- * @returns The policy and the dependency, or `undefined` when there is no highlight or the config no longer has a policy at its range, as when the user edited it.
+ * @returns The policy and the dependency, or `undefined` when there is no highlight.
  */
 function getHighlightFacts(
-  highlight: PolicyHighlight | undefined,
-  evaluation: ProblemEvaluation
+  highlight: PolicyHighlight | undefined
 ): HighlightFacts | undefined {
-  if (highlight === undefined) {
-    return undefined;
-  }
-
-  const policy = evaluation.policies.find(
-    ({ range }) =>
-      range.from === highlight.range.from && range.to === highlight.range.to
-  );
-
-  return policy === undefined
+  return highlight === undefined
     ? undefined
-    : { policy: policy.index, dependency: highlight.dependency };
+    : { policy: highlight.policy, dependency: highlight.dependency };
 }
 
 /**
@@ -442,7 +449,7 @@ export function getProblemList({
       textProblems: NO_TEXT_PROBLEMS,
       dependencies: NO_FAILING_DEPENDENCIES,
       notEvaluated,
-      highlight: getHighlightFacts(highlight, evaluation),
+      highlight: getHighlightFacts(highlight),
     };
   }
 

@@ -1,4 +1,4 @@
-import { act } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
@@ -7,6 +7,7 @@ import { getDependencyLines } from "@/domains/files/ui/helpers/dependencyLines";
 import type { DependencyLine } from "@/domains/files/ui/helpers/dependencyLines";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
+import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 import { ThemeRootPom } from "@/ui-kit/providers/ThemeRoot/ThemeRoot.pom";
 
 import { DependencyLines } from "./DependencyLines";
@@ -37,16 +38,17 @@ function getLines(
 /** The four lines of `src/modules/checkout/index.js` of the quick-start project: the mockup draws them. */
 const LINES = getLines(CHECKOUT);
 
-/** What {@link renderLines} returns: the props it rendered the list with, and its page object. */
+/** What {@link renderLines} returns: the props it rendered the list with, its page object and the function that renders it again with other props. */
 type LinesRender = {
   readonly props: DependencyLinesProps;
   readonly list: DependencyLinesPom;
+  readonly update: (changes: Partial<DependencyLinesProps>) => void;
 };
 
 /**
  * Renders the list.
  * @param overrides What differs from an editable list of the four lines of the checkout file with none selected.
- * @returns The props it was rendered with and its page object.
+ * @returns The props it was rendered with, its page object and the function that updates it.
  */
 function renderLines(
   overrides: Partial<DependencyLinesProps> = {}
@@ -61,9 +63,22 @@ function renderLines(
     ...overrides,
   };
 
-  renderInRoot(<DependencyLines {...props} />);
+  const { rerender } = render(
+    <ThemeRoot>
+      <DependencyLines {...props} />
+    </ThemeRoot>
+  );
 
-  return { props, list: new DependencyLinesPom() };
+  return {
+    props,
+    list: new DependencyLinesPom(),
+    update: (changes) =>
+      rerender(
+        <ThemeRoot>
+          <DependencyLines {...props} {...changes} />
+        </ThemeRoot>
+      ),
+  };
 }
 
 describe("DependencyLines", () => {
@@ -301,6 +316,53 @@ describe("DependencyLines", () => {
       );
     });
 
+    it("should explain it when the verdict takes the keyboard focus, and not only under the pointer", async () => {
+      // Arrange
+      const { list } = renderLines();
+
+      // Act
+      list.line(3).verdict.focus();
+      await list.tooltip.waitUntilShown();
+
+      // Assert
+      expect(list.line(3).verdict.isFocused).toBe(true);
+      expect(list.tooltip.text).toBe(
+        "Not checked: the dependency is not local, and the rule checks external and core modules only with checkAllOrigins."
+      );
+    });
+
+    it("should be a tab stop only when the verdict has a sentence to explain", () => {
+      // Arrange
+      const { list } = renderLines();
+
+      // Act
+      const stops = list.lines.map(({ verdict }) => verdict.isTabStop);
+
+      // Assert
+      expect(stops).toEqual([false, false, false, true]);
+    });
+
+    it("should keep the text of the verdict as its name, and give the sentence as its description", async () => {
+      // Arrange
+      const { list } = renderLines();
+      const sentence =
+        "Not checked: the dependency is not local, and the rule checks external and core modules only with checkAllOrigins.";
+      const beforeFocus = [
+        list.line(3).verdict.hasLabel,
+        list.line(3).verdict.description,
+      ];
+
+      // Act
+      list.line(3).verdict.focus();
+      await list.tooltip.waitUntilShown();
+
+      // Assert
+      expect(beforeFocus).toEqual([false, sentence]);
+      expect(list.line(3).verdict.hasLabel).toBe(false);
+      expect(list.line(3).verdict.description).toBe(sentence);
+      expect(list.line(3).verdict.text).toBe("not checked · external");
+    });
+
     it("should show no tooltip on the verdict of an allowed dependency", () => {
       // Arrange
       jest.useFakeTimers();
@@ -478,6 +540,105 @@ describe("DependencyLines", () => {
       expect(props.onRemove).toHaveBeenCalledWith(3);
       expect(props.onEdit).not.toHaveBeenCalled();
       expect(props.onSelect).not.toHaveBeenCalled();
+    });
+
+    describe("the keyboard focus after a line is removed", () => {
+      it("should go to the line that takes the number of the one removed", () => {
+        // Arrange
+        const { list, update } = renderLines();
+        list.line(1).deleteAction.focus();
+
+        // Act
+        list.line(1).deleteAction.press();
+        update({ lines: [LINES[0], LINES[2], LINES[3]] });
+
+        // Assert
+        expect(list.line(1).isFocused).toBe(true);
+      });
+
+      it("should go to the line before when the one removed was the last", () => {
+        // Arrange
+        const { list, update } = renderLines();
+        list.line(3).deleteAction.focus();
+
+        // Act
+        list.line(3).deleteAction.press();
+        update({ lines: LINES.slice(0, 3) });
+
+        // Assert
+        expect(list.line(2).isFocused).toBe(true);
+      });
+
+      it("should go to the first line when the first one was removed", () => {
+        // Arrange
+        const { list, update } = renderLines();
+        list.line(0).deleteAction.focus();
+
+        // Act
+        list.line(0).deleteAction.press();
+        update({ lines: LINES.slice(1) });
+
+        // Assert
+        expect(list.line(0).isFocused).toBe(true);
+      });
+
+      it("should be asked to take the focus elsewhere only when no line is left", () => {
+        // Arrange
+        const onEmptied = jest.fn();
+        const { list, update } = renderLines({
+          lines: LINES.slice(0, 2),
+          onEmptied,
+        });
+        list.line(0).deleteAction.press();
+        update({ lines: LINES.slice(1, 2) });
+        const afterFirst = onEmptied.mock.calls.length;
+
+        // Act
+        list.line(0).deleteAction.press();
+        update({ lines: [] });
+
+        // Assert
+        expect(afterFirst).toBe(0);
+        expect(onEmptied).toHaveBeenCalledTimes(1);
+      });
+
+      it("should do nothing when the last line goes and nobody listens", () => {
+        // Arrange
+        const { list, update } = renderLines({ lines: LINES.slice(0, 1) });
+        list.line(0).deleteAction.press();
+
+        // Act
+        update({ lines: [] });
+
+        // Assert
+        expect(list.isRendered).toBe(false);
+      });
+
+      it("should not move the focus when the lines change without a removal", () => {
+        // Arrange
+        const { list, update } = renderLines();
+        list.line(3).focus();
+
+        // Act
+        update({ lines: LINES.slice(0, 3) });
+
+        // Assert
+        expect(list.line(2).isFocused).toBe(false);
+      });
+
+      it("should move it once, not each time the lines change afterwards", () => {
+        // Arrange
+        const { list, update } = renderLines();
+        list.line(1).deleteAction.press();
+        update({ lines: [LINES[0], LINES[2], LINES[3]] });
+        list.line(3 - 1).focus();
+
+        // Act
+        update({ lines: [LINES[0], LINES[2]] });
+
+        // Assert
+        expect(list.line(1).isFocused).toBe(false);
+      });
     });
 
     it("should draw the pencil and the trash can", () => {

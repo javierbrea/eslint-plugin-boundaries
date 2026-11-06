@@ -389,6 +389,7 @@ describe("dependencyDetail", () => {
           target: {
             kind: "config",
             range: POLICY_RANGE,
+            policy: 2,
             dependency: { path: CHECKOUT, index: 2 },
           },
         });
@@ -414,6 +415,7 @@ describe("dependencyDetail", () => {
         expect(policy?.target).toEqual({
           kind: "config",
           range: DEFAULT_RANGE,
+          policy: null,
           dependency: { path: CHECKOUT, index: 2 },
         });
       });

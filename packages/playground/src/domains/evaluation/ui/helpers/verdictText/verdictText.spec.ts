@@ -82,6 +82,7 @@ function summaryOf(summary: Partial<PolicySummary>): PolicySummary {
     to: [],
     decided: 0,
     disallowed: 0,
+    errors: 0,
     range: RANGE,
     ...summary,
   };

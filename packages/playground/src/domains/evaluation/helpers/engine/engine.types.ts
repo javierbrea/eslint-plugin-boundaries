@@ -181,6 +181,8 @@ export type PolicySummary = {
   readonly decided: number;
   /** How many of them it disallowed */
   readonly disallowed: number;
+  /** How many of the disallowed ones are errors, because the rule has the severity `error`; the others are warnings */
+  readonly errors: number;
   /** Where it is written in the config text: the policy, or the `default` option (the options when `default` is not written) */
   readonly range: TextRange;
 };

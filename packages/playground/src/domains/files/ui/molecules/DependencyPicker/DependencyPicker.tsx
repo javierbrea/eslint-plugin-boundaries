@@ -120,12 +120,10 @@ const Preview = styled("pre")(({ theme }) => ({
   overflowWrap: "anywhere",
 }));
 
+// The longest sentences do not fit on one line of the picker, so the sentence wraps and is never cut
 const Refusal = styled("p")(({ theme }) => ({
   ...theme.typography.caption,
   margin: "6px 0 0",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
   color: "var(--jsb-bad)",
 }));
 

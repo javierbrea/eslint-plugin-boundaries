@@ -477,6 +477,45 @@ describe("FileNode", () => {
     });
   });
 
+  describe("the keyboard focus after a dependency is removed", () => {
+    it("should go to the line that takes the number of the one removed", () => {
+      // Arrange
+      const { node } = renderNode();
+      node.lines.line(1).deleteAction.focus();
+
+      // Act
+      node.lines.line(1).deleteAction.press();
+
+      // Assert
+      expect(node.lines.line(1).isFocused).toBe(true);
+    });
+
+    it("should go to the line before when the one removed was the last", () => {
+      // Arrange
+      const { node } = renderNode();
+      node.lines.line(3).deleteAction.focus();
+
+      // Act
+      node.lines.line(3).deleteAction.press();
+
+      // Assert
+      expect(node.lines.line(2).isFocused).toBe(true);
+    });
+
+    it("should go to + Dependency when the file has no line left", () => {
+      // Arrange
+      const { node } = renderNode({ path: FORMAT });
+      node.lines.line(0).deleteAction.focus();
+
+      // Act
+      node.lines.line(0).deleteAction.press();
+
+      // Assert
+      expect(node.lines.isRendered).toBe(false);
+      expect(node.addButton.isFocused).toBe(true);
+    });
+  });
+
   describe("when the dependencies cannot be edited", () => {
     it("should show the lines, and no button that adds one, no hint and no actions", () => {
       // Act

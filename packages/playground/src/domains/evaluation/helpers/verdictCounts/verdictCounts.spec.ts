@@ -21,6 +21,7 @@ describe("verdictCounts", () => {
         total: 9,
         allowed: 3,
         disallowed: 2,
+        errors: 2,
         notChecked: 4,
       });
     });
@@ -40,6 +41,7 @@ describe("verdictCounts", () => {
         total: 4,
         allowed: 2,
         disallowed: 1,
+        errors: 1,
         notChecked: 1,
       });
     });
@@ -60,6 +62,24 @@ describe("verdictCounts", () => {
       expect(disallowed).toBe(2);
     });
 
+    it("should count none of the dependencies that a warning disallows as errors, and all that an error disallows", () => {
+      // Arrange
+      const warn = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+
+      // Act
+      const asWarnings = countVerdicts(
+        evaluate({ ...QUICK_START, config: warn }).dependencies
+      );
+      const asErrors = countVerdicts(evaluate(QUICK_START).dependencies);
+
+      // Assert
+      expect(asWarnings).toMatchObject({ disallowed: 2, errors: 0 });
+      expect(asErrors).toMatchObject({ disallowed: 2, errors: 2 });
+    });
+
     it("should count a dependency that is not evaluated only in the total", () => {
       // Arrange
       const config = QUICK_START.config.replace(
@@ -76,6 +96,7 @@ describe("verdictCounts", () => {
         total: 9,
         allowed: 0,
         disallowed: 0,
+        errors: 0,
         notChecked: 0,
       });
     });
@@ -89,6 +110,7 @@ describe("verdictCounts", () => {
         total: 0,
         allowed: 0,
         disallowed: 0,
+        errors: 0,
         notChecked: 0,
       });
     });

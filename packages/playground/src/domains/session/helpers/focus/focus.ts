@@ -1,8 +1,8 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 import {
-  getDependency,
   getFileDependencies,
   getFiles,
+  isSameDependency,
 } from "@/domains/project/helpers/sketch";
 
 import type { Focus, PolicyHighlight } from "./focus.types";
@@ -22,11 +22,40 @@ export function getFocusedPath(openNode: Focus): string | undefined {
 }
 
 /**
- * Moves a dependency in focus with an edit of the sketch that changed its dependencies, so that the focus keeps pointing at the dependency the user had open. The edits keep a dependency they do not touch as the same object, and the text of text mode builds them again, which tells the two apart.
+ * Finds a dependency among the ones of its file after the text of text mode built all of them again, which leaves no object to tell them apart: by their data. Several lines can say the same, and the dependency in focus is the one that has as many equal lines before it as it had.
+ * @param openNode The dependency in focus before the edit.
+ * @param dependency The dependency in focus, as the sketch before holds it.
+ * @param before The dependencies of its file before the edit.
+ * @param after The dependencies of its file after the edit.
+ * @returns The focus on the line that says the same, or on the same line when it was edited in place (nothing equal, and as many lines as before), and `undefined` when the line is gone.
+ */
+function followRewrittenDependency(
+  openNode: Extract<Focus, { kind: "dependency" }>,
+  dependency: SketchDependency,
+  before: readonly SketchDependency[],
+  after: readonly SketchDependency[]
+): Focus | undefined {
+  const equalBefore = before
+    .slice(0, openNode.index)
+    .filter((candidate) => isSameDependency(candidate, dependency)).length;
+  const equalAfter = after.flatMap((candidate, position) =>
+    isSameDependency(candidate, dependency) ? [position] : []
+  );
+  const index = equalAfter[equalBefore];
+
+  if (index !== undefined) {
+    return index === openNode.index ? openNode : { ...openNode, index };
+  }
+  // The line is not there, and the text may have changed it: it is the same line when no line was added or deleted
+  return after.length === before.length ? openNode : undefined;
+}
+
+/**
+ * Moves a dependency in focus with an edit of the sketch that changed its dependencies, so that the focus keeps pointing at the dependency the user had open. The edits keep a dependency they do not touch as the same object, and the text of text mode builds all of them again, which tells the two apart.
  * @param openNode The dependency in focus before the edit.
  * @param before The sketch before the edit.
  * @param after The sketch after the edit.
- * @returns The same focus when the dependency is where it was, the dependency at its new index when others before it in its file went, its file when the dependency is gone and the file is not, and nothing when the file is gone too.
+ * @returns The same focus when the dependency is where it was, the dependency at its new index when others before it in its file went or the text moved it, its file when the dependency is gone and the file is not, and nothing when the file is gone too.
  */
 function moveDependencyFocus(
   openNode: Extract<Focus, { kind: "dependency" }>,
@@ -36,25 +65,35 @@ function moveDependencyFocus(
   const fileFocus: Focus = getFiles(after).includes(openNode.path)
     ? { kind: "file", path: openNode.path }
     : NO_FOCUS;
-  const dependency = getDependency(before, openNode);
+  const beforeList = getFileDependencies(before, openNode.path);
+  const afterList = getFileDependencies(after, openNode.path);
+  const dependency = beforeList[openNode.index];
 
   if (dependency === undefined) {
     return fileFocus;
   }
 
   // A dependency that survives is the same object: removing a node drops some dependencies and keeps the others as they were
-  const index = getFileDependencies(after, dependency.from).indexOf(dependency);
+  const index = afterList.indexOf(dependency);
 
   if (index !== -1) {
     return index === openNode.index ? openNode : { ...openNode, index };
   }
 
-  // The dependency is not there: either an edit dropped it, and the one at its index is another, or the text built every dependency again and the one at its index is the same line
-  const isRewritten = after.dependencies.some(
-    (candidate) => !before.dependencies.includes(candidate)
+  // No dependency of the file is an object of before: the text built them again, and the lines are told apart by what they say
+  if (afterList.every((candidate) => !beforeList.includes(candidate))) {
+    return (
+      followRewrittenDependency(openNode, dependency, beforeList, afterList) ??
+      fileFocus
+    );
+  }
+
+  // The dependency is not there: an edit dropped it, and the one at its index is another, or an edit replaced it by another one and the one at its index is that one
+  const isReplaced = afterList.some(
+    (candidate) => !beforeList.includes(candidate)
   );
 
-  return isRewritten && getDependency(after, openNode) !== undefined
+  return isReplaced && afterList[openNode.index] !== undefined
     ? openNode
     : fileFocus;
 }

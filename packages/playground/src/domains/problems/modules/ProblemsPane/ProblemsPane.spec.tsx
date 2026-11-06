@@ -847,6 +847,29 @@ describe("ProblemsPane", () => {
         expect(pane.note.isRendered).toBe(false);
       });
 
+      it("should keep naming the policy when the config is edited before it", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+
+        // Act
+        act(() =>
+          store.changeConfig(
+            `// A comment before everything\n${FULL_QUICK_START.config}`
+          )
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
       it("should say it above the problems of the config when the config has some", () => {
         // Arrange
         const { store, pane } = renderPane({

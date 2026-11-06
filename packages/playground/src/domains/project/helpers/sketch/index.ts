@@ -43,5 +43,5 @@ export {
   toStatement,
   toStatementTokens,
 } from "./statements";
-export { isSameProject } from "./compare";
+export { isSameDependency, isSameProject } from "./compare";
 export { fromText, readTextProblems, toText } from "./textMode";

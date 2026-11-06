@@ -395,6 +395,14 @@ export class DependencyPickerPom extends Pom {
   }
 
   /**
+   * What the sentence that says why the draft is refused does when it does not fit: it is cut with an ellipsis, or it wraps.
+   * @returns The computed `text-overflow`.
+   */
+  get refusalTextOverflow(): string {
+    return getComputedStyle(this.refusalElement as HTMLElement).textOverflow;
+  }
+
+  /**
    * The buttons of the footer.
    * @returns The text of each button, in order.
    */

@@ -1,5 +1,6 @@
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
+import { useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 
 import { DependencyLines } from "@/domains/files/ui/molecules/DependencyLines";
@@ -42,7 +43,7 @@ const Hint = styled("p")(({ theme }) => ({
 }));
 
 /**
- * The node pane when a file is open: its path in the head and, on a code area, the list of its dependencies with their verdicts, the button that adds one and a hint about the picker. It shows what it is given and reports what the user does: the picker and the store are the business of the module that renders it.
+ * The node pane when a file is open: its path in the head and, on a code area, the list of its dependencies with their verdicts, the button that adds one and a hint about the picker. It shows what it is given and reports what the user does: the picker and the store are the business of the module that renders it. When the user removes the only line, the keyboard focus goes to the button that adds one.
  * @param props FilePane props.
  * @param props.path Path of the open file.
  * @param props.frameLabel The accessible name of the landmark of the pane.
@@ -66,6 +67,13 @@ export function FilePane({
   onRemove,
   onAdd,
 }: Readonly<FilePaneProps>): ReactNode {
+  const addButton = useRef<HTMLButtonElement>(null);
+  // The lines have delete actions only when the dependencies can be edited, which is when the button is drawn
+  const focusAdd = useCallback(
+    () => (addButton.current as HTMLButtonElement).focus(),
+    []
+  );
+
   return (
     <PaneFrame label={frameLabel} testId={FILE_PANE_TEST_ID}>
       <PaneHead label={FILE_PANE_LABEL} path={path} />
@@ -77,10 +85,12 @@ export function FilePane({
           onSelect={onSelect}
           onEdit={onEdit}
           onRemove={onRemove}
+          onEmptied={focusAdd}
         />
         {editable ? (
           <>
             <AddButton
+              ref={addButton}
               variant="outlined"
               size="small"
               startIcon={<Icon name="plus" />}

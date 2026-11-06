@@ -723,6 +723,8 @@ describe("TextMode", () => {
         "  import { 1a } from 'react'",
         '  import { a as class } from "react";',
         '  import 1 from "react";',
+        '  import type A, { B } from "react";',
+        '  import type A, * as ns from "react";',
       ].join("\n");
 
       // Act
@@ -748,6 +750,16 @@ describe("TextMode", () => {
         { line: 8, reason: '"1a" is not a valid name.' },
         { line: 9, reason: '"class" is not a valid name.' },
         { line: 10, reason: '"1" is not a valid name.' },
+        {
+          line: 11,
+          reason:
+            "A type import cannot hold a default name together with named names or a namespace.",
+        },
+        {
+          line: 12,
+          reason:
+            "A type import cannot hold a default name together with named names or a namespace.",
+        },
       ]);
     });
 
@@ -836,6 +848,29 @@ describe("TextMode", () => {
           text: "eslint.config.js/index.js",
           reason:
             "eslint.config.js at the root is the config node, not a file or a folder.",
+        },
+      ]);
+    });
+
+    it("should leave out a path with a quote as a problem, as a statement cannot write it", () => {
+      // Arrange
+      const text = 'src/it\'s.js\nsrc/say"hi".js\nsrc/index.js\n';
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(paths(sketch)).toEqual(["src/index.js"]);
+      expect(problems).toEqual([
+        {
+          line: 1,
+          text: "src/it's.js",
+          reason: "A path cannot have quotes or backslashes.",
+        },
+        {
+          line: 2,
+          text: 'src/say"hi".js',
+          reason: "A path cannot have quotes or backslashes.",
         },
       ]);
     });
@@ -1235,6 +1270,10 @@ describe("TextMode", () => {
           toNode("src/app.tsx", "src/lib/util.ts", {
             syntax: "export-from",
             specifiers: specifiers("namespace", "util"),
+          }),
+          toNode("src/app.tsx", "src/lib/util.ts", {
+            syntax: "export-from",
+            specifiers: specifiers("named", "c as default"),
           }),
           toNode("src/app.tsx", "src/lib/util.ts", {
             syntax: "dynamic-import",

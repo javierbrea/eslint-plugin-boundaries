@@ -114,6 +114,16 @@ class ProjectRowPom extends Pom {
   }
 
   /**
+   * The color of the mark that a file with failing dependencies has at the end of its row: the cross of errors, or the triangle of warnings.
+   * @returns The computed color of the mark, or an empty string when the row draws none.
+   */
+  get failureColor(): string {
+    const mark = this.root.querySelector("[data-failure]");
+
+    return mark === null ? "" : getComputedStyle(mark).color;
+  }
+
+  /**
    * What the row reads, from the chevron to the badge.
    * @returns The text of the row: the glyph of the config, the name, and the number of the badge.
    */

@@ -127,8 +127,8 @@ describe("ProjectTree", () => {
         config: 0,
         configHasErrors: false,
         byPath: new Map([
-          ["src", 2],
-          ["src/index.js", 1],
+          ["src", { count: 2, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
         ]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
@@ -153,7 +153,7 @@ describe("ProjectTree", () => {
       const counts: ProblemCounts = {
         config: 0,
         configHasErrors: false,
-        byPath: new Map([["src/index.js", 1]]),
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
 
@@ -176,7 +176,7 @@ describe("ProjectTree", () => {
       const counts: ProblemCounts = {
         config: 0,
         configHasErrors: false,
-        byPath: new Map([["src", 1]]),
+        byPath: new Map([["src", { count: 1, hasErrors: true }]]),
       };
       render(<ProjectTree {...createProps({ counts })} />);
 

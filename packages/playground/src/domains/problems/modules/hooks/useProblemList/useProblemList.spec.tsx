@@ -273,6 +273,7 @@ describe("useProblemList", () => {
         store.open({
           kind: "config",
           range,
+          policy: 2,
           dependency: { path: CHECKOUT, index: 2 },
         })
       );

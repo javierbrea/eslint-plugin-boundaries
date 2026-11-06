@@ -3,6 +3,7 @@ export type {
   DisallowedVerdict,
   FailingDependency,
   HighlightFacts,
+  PathCount,
   PolicyFacts,
   ProblemCounts,
   ProblemEvaluation,

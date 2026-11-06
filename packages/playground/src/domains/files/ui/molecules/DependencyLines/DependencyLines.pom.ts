@@ -98,6 +98,46 @@ class VerdictPom extends Pom {
   hover(): void {
     fireEvent.mouseOver(this.root);
   }
+
+  /** Gives the keyboard focus to the verdict, as Tab does, which shows its tooltip when it has one. */
+  focus(): void {
+    act(() => this.root.focus());
+  }
+
+  /**
+   * Whether the keyboard reaches the verdict with Tab.
+   * @returns True when the verdict is in the tab order.
+   */
+  get isTabStop(): boolean {
+    return this.root.tabIndex === 0;
+  }
+
+  /**
+   * Whether the verdict has the keyboard focus.
+   * @returns True when the verdict is the active element of the page.
+   */
+  get isFocused(): boolean {
+    return document.activeElement === this.root;
+  }
+
+  /**
+   * Whether the sentence of the tooltip replaces the text of the verdict as its name, which assistive technology would then read instead of what is drawn.
+   * @returns True when the verdict has an `aria-label`.
+   */
+  get hasLabel(): boolean {
+    return this.root.hasAttribute("aria-label");
+  }
+
+  /**
+   * What assistive technology reads as the description of the verdict: the element that `aria-describedby` points to while the tooltip is open, and the `title` that MUI leaves while it is closed.
+   * @returns The text of the description, or null when the verdict has none.
+   */
+  get description(): string | null {
+    const id = this.root.getAttribute("aria-describedby");
+    const described = id === null ? null : document.getElementById(id);
+
+    return described?.textContent ?? this.root.getAttribute("title");
+  }
 }
 
 /** Page object of a button of the actions of a line, a part of the line: the page object of the line builds it, so it is exported only as a type. It has no test id: it finds the button by its accessible name, the `name` option, within its parent. */
@@ -357,6 +397,14 @@ class DependencyLinePom extends Pom {
   /** Gives the keyboard focus to the button that selects the line. */
   focus(): void {
     act(() => this.selectButton.focus());
+  }
+
+  /**
+   * Whether the button that selects the line has the keyboard focus.
+   * @returns True when that button is the active element of the page.
+   */
+  get isFocused(): boolean {
+    return document.activeElement === this.selectButton;
   }
 
   /**

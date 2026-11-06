@@ -15,10 +15,12 @@ export type Focus =
 
 /** What a row, a button or a node opens: everything that opens something produces one, and the session opens it in one transition. */
 export type Target =
-  /** The config node, scrolled to a range of its text when there is one. A range with the dependency it came from highlights the policy that decided that dependency. */
+  /** The config node, scrolled to a range of its text when there is one. A range with the policy it holds and the dependency it came from highlights that policy. */
   | {
       readonly kind: "config";
       readonly range?: TextRange;
+      /** The index of the policy that the range holds in the options of the rule, or `null` for the default. It travels with the range because the range moves when the user edits the config, and the index is what the note names. */
+      readonly policy?: number | null;
       /** The dependency that `Open policy in config` came from. */
       readonly dependency?: DependencyRef;
     }
@@ -47,8 +49,10 @@ export type ConfigReveal = {
 
 /** The policy of the config that the user opened from a dependency: its range stays marked in the editor while the config is in focus, and the note of the problems panel says where it came from. */
 export type PolicyHighlight = {
-  /** Where the policy is written in the config text. */
+  /** Where the policy was written in the config text when it was opened. */
   readonly range: TextRange;
+  /** The index of the policy in the options of the rule, or `null` for the default. */
+  readonly policy: number | null;
   /** The dependency that `Open policy in config` came from. */
   readonly dependency: DependencyRef;
 };

@@ -29,7 +29,7 @@ export type PolicyCardContent = {
   readonly heading: string;
   /** The policy as written in the config, split into the pieces that the card colors as the editor does. The pieces joined are the text. */
   readonly tokens: readonly ConfigToken[];
-  /** What `Open policy in config` opens: the config at the range of the policy, with the dependency it came from. */
+  /** What `Open policy in config` opens: the config at the range of the policy, with its index and the dependency it came from. */
   readonly target: Target;
 };
 

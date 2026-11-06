@@ -668,18 +668,31 @@ describe("DependencyPicker", () => {
       expect(picker.isConfirmEnabled).toBe(false);
     });
 
-    it("should say it in the color of the errors, on one line", () => {
+    it("should say it in the color of the errors", () => {
       // Arrange
       const { picker } = renderPicker();
       pickFile(picker, FORMAT);
       picker.kind.select("type");
 
       // Act
-      const { refusalColor, refusalWhiteSpace } = picker;
+      const { refusalColor } = picker;
 
       // Assert
       expect(refusalColor).toBe("var(--jsb-bad)");
-      expect(refusalWhiteSpace).toBe("nowrap");
+    });
+
+    it("should let a sentence that does not fit wrap, never cut it with an ellipsis", () => {
+      // Arrange
+      const { picker } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.kind.select("type");
+
+      // Act
+      const { refusalWhiteSpace, refusalTextOverflow } = picker;
+
+      // Assert
+      expect(refusalWhiteSpace).not.toBe("nowrap");
+      expect(refusalTextOverflow).not.toBe("ellipsis");
     });
 
     it("should stop saying it once the draft is fixed", () => {
@@ -710,6 +723,23 @@ describe("DependencyPicker", () => {
       expect(picker.refusal).toBe(
         "`export … from` cannot hold a namespace and named names together."
       );
+    });
+
+    it("should refuse a type import of a default name together with named names", () => {
+      // Arrange
+      const { picker } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.kind.select("type");
+      addName(picker, "default", "Rounding");
+
+      // Act
+      addName(picker, "named", "Options");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        "A type import cannot hold a default name together with named names or a namespace."
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
     });
 
     it("should refuse a module that is not a module name", () => {

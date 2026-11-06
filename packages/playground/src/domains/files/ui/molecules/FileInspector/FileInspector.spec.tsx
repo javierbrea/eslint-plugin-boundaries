@@ -293,7 +293,26 @@ describe("FileInspector", () => {
 
       // Assert
       expect(config).not.toBe(QUICK_START.config);
-      expect(countTexts[1]).toEqual({ text: "1", color: "var(--jsb-bad)" });
+      expect(countTexts[1].text).toBe("1");
+    });
+
+    it("should draw the dependencies that a warning disallows in the color of warnings, with the triangle of the line", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { countTexts, counts } = inspector.summary;
+
+      // Assert
+      expect(countTexts[1]).toEqual({ text: "1", color: "var(--jsb-warn)" });
+      expect(counts[1].icon.pathData).toBe(ICON_PATHS.warn);
     });
   });
 });

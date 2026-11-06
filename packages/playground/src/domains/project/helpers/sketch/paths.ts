@@ -49,6 +49,10 @@ export function getPathError(path: string): string | undefined {
   if (Array.from(path).some(isControlCharacter)) {
     return "The path cannot have control characters.";
   }
+  // A statement writes the path of a target between quotes, so that no path the sketch holds can have one
+  if (/["'\\]/.test(path)) {
+    return "A path cannot have quotes or backslashes.";
+  }
   // A path under it would make a folder with the path, and the id in the tree, of the config node
   if (isSameOrInside(path, CONFIG_PATH)) {
     return `${CONFIG_PATH} at the root is the config node, not a file or a folder.`;

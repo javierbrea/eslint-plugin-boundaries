@@ -5,6 +5,7 @@ import {
   addDependency as addSketchDependency,
   addNode as addSketchNode,
   fromText,
+  getDependency as getSketchDependency,
   getFileDependencies,
   getFiles,
   getParentPath,
@@ -23,7 +24,11 @@ import type {
   DependencyRef,
   EditResult,
 } from "@/domains/project/helpers/sketch";
-import { moveFocus, moveHighlight } from "@/domains/session/helpers/focus";
+import {
+  getFocusedPath,
+  moveFocus,
+  moveHighlight,
+} from "@/domains/session/helpers/focus";
 import type {
   Focus,
   PolicyHighlight,
@@ -181,7 +186,10 @@ function getTargetFolder({
   ) {
     return pickedFolder;
   }
-  return openNode.kind === "file" ? getParentPath(openNode.path) : "";
+  // A dependency in focus is a line of its file, which is the open one
+  const openPath = getFocusedPath(openNode);
+
+  return openPath === undefined ? "" : getParentPath(openPath);
 }
 
 /**
@@ -207,20 +215,50 @@ function getTargetFocus(openNode: Focus, target: Target): Focus {
 }
 
 /**
- * Gets the policy to keep highlighted when a target opens: the one a config target says with the dependency it came from.
+ * Gets the folders that stay closed when a target opens: the ones above the node it opens, and, for a dependency on a file of the sketch, the ones above that file too, so that the outline of the target shows in the tree.
+ * @param state The state before.
+ * @param target What to open.
+ * @returns The folders that stay closed: the same set when none of them is above what shows.
+ */
+function getTargetClosedFolders(
+  state: SessionState,
+  target: Target
+): ReadonlySet<string> {
+  if (target.kind === "config") {
+    return state.closedFolders;
+  }
+
+  const closedFolders = openAncestors(state.closedFolders, target.path);
+  const dependency =
+    target.kind === "dependency"
+      ? getSketchDependency(state.sketch, target)
+      : undefined;
+
+  return dependency?.target.kind === "node"
+    ? openAncestors(closedFolders, dependency.target.path)
+    : closedFolders;
+}
+
+/**
+ * Gets the policy to keep highlighted when a target opens: the one a config target says, with its range and the dependency it came from.
  * @param target What is opened.
- * @returns The highlight, or `undefined` for every other target, and for a config target that lacks the range or the dependency.
+ * @returns The highlight, or `undefined` for every other target, and for a config target that lacks the range, the policy or the dependency.
  */
 function getTargetHighlight(target: Target): PolicyHighlight | undefined {
   return target.kind === "config" &&
     target.range !== undefined &&
+    target.policy !== undefined &&
     target.dependency !== undefined
-    ? { range: target.range, dependency: target.dependency }
+    ? {
+        range: target.range,
+        policy: target.policy,
+        dependency: target.dependency,
+      }
     : undefined;
 }
 
 /**
- * Opens a target: puts it in focus, selects the most specific tab (the dependency's for a dependency, the node's otherwise) and shows the node in the tree, with the folders above a file or the file of a dependency open. A config target with a range scrolls the editor to it; the range of a request that was already shown stays, so that the editor does not scroll again. A config target with a range and a dependency keeps that policy highlighted while the config stays in focus. Opening a file while one of its dependencies is in focus puts the file in focus, and the dependency tab goes.
+ * Opens a target: puts it in focus, selects the most specific tab (the dependency's for a dependency, the node's otherwise) and shows the node in the tree, with the folders above a file, or above the file of a dependency and above its target, open. A config target with a range scrolls the editor to it; the range of a request that was already shown stays, so that the editor does not scroll again. A config target with a range and a dependency keeps that policy highlighted while the config stays in focus. Opening a file while one of its dependencies is in focus puts the file in focus, and the dependency tab goes.
  * @param state The state before.
  * @param target What to open.
  * @returns The state after.
@@ -232,10 +270,7 @@ export function openTarget(state: SessionState, target: Target): SessionState {
     tab: target.kind === "dependency" ? "dependency" : "node",
     // The focus replaces the folder the user selected, and shows even if a folder above it is closed
     pickedFolder: undefined,
-    closedFolders:
-      target.kind === "config"
-        ? state.closedFolders
-        : openAncestors(state.closedFolders, target.path),
+    closedFolders: getTargetClosedFolders(state, target),
     // The range to reveal and the highlight belong to the config, so they go when the focus leaves it
     reveal: target.kind === "config" ? state.reveal : undefined,
     highlight: getTargetHighlight(target),
@@ -567,7 +602,7 @@ export function setTextDraft(state: SessionState, text: string): SessionState {
  * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
  * @param state The state before.
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
- * @returns The state after. A dependency in focus follows its file, and the same index of the same file when the text rewrote the dependencies.
+ * @returns The state after. A dependency in focus follows its file and, when the text rewrote the dependencies, the line that says the same (the same line when it was edited in place); its file is in focus when the line is gone.
  */
 function readDraft(state: SessionState, settle: boolean): SessionState {
   const { textDraft } = state;

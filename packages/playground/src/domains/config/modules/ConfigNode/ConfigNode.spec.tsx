@@ -192,6 +192,7 @@ describe("ConfigNode", () => {
         store.open({
           kind: "config",
           range: TEST_POLICY_RANGE,
+          policy: 2,
           dependency: { path: FILE, index: 2 },
         })
       );
@@ -214,6 +215,7 @@ describe("ConfigNode", () => {
         store.open({
           kind: "config",
           range: TEST_POLICY_RANGE,
+          policy: 2,
           dependency: { path: FILE, index: 2 },
         })
       );
@@ -240,6 +242,7 @@ describe("ConfigNode", () => {
         store.open({
           kind: "config",
           range: TEST_POLICY_RANGE,
+          policy: 2,
           dependency: { path: FILE, index: 2 },
         })
       );

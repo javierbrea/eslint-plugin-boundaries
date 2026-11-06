@@ -8,13 +8,16 @@ import { useEffect, useId } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
 import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
+import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { RenameField } from "@/domains/project/ui/atoms/RenameField";
 import { useProjectTreeContext } from "@/domains/project/ui/contexts/ProjectTreeContext";
 import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
+import type { IconName } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
+import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {
@@ -24,6 +27,12 @@ import {
   RENAME_ACTION_LABEL,
 } from "./ProjectTreeItem.constants";
 import type { ProjectTreeItemProps } from "./ProjectTreeItem.types";
+
+/** The mark of a file with failing dependencies: the cross of errors, or the triangle of the line of a warning. */
+const FAILURE_ICONS: Readonly<Record<Tone, IconName>> = {
+  bad: "cross",
+  warn: "warn",
+};
 
 const Root = styled("li")({
   margin: 0,
@@ -129,10 +138,12 @@ const Actions = styled("span")({
   opacity: 0,
 });
 
-const Failure = styled("span")({
+const Failure = styled("span", {
+  shouldForwardProp: (prop) => prop !== "tone",
+})<{ tone: Tone }>(({ tone }) => ({
   display: "inline-flex",
-  color: "var(--jsb-bad)",
-});
+  color: TONE_COLORS[tone],
+}));
 
 const Group = styled("ul")({ margin: 0, padding: 0, listStyle: "none" });
 
@@ -146,7 +157,7 @@ function flag(isSet: boolean): "" | undefined {
 }
 
 /**
- * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The config is red only when it has errors.
+ * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The badge is red when the config has errors, or when any failing dependency it counts is an error, and in the color of warnings otherwise.
  * @param item The item.
  * @param counts Problems per node.
  * @returns The number to show, the tone of the badge and what the number counts, for assistive technology.
@@ -158,33 +169,38 @@ function getBadge(
   if (item.kind === "config") {
     return {
       count: counts.config,
-      tone: counts.configHasErrors ? "bad" : "warn",
+      tone: getCountTone(counts.configHasErrors),
       label: formatCount(counts.config, "problem", "problems"),
     };
   }
 
-  const count = counts.byPath.get(item.id) ?? 0;
+  const failing = counts.byPath.get(item.id);
+  const count = failing?.count ?? 0;
 
   return {
     count,
-    tone: "bad",
+    tone: getCountTone(failing?.hasErrors ?? false),
     label: formatCount(count, "failing dependency", "failing dependencies"),
   };
 }
 
 /**
- * Tells whether the row of an item is drawn in the color of errors: a file with failing dependencies, or the config when it has errors. A folder never is, whatever its files do.
+ * Tells whether the row of an item is drawn in the color of errors: a file with failing dependencies, any of which is an error, or the config when it has errors. A file whose failures are all warnings is not, and a folder never is, whatever its files do.
  * @param item The item.
- * @param isFailingFile Whether the item is a file with failing dependencies.
+ * @param badge What the badge of the item counts.
+ * @param badge.count
+ * @param badge.tone
  * @param counts Problems per node.
  * @returns Whether the row is red.
  */
 function isRowBad(
   item: ProjectItem,
-  isFailingFile: boolean,
+  badge: { count: number; tone: Tone },
   counts: ProblemCounts
 ): boolean {
-  return isFailingFile || (item.kind === "config" && counts.configHasErrors);
+  return item.kind === "config"
+    ? counts.configHasErrors
+    : item.kind === "file" && badge.count > 0 && badge.tone === "bad";
 }
 
 /**
@@ -257,7 +273,7 @@ export function ProjectTreeItem({
   const isRenaming = context.renaming === itemId;
   const badge = getBadge(item, context.counts);
   const isFailingFile = item.kind === "file" && badge.count > 0;
-  const isBad = isRowBad(item, isFailingFile, context.counts);
+  const isBad = isRowBad(item, badge, context.counts);
   const isTarget = context.target === itemId;
 
   /**
@@ -362,8 +378,8 @@ export function ProjectTreeItem({
               </Actions>
             ) : null}
             {isFailingFile ? (
-              <Failure>
-                <Icon name="cross" />
+              <Failure tone={badge.tone} data-failure="">
+                <Icon name={FAILURE_ICONS[badge.tone]} />
               </Failure>
             ) : null}
             {badge.count > 0 ? (

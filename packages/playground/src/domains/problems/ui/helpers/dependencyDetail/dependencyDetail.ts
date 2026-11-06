@@ -118,7 +118,12 @@ function getPolicyCard({
     heading:
       policy.index === null ? "// default" : `// policies[${policy.index}]`,
     tokens: policy.tokens,
-    target: { kind: "config", range: policy.range, dependency: result.ref },
+    target: {
+      kind: "config",
+      range: policy.range,
+      policy: policy.index,
+      dependency: result.ref,
+    },
   };
 }
 

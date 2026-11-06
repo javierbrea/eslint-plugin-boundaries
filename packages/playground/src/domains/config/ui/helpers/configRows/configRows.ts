@@ -7,6 +7,7 @@ import type {
   RuleSummary,
 } from "@/domains/evaluation/helpers/engine";
 import { getPolicyRowName } from "@/domains/evaluation/ui/helpers/verdictText";
+import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 
 import type { ConfigRow } from "./configRows.types";
@@ -122,17 +123,18 @@ export function getRuleRow({
  * @param summary.index Its index in the options, or `null` for the default, which keys the row.
  * @param summary.decided How many dependencies it decided.
  * @param summary.disallowed How many of them it disallowed.
+ * @param summary.errors How many of the disallowed ones are errors; the others are warnings.
  * @param summary.range Where the policy is in the config text.
- * @returns The row: the name that `getPolicyRowName` gives it, and how many dependencies it decided, in the color of errors when it disallowed any.
+ * @returns The row: the name that `getPolicyRowName` gives it, and how many dependencies it decided, in the color of errors when it disallowed any as errors, and in the color of warnings when everything it disallowed is a warning.
  */
 export function getPolicyRow(summary: PolicySummary): ConfigRow {
-  const { index, decided, disallowed, range } = summary;
+  const { index, decided, disallowed, errors, range } = summary;
 
   return {
     key: `policy-${index ?? "default"}`,
     name: getPolicyRowName(summary),
     status: formatCount(decided, "dependency", "dependencies"),
-    statusTone: disallowed > 0 ? "bad" : undefined,
+    statusTone: disallowed > 0 ? getCountTone(errors > 0) : undefined,
     target: { kind: "config", range },
   };
 }

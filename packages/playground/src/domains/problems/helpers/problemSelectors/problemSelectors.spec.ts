@@ -4,7 +4,6 @@ import type {
   DependencyResult,
   DependencyVerdict,
   FileDescription,
-  PolicySummary,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
@@ -78,30 +77,6 @@ const BUTTON = "src/components/atoms/Button/index.js";
 const POLICY_RANGE: TextRange = { from: 40, to: 90, line: 3, column: 9 };
 
 const DEFAULT_RANGE: TextRange = { from: 100, to: 110, line: 8, column: 5 };
-
-/**
- * Builds a policy of the evaluated rule.
- * @param index Its index in the options, or `null` for the default.
- * @param range Where it is written.
- * @returns The summary.
- */
-function policy(index: number | null, range: TextRange): PolicySummary {
-  return {
-    index,
-    action: "disallow",
-    from: [],
-    to: [],
-    decided: 0,
-    disallowed: 0,
-    range,
-  };
-}
-
-const POLICY = policy(2, POLICY_RANGE);
-
-const OTHER_POLICY = policy(0, { from: 10, to: 30, line: 2, column: 5 });
-
-const DEFAULT = policy(null, DEFAULT_RANGE);
 
 /**
  * Builds the verdict of a dependency that the rule disallows.
@@ -178,7 +153,6 @@ function createEvaluation(
     files: new Map(),
     dependencies: [],
     notEvaluated: undefined,
-    policies: [],
     ...overrides,
   };
 }
@@ -454,13 +428,13 @@ describe("problemSelectors", () => {
 
       // Assert
       expect(Object.fromEntries(counts.byPath)).toEqual({
-        [FORMAT]: 1,
-        "src/helpers/format": 1,
-        "src/helpers": 1,
-        [CHECKOUT]: 1,
-        "src/modules/checkout": 1,
-        "src/modules": 1,
-        src: 2,
+        [FORMAT]: { count: 1, hasErrors: true },
+        "src/helpers/format": { count: 1, hasErrors: true },
+        "src/helpers": { count: 1, hasErrors: true },
+        [CHECKOUT]: { count: 1, hasErrors: false },
+        "src/modules/checkout": { count: 1, hasErrors: false },
+        "src/modules": { count: 1, hasErrors: false },
+        src: { count: 2, hasErrors: true },
       });
     });
 
@@ -473,7 +447,29 @@ describe("problemSelectors", () => {
       ]);
 
       // Assert
-      expect(Object.fromEntries(counts.byPath)).toEqual({ "main.js": 2 });
+      expect(Object.fromEntries(counts.byPath)).toEqual({
+        "main.js": { count: 2, hasErrors: true },
+      });
+    });
+
+    it("should say that a path has errors only when one of its failing dependencies is an error, in a file and in the folders above it", () => {
+      // Act
+      const counts = getProblemCounts(0, false, [
+        result("src/a/one.js", 0, disallowed("warning")),
+        result("src/a/two.js", 0, disallowed("warning")),
+        result("src/a/two.js", 1, disallowed("error")),
+        result("src/b/three.js", 0, disallowed("warning")),
+      ]);
+
+      // Assert
+      expect(Object.fromEntries(counts.byPath)).toEqual({
+        "src/a/one.js": { count: 1, hasErrors: false },
+        "src/a/two.js": { count: 2, hasErrors: true },
+        "src/a": { count: 3, hasErrors: true },
+        "src/b/three.js": { count: 1, hasErrors: false },
+        "src/b": { count: 1, hasErrors: false },
+        src: { count: 4, hasErrors: true },
+      });
     });
   });
 
@@ -527,6 +523,15 @@ describe("problemSelectors", () => {
         [...DEPENDENCIES, result(FORMAT, 1, disallowed())],
       ],
       [
+        "whether the failing dependencies of a file are errors, with the same counts",
+        2,
+        true,
+        [
+          result(FORMAT, 0, disallowed("warning", null)),
+          result(CHECKOUT, 0, disallowed("warning")),
+        ],
+      ],
+      [
         "the files that fail, with as many failing dependencies",
         2,
         true,
@@ -571,7 +576,7 @@ describe("problemSelectors", () => {
       const changed = read(2, true, [result(FORMAT, 0, disallowed())]);
 
       // Act
-      const same = read(2, true, [result(FORMAT, 0, disallowed("warning"))]);
+      const same = read(2, true, [result(FORMAT, 0, disallowed("error", 1))]);
 
       // Assert
       expect(same).toBe(changed);
@@ -874,9 +879,9 @@ describe("problemSelectors", () => {
             inputs("sketch", CONFIG_FOCUS, {
               highlight: {
                 range: POLICY_RANGE,
+                policy: 2,
                 dependency: { path: CHECKOUT, index: 2 },
               },
-              evaluation: createEvaluation({ policies: [POLICY] }),
             })
           )
         );
@@ -925,18 +930,16 @@ describe("problemSelectors", () => {
         expect(facts.configProblems[0].range).toEqual(ERROR.range);
       });
 
-      it("should give the policy that is highlighted, found by its range, and the dependency it was opened from", () => {
+      it("should give the policy that the highlight names and the dependency it was opened from", () => {
         // Act
         const facts = getRows(
           getProblemList(
             inputs("node", CONFIG_FOCUS, {
               highlight: {
                 range: POLICY_RANGE,
+                policy: 2,
                 dependency: { path: CHECKOUT, index: 2 },
               },
-              evaluation: createEvaluation({
-                policies: [OTHER_POLICY, POLICY],
-              }),
             })
           )
         );
@@ -948,16 +951,16 @@ describe("problemSelectors", () => {
         });
       });
 
-      it("should give the default as the policy that is highlighted when its range is", () => {
+      it("should give the default as the policy that is highlighted when the highlight names it", () => {
         // Act
         const facts = getRows(
           getProblemList(
             inputs("node", CONFIG_FOCUS, {
               highlight: {
                 range: DEFAULT_RANGE,
+                policy: null,
                 dependency: { path: FORMAT, index: 0 },
               },
-              evaluation: createEvaluation({ policies: [POLICY, DEFAULT] }),
             })
           )
         );
@@ -969,33 +972,34 @@ describe("problemSelectors", () => {
         });
       });
 
-      it("should give no highlight when no policy of the evaluation is at its range, as after the config was edited", () => {
+      it("should keep naming the policy after the config was edited before it, though its range is not at any policy of the evaluation any more", () => {
         // Act
         const facts = getRows(
           getProblemList(
             inputs("node", CONFIG_FOCUS, {
               highlight: {
-                range: { ...POLICY_RANGE, to: POLICY_RANGE.to + 3 },
+                range: {
+                  ...POLICY_RANGE,
+                  from: POLICY_RANGE.from - 7,
+                  to: POLICY_RANGE.to - 7,
+                },
+                policy: 2,
                 dependency: { path: CHECKOUT, index: 2 },
               },
-              evaluation: createEvaluation({ policies: [POLICY, DEFAULT] }),
             })
           )
         );
 
         // Assert
-        expect(facts.highlight).toBeUndefined();
+        expect(facts.highlight).toEqual({
+          policy: 2,
+          dependency: { path: CHECKOUT, index: 2 },
+        });
       });
 
       it("should give no highlight when there is none", () => {
         // Act
-        const facts = getRows(
-          getProblemList(
-            inputs("node", CONFIG_FOCUS, {
-              evaluation: createEvaluation({ policies: [POLICY, DEFAULT] }),
-            })
-          )
-        );
+        const facts = getRows(getProblemList(inputs("node", CONFIG_FOCUS, {})));
 
         // Assert
         expect(facts.highlight).toBeUndefined();

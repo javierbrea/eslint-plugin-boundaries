@@ -241,10 +241,15 @@ describe("store hooks", () => {
           store.open({
             kind: "config",
             range: RANGE,
+            policy: 1,
             dependency: { path: "src/index.js", index: 0 },
           }),
         undefined,
-        { range: RANGE, dependency: { path: "src/index.js", index: 0 } },
+        {
+          range: RANGE,
+          policy: 1,
+          dependency: { path: "src/index.js", index: 0 },
+        },
       ],
       [
         "useProblemsCollapsed",

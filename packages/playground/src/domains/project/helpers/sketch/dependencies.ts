@@ -121,12 +121,7 @@ function getTargetError(
     if (getNodeKind(sketch.tree, target.path) !== "file") {
       return `"${target.path}" is not a file of the sketch.`;
     }
-    if (target.path === from) {
-      return "A file cannot depend on itself.";
-    }
-    return /["'\\]/.test(target.path)
-      ? "A statement cannot write a path that has quotes or backslashes."
-      : undefined;
+    return target.path === from ? "A file cannot depend on itself." : undefined;
   }
 
   const moduleName = target.name;
@@ -158,6 +153,25 @@ function countKind(
 }
 
 /**
+ * Tells why a type import cannot hold its names: it needs one, and TypeScript's parser rejects `import type A, { B }` and `import type A, * as ns`, since a type import has a default name or the others, not both.
+ * @param specifiers The specifiers of an `import` of types.
+ * @returns The reason as a sentence for the user, or `undefined` when the names fit a type import.
+ */
+function getTypeImportError(
+  specifiers: readonly SketchSpecifier[]
+): string | undefined {
+  if (specifiers.length === 0) {
+    return "A type import needs at least one name.";
+  }
+
+  const defaults = countKind(specifiers, "default");
+
+  return defaults > 0 && defaults < specifiers.length
+    ? "A type import cannot hold a default name together with named names or a namespace."
+    : undefined;
+}
+
+/**
  * Tells why a syntax cannot hold the kind and the names of a dependency, as the table of the syntaxes says.
  * @param dependency The dependency to check.
  * @returns The reason as a sentence for the user, or `undefined` when the syntax holds them.
@@ -172,8 +186,13 @@ function getSyntaxError(dependency: SketchDependency): string | undefined {
     }
     return specifiers.length > 0 ? `${label} holds no names.` : undefined;
   }
-  if (importKind === "type" && syntax === "import" && specifiers.length === 0) {
-    return "A type import needs at least one name.";
+  const typeImportError =
+    importKind === "type" && syntax === "import"
+      ? getTypeImportError(specifiers)
+      : undefined;
+
+  if (typeImportError !== undefined) {
+    return typeImportError;
   }
   if (countKind(specifiers, "default") > (syntax === "import" ? 1 : 0)) {
     return syntax === "import"
@@ -215,7 +234,10 @@ function getSpecifierError(
   if (isDefaultExport && syntax === "import" && alias === undefined) {
     return 'An import of "default" needs an alias.';
   }
-  return alias !== undefined && !isName(alias)
+  // `default` is also a valid name to export under, as in `export { a as default } from "./x"`, and only there
+  const isDefaultAlias = syntax === "export-from" && alias === "default";
+
+  return alias !== undefined && !isDefaultAlias && !isName(alias)
     ? `"${alias}" is not a valid name.`
     : undefined;
 }
@@ -247,10 +269,10 @@ function getSpecifiersError(dependency: SketchDependency): string | undefined {
 }
 
 /**
- * Tells why a sketch cannot hold a dependency, so that the edits refuse it and a sketch never has one that cannot be written as a statement.
+ * Tells why a sketch cannot hold a dependency, so that the edits refuse it and a sketch never has one that cannot be written as a statement. A node path that has quotes or backslashes is not here: no path of the tree can have them, as `getPathError` refuses them wherever a path enters.
  * @param sketch The sketch that would hold it: only its tree counts.
  * @param dependency The dependency to check.
- * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external name that is empty, has spaces or quotes, or starts with `.` or `/`, names that its syntax does not hold, an alias on a default or namespace name, a name that is not an identifier (but `default` as a named name), or two names of the statement that are the same locally.
+ * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external name that is empty, has spaces or quotes, or starts with `.` or `/`, names that its syntax does not hold (a type import with a default name together with named names or a namespace included), an alias on a default or namespace name, a name that is not an identifier (but `default` as a named name, and as the alias of a name an `export … from` writes), or two names of the statement that are the same locally.
  */
 export function getDependencyError(
   sketch: Pick<Sketch, "tree">,

@@ -117,8 +117,6 @@ const TREE: readonly SketchNode[] = [
   { path: A, kind: "file" },
   { path: B, kind: "file" },
   { path: C, kind: "file" },
-  { path: "src/it's.js", kind: "file" },
-  { path: 'src/say"hi".js', kind: "file" },
   { path: "src/pages", kind: "folder" },
 ];
 
@@ -257,6 +255,34 @@ describe("Dependencies", () => {
           specifiers: specifiers("namespace", "ns"),
         }),
       ],
+      [
+        "an export of a name as the default",
+        toNode(A, B, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "a as default", "b"),
+        }),
+      ],
+      [
+        "an export of the default as the default",
+        toNode(A, B, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "default as default"),
+        }),
+      ],
+      [
+        "a type import of a default name",
+        toNode(A, B, {
+          importKind: "type",
+          specifiers: specifiers("default", "T"),
+        }),
+      ],
+      [
+        "a type import of a namespace",
+        toNode(A, B, {
+          importKind: "type",
+          specifiers: specifiers("namespace", "ns"),
+        }),
+      ],
       ["an export of everything", toNode(A, B, { syntax: "export-from" })],
       [
         "a type export of everything",
@@ -315,16 +341,6 @@ describe("Dependencies", () => {
         "the file itself as the target",
         toNode(A, A),
         "A file cannot depend on itself.",
-      ],
-      [
-        "a target with a double quote in its path",
-        toNode(A, 'src/say"hi".js'),
-        "A statement cannot write a path that has quotes or backslashes.",
-      ],
-      [
-        "a target with a single quote in its path",
-        toNode(A, "src/it's.js"),
-        "A statement cannot write a path that has quotes or backslashes.",
       ],
       ["an empty module name", toExternal(A, ""), "The module name is empty."],
       [
@@ -397,6 +413,33 @@ describe("Dependencies", () => {
         "a type import without names",
         toNode(A, B, { importKind: "type" }),
         "A type import needs at least one name.",
+      ],
+      [
+        "a type import of a default name and named names",
+        toNode(A, B, {
+          importKind: "type",
+          specifiers: [
+            ...specifiers("default", "A"),
+            ...specifiers("named", "B"),
+          ],
+        }),
+        "A type import cannot hold a default name together with named names or a namespace.",
+      ],
+      [
+        "a type import of a default name and a namespace",
+        toNode(A, B, {
+          importKind: "type",
+          specifiers: [
+            ...specifiers("default", "A"),
+            ...specifiers("namespace", "ns"),
+          ],
+        }),
+        "A type import cannot hold a default name together with named names or a namespace.",
+      ],
+      [
+        "a name as the default in an import",
+        toNode(A, B, { specifiers: specifiers("named", "a as default") }),
+        '"default" is not a valid name.',
       ],
       [
         "two default names in an import",

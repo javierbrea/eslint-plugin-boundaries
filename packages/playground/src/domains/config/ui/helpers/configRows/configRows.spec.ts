@@ -56,6 +56,7 @@ const POLICY: PolicySummary = {
   to: ["test"],
   decided: 3,
   disallowed: 0,
+  errors: 0,
   range: RANGE,
 };
 
@@ -291,7 +292,38 @@ describe("configRows", () => {
 
     it("should draw the status of a policy that disallowed a dependency in the color of errors", () => {
       // Act
-      const row = getPolicyRow({ ...POLICY, decided: 3, disallowed: 1 });
+      const row = getPolicyRow({
+        ...POLICY,
+        decided: 3,
+        disallowed: 1,
+        errors: 1,
+      });
+
+      // Assert
+      expect(row.statusTone).toBe("bad");
+    });
+
+    it("should draw the status of a policy in the color of warnings when everything it disallowed is a warning", () => {
+      // Act
+      const row = getPolicyRow({
+        ...POLICY,
+        decided: 3,
+        disallowed: 2,
+        errors: 0,
+      });
+
+      // Assert
+      expect(row.statusTone).toBe("warn");
+    });
+
+    it("should draw the status of a policy in the color of errors when any of what it disallowed is an error", () => {
+      // Act
+      const row = getPolicyRow({
+        ...POLICY,
+        decided: 3,
+        disallowed: 2,
+        errors: 1,
+      });
 
       // Assert
       expect(row.statusTone).toBe("bad");
@@ -343,6 +375,27 @@ describe("configRows", () => {
         undefined,
         "bad",
         "bad",
+      ]);
+    });
+
+    it("should draw the policies that decided the disallowed dependencies in the color of warnings when the rule is a warning", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const evaluation = evaluate({ ...QUICK_START, config });
+
+      // Act
+      const rows = getPoliciesRows(evaluation);
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(rows.map(({ statusTone }) => statusTone)).toEqual([
+        undefined,
+        undefined,
+        "warn",
+        "warn",
       ]);
     });
 

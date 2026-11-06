@@ -174,6 +174,18 @@ describe("Paths", () => {
       expect(error).toBe("The path cannot have control characters.");
     });
 
+    it.each([
+      ["a double quote", 'src/say"hi".js'],
+      ["a single quote", "src/it's.js"],
+      ["a backslash", "src\\index.js"],
+    ])("should refuse a path with %s", (_name, path) => {
+      // Act
+      const error = getPathError(path);
+
+      // Assert
+      expect(error).toBe("A path cannot have quotes or backslashes.");
+    });
+
     it("should accept characters above the control range", () => {
       // Act
       const error = getPathError("src/\u0080-é-\u{1F600}.js");

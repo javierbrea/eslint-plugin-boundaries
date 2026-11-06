@@ -42,14 +42,22 @@ export type ProblemSummary = {
   readonly hasErrors: boolean;
 };
 
+/** The failing dependencies of a file or of a folder. */
+export type PathCount = {
+  /** How many fail. */
+  readonly count: number;
+  /** Whether any of them is an error, because the rule has the severity `error`; when none is, they are all warnings. */
+  readonly hasErrors: boolean;
+};
+
 /** Problems per node of the tree, for its badge. */
 export type ProblemCounts = {
   /** Problems of the config. */
   readonly config: number;
   /** Whether the config node turns red. */
   readonly configHasErrors: boolean;
-  /** Failing dependencies per file, and per folder as the sum of the files under it. A path with none is not in the map. */
-  readonly byPath: ReadonlyMap<string, number>;
+  /** Failing dependencies per file, and per folder as the sum of the files under it, with whether any is an error. A path with none is not in the map. */
+  readonly byPath: ReadonlyMap<string, PathCount>;
 };
 
 /** What a tab of the problems panel, or the list under it, is about. */
@@ -82,7 +90,7 @@ export type ProblemTabFacts = {
 /** What the lists read of the evaluation of the store. */
 export type ProblemEvaluation = Pick<
   Evaluation,
-  "sketch" | "problems" | "files" | "dependencies" | "notEvaluated" | "policies"
+  "sketch" | "problems" | "files" | "dependencies" | "notEvaluated"
 >;
 
 /** What `getProblemList` reads. */

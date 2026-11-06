@@ -22,6 +22,19 @@ function dependency(from: string, to: string): SketchDependency {
   };
 }
 
+/**
+ * Builds a dependency again, as reading the text of text mode does: the same data in new objects.
+ * @param original The dependency to copy.
+ * @returns A dependency that is not the same object and holds the same data.
+ */
+function rebuilt(original: SketchDependency): SketchDependency {
+  return {
+    ...original,
+    target: { ...original.target },
+    specifiers: original.specifiers.map((specifier) => ({ ...specifier })),
+  };
+}
+
 const A_TO_B = dependency("src/a.js", "src/b.js");
 
 const A_TO_C = dependency("src/a.js", "src/c.js");
@@ -217,14 +230,33 @@ describe("focus", () => {
     });
 
     describe("a dependency, after an edit that builds dependencies again", () => {
-      it("should keep the focus on the same index of the same file", () => {
+      it("should keep the focus on the same index when the dependencies are the same", () => {
         // Arrange
         const openNode = dependencyFocus("src/a.js", 1);
         const sketch = after({
+          dependencies: BEFORE.dependencies.map(rebuilt),
+        });
+
+        // Act
+        const moved = moveFocus(openNode, BEFORE, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should keep the focus on the same index when the dependency was edited in place", () => {
+        // Arrange
+        const openNode = dependencyFocus("src/a.js", 1);
+        const edited: SketchDependency = {
+          ...rebuilt(A_TO_C),
+          specifiers: [{ kind: "named", name: "x" }],
+        };
+        const sketch = after({
           dependencies: [
-            dependency("src/a.js", "src/b.js"),
-            dependency("src/a.js", "src/d.js"),
-            dependency("src/b.js", "src/a.js"),
+            rebuilt(A_TO_B),
+            edited,
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
           ],
         });
 
@@ -233,6 +265,185 @@ describe("focus", () => {
 
         // Assert
         expect(moved).toBe(openNode);
+      });
+
+      it("should follow the dependency to the line it has now when a line before it was deleted", () => {
+        // Arrange
+        const sketch = after({
+          dependencies: [rebuilt(A_TO_C), rebuilt(B_TO_A), rebuilt(A_TO_D)],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 1), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(dependencyFocus("src/a.js", 0));
+      });
+
+      it("should follow the dependency to the line it has now when a line before it was added", () => {
+        // Arrange
+        const added = dependency("src/a.js", "src/d.js");
+        const sketch = after({
+          dependencies: [
+            rebuilt(added),
+            rebuilt(A_TO_B),
+            rebuilt(A_TO_C),
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 1), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(dependencyFocus("src/a.js", 2));
+      });
+
+      it("should follow the dependency when the lines of its file were swapped", () => {
+        // Arrange
+        const sketch = after({
+          dependencies: [
+            rebuilt(A_TO_D),
+            rebuilt(A_TO_C),
+            rebuilt(A_TO_B),
+            rebuilt(B_TO_A),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 0), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(dependencyFocus("src/a.js", 2));
+      });
+
+      it("should not move the focus for the lines that changed in another file", () => {
+        // Arrange
+        const openNode = dependencyFocus("src/a.js", 1);
+        const sketch = after({
+          dependencies: [
+            rebuilt(dependency("src/b.js", "src/c.js")),
+            rebuilt(A_TO_B),
+            rebuilt(A_TO_C),
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(openNode, BEFORE, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      describe("when the file has equal dependencies", () => {
+        const twice: Sketch = {
+          ...BEFORE,
+          dependencies: [A_TO_B, A_TO_B, A_TO_C],
+        };
+
+        it("should follow the second one when a line before both was added", () => {
+          // Arrange
+          const sketch: Sketch = {
+            ...twice,
+            dependencies: [
+              rebuilt(A_TO_D),
+              rebuilt(A_TO_B),
+              rebuilt(A_TO_B),
+              rebuilt(A_TO_C),
+            ],
+          };
+
+          // Act
+          const moved = moveFocus(
+            dependencyFocus("src/a.js", 1),
+            twice,
+            sketch
+          );
+
+          // Assert
+          expect(moved).toEqual(dependencyFocus("src/a.js", 2));
+        });
+
+        it("should follow the first one when a line before both was added", () => {
+          // Arrange
+          const sketch: Sketch = {
+            ...twice,
+            dependencies: [
+              rebuilt(A_TO_D),
+              rebuilt(A_TO_B),
+              rebuilt(A_TO_B),
+              rebuilt(A_TO_C),
+            ],
+          };
+
+          // Act
+          const moved = moveFocus(
+            dependencyFocus("src/a.js", 0),
+            twice,
+            sketch
+          );
+
+          // Assert
+          expect(moved).toEqual(dependencyFocus("src/a.js", 1));
+        });
+
+        it("should put its file in focus when the second one was deleted", () => {
+          // Arrange
+          const sketch: Sketch = {
+            ...twice,
+            dependencies: [rebuilt(A_TO_B), rebuilt(A_TO_C)],
+          };
+
+          // Act
+          const moved = moveFocus(
+            dependencyFocus("src/a.js", 1),
+            twice,
+            sketch
+          );
+
+          // Assert
+          expect(moved).toEqual(FILE_A);
+        });
+      });
+
+      it("should put its file in focus when the dependency is gone and the file has fewer lines", () => {
+        // Arrange
+        const sketch = after({
+          dependencies: [rebuilt(A_TO_B), rebuilt(A_TO_D), rebuilt(B_TO_A)],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 1), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(FILE_A);
+      });
+
+      it("should put its file in focus when the dependency is gone and the file has more lines", () => {
+        // Arrange
+        const edited: SketchDependency = {
+          ...rebuilt(A_TO_C),
+          importKind: "type",
+          specifiers: [{ kind: "named", name: "x" }],
+        };
+        const sketch = after({
+          dependencies: [
+            rebuilt(A_TO_B),
+            edited,
+            rebuilt(A_TO_D),
+            rebuilt(A_TO_D),
+            rebuilt(B_TO_A),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 1), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(FILE_A);
       });
 
       it("should keep the focus on the replaced dependency", () => {
@@ -246,6 +457,26 @@ describe("focus", () => {
           BEFORE,
           after({ dependencies: [replaced, A_TO_C, B_TO_A, A_TO_D] })
         );
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should keep the focus on the replaced dependency when another one of its file says the same", () => {
+        // Arrange
+        const twin = rebuilt(A_TO_B);
+        const withTwin: Sketch = {
+          ...BEFORE,
+          dependencies: [A_TO_B, twin, A_TO_C],
+        };
+        const openNode = dependencyFocus("src/a.js", 0);
+        const sketch: Sketch = {
+          ...withTwin,
+          dependencies: [dependency("src/a.js", "src/d.js"), twin, A_TO_C],
+        };
+
+        // Act
+        const moved = moveFocus(openNode, withTwin, sketch);
 
         // Assert
         expect(moved).toBe(openNode);
@@ -293,6 +524,7 @@ describe("focus", () => {
   describe("moveHighlight", () => {
     const HIGHLIGHT: PolicyHighlight = {
       range: RANGE,
+      policy: 2,
       dependency: { path: "src/a.js", index: 2 },
     };
 
@@ -323,8 +555,41 @@ describe("focus", () => {
       // Assert
       expect(moved).toEqual({
         range: RANGE,
+        policy: 2,
         dependency: { path: "src/a.js", index: 1 },
       });
+    });
+
+    it("should follow its dependency when the text built the dependencies again and a line before it was deleted", () => {
+      // Act
+      const moved = moveHighlight(
+        HIGHLIGHT,
+        BEFORE,
+        after({
+          dependencies: [rebuilt(A_TO_C), rebuilt(A_TO_D), rebuilt(B_TO_A)],
+        })
+      );
+
+      // Assert
+      expect(moved).toEqual({
+        range: RANGE,
+        policy: 2,
+        dependency: { path: "src/a.js", index: 1 },
+      });
+    });
+
+    it("should drop the highlight when the text deleted its dependency", () => {
+      // Act
+      const moved = moveHighlight(
+        HIGHLIGHT,
+        BEFORE,
+        after({
+          dependencies: [rebuilt(A_TO_B), rebuilt(A_TO_C), rebuilt(B_TO_A)],
+        })
+      );
+
+      // Assert
+      expect(moved).toBeUndefined();
     });
 
     it("should drop the highlight when its dependency is gone", () => {

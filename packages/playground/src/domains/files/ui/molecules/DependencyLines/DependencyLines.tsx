@@ -2,6 +2,7 @@ import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
+import { useEffect, useRef } from "react";
 import type { ElementType, ReactNode } from "react";
 
 import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
@@ -109,14 +110,15 @@ const Verdict = styled("span")<{ tone: VerdictTone }>(({ theme, tone }) => ({
 }));
 
 /**
- * The dependency list of a file: one line each, with its number, its statement, its actions and its verdict. A click on a line, or Enter or Space while it has the keyboard focus, selects it. The edit and delete actions show under the pointer and on the line that is selected or has the focus. It draws nothing for an empty list, so that the pane shows only what adds a dependency.
+ * The dependency list of a file: one line each, with its number, its statement, its actions and its verdict. A click on a line, or Enter or Space while it has the keyboard focus, selects it. A verdict that has a sentence to explain it, such as why a dependency is not checked, shows it in a tooltip under the pointer and while the verdict has the keyboard focus, and the sentence is its description. The edit and delete actions show under the pointer and on the line that is selected or has the focus. It draws nothing for an empty list, so that the pane shows only what adds a dependency.
  * @param props DependencyLines props.
  * @param props.lines The lines of the file.
  * @param props.selectedIndex The position of the line in focus, if any.
  * @param props.editable Whether the dependencies can be edited and removed.
  * @param props.onSelect Called with the position of the line that the user chose.
  * @param props.onEdit Called with the position of the line whose edit action was pressed.
- * @param props.onRemove Called with the position of the line whose delete action was pressed.
+ * @param props.onRemove Called with the position of the line whose delete action was pressed. The keyboard focus then goes to the line that takes its number, or to the one before it when it was the last, or to `onEmptied` when no line is left, since the button that was pressed is gone or shows another line.
+ * @param props.onEmptied Called when the last line was removed, to move the focus to what is left.
  * @returns The list, or nothing.
  */
 export function DependencyLines({
@@ -126,7 +128,30 @@ export function DependencyLines({
   onSelect,
   onEdit,
   onRemove,
+  onEmptied,
 }: Readonly<DependencyLinesProps>): ReactNode {
+  const selectButtons = useRef<(HTMLElement | null)[]>([]);
+  // The position of the line that was removed, until the lines that the store gives after it are drawn
+  const removedAt = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const removed = removedAt.current;
+
+    if (removed === undefined) {
+      return;
+    }
+    removedAt.current = undefined;
+
+    const target = Math.min(removed, lines.length - 1);
+
+    if (target < 0) {
+      onEmptied?.();
+    } else {
+      // A line that is drawn has its button
+      (selectButtons.current[target] as HTMLElement).focus();
+    }
+  }, [lines, onEmptied]);
+
   if (lines.length === 0) {
     return null;
   }
@@ -140,6 +165,9 @@ export function DependencyLines({
             <LineNumber>{index + 1}</LineNumber>
             <Select
               component="div"
+              ref={(node: HTMLElement | null) => {
+                selectButtons.current[index] = node;
+              }}
               aria-current={isSelected ? "true" : undefined}
               onClick={() => onSelect(index)}
             >
@@ -158,15 +186,22 @@ export function DependencyLines({
                 <Tooltip title="Delete">
                   <ActionButton
                     aria-label={`${DELETE_ACTION_LABEL} ${index + 1}`}
-                    onClick={() => onRemove(index)}
+                    onClick={() => {
+                      removedAt.current = index;
+                      onRemove(index);
+                    }}
                   >
                     <Icon name="trash" />
                   </ActionButton>
                 </Tooltip>
               </Actions>
             ) : null}
-            <Tooltip title={line.hint ?? ""}>
-              <Verdict tone={line.tone}>
+            {/* The sentence describes the verdict, which keeps its text as its name, and a verdict that has one takes the keyboard focus, which shows it as the pointer does */}
+            <Tooltip title={line.hint ?? ""} describeChild>
+              <Verdict
+                tone={line.tone}
+                tabIndex={line.hint === undefined ? undefined : 0}
+              >
                 <Icon name={line.icon} label={line.iconLabel} />
                 {line.label}
               </Verdict>

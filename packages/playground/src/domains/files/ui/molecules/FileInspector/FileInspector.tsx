@@ -7,6 +7,7 @@ import { countVerdicts } from "@/domains/evaluation/helpers/verdictCounts";
 import { VerdictCount } from "@/domains/evaluation/ui/atoms/VerdictCount";
 import { formatValue } from "@/domains/files/ui/helpers/formatValue";
 import type { DescribedValue } from "@/domains/files/ui/helpers/formatValue";
+import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 
@@ -101,7 +102,7 @@ type DependencySummaryProps = {
 };
 
 /**
- * How many dependencies a file has and what the engine decided about them, such as `4 dependencies  ✓ 2  ✕ 1  – 1 not checked`. A count of 0 is left out, and so are all the counts while the dependencies are not evaluated.
+ * How many dependencies a file has and what the engine decided about them, such as `4 dependencies  ✓ 2  ✕ 1  – 1 not checked`. The disallowed ones are red with the cross when any is an error, and in the color of warnings with the triangle of their line when all of them are warnings. A count of 0 is left out, and so are all the counts while the dependencies are not evaluated.
  * @param props DependencySummary props.
  * @param props.results The dependencies of the file.
  * @param props.isEvaluated Whether the engine evaluated them.
@@ -113,6 +114,7 @@ function DependencySummary({
 }: Readonly<DependencySummaryProps>): ReactNode {
   const counts = countVerdicts(results);
   const total = formatCount(counts.total, "dependency", "dependencies");
+  const hasErrors = counts.errors > 0;
 
   if (!isEvaluated) {
     return (
@@ -130,7 +132,10 @@ function DependencySummary({
         </VerdictCount>
       ) : null}
       {counts.disallowed > 0 ? (
-        <VerdictCount tone="bad" icon="cross">
+        <VerdictCount
+          tone={getCountTone(hasErrors)}
+          icon={hasErrors ? "cross" : "warn"}
+        >
           {counts.disallowed}
         </VerdictCount>
       ) : null}

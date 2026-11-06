@@ -14,4 +14,6 @@ export type DependencyLinesProps = {
   readonly onEdit: (index: number) => void;
   /** Called with the position of the line whose delete action the user pressed. */
   readonly onRemove: (index: number) => void;
+  /** Called when the line that was removed was the only one, so that the keyboard focus goes to what the pane has left. The lines move it between themselves otherwise. */
+  readonly onEmptied?: () => void;
 };

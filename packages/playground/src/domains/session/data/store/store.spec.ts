@@ -493,10 +493,14 @@ describe("createSessionStore", () => {
       const dependency = { path: "src/index.js", index: 0 };
 
       // Act
-      store.open({ kind: "config", range, dependency });
+      store.open({ kind: "config", range, policy: 0, dependency });
 
       // Assert
-      expect(store.getState().highlight).toEqual({ range, dependency });
+      expect(store.getState().highlight).toEqual({
+        range,
+        policy: 0,
+        dependency,
+      });
     });
   });
 
