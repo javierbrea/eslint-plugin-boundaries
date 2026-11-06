@@ -7,6 +7,7 @@ export type {
   RenameResult,
   StatementToken,
   TextProblem,
+  TextReadOptions,
   TextResult,
   TreeItem,
 } from "./sketch.types";

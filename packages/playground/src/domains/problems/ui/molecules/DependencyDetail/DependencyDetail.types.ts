@@ -22,3 +22,11 @@ export type PolicyCardStyle = Pick<
   CSSStyleDeclaration,
   "backgroundColor" | "color" | "fontFamily" | "whiteSpace"
 >;
+
+/** A piece of the policy in the card, as its page object reads it. */
+export type DependencyDetailPiece = {
+  /** The text of the piece. */
+  readonly text: string;
+  /** The computed color of the piece. */
+  readonly color: string;
+};

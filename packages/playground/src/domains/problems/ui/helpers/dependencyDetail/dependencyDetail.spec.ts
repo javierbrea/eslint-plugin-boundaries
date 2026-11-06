@@ -1,5 +1,6 @@
 import type { SketchDependency } from "@/contract";
 import type {
+  ConfigToken,
   DependencyVerdict,
   FileDescription,
   TextRange,
@@ -42,11 +43,24 @@ const DISALLOWED: DependencyVerdict = {
   level: "error",
 };
 
+/** The pieces of `{ disallow: {} }`, which the card colors */
+const POLICY_TOKENS: readonly ConfigToken[] = [
+  { kind: "punctuation", text: "{" },
+  { kind: "plain", text: " " },
+  { kind: "key", text: "disallow" },
+  { kind: "punctuation", text: ":" },
+  { kind: "plain", text: " " },
+  { kind: "punctuation", text: "{" },
+  { kind: "punctuation", text: "}" },
+  { kind: "plain", text: " " },
+  { kind: "punctuation", text: "}" },
+];
+
 /** The policy that decided the dependency of the mockup */
 const POLICY: DependencyDetailFacts["policy"] = {
   index: 2,
   range: POLICY_RANGE,
-  text: "{ disallow: {} }",
+  tokens: POLICY_TOKENS,
 };
 
 /**
@@ -364,14 +378,14 @@ describe("dependencyDetail", () => {
     });
 
     describe("the card of the policy", () => {
-      it("should be headed by the index of the policy as a comment, hold its text and open the config at its range from the dependency", () => {
+      it("should be headed by the index of the policy as a comment, hold its text in pieces and open the config at its range from the dependency", () => {
         // Act
         const { policy } = toDependencyDetail(createFacts());
 
         // Assert
         expect(policy).toEqual({
           heading: "// policies[2]",
-          text: "{ disallow: {} }",
+          tokens: POLICY_TOKENS,
           target: {
             kind: "config",
             range: POLICY_RANGE,
@@ -384,13 +398,19 @@ describe("dependencyDetail", () => {
         // Act
         const { policy } = toDependencyDetail(
           createFacts({
-            policy: { index: null, range: DEFAULT_RANGE, text: '"disallow"' },
+            policy: {
+              index: null,
+              range: DEFAULT_RANGE,
+              tokens: [{ kind: "string", text: '"disallow"' }],
+            },
           })
         );
 
         // Assert
         expect(policy?.heading).toBe("// default");
-        expect(policy?.text).toBe('"disallow"');
+        expect(policy?.tokens).toEqual([
+          { kind: "string", text: '"disallow"' },
+        ]);
         expect(policy?.target).toEqual({
           kind: "config",
           range: DEFAULT_RANGE,
@@ -402,7 +422,11 @@ describe("dependencyDetail", () => {
         // Act
         const { policy } = toDependencyDetail(
           createFacts({
-            policy: { index: 0, range: POLICY_RANGE, text: "{}" },
+            policy: {
+              index: 0,
+              range: POLICY_RANGE,
+              tokens: [{ kind: "punctuation", text: "{}" }],
+            },
           })
         );
 

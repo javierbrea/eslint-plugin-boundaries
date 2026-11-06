@@ -891,7 +891,11 @@ describe("problemItems", () => {
         subject: { kind: "dependency", ref: { path: CHECKOUT, index: 2 } },
         result: failing(CHECKOUT, 2),
         description: undefined,
-        policy: { index: 2, range: POLICY_RANGE, text: "{}" },
+        policy: {
+          index: 2,
+          range: POLICY_RANGE,
+          tokens: [{ kind: "punctuation", text: "{}" }],
+        },
       };
 
       it("should give its body in place of rows and notes", () => {

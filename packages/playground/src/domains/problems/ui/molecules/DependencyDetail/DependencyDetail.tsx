@@ -1,8 +1,11 @@
 import ButtonBase from "@mui/material/ButtonBase";
 import { styled } from "@mui/material/styles";
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 
+import type { ConfigTokenKind } from "@/domains/evaluation/helpers/engine";
 import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
+import type { PolicyCardContent } from "@/domains/problems/ui/helpers/dependencyDetail";
 import { VERDICT_COLORS } from "@/domains/problems/ui/helpers/verdictColors";
 import { Icon } from "@/ui-kit/atoms/Icon";
 
@@ -78,8 +81,38 @@ const PolicyCard = styled("pre")(({ theme }) => ({
 
 const Heading = styled("span")({ color: "var(--jsb-code-comment)" });
 
+const Piece = styled("span", {
+  shouldForwardProp: (prop) => prop !== "color",
+})<{ color: string }>(({ color }) => ({ color }));
+
+/** The color of each kind of piece of the policy that has one of its own in a code area, as the config editor gives it: a literal is colored as a number. Keys, punctuation and plain text keep the color of the card, `--jsb-code-fg`, which is the editor's too. */
+const PIECE_COLORS: Readonly<Partial<Record<ConfigTokenKind, string>>> = {
+  string: "var(--jsb-code-string)",
+  number: "var(--jsb-code-number)",
+  literal: "var(--jsb-code-number)",
+  comment: "var(--jsb-code-comment)",
+};
+
 /**
- * The body of the tab of a dependency: what the engine says about it, with the message of the plugin or why it is not checked, the facts that decide it, the button that opens the policy that decided it in the config, and a card with that policy as it is written there.
+ * Draws the policy as written in the config, with its pieces colored as the editor colors them.
+ * @param tokens The pieces of the text of the policy.
+ * @returns A colored element for each piece that has a color of its own, and the bare text for the others, which inherits the color of the card.
+ */
+function renderPolicy(tokens: PolicyCardContent["tokens"]): ReactNode {
+  return tokens.map(({ kind, text }, index) => {
+    const color = PIECE_COLORS[kind];
+
+    return (
+      // The pieces never reorder: they are made again from the text of the policy
+      <Fragment key={index}>
+        {color === undefined ? text : <Piece color={color}>{text}</Piece>}
+      </Fragment>
+    );
+  });
+}
+
+/**
+ * The body of the tab of a dependency: what the engine says about it, with the message of the plugin or why it is not checked, the facts that decide it, the button that opens the policy that decided it in the config, and a card with that policy as it is written there, colored as the config editor colors it.
  * @param props DependencyDetail props.
  * @param props.detail What the body draws.
  * @param props.onOpen Called with the target of the button, which opens the policy in the config.
@@ -119,7 +152,8 @@ export function DependencyDetail({
       {policy === undefined ? null : (
         <PolicyCard>
           <Heading>{policy.heading}</Heading>
-          {`\n${policy.text}`}
+          {"\n"}
+          {renderPolicy(policy.tokens)}
         </PolicyCard>
       )}
     </Root>

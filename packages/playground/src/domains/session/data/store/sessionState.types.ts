@@ -30,7 +30,7 @@ export type SessionState = {
   readonly revealCount: number;
   /** How the project pane shows the sketch. */
   readonly view: ProjectView;
-  /** What the user typed in text mode since the text was last in sync with the sketch; `undefined` shows the text of the sketch. Leaving text mode drops it. */
+  /** What the user typed in text mode since the text was last in sync with the sketch; `undefined` shows the text of the sketch. Leaving text mode drops it, and so does adding, replacing or removing a dependency, which the file pane can do in text mode: the next read of a stale draft would bring back the dependencies the edit changed, so the edit wins and the lines of the draft that could not be read are lost. */
   readonly textDraft: string | undefined;
   /** The folder the user selected in the tree: it does not take the focus, which stays on the open file, but it is where a new node goes. It can be gone or be a file after an edit. */
   readonly pickedFolder: string | undefined;

@@ -470,10 +470,10 @@ export function removeNode(state: SessionState, path: string): SessionState {
 }
 
 /**
- * Adds a dependency at the end of the dependencies of its file, and puts it in focus: the file shows with the dependency selected, and the problems panel selects its tab.
+ * Adds a dependency at the end of the dependencies of its file, and puts it in focus: the file shows with the dependency selected, and the problems panel selects its tab. The text draft goes: the file pane stays in text mode, so the edit must not lose against a draft whose next read would bring back the dependencies it had, and text mode shows the text of the new sketch. The lines of the draft that could not be read are lost with it.
  * @param state The state before.
  * @param dependency The dependency to add.
- * @returns The state after, or the same one when the sketch refuses the dependency, such as one whose target is its own file, or without `editDependencies`.
+ * @returns The state after, or the same one when the sketch refuses the dependency, such as one whose target is its own file, or without `editDependencies`; the draft stays in both cases.
  */
 export function addDependency(
   state: SessionState,
@@ -488,7 +488,7 @@ export function addDependency(
     addSketchDependency(state.sketch, dependency),
     (sketch) =>
       openTarget(
-        { ...state, sketch },
+        { ...state, sketch, textDraft: undefined },
         {
           kind: "dependency",
           path: dependency.from,
@@ -499,11 +499,11 @@ export function addDependency(
 }
 
 /**
- * Replaces a dependency with another one of the same file, in the same position. It stays in focus if it was.
+ * Replaces a dependency with another one of the same file, in the same position. It stays in focus if it was. The text draft goes, as `addDependency` explains: the lines that could not be read are lost, and text mode shows the text of the new sketch.
  * @param state The state before.
  * @param ref The file and the position of the dependency to replace.
  * @param dependency The dependency that takes its place.
- * @returns The state after, or the same one when the sketch refuses the edit, such as when there is no dependency at the position, or without `editDependencies`.
+ * @returns The state after, or the same one when the sketch refuses the edit, such as when there is no dependency at the position, or without `editDependencies`; the draft stays in both cases.
  */
 export function replaceDependency(
   state: SessionState,
@@ -514,16 +514,16 @@ export function replaceDependency(
     ? applyEdit(
         state,
         replaceSketchDependency(state.sketch, ref, dependency),
-        (sketch) => followSketch(state, sketch)
+        (sketch) => followSketch({ ...state, textDraft: undefined }, sketch)
       )
     : state;
 }
 
 /**
- * Removes a dependency. The ones after it in its file move up one line, and a dependency in focus moves with them: the one in focus that is removed leaves its file in focus, and the problems panel selects the tab of the node.
+ * Removes a dependency. The ones after it in its file move up one line, and a dependency in focus moves with them: the one in focus that is removed leaves its file in focus, and the problems panel selects the tab of the node. The text draft goes, as `addDependency` explains: the lines that could not be read are lost, and text mode shows the text of the new sketch.
  * @param state The state before.
  * @param ref The file and the position of the dependency to remove.
- * @returns The state after, or the same one when there is no dependency at the position or without `editDependencies`.
+ * @returns The state after, or the same one when there is no dependency at the position or without `editDependencies`; the draft stays in both cases.
  */
 export function removeDependency(
   state: SessionState,
@@ -531,7 +531,7 @@ export function removeDependency(
 ): SessionState {
   return state.capabilities.editDependencies
     ? applyEdit(state, removeSketchDependency(state.sketch, ref), (sketch) =>
-        followSketch(state, sketch)
+        followSketch({ ...state, textDraft: undefined }, sketch)
       )
     : state;
 }
@@ -564,26 +564,7 @@ export function setTextDraft(state: SessionState, text: string): SessionState {
 }
 
 /**
- * Keeps the dependencies of a sketch that the text of text mode does not decide: the ones whose file and whose node target are still files of the new tree, in their order. It is what a host that lets the user edit the tree but not the dependencies gets from the text, which can only add, rename and remove files.
- * @param previous The sketch before the text was read, whose dependencies stay.
- * @param read The sketch that the text made, whose tree says which files remain.
- * @returns The sketch that the text made, with the dependencies of the previous one that still fit it.
- */
-function keepDependencies(previous: Sketch, read: Sketch): Sketch {
-  const files = new Set(getFiles(read));
-
-  return {
-    ...read,
-    dependencies: previous.dependencies.filter(
-      ({ from, target }) =>
-        files.has(from) &&
-        (target.kind === "external" || files.has(target.path))
-    ),
-  };
-}
-
-/**
- * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise the dependencies of the sketch stay as they were, as far as their files remain.
+ * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
  * @param state The state before.
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
  * @returns The state after. A dependency in focus follows its file, and the same index of the same file when the text rewrote the dependencies.
@@ -595,15 +576,15 @@ function readDraft(state: SessionState, settle: boolean): SessionState {
     return state;
   }
 
-  const result = fromText(textDraft, state.sketch);
-  const sketch = state.capabilities.editDependencies
-    ? result.sketch
-    : keepDependencies(state.sketch, result.sketch);
+  // Without `editDependencies` the dependency lines are neither read nor reported, as `getTextProblems` reads them, so a draft whose nodes were all read settles
+  const { sketch, problems } = fromText(textDraft, state.sketch, {
+    dependencies: state.capabilities.editDependencies,
+  });
   const read = isSameProject(state.sketch, sketch)
     ? state
     : followSketch(state, sketch);
 
-  return settle && result.problems.length === 0
+  return settle && problems.length === 0
     ? { ...read, textDraft: undefined }
     : read;
 }

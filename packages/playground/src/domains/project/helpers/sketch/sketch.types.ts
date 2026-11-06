@@ -26,6 +26,12 @@ export type TextProblem = {
   readonly reason: string;
 };
 
+/** What text mode reads. */
+export type TextReadOptions = {
+  /** Whether the indented lines are read as dependencies. When it is `false` they are ignored, whatever they say: they are not read and never reported as problems, and the dependencies of the sketch given stay, as far as their files remain. A host that lets the user edit the tree but not the dependencies reads text mode so. It defaults to `true`. */
+  readonly dependencies?: boolean;
+};
+
 /** The result of an edit: the new sketch, or why the edit is refused */
 export type EditResult =
   | { readonly sketch: Sketch }

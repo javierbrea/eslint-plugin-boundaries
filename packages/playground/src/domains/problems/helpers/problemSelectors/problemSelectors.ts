@@ -1,3 +1,4 @@
+import { tokenizeConfig } from "@/domains/evaluation/helpers/engine";
 import type {
   ConfigProblem,
   DependencyResult,
@@ -96,14 +97,18 @@ function findResult(
 }
 
 /**
- * Gets the lines of text mode that cannot be read.
+ * Gets the lines of text mode that cannot be read. It reads the draft as the session does, so that the lines it reports are the ones that keep the draft from settling.
  * @param draft What the user typed in text mode, if anything.
+ * @param readsDependencies Whether text mode reads the dependency lines, which is when the host lets the user edit dependencies. When it does not, those lines are never problems.
  * @returns The lines that cannot be read, in order; the same empty array when there is no draft.
  */
 export function getTextProblems(
-  draft: string | undefined
+  draft: string | undefined,
+  readsDependencies: boolean
 ): readonly TextProblem[] {
-  return draft === undefined ? NO_TEXT_PROBLEMS : readTextProblems(draft);
+  return draft === undefined
+    ? NO_TEXT_PROBLEMS
+    : readTextProblems(draft, { dependencies: readsDependencies });
 }
 
 /**
@@ -339,7 +344,7 @@ function getPolicyText(config: string, range: TextRange): string {
 }
 
 /**
- * Gets the facts of the body of the dependency tab.
+ * Gets the facts of the body of the dependency tab. The text of the policy is split into the pieces that the card colors, with the engine, which is the only code that reads the config text as JSON5.
  * @param evaluation What the engine says about the sketch.
  * @param ref The dependency in focus.
  * @returns The facts, or `undefined` when the evaluation does not have the dependency.
@@ -362,7 +367,9 @@ function getDependencyDetail(
       : {
           index: policyRef.index,
           range: policyRef.range,
-          text: getPolicyText(evaluation.sketch.config, policyRef.range),
+          tokens: tokenizeConfig(
+            getPolicyText(evaluation.sketch.config, policyRef.range)
+          ),
         };
 
   return {

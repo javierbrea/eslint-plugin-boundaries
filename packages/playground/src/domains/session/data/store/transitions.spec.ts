@@ -1741,6 +1741,62 @@ describe("Transitions", () => {
       expect(state.textDraft).toBe(draft);
       expect(getPaths(state)).toEqual(["main.js"]);
     });
+
+    describe("without editDependencies", () => {
+      const NO_DEPENDENCY_EDITS = {
+        ...ALL_CAPABILITIES,
+        editDependencies: false,
+      };
+
+      it("should drop the draft although a dependency line cannot be read, because the dependency lines are ignored", () => {
+        // Arrange
+        const before = createState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: "main.js\n  import bad\n  import { a } from './missing'\n",
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(getPaths(state)).toEqual(["main.js"]);
+      });
+
+      it("should keep the draft of a line of a node that cannot be read", () => {
+        // Arrange
+        const draft = "main.js\nmain.js\n  import bad\n";
+        const before = createState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: draft,
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBe(draft);
+        expect(getPaths(state)).toEqual(["main.js"]);
+      });
+
+      it("should keep the dependencies of the sketch when the draft settles", () => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          capabilities: NO_DEPENDENCY_EDITS,
+          textDraft: `${toText({ tree: SKETCH.tree, dependencies: [] })}  import bad\n`,
+        });
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(getEdges(state)).toEqual(getEdges(before));
+      });
+    });
   });
 
   describe("openTarget with a dependency", () => {
@@ -2490,6 +2546,124 @@ describe("Transitions", () => {
       });
       expect(removed.highlight).toBeUndefined();
       expect(removed.focus).toEqual({ kind: "config" });
+    });
+  });
+
+  describe("the text draft when a dependency is edited", () => {
+    // The text of the sketch, as text mode shows it, with a line below it that could not be read
+    const STALE_DRAFT = `${toText(DEPENDENCY_SKETCH)}  import bad\n`;
+
+    const MISSING = { path: "src/index.js", index: 9 };
+
+    const EDITS: [
+      string,
+      (state: SessionState) => SessionState,
+      (state: SessionState) => SessionState,
+    ][] = [
+      [
+        "addDependency",
+        (state) =>
+          addDependency(state, importOf("main.js", "src/helpers/format.js")),
+        (state) => addDependency(state, importOf("main.js", "main.js")),
+      ],
+      [
+        "replaceDependency",
+        (state) =>
+          replaceDependency(
+            state,
+            { path: "src/index.js", index: 1 },
+            importModule("src/index.js", "lodash")
+          ),
+        (state) =>
+          replaceDependency(
+            state,
+            MISSING,
+            importModule("src/index.js", "lodash")
+          ),
+      ],
+      [
+        "removeDependency",
+        (state) => removeDependency(state, { path: "src/index.js", index: 1 }),
+        (state) => removeDependency(state, MISSING),
+      ],
+    ];
+
+    it.each(EDITS)(
+      "should drop the draft when %s changes the sketch, and stay in text mode",
+      (_name, edit) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+
+        // Act
+        const state = edit(before);
+
+        // Assert
+        expect(state.textDraft).toBeUndefined();
+        expect(state.view).toBe("text");
+      }
+    );
+
+    it.each(EDITS)(
+      "should not let a later read of the text undo the edit of %s",
+      (_name, edit) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+        const edited = edit(before);
+
+        // Act
+        const read = readText(edited);
+        const settled = settleText(edited);
+
+        // Assert
+        expect(getEdges(edited)).not.toEqual(getEdges(before));
+        expect(getEdges(read)).toEqual(getEdges(edited));
+        expect(getEdges(settled)).toEqual(getEdges(edited));
+      }
+    );
+
+    it.each(EDITS)(
+      "should keep the draft when %s is refused, because the sketch did not change",
+      (_name, _edit, refused) => {
+        // Arrange
+        const before = createDependencyState({
+          view: "text",
+          textDraft: STALE_DRAFT,
+        });
+
+        // Act
+        const state = refused(before);
+
+        // Assert
+        expect(state).toBe(before);
+        expect(state.textDraft).toBe(STALE_DRAFT);
+      }
+    );
+
+    it("should keep the focus on the dependency that was edited while the text shows", () => {
+      // Arrange
+      const before = createDependencyState({
+        view: "text",
+        textDraft: STALE_DRAFT,
+        focus: onDependency("src/index.js", 1),
+        tab: "dependency",
+      });
+
+      // Act
+      const state = replaceDependency(
+        before,
+        { path: "src/index.js", index: 1 },
+        importModule("src/index.js", "lodash")
+      );
+
+      // Assert
+      expect(state.focus).toEqual(onDependency("src/index.js", 1));
+      expect(state.tab).toBe("dependency");
     });
   });
 

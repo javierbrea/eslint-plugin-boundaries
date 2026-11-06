@@ -13,6 +13,23 @@ export type TextRange = {
   readonly column: number;
 };
 
+/** What a piece of a config text is, so that a code area can color it as the editor does: a `key` of an object, a `string`, a `number` (including `Infinity` and `NaN`), a `literal` (`true`, `false` and `null`), a `comment`, `punctuation` (braces, brackets, colons and commas) or `plain` text, which is the white space between the others and any piece that cannot be read */
+export type ConfigTokenKind =
+  | "key"
+  | "string"
+  | "number"
+  | "literal"
+  | "comment"
+  | "punctuation"
+  | "plain";
+
+/** A piece of a config text. The pieces of a text, joined, are the text */
+export type ConfigToken = {
+  readonly kind: ConfigTokenKind;
+  /** The piece as written */
+  readonly text: string;
+};
+
 /** How serious a problem is. A deprecation is shown as a warning */
 export type ProblemLevel = "error" | "warning" | "deprecation";
 

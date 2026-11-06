@@ -8,7 +8,7 @@ import type {
 import { getDependencyError } from "./dependencies";
 import { normalizePath } from "./paths";
 import { CONFIG_PATH } from "./sketch.constants";
-import type { TextProblem, TextResult } from "./sketch.types";
+import type { TextProblem, TextReadOptions, TextResult } from "./sketch.types";
 import {
   getSourceAmong,
   isRelativeSource,
@@ -180,11 +180,15 @@ function readPending(
 }
 
 /**
- * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. A line that is not indented is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. An indented line is a dependency of the file line above it. A line that cannot be read is a problem and is left out: an invalid path, a duplicate, a path under a file, a file where a folder is, a dependency under a folder or under no file (the config line and a line that was left out own nothing), or a dependency that cannot be read as {@link readDependency} says.
+ * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. A line that is not indented is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. An indented line is a dependency of the file line above it, or nothing when the dependencies are not read. A line that cannot be read is a problem and is left out: an invalid path, a duplicate, a path under a file, a file where a folder is, a dependency under a folder or under no file (the config line and a line that was left out own nothing), or a dependency that cannot be read as {@link readDependency} says.
  * @param text The text to read.
+ * @param readDependencies Whether an indented line is read as a dependency. When it is not, it is skipped as a blank line is: it is neither read nor reported.
  * @returns The nodes of the valid lines, the dependencies of the valid lines in the order of the text, and the problems of the lines that were left out, in order.
  */
-function readLines(text: string): {
+function readLines(
+  text: string,
+  readDependencies: boolean
+): {
   readonly nodes: readonly SketchNode[];
   readonly dependencies: readonly SketchDependency[];
   readonly problems: readonly TextProblem[];
@@ -203,7 +207,9 @@ function readLines(text: string): {
     const lineNumber = index + 1;
 
     if (INDENTED_LINE.test(line)) {
-      pending.push({ line: lineNumber, text: line, owner });
+      if (readDependencies) {
+        pending.push({ line: lineNumber, text: line, owner });
+      }
       continue;
     }
 
@@ -231,23 +237,59 @@ function readLines(text: string): {
 /**
  * Tells which lines of text mode cannot be read, as {@link fromText} reports them. They depend on the text alone, so that a caller can keep them while the sketch changes.
  * @param text The text to read.
+ * @param options What text mode reads: the lines of the dependencies are never reported when it does not read them.
+ * @param options.dependencies Whether the indented lines are read as dependencies; `true` when it is not given.
  * @returns The problems of the lines that would be left out, in order.
  */
-export function readTextProblems(text: string): readonly TextProblem[] {
-  return readLines(text).problems;
+export function readTextProblems(
+  text: string,
+  { dependencies = true }: TextReadOptions = {}
+): readonly TextProblem[] {
+  return readLines(text, dependencies).problems;
 }
 
 /**
- * Reads text mode into a sketch, line by line as {@link readTextProblems} says. The tree of the new sketch is made of the valid lines, its dependencies are the ones that the text declares, in the order of the text, and the config is the one of the sketch given.
+ * Keeps the dependencies of a sketch whose file and whose node target are still files of a tree, in their order.
+ * @param previous The dependencies to keep.
+ * @param tree The tree that the dependencies must still fit.
+ * @returns The dependencies that fit the tree: the ones from a file of it, to a file of it or to an external module.
+ */
+function keepDependencies(
+  previous: readonly SketchDependency[],
+  tree: readonly SketchNode[]
+): readonly SketchDependency[] {
+  const files = new Set(getFiles({ tree }));
+
+  return previous.filter(
+    ({ from, target }) =>
+      files.has(from) && (target.kind === "external" || files.has(target.path))
+  );
+}
+
+/**
+ * Reads text mode into a sketch, line by line as {@link readTextProblems} says. The tree of the new sketch is made of the valid lines, its dependencies are the ones that the text declares, in the order of the text, and the config is the one of the sketch given. When the dependencies are not read, its dependencies are the ones of the sketch given that still fit the new tree, in their order, and the dependency lines of the text decide nothing.
  * @param text The text to read.
  * @param sketch The sketch that the text edits. It is not changed.
+ * @param options What text mode reads: the dependencies of the text, unless it says otherwise.
+ * @param options.dependencies Whether the indented lines are read as dependencies; `true` when it is not given.
  * @returns The new sketch and the problems of the lines that were left out, in order.
  */
-export function fromText(text: string, sketch: Sketch): TextResult {
-  const { nodes, dependencies, problems } = readLines(text);
+export function fromText(
+  text: string,
+  sketch: Sketch,
+  { dependencies: readDependencies = true }: TextReadOptions = {}
+): TextResult {
+  const { nodes, dependencies, problems } = readLines(text, readDependencies);
+  const tree = canonicalizeNodes(nodes);
 
   return {
-    sketch: { ...sketch, tree: canonicalizeNodes(nodes), dependencies },
+    sketch: {
+      ...sketch,
+      tree,
+      dependencies: readDependencies
+        ? dependencies
+        : keepDependencies(sketch.dependencies, tree),
+    },
     problems,
   };
 }

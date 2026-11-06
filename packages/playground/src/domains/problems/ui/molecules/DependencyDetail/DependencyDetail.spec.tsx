@@ -1,3 +1,4 @@
+import { tokenizeConfig } from "@/domains/evaluation/helpers/engine";
 import type { DependencyDetailContent } from "@/domains/problems/ui/helpers/dependencyDetail";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
@@ -23,7 +24,7 @@ const DISALLOWED: DependencyDetailContent = {
   ],
   policy: {
     heading: "// policies[2]",
-    text: POLICY_TEXT,
+    tokens: tokenizeConfig(POLICY_TEXT),
     target: {
       kind: "config",
       range: { from: 40, to: 90, line: 3, column: 9 },
@@ -287,6 +288,86 @@ describe("DependencyDetail", () => {
       expect(policyHeadingColor).toBe("var(--jsb-code-comment)");
     });
 
+    it("should color the comment and the string of policy 2 as the editor does, and the rest as the code text", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const colored = detail.policyPieces.filter(
+        ({ color }) => color !== "var(--jsb-code-fg)"
+      );
+
+      // Assert
+      expect(colored).toEqual([
+        {
+          text: "// No element may import a test file, whatever element it belongs to",
+          color: "var(--jsb-code-comment)",
+        },
+        { text: '"test"', color: "var(--jsb-code-string)" },
+      ]);
+      expect(detail.policyPieces.map(({ text }) => text).join("")).toBe(
+        POLICY_TEXT
+      );
+    });
+
+    it("should give each kind of piece the color that the editor gives it", () => {
+      // Arrange
+      const policy = {
+        ...(DISALLOWED.policy as NonNullable<
+          DependencyDetailContent["policy"]
+        >),
+        tokens: [
+          { kind: "punctuation" as const, text: "{" },
+          { kind: "plain" as const, text: " " },
+          { kind: "comment" as const, text: "/* why */" },
+          { kind: "plain" as const, text: " " },
+          { kind: "key" as const, text: "max" },
+          { kind: "punctuation" as const, text: ":" },
+          { kind: "plain" as const, text: " " },
+          { kind: "number" as const, text: "2" },
+          { kind: "punctuation" as const, text: "," },
+          { kind: "plain" as const, text: " " },
+          { kind: "key" as const, text: "on" },
+          { kind: "punctuation" as const, text: ":" },
+          { kind: "plain" as const, text: " " },
+          { kind: "literal" as const, text: "true" },
+          { kind: "plain" as const, text: " " },
+          { kind: "punctuation" as const, text: "}" },
+        ],
+      };
+      renderInRoot(
+        <DependencyDetail
+          detail={{ ...DISALLOWED, policy }}
+          onOpen={jest.fn()}
+        />
+      );
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { policyPieces } = detail;
+
+      // Assert
+      expect(policyPieces).toEqual([
+        { text: "{", color: "var(--jsb-code-fg)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "/* why */", color: "var(--jsb-code-comment)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "max", color: "var(--jsb-code-fg)" },
+        { text: ":", color: "var(--jsb-code-fg)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "2", color: "var(--jsb-code-number)" },
+        { text: ",", color: "var(--jsb-code-fg)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "on", color: "var(--jsb-code-fg)" },
+        { text: ":", color: "var(--jsb-code-fg)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "true", color: "var(--jsb-code-number)" },
+        { text: " ", color: "var(--jsb-code-fg)" },
+        { text: "}", color: "var(--jsb-code-fg)" },
+      ]);
+    });
+
     it("should be a code area in the mono font that keeps the lines of the policy", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
@@ -322,7 +403,7 @@ describe("DependencyDetail", () => {
           DependencyDetailContent["policy"]
         >),
         heading: "// default",
-        text: '"disallow"',
+        tokens: [{ kind: "string" as const, text: '"disallow"' }],
       };
       renderInRoot(
         <DependencyDetail

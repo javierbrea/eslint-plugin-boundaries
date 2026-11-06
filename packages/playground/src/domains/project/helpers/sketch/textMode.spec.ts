@@ -906,6 +906,151 @@ describe("TextMode", () => {
       // Assert
       expect(JSON.stringify(SKETCH)).toBe(before);
     });
+
+    describe("without reading the dependencies", () => {
+      const NO_DEPENDENCIES = { dependencies: false };
+      const WITH_DEPENDENCIES = createSketch(
+        [
+          { path: "src/a.js", kind: "file" },
+          { path: "src/b.js", kind: "file" },
+          { path: "src/c.js", kind: "file" },
+        ],
+        [
+          toNode("src/a.js", "src/b.js"),
+          toExternal("src/a.js", "react"),
+          toNode("src/b.js", "src/c.js"),
+          toNode("src/c.js", "src/a.js"),
+        ]
+      );
+
+      /**
+       * Lists what the dependencies of a sketch point to, to tell which one is which.
+       * @param sketch The sketch to read.
+       * @returns One `from -> to` entry per dependency, in order.
+       */
+      function listEdges(sketch: Sketch): string[] {
+        return sketch.dependencies.map(
+          ({ from, target }) =>
+            `${from} -> ${target.kind === "node" ? target.path : target.name}`
+        );
+      }
+
+      it("should ignore the dependency lines of the text and keep the dependencies of the sketch given", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "lodash";',
+          "src/b.js",
+          "src/c.js",
+          '  import { a } from "./a";',
+          '  import { b } from "./b";',
+          "",
+        ].join("\n");
+
+        // Act
+        const { sketch } = fromText(text, WITH_DEPENDENCIES, NO_DEPENDENCIES);
+
+        // Assert
+        expect(listEdges(sketch)).toEqual([
+          "src/a.js -> src/b.js",
+          "src/a.js -> react",
+          "src/b.js -> src/c.js",
+          "src/c.js -> src/a.js",
+        ]);
+        expect(paths(sketch)).toEqual(["src/a.js", "src/b.js", "src/c.js"]);
+      });
+
+      it("should keep the dependencies of the sketch when the text has no dependency lines", () => {
+        // Act
+        const { sketch } = fromText(
+          "src/c.js\nsrc/b.js\nsrc/a.js\n",
+          WITH_DEPENDENCIES,
+          NO_DEPENDENCIES
+        );
+
+        // Assert
+        expect(sketch.dependencies).toEqual(WITH_DEPENDENCIES.dependencies);
+      });
+
+      it("should drop the dependencies from a file that the text no longer has, and the ones to it, and keep the external ones", () => {
+        // Act
+        const { sketch } = fromText(
+          "src/a.js\nsrc/c.js\n",
+          WITH_DEPENDENCIES,
+          NO_DEPENDENCIES
+        );
+
+        // Assert
+        expect(listEdges(sketch)).toEqual([
+          "src/a.js -> react",
+          "src/c.js -> src/a.js",
+        ]);
+      });
+
+      it("should read the nodes as it does with the dependencies", () => {
+        // Arrange
+        const text = "src/a.js\n  import bad\nsrc/pages/\nsrc/a.js\n";
+
+        // Act
+        const { sketch } = fromText(text, WITH_DEPENDENCIES, NO_DEPENDENCIES);
+
+        // Assert
+        expect(paths(sketch)).toEqual(["src/pages/", "src/a.js"]);
+      });
+
+      it("should report no dependency line as a problem, whatever it says, and report the lines of nodes", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./missing";',
+          "  nonsense",
+          "src/pages/",
+          '  import "react";',
+          "  import { x } from '/abs';",
+          "src/a.js",
+          "../up.js",
+        ].join("\n");
+
+        // Act
+        const { problems } = fromText(text, WITH_DEPENDENCIES, NO_DEPENDENCIES);
+
+        // Assert
+        expect(problems).toEqual([
+          { line: 7, text: "src/a.js", reason: "That path already exists." },
+          {
+            line: 8,
+            text: "../up.js",
+            reason: "The path cannot have `.` or `..` segments.",
+          },
+        ]);
+      });
+
+      it("should skip an indented line above every file, as it skips a blank line", () => {
+        // Act
+        const { sketch, problems } = fromText(
+          '  import "react";\nsrc/a.js\n',
+          WITH_DEPENDENCIES,
+          NO_DEPENDENCIES
+        );
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(paths(sketch)).toEqual(["src/a.js"]);
+      });
+
+      it("should read the dependency lines when the option says so", () => {
+        // Arrange
+        const text = 'src/a.js\n  import "lodash";\n';
+
+        // Act
+        const { sketch } = fromText(text, WITH_DEPENDENCIES, {
+          dependencies: true,
+        });
+
+        // Assert
+        expect(listEdges(sketch)).toEqual(["src/a.js -> lodash"]);
+      });
+    });
   });
 
   describe("readTextProblems", () => {
@@ -963,6 +1108,36 @@ describe("TextMode", () => {
 
       // Assert
       expect(problems).toEqual([]);
+    });
+
+    it("should not report the lines of dependencies when it does not read them, and report the other lines as it did", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "./missing";',
+        "src/b.js/",
+        '\timport "vue";',
+        "src/a.js",
+      ].join("\n");
+
+      // Act
+      const problems = readTextProblems(text, { dependencies: false });
+
+      // Assert
+      expect(problems).toEqual([
+        { line: 5, text: "src/a.js", reason: "That path already exists." },
+      ]);
+    });
+
+    it("should report the lines of dependencies when the option says to read them", () => {
+      // Arrange
+      const text = 'src/a.js\n  import "./missing";\n';
+
+      // Act
+      const problems = readTextProblems(text, { dependencies: true });
+
+      // Assert
+      expect(problems.map(({ line }) => line)).toEqual([2]);
     });
   });
 

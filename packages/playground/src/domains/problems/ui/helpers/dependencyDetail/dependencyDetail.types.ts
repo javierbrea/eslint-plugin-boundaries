@@ -1,3 +1,4 @@
+import type { ConfigToken } from "@/domains/evaluation/helpers/engine";
 import type {
   VerdictIcon,
   VerdictTone,
@@ -26,8 +27,8 @@ export type DependencyFact = {
 export type PolicyCardContent = {
   /** The comment that opens the card: `// policies[2]` or `// default`. */
   readonly heading: string;
-  /** The policy as written in the config. */
-  readonly text: string;
+  /** The policy as written in the config, split into the pieces that the card colors as the editor does. The pieces joined are the text. */
+  readonly tokens: readonly ConfigToken[];
   /** What `Open policy in config` opens: the config at the range of the policy, with the dependency it came from. */
   readonly target: Target;
 };

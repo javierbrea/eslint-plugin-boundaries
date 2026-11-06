@@ -1,5 +1,6 @@
 import type {
   ConfigProblem,
+  ConfigToken,
   DependencyResult,
   DependencyVerdict,
   FileDescription,
@@ -220,7 +221,7 @@ describe("problemSelectors", () => {
   describe("getTextProblems", () => {
     it("should give no lines when there is no draft", () => {
       // Act
-      const problems = getTextProblems(undefined);
+      const problems = getTextProblems(undefined, true);
 
       // Assert
       expect(problems).toEqual([]);
@@ -228,8 +229,8 @@ describe("problemSelectors", () => {
 
     it("should give the same array each time there is no draft", () => {
       // Act
-      const first = getTextProblems(undefined);
-      const second = getTextProblems(undefined);
+      const first = getTextProblems(undefined, true);
+      const second = getTextProblems(undefined, true);
 
       // Assert
       expect(second).toBe(first);
@@ -237,7 +238,7 @@ describe("problemSelectors", () => {
 
     it("should give the lines of the draft that cannot be read", () => {
       // Act
-      const problems = getTextProblems(`main.js\n${UNREADABLE_LINE}\n`);
+      const problems = getTextProblems(`main.js\n${UNREADABLE_LINE}\n`, true);
 
       // Assert
       expect(problems).toEqual([TEXT_PROBLEM]);
@@ -245,10 +246,49 @@ describe("problemSelectors", () => {
 
     it("should give no lines for a draft that can be read", () => {
       // Act
-      const problems = getTextProblems("main.js\nsrc/index.js\n");
+      const problems = getTextProblems("main.js\nsrc/index.js\n", true);
 
       // Assert
       expect(problems).toEqual([]);
+    });
+
+    it("should not give the dependency lines when the dependencies are not read", () => {
+      // Act
+      const problems = getTextProblems(
+        `main.js\n${UNREADABLE_LINE}\n  import { b } from 'lodash'\n  import bad\n`,
+        false
+      );
+
+      // Assert
+      expect(problems).toEqual([]);
+    });
+
+    it("should give the lines of nodes that cannot be read when the dependencies are not read", () => {
+      // Act
+      const problems = getTextProblems(
+        `main.js\n${UNREADABLE_LINE}\nmain.js\n  import bad\n`,
+        false
+      );
+
+      // Assert
+      expect(problems).toEqual([
+        {
+          line: 3,
+          text: "main.js",
+          reason: "That path already exists.",
+        },
+      ]);
+    });
+
+    it("should give the dependency lines that cannot be read when the dependencies are read", () => {
+      // Act
+      const problems = getTextProblems(
+        `main.js\n${UNREADABLE_LINE}\n  import bad\n`,
+        true
+      );
+
+      // Assert
+      expect(problems.map(({ line }) => line)).toEqual([2, 3]);
     });
   });
 
@@ -1122,6 +1162,20 @@ describe("problemSelectors", () => {
         return facts;
       }
 
+      /**
+       * Joins the pieces of the policy that a body holds.
+       * @param facts The body of a dependency.
+       * @param facts.policy
+       * @returns The text of the policy, or `undefined` when no policy decided the dependency.
+       */
+      function joinPolicy({
+        policy: decisive,
+      }: {
+        policy: { tokens: readonly ConfigToken[] } | undefined;
+      }): string | undefined {
+        return decisive?.tokens.map(({ text }) => text).join("");
+      }
+
       it("should give the dependency with its verdict, the file it points to and the text of its policy", () => {
         // Act
         const facts = getDetail();
@@ -1133,11 +1187,10 @@ describe("problemSelectors", () => {
         });
         expect(facts.result).toBe(DECIDED);
         expect(facts.description).toBe(DESCRIPTION);
-        expect(facts.policy).toEqual({
-          index: 0,
-          range: POLICY_AT,
-          text: '{\n  disallow: { to: { file: { categories: "test" } } },\n}',
-        });
+        expect(facts.policy).toMatchObject({ index: 0, range: POLICY_AT });
+        expect(joinPolicy(facts)).toBe(
+          '{\n  disallow: { to: { file: { categories: "test" } } },\n}'
+        );
       });
 
       it("should read the text of the policy at its range in the config of the evaluation, and take the column of the range off every line after the first", () => {
@@ -1145,7 +1198,7 @@ describe("problemSelectors", () => {
         const facts = getDetail();
 
         // Assert
-        expect(facts.policy?.text.split("\n")).toEqual([
+        expect(joinPolicy(facts)?.split("\n")).toEqual([
           "{",
           '  disallow: { to: { file: { categories: "test" } } },',
           "}",
@@ -1174,7 +1227,7 @@ describe("problemSelectors", () => {
         });
 
         // Assert
-        expect(facts.policy?.text).toBe("{\nx: 1,\n  y: 2,\n}");
+        expect(joinPolicy(facts)).toBe("{\nx: 1,\n  y: 2,\n}");
       });
 
       it("should read the text of the default when the dependency was decided by it", () => {
@@ -1201,11 +1254,79 @@ describe("problemSelectors", () => {
         });
 
         // Assert
-        expect(facts.policy).toEqual({
-          index: null,
-          range,
-          text: '"disallow"',
+        expect(facts.policy?.index).toBeNull();
+        expect(facts.policy?.range).toEqual(range);
+        expect(joinPolicy(facts)).toBe('"disallow"');
+      });
+
+      it("should split the text of the policy into the pieces that the card colors, with the comments inside it", () => {
+        // Arrange
+        const COLORED_KINDS = new Set([
+          "comment",
+          "key",
+          "number",
+          "literal",
+          "string",
+        ]);
+        const config =
+          '[\n  {\n    // why\n    a: 1,\n    "b": true,\n    c: "s",\n  },\n]';
+        const range: TextRange = {
+          from: config.indexOf("{"),
+          to: config.indexOf("},") + 1,
+          line: 2,
+          column: 3,
+        };
+
+        // Act
+        const facts = getDetail({
+          sketch: { config, tree: [], dependencies: [] },
+          dependencies: [
+            result(CHECKOUT, 2, {
+              status: "allowed",
+              policy: { index: 1, range },
+            }),
+          ],
         });
+
+        // Assert
+        expect(
+          facts.policy?.tokens
+            .filter(({ kind }) => COLORED_KINDS.has(kind))
+            .map(({ kind, text }) => `${kind} ${text}`)
+        ).toEqual([
+          "comment // why",
+          "key a",
+          "number 1",
+          'key "b"',
+          "literal true",
+          "key c",
+          'string "s"',
+        ]);
+      });
+
+      it("should give the text of a policy that cannot be tokenized as one plain piece", () => {
+        // Arrange
+        const config = "{ rules: @ }";
+        const range: TextRange = {
+          from: config.indexOf("@"),
+          to: config.indexOf("@") + 1,
+          line: 1,
+          column: 10,
+        };
+
+        // Act
+        const facts = getDetail({
+          sketch: { config, tree: [], dependencies: [] },
+          dependencies: [
+            result(CHECKOUT, 2, {
+              status: "allowed",
+              policy: { index: 1, range },
+            }),
+          ],
+        });
+
+        // Assert
+        expect(facts.policy?.tokens).toEqual([{ kind: "plain", text: "@" }]);
       });
 
       it("should give the policy of an allowed dependency", () => {

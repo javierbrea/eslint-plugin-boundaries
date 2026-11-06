@@ -1,11 +1,18 @@
 import { act, renderHook } from "@testing-library/react";
 
+import type { TextProblem } from "@/domains/project/helpers/sketch";
 import { useFocus } from "@/domains/session/data/store";
-import { renderHookInSession } from "@/domains/session/data/store/store.mock";
+import type { SessionStore } from "@/domains/session/data/store";
+import {
+  ALL_CAPABILITIES,
+  HOOK_SKETCH,
+  renderHookInSession,
+  renderInSession,
+} from "@/domains/session/data/store/store.mock";
 
 import { useTextProblems } from "./useTextProblems";
 
-// A line that text mode cannot read: dependencies are not written in it yet
+// A dependency line of text mode that no file of the sketch answers
 const UNREADABLE_LINE = "  import { a } from './b'";
 
 describe("useTextProblems", () => {
@@ -101,5 +108,64 @@ describe("useTextProblems", () => {
 
     // Assert
     expect(result.current).toEqual([]);
+  });
+
+  describe("without editDependencies", () => {
+    /**
+     * Renders the hook in a session whose host does not let the user edit dependencies.
+     * @returns The store, and a holder of what the hook returned in its last render.
+     */
+    function renderWithoutDependencyEdits(): {
+      store: SessionStore;
+      read: { problems: readonly TextProblem[] };
+    } {
+      const read: { problems: readonly TextProblem[] } = { problems: [] };
+
+      /**
+       * Calls the hook in a component and remembers what it returned.
+       * @returns Nothing to render.
+       */
+      function Probe(): null {
+        read.problems = useTextProblems();
+        return null;
+      }
+
+      const { store } = renderInSession(<Probe />, {
+        sketch: HOOK_SKETCH,
+        capabilities: { ...ALL_CAPABILITIES, editDependencies: false },
+      });
+
+      return { store, read };
+    }
+
+    it("should give no problems for the dependency lines of the draft, which text mode ignores", () => {
+      // Arrange
+      const { store, read } = renderWithoutDependencyEdits();
+
+      act(() => store.setView("text"));
+
+      // Act
+      act(() =>
+        store.setTextDraft(`main.js\n${UNREADABLE_LINE}\n  import bad\n`)
+      );
+
+      // Assert
+      expect(read.problems).toEqual([]);
+    });
+
+    it("should give the lines of nodes that cannot be read", () => {
+      // Arrange
+      const { store, read } = renderWithoutDependencyEdits();
+
+      act(() => store.setView("text"));
+
+      // Act
+      act(() => store.setTextDraft(`main.js\n${UNREADABLE_LINE}\nmain.js\n`));
+
+      // Assert
+      expect(read.problems).toEqual([
+        { line: 3, text: "main.js", reason: "That path already exists." },
+      ]);
+    });
   });
 });

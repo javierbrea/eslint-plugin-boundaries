@@ -887,6 +887,133 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("a dependency edited while text mode shows", () => {
+    // The text of the sketch with its dependency, and a line under it that cannot be read
+    const STALE_TEXT = [
+      "src/helpers/format.js",
+      "src/index.js",
+      '  import { format } from "./helpers/format";',
+      "  nonsense",
+      "",
+    ].join("\n");
+
+    it.each<
+      [string, (store: SessionStore) => void, readonly SketchDependency[]]
+    >([
+      [
+        "addDependency",
+        (store) => store.addDependency(INDEX_REQUIRES_REACT),
+        [INDEX_IMPORTS_FORMAT, INDEX_REQUIRES_REACT],
+      ],
+      [
+        "replaceDependency",
+        (store) =>
+          store.replaceDependency(
+            { path: "src/index.js", index: 0 },
+            INDEX_REQUIRES_REACT
+          ),
+        [INDEX_REQUIRES_REACT],
+      ],
+      [
+        "removeDependency",
+        (store) => store.removeDependency({ path: "src/index.js", index: 0 }),
+        [],
+      ],
+    ])(
+      "should drop the draft with %s, so that reading the text keeps the edit",
+      (_name, edit, expected) => {
+        // Arrange
+        const store = createSessionStore(
+          SKETCH_WITH_DEPENDENCY,
+          ALL_CAPABILITIES
+        );
+
+        store.setView("text");
+        store.setTextDraft(STALE_TEXT);
+        store.readText();
+
+        // Act
+        edit(store);
+        const edited = store.getState();
+
+        store.readText();
+        store.settleText();
+
+        // Assert
+        expect(edited.textDraft).toBeUndefined();
+        expect(edited.sketch.dependencies).toEqual(expected);
+        expect(store.getState().sketch.dependencies).toEqual(expected);
+      }
+    );
+
+    it("should evaluate the edit at once and keep the view", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      store.setView("text");
+      store.setTextDraft(STALE_TEXT);
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState().view).toBe("text");
+      expect(store.getState().evaluation.dependencies).toEqual([]);
+    });
+  });
+
+  describe("text mode without editDependencies", () => {
+    const NO_DEPENDENCY_EDITS = {
+      ...ALL_CAPABILITIES,
+      editDependencies: false,
+    };
+
+    it("should settle a draft whose dependency lines cannot be read, and keep the dependencies of the sketch", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        NO_DEPENDENCY_EDITS
+      );
+
+      store.setView("text");
+      store.setTextDraft(
+        "src/helpers/format.js\nsrc/index.js\n  nonsense\n  import { a } from './missing'\nmain.js\n"
+      );
+
+      // Act
+      store.settleText();
+
+      // Assert
+      const { textDraft, sketch } = store.getState();
+
+      expect(textDraft).toBeUndefined();
+      expect(sketch.tree.map(({ path }) => path)).toEqual([
+        "src/helpers/format.js",
+        "src/index.js",
+        "main.js",
+      ]);
+      expect(sketch.dependencies).toEqual([INDEX_IMPORTS_FORMAT]);
+    });
+
+    it("should keep the draft of a node line that cannot be read", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, NO_DEPENDENCY_EDITS);
+      const draft = "src/index.js\nsrc/index.js\n";
+
+      store.setView("text");
+      store.setTextDraft(draft);
+
+      // Act
+      store.settleText();
+
+      // Assert
+      expect(store.getState().textDraft).toBe(draft);
+    });
+  });
+
   describe("selectTab and setProblemsCollapsed", () => {
     it("should select a tab and expand the panel that was collapsed", () => {
       // Arrange

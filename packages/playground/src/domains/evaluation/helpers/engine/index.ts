@@ -1,5 +1,7 @@
 export type {
   ConfigProblem,
+  ConfigToken,
+  ConfigTokenKind,
   DependencyResult,
   DependencyVerdict,
   ElementTypeSummary,
@@ -16,3 +18,4 @@ export type {
   TextRange,
 } from "./engine.types";
 export { createEngine } from "./evaluate";
+export { tokenizeConfig } from "./tokenizeConfig";

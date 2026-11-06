@@ -105,7 +105,7 @@ function getFacts({
  * @param facts The facts of the body of the tab.
  * @param facts.policy
  * @param facts.result
- * @returns The heading, the text and what `Open policy in config` opens, or `undefined` when no policy decided the dependency.
+ * @returns The heading, the pieces of the policy text and what `Open policy in config` opens, or `undefined` when no policy decided the dependency.
  */
 function getPolicyCard({
   policy,
@@ -117,7 +117,7 @@ function getPolicyCard({
   return {
     heading:
       policy.index === null ? "// default" : `// policies[${policy.index}]`,
-    text: policy.text,
+    tokens: policy.tokens,
     target: { kind: "config", range: policy.range, dependency: result.ref },
   };
 }

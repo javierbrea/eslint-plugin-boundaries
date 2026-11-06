@@ -1,5 +1,6 @@
 import type {
   ConfigProblem,
+  ConfigToken,
   DependencyResult,
   DependencyVerdict,
   Evaluation,
@@ -128,8 +129,8 @@ export type PolicyFacts = {
   readonly index: number | null;
   /** Where it is written in the config text. */
   readonly range: TextRange;
-  /** Its text as written in the config, without the indentation that it has there. */
-  readonly text: string;
+  /** Its text as written in the config, without the indentation that it has there, split into the pieces that the card colors as the editor does. The pieces joined are the text. */
+  readonly tokens: readonly ConfigToken[];
 };
 
 /** The facts of the body of the dependency tab. */

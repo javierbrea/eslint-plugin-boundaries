@@ -5,6 +5,7 @@ import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
 import { DEPENDENCY_DETAIL_TEST_ID } from "./DependencyDetail.constants";
 import type {
+  DependencyDetailPiece,
   DependencyDetailTextStyle,
   PolicyCardStyle,
 } from "./DependencyDetail.types";
@@ -166,6 +167,25 @@ export class DependencyDetailPom extends Pom {
     const heading = this.policyCard?.firstElementChild;
 
     return heading ? getComputedStyle(heading).color : null;
+  }
+
+  /**
+   * The policy in the card, piece by piece as the user sees it colored.
+   * @returns The text and the computed color of each piece after the heading and the line break that follows it, in order. The text that is not in an element of its own has the color of the card.
+   */
+  get policyPieces(): DependencyDetailPiece[] {
+    const card = this.policyCard as HTMLElement;
+    const cardColor = getComputedStyle(card).color;
+
+    return Array.from(card.childNodes)
+      .slice(2)
+      .map((node) => ({
+        text: node.textContent as string,
+        color:
+          node instanceof HTMLElement
+            ? getComputedStyle(node).color
+            : cardColor,
+      }));
   }
 
   /**
