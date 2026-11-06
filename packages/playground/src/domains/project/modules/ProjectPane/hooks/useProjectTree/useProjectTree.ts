@@ -4,6 +4,7 @@ import type { Sketch } from "@/contract";
 import {
   CONFIG_PATH,
   countFilesUnder,
+  getDependency,
   getParentPath,
   hasNode,
 } from "@/domains/project/helpers/sketch";
@@ -17,6 +18,7 @@ import {
   useRenameNode,
   useRenaming,
   useSelectItem,
+  useSessionSelector,
   useSessionStore,
   useStartRename,
   useToggleFolder,
@@ -39,6 +41,22 @@ const NO_REQUEST: DeleteRequest = { path: "", files: 0 };
  */
 function getFocusId(openNode: Focus): string | undefined {
   return openNode.kind === "config" ? CONFIG_PATH : getFocusedPath(openNode);
+}
+
+/**
+ * Gets the node that the dependency in focus points to.
+ * @param sketch The sketch.
+ * @param openNode What is in focus.
+ * @returns The path of the node target of the dependency in focus, or `undefined` when no dependency is in focus, the sketch has none at that position, or its target is outside the sketch: an external module has no item in the tree to outline.
+ */
+function getTargetPath(sketch: Sketch, openNode: Focus): string | undefined {
+  if (openNode.kind !== "dependency") {
+    return undefined;
+  }
+
+  const target = getDependency(sketch, openNode)?.target;
+
+  return target?.kind === "node" ? target.path : undefined;
 }
 
 /**
@@ -70,6 +88,10 @@ export function useProjectTree(): ProjectTreeController {
   const pickedFolder = usePickedFolder();
   const closedFolders = useClosedFolders();
   const renaming = useRenaming();
+  // A path, so that the tree renders again only when the dependency in focus points to another node
+  const target = useSessionSelector((state) =>
+    getTargetPath(state.sketch, state.focus)
+  );
   const selectItem = useSelectItem();
   const toggleFolder = useToggleFolder();
   const addNode = useAddNode();
@@ -150,6 +172,7 @@ export function useProjectTree(): ProjectTreeController {
 
   return {
     collapsed: closedFolders,
+    target,
     renaming,
     focusRequest,
     focusDone,

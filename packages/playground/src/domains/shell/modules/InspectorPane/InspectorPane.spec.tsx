@@ -156,6 +156,41 @@ describe("InspectorPane", () => {
       ]);
     });
 
+    it("should keep describing the file when one of its dependencies takes the focus", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 2 }));
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.title(FILE).isRendered).toBe(true);
+      expect(pane.file.summary.total).toBe("4 dependencies");
+    });
+
+    it("should describe the file of a dependency that is in focus when no file was open", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({
+          kind: "dependency",
+          path: "src/helpers/format/index.js",
+          index: 0,
+        })
+      );
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.title("src/helpers/format/index.js").isRendered).toBe(
+        true
+      );
+      expect(pane.file.facet("element").entries.types).toBe('[ "helper" ]');
+    });
+
     it("should describe the renamed file at once, without lagging behind the rename", () => {
       // Arrange
       jest.useFakeTimers();

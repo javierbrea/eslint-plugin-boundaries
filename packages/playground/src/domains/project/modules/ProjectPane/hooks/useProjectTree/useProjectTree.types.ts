@@ -13,6 +13,8 @@ export type DeleteRequest = {
 export type ProjectTreeController = {
   /** The folders the user closed */
   readonly collapsed: ReadonlySet<string>;
+  /** The path of the node that the dependency in focus points to, if any: the tree outlines its item. An external target has none */
+  readonly target: string | undefined;
   /** The path of the node whose name is being edited, if any */
   readonly renaming: string | undefined;
   /** The item that must take the keyboard focus once the tree shows it, if any */

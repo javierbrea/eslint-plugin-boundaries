@@ -1,7 +1,7 @@
 import { CONFIG_NODE_TEST_ID } from "@/domains/config/modules/ConfigNode/ConfigNode.constants";
 import { ConfigNodePom } from "@/domains/config/modules/ConfigNode/ConfigNode.pom";
+import { FileNodePom } from "@/domains/files/modules/FileNode/FileNode.pom";
 import { FILE_PANE_TEST_ID } from "@/domains/files/ui/organisms/FilePane/FilePane.constants";
-import { FilePanePom } from "@/domains/files/ui/organisms/FilePane/FilePane.pom";
 import { EMPTY_NODE_PANE_TEST_ID } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.constants";
 import { EmptyNodePanePom } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.pom";
 import { Pom } from "@/shared/testing/pom";
@@ -93,11 +93,11 @@ export class NodePanePom extends Pom {
 
   /**
    * The pane of the file in focus.
-   * @returns The page object of the file pane, which is the root element when a file is open.
+   * @returns The page object of the file node, which is the root element when a file is open.
    * @throws When a file is not open.
    */
-  get file(): FilePanePom {
-    return this.paneOf("file", FilePanePom);
+  get file(): FileNodePom {
+    return this.paneOf("file", FileNodePom);
   }
 
   /**

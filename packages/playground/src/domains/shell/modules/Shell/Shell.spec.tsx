@@ -7,6 +7,7 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import type { ProblemRowPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
 import { FixturePom } from "@/shared/testing/pom";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
+import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { Shell } from "./Shell";
 import { ShellPom } from "./Shell.pom";
@@ -34,6 +35,13 @@ const CONFIG = "eslint.config.js";
 const FILE = "src/modules/checkout/index.js";
 
 const OTHER_FILE = "src/helpers/format/index.js";
+
+// The whole example: the files and the config of the quick start, with the nine dependencies whose verdicts the cases of the dependencies read
+const EXAMPLE: Sketch = QUICK_START_EXAMPLE.sketch;
+
+const BUTTON = "src/components/atoms/Button/index.js";
+
+const BUTTON_SPEC = "src/components/atoms/Button/Button.spec.js";
 
 /** The quick-start config with the two mistakes of the mockup: a wrong option of the rule, which is an error, and a wrong key of an element descriptor, which is a warning */
 const MISTAKES: Sketch = {
@@ -115,6 +123,46 @@ function renderShellInProbe(): FixturePom {
   );
 
   return new FixturePom({ testId: PROBE_TEST_ID });
+}
+
+/**
+ * Renders the shell of the whole example in the root element of the playground, as the `Playground` component does: the dialogs of the shell render inside it, and its theme applies.
+ * @param overrides What differs from an editable shell of the whole example.
+ * @returns The page object of the shell.
+ */
+function renderExample(overrides: Partial<ShellProps> = {}): ShellPom {
+  render(
+    <ThemeRoot>
+      <Shell {...propsOf({ initialSketch: EXAMPLE, ...overrides })} />
+    </ThemeRoot>
+  );
+
+  return new ShellPom();
+}
+
+/**
+ * Adds a dependency to the open file with the picker, as the user does: `import { <name> } from "<path>";`.
+ * @param shell The shell, with the file open.
+ * @param path The path of the file the dependency points to.
+ * @param specifier The name it imports.
+ * @returns A promise that settles when the picker is gone.
+ */
+async function addDependencyOf(
+  shell: ShellPom,
+  path: string,
+  specifier: string
+): Promise<void> {
+  const { picker } = shell.node.file;
+
+  shell.node.file.addButton.press();
+  picker.file.open();
+  picker.file.choose(path);
+  picker.names.openEditor();
+  picker.names.chooseKind("named");
+  picker.names.typeName(specifier);
+  picker.names.confirm();
+  picker.confirm();
+  await picker.waitUntilGone();
 }
 
 /**
@@ -1223,6 +1271,387 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.inspector.project.count("files")).toBe("5");
+    });
+  });
+
+  describe("the dependencies of the example", () => {
+    it("should list the dependencies of the file that is opened, with the verdict of each one", () => {
+      // Arrange
+      const shell = renderExample();
+
+      // Act
+      shell.project.click(FILE);
+
+      // Assert
+      expect(shell.node.file.lines.lineTexts).toEqual([
+        '1import { Button } from "../../components/atoms/Button";policy 1',
+        '2import { format } from "../../helpers/format";policy 1',
+        '3import { renderButton } from "../../components/atoms/Button/Button.spec";policy 2',
+        '4import React from "react";not checked · external',
+      ]);
+    });
+
+    it("should list the failing dependency of the file in the tab of the file", () => {
+      // Arrange
+      const shell = renderExample();
+
+      // Act
+      shell.project.click(FILE);
+
+      // Assert
+      expect(getTabs(shell)).toEqual(["Sketch2", "checkout/index.js1*"]);
+      expect(shell.problems.list.rows.map((row) => row.message)).toEqual([
+        'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
+      ]);
+    });
+
+    describe("a line that is clicked", () => {
+      it("should be selected, with the tab of the dependency", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(2).click();
+
+        // Assert
+        expect(shell.node.file.lines.line(2).isSelected).toBe(true);
+        expect(getTabs(shell)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+        expect(shell.problems.detail.verdictText).toBe("disallowed · policy 2");
+      });
+
+      it("should outline the node it points to in the tree, and only that one", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(2).click();
+
+        // Assert
+        const { itemPaths } = shell.project.tree;
+
+        expect(
+          itemPaths.filter((path) => shell.project.item(path).row.isTarget)
+        ).toEqual([BUTTON_SPEC]);
+        expect(shell.project.item(BUTTON_SPEC).row.targetTag).toBe("target");
+      });
+
+      it("should keep the file in the inspector, selected in the tree and open in the pane", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(2).click();
+
+        // Assert
+        expect(shell.inspector.file.title(FILE).isRendered).toBe(true);
+        expect(shell.inspector.file.summary.total).toBe("4 dependencies");
+        expect(shell.project.tree.selectedPaths).toEqual([FILE]);
+        expect(shell.node.file.head.path).toBe(FILE);
+      });
+
+      it("should outline nothing when the dependency is on an external module", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(3).click();
+
+        // Assert
+        const { itemPaths } = shell.project.tree;
+
+        expect(
+          itemPaths.filter((path) => shell.project.item(path).row.isTarget)
+        ).toEqual([]);
+      });
+    });
+
+    describe("a dependency added with the picker", () => {
+      it("should be the fifth line, with the verdict of the policy that allows it", async () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        await addDependencyOf(shell, OTHER_FILE, "round");
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts[4]).toBe(
+          '5import { round } from "../../helpers/format";policy 1'
+        );
+      });
+
+      it("should count one dependency more in the top bar, and the same problems", async () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        await addDependencyOf(shell, OTHER_FILE, "round");
+
+        // Assert
+        expect(getStatus(shell)).toBe("6 files · 10 dependencies · 2 problems");
+        expect(getTabs(shell)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 5*",
+        ]);
+      });
+
+      it("should count one problem more, in the top bar, the file tab and the tree, when the policies disallow it", async () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        await addDependencyOf(shell, BUTTON_SPEC, "Button");
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts[4]).toBe(
+          '5import { Button } from "../../components/atoms/Button/Button.spec";policy 2'
+        );
+        expect(getStatus(shell)).toBe("6 files · 10 dependencies · 3 problems");
+        expect(getTabs(shell)).toEqual([
+          "Sketch3",
+          "checkout/index.js2",
+          "line 5*",
+        ]);
+        expect(
+          shell.project.item(FILE).row.badge("2 failing dependencies").count
+        ).toBe("2");
+      });
+
+      it("should be reported with the sketch", async () => {
+        // Arrange
+        const onSketchChange = jest.fn();
+        const shell = renderExample({ onSketchChange });
+        shell.project.click(FILE);
+
+        // Act
+        await addDependencyOf(shell, OTHER_FILE, "round");
+
+        // Assert
+        const [sketch] = onSketchChange.mock.calls[0] as [Sketch];
+
+        expect(sketch.dependencies).toHaveLength(10);
+        expect(sketch.dependencies[9]).toEqual({
+          from: FILE,
+          target: { kind: "node", path: OTHER_FILE },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [{ kind: "named", name: "round" }],
+        });
+      });
+    });
+
+    describe("a dependency edited to an external module", () => {
+      it("should read as not checked, and stop failing when it did", async () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).editAction.press();
+        const { picker } = shell.node.file;
+
+        // Act
+        picker.target.select("An external module");
+        picker.typeModule("lodash");
+        picker.confirm();
+        await picker.waitUntilGone();
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts[2]).toBe(
+          '3import { renderButton } from "lodash";not checked · external'
+        );
+        expect(getStatus(shell)).toBe("6 files · 9 dependencies · 1 problem");
+        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(shell.project.item(FILE).row.badgeNames).toEqual([]);
+      });
+    });
+
+    describe("a failing dependency removed", () => {
+      it("should take its line, the badges of the tree and its problem away", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(2).deleteAction.press();
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts).toEqual([
+          '1import { Button } from "../../components/atoms/Button";policy 1',
+          '2import { format } from "../../helpers/format";policy 1',
+          '3import React from "react";not checked · external',
+        ]);
+        expect(
+          [FILE, "src/modules", "src"].map(
+            (path) => shell.project.item(path).row.badgeNames
+          )
+        ).toEqual([[], [], ["1 failing dependency"]]);
+        expect(getStatus(shell)).toBe("6 files · 8 dependencies · 1 problem");
+        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(shell.problems.list.emptyText).toBe("No problems in this file.");
+      });
+
+      it("should leave the dependency tab when the line in focus is removed", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+
+        // Act
+        shell.node.file.lines.line(2).deleteAction.press();
+
+        // Assert
+        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(shell.node.file.head.path).toBe(FILE);
+      });
+    });
+
+    describe("open policy in config", () => {
+      it("should open the config with the lines of the policy highlighted", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+
+        // Act
+        shell.problems.detail.openPolicy();
+
+        // Assert
+        expect(shell.node.shown).toBe("config");
+        expect(shell.node.config.editor.highlightedLineTexts).toEqual([
+          "        {",
+          "          // No element may import a test file, whatever element it belongs to",
+          '          disallow: { to: { file: { categories: "test" } } },',
+          "        },",
+        ]);
+        expect(shell.node.config.editor.cursor).toBe(
+          EXAMPLE.config.indexOf("{\n          // No element may import")
+        );
+      });
+
+      it("should say in the tab of the config which policy is highlighted, and where it came from", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+
+        // Act
+        shell.problems.detail.openPolicy();
+
+        // Assert
+        expect(getTabs(shell)).toEqual(["Sketch2", "eslint.config.js*"]);
+        expect(shell.problems.note.text).toBe(
+          "No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
+        );
+      });
+
+      it("should drop the highlight when a file is opened", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+        shell.problems.detail.openPolicy();
+
+        // Act
+        shell.project.click(FILE);
+        shell.project.click(CONFIG);
+
+        // Assert
+        expect(shell.node.config.editor.highlightedLines).toEqual([]);
+        expect(shell.problems.note.isRendered).toBe(false);
+        expect(shell.problems.list.emptyText).toBe(
+          "No problems in the config."
+        );
+      });
+    });
+
+    describe("when the dependencies cannot be edited", () => {
+      it("should list the dependencies, and offer neither to add, to edit nor to remove one", () => {
+        // Arrange
+        const shell = renderExample({ capabilities: READ_ONLY });
+
+        // Act
+        shell.project.click(FILE);
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts).toHaveLength(4);
+        expect(shell.node.file.addButton.isRendered).toBe(false);
+        expect(
+          shell.node.file.lines.lines.map(({ actionNames }) => actionNames)
+        ).toEqual([[], [], [], []]);
+      });
+
+      it("should still put a dependency in focus when its line is clicked", () => {
+        // Arrange
+        const shell = renderExample({ capabilities: READ_ONLY });
+        shell.project.click(FILE);
+
+        // Act
+        shell.node.file.lines.line(2).click();
+
+        // Assert
+        expect(getTabs(shell)).toEqual([
+          "Sketch2",
+          "checkout/index.js1",
+          "line 3*",
+        ]);
+      });
+    });
+
+    describe("the failing dependency of the home", () => {
+      it("should read default in the bad tone, with the message of the plugin in the problems", () => {
+        // Arrange
+        const shell = renderExample();
+
+        // Act
+        shell.project.click(OTHER_FILE);
+
+        // Assert
+        const [line] = shell.node.file.lines.lines;
+        const [problem] = shell.problems.list.rows;
+
+        expect({
+          statement: line.statementText,
+          verdict: line.verdict.text,
+          color: line.verdict.color,
+        }).toEqual({
+          statement: 'import { Button } from "../../components/atoms/Button";',
+          verdict: "default",
+          color: "var(--jsb-code-error)",
+        });
+        expect({ message: problem.message, meta: problem.meta }).toEqual({
+          message:
+            'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"',
+          meta: "disallowed · default",
+        });
+        expect(getStatus(shell)).toBe("6 files · 9 dependencies · 2 problems");
+      });
+
+      it("should open the dependency from its row in the problems", () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(OTHER_FILE);
+
+        // Act
+        shell.problems.list.rows[0].press();
+
+        // Assert
+        expect(shell.node.file.lines.line(0).isSelected).toBe(true);
+        expect(shell.problems.detail.verdictText).toBe("disallowed · default");
+        expect(shell.problems.detail.message).toBe(
+          'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"'
+        );
+        expect(shell.project.item(BUTTON).row.targetTag).toBe("target");
+      });
     });
   });
 

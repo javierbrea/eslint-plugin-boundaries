@@ -3,6 +3,7 @@ import { act } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import {
@@ -17,6 +18,13 @@ import { ConfigNodePom } from "./ConfigNode.pom";
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
 
 const FRAME_LABEL = "Pane under test";
+
+const FILE = "src/modules/checkout/index.js";
+
+const { evaluate } = createEngine();
+
+/** The range of the policy that disallows a test file, which is the policy that decides the third dependency of the checkout file. */
+const TEST_POLICY_RANGE = evaluate(QUICK_START).policies[2].range;
 
 /** The quick-start config with an option that is not valid: one error, placed at `"dissallow"`. */
 const WITH_ERROR: Sketch = {
@@ -164,5 +172,83 @@ describe("ConfigNode", () => {
 
     // Assert
     expect(node.editor.cursor).toBe(range.from);
+  });
+
+  describe("the highlight", () => {
+    it("should mark no line until a policy is opened from a dependency", () => {
+      // Act
+      const { node } = renderNode();
+
+      // Assert
+      expect(node.editor.highlightedLines).toEqual([]);
+    });
+
+    it("should mark the lines of the policy that was opened from a dependency", () => {
+      // Arrange
+      const { node, store } = renderNode();
+
+      // Act
+      act(() =>
+        store.open({
+          kind: "config",
+          range: TEST_POLICY_RANGE,
+          dependency: { path: FILE, index: 2 },
+        })
+      );
+
+      // Assert
+      expect(node.editor.highlightedLineTexts).toEqual([
+        "        {",
+        "          // No element may import a test file, whatever element it belongs to",
+        '          disallow: { to: { file: { categories: "test" } } },',
+        "        },",
+      ]);
+    });
+
+    it("should scroll to the policy it marks", () => {
+      // Arrange
+      const { node, store } = renderNode();
+
+      // Act
+      act(() =>
+        store.open({
+          kind: "config",
+          range: TEST_POLICY_RANGE,
+          dependency: { path: FILE, index: 2 },
+        })
+      );
+
+      // Assert
+      expect(node.editor.cursor).toBe(TEST_POLICY_RANGE.from);
+    });
+
+    it("should mark no line when a range is opened with no dependency to say where it came from", () => {
+      // Arrange
+      const { node, store } = renderNode();
+
+      // Act
+      act(() => store.open({ kind: "config", range: TEST_POLICY_RANGE }));
+
+      // Assert
+      expect(node.editor.highlightedLines).toEqual([]);
+    });
+
+    it("should mark no line when the focus leaves the config", () => {
+      // Arrange
+      const { node, store } = renderNode();
+      act(() =>
+        store.open({
+          kind: "config",
+          range: TEST_POLICY_RANGE,
+          dependency: { path: FILE, index: 2 },
+        })
+      );
+
+      // Act
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Assert
+      expect(node.editor.highlightedLines).toEqual([]);
+    });
   });
 });
