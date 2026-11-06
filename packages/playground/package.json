@@ -40,7 +40,17 @@
     "@boundaries/config": "workspace:*",
     "@boundaries/elements": "workspace:*",
     "@boundaries/policies": "workspace:*",
-    "@emotion/cache": "11.14.0"
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@emotion/cache": "11.14.0",
+    "@humanwhocodes/momoa": "3.3.13",
+    "@lezer/highlight": "1.2.5",
+    "@mui/x-tree-view": "9.17.0",
+    "codemirror-json5": "1.0.3",
+    "react-resizable-panels": "4.16.1"
   },
   "peerDependencies": {
     "@emotion/react": "^11.14.0",

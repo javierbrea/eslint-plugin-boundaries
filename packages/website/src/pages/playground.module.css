@@ -1,35 +1,21 @@
-.page {
-  padding-block: 3.5rem 4.5rem;
+/* The wrapper of the page: it positions the visually hidden heading inside it, and the footer next to it is hidden through it, on this page alone */
+.wrapper {
+  position: relative;
 }
 
-.head {
-  display: grid;
-  gap: 0.8rem;
-  justify-items: start;
-  max-width: 60ch;
-  margin-bottom: 2rem;
-}
-
-.title {
-  margin: 0;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.lead {
-  margin: 0;
-  max-width: 54ch;
-  font-size: 1.04rem;
-  color: var(--jsb-muted);
+/* Visible to screen readers and the outline only: the navbar's active item is the title of the page */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .stage,
 .loading {
-  min-height: 420px;
-  border: 1px solid var(--jsb-line);
-  border-radius: var(--jsb-radius-lg);
-  background: var(--jsb-paper-2);
+  background: var(--jsb-card);
 }
 
 .loading {
@@ -41,16 +27,25 @@
 }
 
 .note {
-  margin: 0;
+  margin: 32px 16px;
   padding: 1.25rem 1.5rem;
   border: 1px dashed var(--jsb-line-strong);
   border-radius: var(--jsb-radius-lg);
   color: var(--jsb-muted);
 }
 
-/* The mobile navbar breakpoint of Docusaurus, as NARROW_QUERY in playground.tsx */
+/* The mobile navbar breakpoint of Docusaurus, as NARROW_QUERY in playground.tsx: from it up, the playground fills the page below the navbar, and the footer is out of the way so that only the panes scroll */
 @media (min-width: 997px) {
   .note {
+    display: none;
+  }
+
+  .stage,
+  .loading {
+    height: max(620px, 100vh - var(--ifm-navbar-height));
+  }
+
+  .wrapper + footer {
     display: none;
   }
 }

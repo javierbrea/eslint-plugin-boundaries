@@ -8,21 +8,32 @@ Issue: #554. Branch `feat/554/playground-share` from `feat/539/playground`; PR i
 Read first:
 
 - RFC #538, "Research tasks" 5, "Milestones" M3, "Acceptance" (a state shared by URL opens identically elsewhere), "Dependencies" (the teaser and the navbar entry switch on with the first usable version).
-- `04-scaffold.md` hand-offs (`StateStore`), `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`Sketch`, examples).
+- `packages/playground/src/contract/StateStore.types.ts`, the interface the hash store implements (`load` and `save`, both asynchronous), and the lazy factory of `packages/website/src/pages/playground.tsx`, where the hash store replaces the `MemoryStore`.
+- "From phase 5" below (the examples, saving), and what phase 6 hands off (the complete `Sketch`).
 - `packages/website/src/data/site/links.ts` (`GITHUB_PLAYGROUND_ISSUE`), `src/components/home/PlaygroundTeaser/`, `docusaurus.config.ts` navbar items, `src/components/CodeDiff/` (an existing MDX component of the docs, the model for the new one and its `docs-component` element type), `packages/website/docs/quick-start.mdx` (the first page to get a button, in phase 8).
 - Docusaurus docs on client-side routing and `useHistory` / `useLocation` for the hash check.
 
 Preconditions: phase 6 merged.
 
+## From phase 5
+
+- `src/domains/examples/data/examples/` is an element of its own: `Example` (`{ id, title, sketch }`, `examples.types.ts`), `QUICK_START_EXAMPLE` (`quickStart.ts`) and `EXAMPLES` (`examples.ts`), the list the picker shows, all exported by the package entry (`src/index.ts`). The website's lazy factory and the harness create their `SketchSource` with `QUICK_START_EXAMPLE.sketch`.
+- Nothing serializes a sketch yet. A `Sketch` is plain data (strings, arrays and objects), so the encoder of step 1 takes it as it is.
+- `Playground` (`src/app/Playground.tsx`) saves every sketch that the shell produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
+- The top bar (`src/domains/shell/ui/atoms/TopBar/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
+- The shell takes its sketch once (`initialSketch`), and its store owns it from then on (`src/domains/session/data/store/store.ts`). `Playground` mounts a new shell after each load of the source or the store, which is how a sketch from outside reaches the panes. The top bar reads the store through `ShellTopBar` (`src/domains/shell/modules/ShellTopBar/`).
+
 ## Scope
 
-In: research note 5, the hash `StateStore`, Share and Reset, the example picker, the MDX component, the navbar entry and teaser link, the website changelog entry. Out: putting buttons on docs pages beyond the one used to test the component (phase 8), the guide page (phase 8).
+In: research note 5, the hash `StateStore`, Share and Reset, the example picker, the help dialog, the MDX component, the navbar entry and teaser link, the website changelog entry. Out: putting buttons on docs pages beyond the one used to test the component (phase 8), the guide page (phase 8).
 
 ## Steps
 
 ### 1. Research note 5
 
-Encode a `Sketch` as JSON → deflate (`CompressionStream` where available, `fflate` or `lz-string` otherwise; compare sizes and support) → base64url in the hash (`#s=...`); measure the URL length for the quick-start example and for a 50-file sketch (the practical limit is browser and server dependent; stay under 8 KB and say what happens above: Share disabled with a note). Check that Docusaurus keeps the hash when navigating to `/playground/` from a docs link and when the page hydrates (`BrowserOnly` mounts after hydration; the hash must be read then, not at SSR). Post the note on #539 and update its first acceptance criterion (all five notes posted).
+Encode a `Sketch` as JSON → deflate (`CompressionStream` where available, `fflate` or `lz-string` otherwise; compare sizes and support) → base64url in the hash (`#s=...`); measure the URL length for the quick-start example and for a 50-file sketch.
+
+A first measurement (2026-11-04, Node.js 24 `CompressionStream("deflate-raw")`, base64url, `#v=1&s=` included): the quick-start sketch with its 9 dependencies takes 701 characters; generated sketches with two imports per file and random names take 2,926 characters for 50 files, 4,962 for 100, 9,269 for 200 and 23,673 for 500. A local server never received the fragment, and a hash read back whole after `goto` and after `history.replaceState` up to 1.9 MB in Chromium and 2.2 MB in WebKit; Chromium aborted the navigation at 2.2 MB, and Firefox did not launch in the sandbox. So the limit is not the browser or the server but the places where a link is pasted: above 8 KB, Share still copies the link and says that it is long and some apps may cut it, instead of being disabled. Check that Docusaurus keeps the hash when navigating to `/playground/` from a docs link and when the page hydrates (`BrowserOnly` mounts after hydration; the hash must be read then, not at SSR). Post the note on #539 and update its first acceptance criterion (all five notes posted).
 
 ### 2. The hash store
 
@@ -30,13 +41,17 @@ Encode a `Sketch` as JSON → deflate (`CompressionStream` where available, `ffl
 
 ### 3. The example picker
 
-A dropdown in the top bar listing `src/examples/*` (the quick-start one from phase 5 plus the examples the docs use that fit a sketch: at least one per classification facet, taken from the docs pages' code blocks); choosing one replaces the state (confirm if the current sketch was edited).
+A dropdown in the top bar listing `src/domains/examples/data/examples/*` (the quick-start one from phase 5 plus the examples the docs use that fit a sketch: at least one per classification facet, taken from the docs pages' code blocks); choosing one replaces the state (confirm if the current sketch was edited).
 
-### 4. The MDX component
+### 4. Help
+
+The help dialog of `00-shared.md` section 6 ("Panes"), opened by the icon-only Help button of the top bar, next to Reset: a MUI `Dialog` that never opens by itself. Its `Read the Quick start` link takes its URL from a new optional prop of `PlaygroundProps` (`src/contract/Props.types.ts`); the website passes `DOCS_QUICK_START` of `src/data/site/links.ts`, and without the prop the link is not drawn.
+
+### 5. The MDX component
 
 `packages/website/src/components/OpenInPlayground/` (element type `docs-component`): `<OpenInPlayground config={...} tree={[...]} dependencies={[...]} />` or, simpler for authors, a wrapper around a code block that takes the sketch as props and renders a button linking to `/playground/#s=...` with the encoded state computed at build time (the encoder is exported by the package and works in Node.js too). Used on one page in this phase to prove it; phase 8 spreads it.
 
-### 5. Switching on
+### 6. Switching on
 
 - `docusaurus.config.ts`: navbar item `Playground` → `/playground/` (position left, after the docs entries).
 - `src/data/site/links.ts`: `PLAYGROUND = "/playground/"`; the teaser button reads "Open the playground" and links there; `GITHUB_PLAYGROUND_ISSUE` is removed if nothing else uses it.
@@ -45,7 +60,7 @@ A dropdown in the top bar listing `src/examples/*` (the quick-start one from pha
 ## Verification
 
 - Acceptance criteria of #554, each checked in the PR description: a URL produced in one browser opens identically in another (test with two profiles or a private window), at least one docs page opens its example, navbar and teaser updated.
-- Quality gates of `00-shared.md` section 6 on `/playground/` with a state in the hash, and on `/` (the teaser change must not regress the home's Lighthouse).
+- Quality gates of `00-shared.md` section 4 on `/playground/` with a state in the hash, and on `/` (the teaser change must not regress the home's Lighthouse).
 - Unit tests: encode/decode round trip, version handling, the size guard.
 
 ## Hand-offs

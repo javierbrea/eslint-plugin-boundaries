@@ -1,0 +1,2053 @@
+<!doctype html>
+<!-- cspell:disable -->
+<!--
+  Mockup of the playground interface (phase 5 of the playground plan, #552).
+  Static HTML: every state is in the page and the #state=... hash picks one. The data is the
+  quick-start example of the docs, with the descriptions, verdicts and messages that
+  @boundaries/config 1.0.0 and @boundaries/policies 1.0.0 return for it.
+  Open it through render.mjs, which serves the repository so that fonts.css finds /fonts/.
+-->
+<html lang="en" data-theme="light" data-state="file">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Playground mockup</title>
+    <link rel="stylesheet" href="../../../../packages/website/src/css/tokens.css" />
+    <link rel="stylesheet" href="../../../../packages/website/src/css/fonts.css" />
+    <style>
+      /* ---------- Page (stand-in for the website) ---------- */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        background: var(--jsb-paper);
+        color: var(--jsb-ink);
+        font-family: var(--jsb-font-body);
+        font-size: 14px;
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .site-nav {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        height: 58px;
+        padding: 0 24px;
+        border-bottom: 1px solid var(--jsb-line);
+        background: color-mix(in srgb, var(--jsb-paper) 86%, transparent);
+        font-size: 13px;
+        color: var(--jsb-muted);
+      }
+
+      .site-nav b {
+        font-family: var(--jsb-font-display);
+        font-weight: 600;
+        color: var(--jsb-ink);
+      }
+
+      .site-nav .active {
+        color: var(--jsb-accent);
+      }
+
+      .site-nav .spacer {
+        flex: 1;
+      }
+
+      .site-nav .menu {
+        display: none;
+      }
+
+      /* The page keeps its h1 for screen readers and the outline, without showing it */
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .note {
+        display: none;
+        margin: 32px 16px;
+        padding: 1.25rem 1.5rem;
+        border: 1px dashed var(--jsb-line-strong);
+        border-radius: var(--jsb-radius-lg);
+        color: var(--jsb-muted);
+      }
+
+      .site-footer {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 32px 16px;
+        border-top: 1px solid var(--jsb-line);
+        background: var(--jsb-card);
+        color: var(--jsb-muted);
+        font-size: 15px;
+      }
+
+      .site-footer b {
+        margin-top: 14px;
+        font: 500 10.5px var(--jsb-font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .site-footer b:first-child {
+        margin-top: 0;
+      }
+
+      .site-footer small {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid var(--jsb-line);
+        font: 12px var(--jsb-font-mono);
+      }
+
+      /* ---------- The playground root ---------- */
+
+      .play {
+        --pane-head: 34px;
+        --w-project: 264px;
+        --w-inspector: 320px;
+        --h-problems: 212px;
+        display: grid;
+        grid-template-rows: 44px minmax(0, 1fr);
+        height: max(620px, 100vh - 58px);
+        overflow: hidden;
+        background: var(--jsb-card);
+        font-size: 13px;
+      }
+
+      [data-state="text"] .play {
+        --w-project: 420px;
+      }
+
+      .mono {
+        font-family: var(--jsb-font-mono);
+      }
+
+      .icon {
+        flex: none;
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .ok {
+        color: var(--jsb-ok);
+      }
+
+      .bad {
+        color: var(--jsb-bad);
+      }
+
+      .warn {
+        color: var(--jsb-warn);
+      }
+
+      .faint {
+        color: var(--jsb-faint);
+      }
+
+      .muted {
+        color: var(--jsb-muted);
+      }
+
+      /* Buttons: the MUI Button, restyled to the site's buttons at a denser size */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 12px;
+        border: 1px solid var(--jsb-line-strong);
+        border-radius: var(--jsb-radius);
+        background: transparent;
+        color: var(--jsb-ink);
+        font: 600 12.5px/1 var(--jsb-font-body);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .btn.primary {
+        border-color: transparent;
+        background: var(--jsb-accent);
+        color: var(--jsb-accent-ink);
+      }
+
+      .btn.text {
+        border-color: transparent;
+        color: var(--jsb-muted);
+      }
+
+      .btn.small {
+        height: 26px;
+        padding: 0 8px;
+        font-size: 12px;
+      }
+
+      .btn.icon-only {
+        justify-content: center;
+        width: 30px;
+        padding: 0;
+      }
+
+      .btn.icon-only .icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .btn[aria-pressed="true"] {
+        background: var(--jsb-accent-soft);
+        color: var(--jsb-accent);
+      }
+
+      .btn[disabled] {
+        opacity: 0.45;
+        cursor: default;
+      }
+
+      .icon-btn {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .icon-btn:hover {
+        background: var(--jsb-accent-soft);
+      }
+
+      .count {
+        display: inline-grid;
+        place-items: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        font: 500 11px/1 var(--jsb-font-mono);
+      }
+
+      .count.bad {
+        background: color-mix(in srgb, var(--jsb-bad) 14%, transparent);
+      }
+
+      .count.warn {
+        background: color-mix(in srgb, var(--jsb-warn) 16%, transparent);
+      }
+
+      /* ---------- Top bar ---------- */
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 10px 0 12px;
+        border-bottom: 1px solid var(--jsb-line);
+      }
+
+      .topbar .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 6px;
+        font: 12px var(--jsb-font-mono);
+        color: var(--jsb-muted);
+      }
+
+      .topbar .status .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--jsb-ok);
+      }
+
+      .topbar .spacer {
+        flex: 1;
+      }
+
+      /* ---------- Body grid and panes ---------- */
+
+      .body {
+        display: grid;
+        grid-template-columns: var(--w-project) minmax(0, 1fr) var(--w-inspector);
+        grid-template-rows: minmax(0, 1fr) var(--h-problems);
+        grid-template-areas:
+          "project node inspector"
+          "problems problems problems";
+        min-height: 0;
+      }
+
+      .pane {
+        display: grid;
+        grid-template-rows: var(--pane-head) minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .pane + .pane {
+        border-left: 1px solid var(--jsb-line);
+      }
+
+      .pane-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 8px 0 14px;
+        border-bottom: 1px solid var(--jsb-line);
+        font: 500 10.5px/1 var(--jsb-font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--jsb-muted);
+      }
+
+      .pane-head .path {
+        overflow: hidden;
+        font-size: 12px;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--jsb-ink);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .pane-head .spacer {
+        flex: 1;
+      }
+
+      .pane-head .hint {
+        font: 12px var(--jsb-font-body);
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--jsb-faint);
+      }
+
+      /* Resize handles: react-resizable-panels separators, a line that thickens on hover */
+      .handle-x {
+        position: relative;
+      }
+
+      .handle-x::after {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 50%;
+        width: 32px;
+        height: 4px;
+        margin-left: -16px;
+        border-radius: 2px;
+        background: var(--jsb-line-strong);
+      }
+
+      /* ---------- Project pane ---------- */
+
+      .project {
+        grid-area: project;
+        grid-template-rows: var(--pane-head) minmax(0, 1fr) 44px;
+      }
+
+      .tree {
+        margin: 0;
+        padding: 6px 6px;
+        overflow: auto;
+        list-style: none;
+        font: 12.5px/26px var(--jsb-font-mono);
+        color: var(--jsb-ink);
+      }
+
+      .tree li {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 26px;
+        padding-right: 6px;
+        padding-left: calc(6px + var(--depth, 0) * 14px);
+        border-radius: 4px;
+        white-space: nowrap;
+        cursor: default;
+      }
+
+      .tree li:hover {
+        background: color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent);
+      }
+
+      .tree li .chev {
+        width: 12px;
+        height: 12px;
+        color: var(--jsb-faint);
+      }
+
+      .tree li .spacer-chev {
+        width: 12px;
+      }
+
+      .tree li .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .tree li .folder {
+        color: var(--jsb-muted);
+      }
+
+      .tree li .end {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+      }
+
+      .tree li.is-selected {
+        background: var(--jsb-accent-soft);
+        box-shadow: inset 2px 0 0 var(--jsb-accent);
+      }
+
+      /* Rename and delete: on the row under the pointer, and on the selected row while it has the focus */
+      .tree li .actions {
+        display: inline-flex;
+        color: var(--jsb-muted);
+      }
+
+      .tree li .actions .icon-btn {
+        width: 26px;
+        height: 26px;
+      }
+
+      /* The help dialog opens over the file state and takes the focus from the row */
+      [data-state="help"] .tree li .actions {
+        display: none;
+      }
+
+      .tree li.is-bad .name {
+        color: var(--jsb-bad);
+      }
+
+      .tree li.is-target {
+        outline: 1px dashed var(--jsb-accent);
+        outline-offset: -1px;
+      }
+
+      .tree li .tag {
+        font: 10.5px var(--jsb-font-mono);
+        color: var(--jsb-accent);
+      }
+
+      .tree .config {
+        margin-bottom: 4px;
+        color: var(--jsb-accent);
+      }
+
+      .tree .config .glyph {
+        font-size: 11px;
+        color: var(--jsb-faint);
+      }
+
+      .tree .sep {
+        height: 1px;
+        margin: 4px 6px 6px;
+        padding: 0;
+        background: var(--jsb-line);
+      }
+
+      .tree .sep:hover {
+        background: var(--jsb-line);
+      }
+
+      .tree li.is-editing .name {
+        padding: 0 6px;
+        border: 1px solid var(--jsb-accent);
+        border-radius: 3px;
+        background: var(--jsb-paper-2);
+        line-height: 20px;
+      }
+
+      .project-foot {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px;
+        border-top: 1px solid var(--jsb-line);
+      }
+
+      .project-foot .spacer {
+        flex: 1;
+      }
+
+      .segmented {
+        display: inline-flex;
+        padding: 2px;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius);
+      }
+
+      .segmented button {
+        height: 22px;
+        padding: 0 9px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--jsb-muted);
+        font: 500 12px/1 var(--jsb-font-body);
+      }
+
+      .segmented button[aria-pressed="true"] {
+        background: var(--jsb-accent-soft);
+        color: var(--jsb-accent);
+      }
+
+      .text-mode {
+        margin: 0;
+        padding: 10px 12px;
+        overflow: auto;
+        border: 0;
+        background: var(--jsb-paper-2);
+        box-shadow: inset 0 0 0 1px var(--jsb-accent);
+        font: 12px/20px var(--jsb-font-mono);
+        color: var(--jsb-ink);
+        white-space: pre;
+      }
+
+      .text-mode .dep {
+        color: var(--jsb-muted);
+      }
+
+      .text-mode .caret {
+        display: inline-block;
+        width: 1px;
+        height: 15px;
+        margin-bottom: -3px;
+        background: var(--jsb-accent);
+      }
+
+      /* ---------- Node pane (middle) ---------- */
+
+      .node {
+        grid-area: node;
+      }
+
+      .code {
+        position: relative;
+        overflow: auto;
+        background: var(--jsb-code);
+        color: var(--jsb-code-fg);
+        font: 13px/28px var(--jsb-font-mono);
+      }
+
+      .code .kw {
+        color: var(--jsb-code-keyword);
+      }
+
+      .code .str {
+        color: var(--jsb-code-string);
+      }
+
+      .code .com {
+        color: var(--jsb-code-comment);
+      }
+
+      .code .num {
+        color: var(--jsb-code-number);
+      }
+
+      .code .key {
+        color: var(--jsb-code-fg);
+      }
+
+      .lines {
+        margin: 0;
+        padding: 10px 0;
+        list-style: none;
+      }
+
+      .line {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) 64px 176px;
+        align-items: center;
+        min-height: 28px;
+        padding-right: 14px;
+        cursor: default;
+      }
+
+      .line .ln {
+        padding-right: 14px;
+        color: var(--jsb-code-comment);
+        text-align: right;
+        font-size: 12px;
+      }
+
+      /* Long paths wrap instead of being cut: the path is what the line is about */
+      .line .stmt {
+        padding: 3px 0;
+        line-height: 22px;
+        overflow-wrap: anywhere;
+      }
+
+      .line .actions {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 2px;
+        padding-right: 12px;
+        visibility: hidden;
+        color: var(--jsb-code-comment);
+      }
+
+      .line .actions .icon-btn:hover {
+        background: var(--jsb-code-line);
+        color: var(--jsb-code-fg);
+      }
+
+      .line .verdict {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        font-size: 11.5px;
+        color: var(--jsb-code-comment);
+      }
+
+      .line .verdict.v-ok {
+        color: var(--jsb-code-string);
+      }
+
+      .line .verdict.v-bad {
+        color: var(--jsb-code-error);
+      }
+
+      .line:hover,
+      .line.is-focus {
+        background: var(--jsb-code-line);
+      }
+
+      .line.is-focus {
+        box-shadow: inset 2px 0 0 var(--jsb-code-keyword);
+      }
+
+      .line:hover .actions,
+      .line.is-focus .actions {
+        visibility: visible;
+      }
+
+      .add-dep {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 8px 0 0 44px;
+        padding: 6px 12px;
+        border: 1px dashed color-mix(in srgb, var(--jsb-code-fg) 35%, transparent);
+        border-radius: var(--jsb-radius);
+        background: transparent;
+        color: var(--jsb-code-fg);
+        font: 500 12.5px/1 var(--jsb-font-body);
+        cursor: pointer;
+      }
+
+      .code-foot {
+        margin: 18px 0 0 44px;
+        font: 12px/1.5 var(--jsb-font-body);
+        color: var(--jsb-code-comment);
+      }
+
+      /* Config editor: CodeMirror 6 with lint gutter, wavy underlines and a lint tooltip */
+      .editor .line {
+        grid-template-columns: 18px 36px minmax(0, 1fr);
+        min-height: 22px;
+        padding-right: 0;
+        font-size: 12.5px;
+        line-height: 22px;
+      }
+
+      .editor .lines {
+        padding: 8px 0 40px;
+      }
+
+      .editor .line:hover {
+        background: transparent;
+      }
+
+      .editor .gut {
+        display: grid;
+        place-items: center;
+      }
+
+      .editor .gut .icon {
+        width: 12px;
+        height: 12px;
+      }
+
+      .editor .ln {
+        padding-right: 12px;
+        font-size: 11.5px;
+      }
+
+      .editor .stmt {
+        padding: 0;
+        overflow: visible;
+        white-space: pre;
+      }
+
+      .u-error {
+        text-decoration: underline wavy var(--jsb-code-error);
+        text-decoration-skip-ink: none;
+        text-underline-offset: 4px;
+      }
+
+      .u-warn {
+        text-decoration: underline wavy var(--jsb-code-number);
+        text-decoration-skip-ink: none;
+        text-underline-offset: 4px;
+      }
+
+      .editor .line.is-policy {
+        background: color-mix(in srgb, var(--jsb-code-keyword) 13%, transparent);
+        box-shadow: inset 3px 0 0 var(--jsb-code-keyword);
+      }
+
+      .editor .line.is-active-line {
+        background: color-mix(in srgb, var(--jsb-code-fg) 5%, transparent);
+      }
+
+      .lint-tip {
+        position: absolute;
+        left: 200px;
+        width: 430px;
+        padding: 10px 12px;
+        border: 1px solid var(--jsb-line-strong);
+        border-left: 3px solid var(--jsb-bad);
+        border-radius: var(--jsb-radius);
+        background: var(--jsb-card);
+        box-shadow: var(--jsb-shadow);
+        color: var(--jsb-ink);
+        font: 12.5px/1.45 var(--jsb-font-body);
+      }
+
+      .lint-tip b {
+        display: block;
+        margin-bottom: 2px;
+        font-weight: 600;
+      }
+
+      /* The link never wraps: it moves to its own line when it does not fit */
+      .lint-tip a {
+        color: var(--jsb-accent);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .empty {
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 10px;
+        padding: 24px;
+        background-color: var(--jsb-card);
+        background-image:
+          linear-gradient(var(--jsb-grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--jsb-grid) 1px, transparent 1px);
+        background-size: 16px 16px;
+        text-align: center;
+      }
+
+      .empty h2 {
+        margin: 0;
+        font: 600 16px/1.3 var(--jsb-font-display);
+      }
+
+      .empty p {
+        max-width: 44ch;
+        margin: 0;
+        color: var(--jsb-muted);
+      }
+
+      .empty .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      /* ---------- Inspector ---------- */
+
+      .inspector {
+        grid-area: inspector;
+      }
+
+      .inspector-body {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        padding: 12px 14px;
+        overflow: auto;
+      }
+
+      .inspector-title {
+        font: 500 12.5px/1.4 var(--jsb-font-mono);
+        overflow-wrap: anywhere;
+      }
+
+      .facet {
+        display: grid;
+        gap: 4px;
+        padding: 9px 10px;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius);
+        font: 12px/1.5 var(--jsb-font-mono);
+      }
+
+      .facet > b {
+        font-weight: 500;
+        color: var(--jsb-accent);
+      }
+
+      .facet dl {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr);
+        gap: 1px 10px;
+        margin: 0;
+      }
+
+      .facet dt {
+        color: var(--jsb-muted);
+      }
+
+      .facet dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .facet .null {
+        color: var(--jsb-faint);
+      }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        padding-top: 2px;
+        font-size: 12.5px;
+        color: var(--jsb-muted);
+      }
+
+      .summary span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .section-label {
+        margin-top: 4px;
+        font: 500 10.5px/1 var(--jsb-font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--jsb-faint);
+      }
+
+      .rows {
+        display: grid;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius);
+      }
+
+      .rows > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2px 10px;
+        padding: 7px 10px;
+        font: 12px/1.45 var(--jsb-font-mono);
+      }
+
+      .rows > div + div {
+        border-top: 1px solid var(--jsb-line);
+      }
+
+      .rows small {
+        grid-column: 1 / -1;
+        font: 11.5px var(--jsb-font-mono);
+        color: var(--jsb-muted);
+      }
+
+      .numbers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius);
+      }
+
+      .numbers div {
+        display: grid;
+        gap: 2px;
+        padding: 10px 12px;
+      }
+
+      .numbers div:nth-child(odd) {
+        border-right: 1px solid var(--jsb-line);
+      }
+
+      .numbers div:nth-child(n + 3) {
+        border-top: 1px solid var(--jsb-line);
+      }
+
+      .numbers b {
+        font: 600 20px/1.1 var(--jsb-font-display);
+      }
+
+      .numbers span {
+        font-size: 12px;
+        color: var(--jsb-muted);
+      }
+
+      /* ---------- Problems panel ---------- */
+
+      .problems {
+        grid-area: problems;
+        border-top: 1px solid var(--jsb-line);
+      }
+
+      .problems .pane-head {
+        gap: 4px;
+        padding-right: 6px;
+      }
+
+      .tabs {
+        display: flex;
+        align-self: stretch;
+        margin-left: 14px;
+      }
+
+      .tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 12px;
+        border: 0;
+        background: transparent;
+        color: var(--jsb-muted);
+        font: 500 12.5px/1 var(--jsb-font-body);
+        letter-spacing: 0;
+        text-transform: none;
+        cursor: pointer;
+      }
+
+      .tab.mono-label {
+        font-family: var(--jsb-font-mono);
+        font-size: 12px;
+      }
+
+      .tab[aria-selected="true"] {
+        box-shadow: inset 0 -2px 0 var(--jsb-accent);
+        color: var(--jsb-ink);
+      }
+
+      .problems-body {
+        overflow: auto;
+        padding: 6px 0 10px;
+      }
+
+      .problem {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr);
+        gap: 1px 8px;
+        padding: 6px 16px;
+        font: 12.5px/1.5 var(--jsb-font-mono);
+        cursor: pointer;
+      }
+
+      .problem:hover {
+        background: var(--jsb-accent-soft);
+      }
+
+      .problem .icon {
+        margin-top: 3px;
+      }
+
+      .problem .where {
+        color: var(--jsb-ink);
+      }
+
+      .problem .where .line-no {
+        color: var(--jsb-muted);
+      }
+
+      .problem .msg {
+        grid-column: 2;
+        color: var(--jsb-ink);
+        font-family: var(--jsb-font-body);
+      }
+
+      .problem .meta {
+        grid-column: 2;
+        color: var(--jsb-muted);
+      }
+
+      .problems-note {
+        display: flex;
+        gap: 8px;
+        margin: 6px 16px 0;
+        padding: 8px 10px;
+        border: 1px dashed var(--jsb-line-strong);
+        border-radius: var(--jsb-radius);
+        color: var(--jsb-muted);
+        font-size: 12.5px;
+      }
+
+      .detail {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+        gap: 20px;
+        padding: 10px 16px;
+      }
+
+      .detail .verdict-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font: 500 13px/1.4 var(--jsb-font-mono);
+      }
+
+      .detail .message {
+        margin: 6px 0 8px;
+        font-size: 13.5px;
+      }
+
+      .detail .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 14px;
+        font: 12px/1.6 var(--jsb-font-mono);
+        color: var(--jsb-muted);
+      }
+
+      .detail .facts b {
+        font-weight: 500;
+        color: var(--jsb-ink);
+      }
+
+      .link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        color: var(--jsb-accent);
+        font: 600 12.5px/1 var(--jsb-font-body);
+        cursor: pointer;
+      }
+
+      .policy-card {
+        align-self: start;
+        margin: 0;
+        padding: 10px 12px;
+        border-radius: var(--jsb-radius);
+        background: var(--jsb-code);
+        color: var(--jsb-code-fg);
+        font: 12px/1.6 var(--jsb-font-mono);
+        white-space: pre-wrap;
+        overflow: auto;
+      }
+
+      .policy-card .kw {
+        color: var(--jsb-code-keyword);
+      }
+
+      .policy-card .str {
+        color: var(--jsb-code-string);
+      }
+
+      .policy-card .com {
+        color: var(--jsb-code-comment);
+      }
+
+      /* ---------- Dependency picker (MUI Dialog) ---------- */
+
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: color-mix(in srgb, var(--jsb-ink) 34%, transparent);
+      }
+
+      [data-theme="dark"] .backdrop {
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .dialog {
+        width: 620px;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius-xl);
+        background: var(--jsb-card);
+        box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.5);
+      }
+
+      .dialog header {
+        padding: 18px 22px 6px;
+      }
+
+      .dialog h2 {
+        margin: 0;
+        font: 600 18px/1.3 var(--jsb-font-display);
+      }
+
+      .dialog header p {
+        margin: 2px 0 0;
+        font: 12.5px var(--jsb-font-mono);
+        color: var(--jsb-muted);
+      }
+
+      .form {
+        display: grid;
+        padding: 6px 22px 4px;
+      }
+
+      .form .row {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 12px;
+        padding: 11px 0;
+        border-top: 1px solid var(--jsb-line);
+      }
+
+      .form .row:first-child {
+        border-top: 0;
+      }
+
+      .form label.lab {
+        padding-top: 3px;
+        font: 500 12px var(--jsb-font-mono);
+        color: var(--jsb-muted);
+      }
+
+      .radios {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 18px;
+      }
+
+      .radio {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+      }
+
+      .radio i {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--jsb-faint);
+        border-radius: 50%;
+      }
+
+      .radio.on i {
+        border-color: var(--jsb-accent);
+        background: radial-gradient(circle, var(--jsb-accent) 0 4px, transparent 4.5px);
+      }
+
+      .field {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        margin-top: 10px;
+        padding: 0 10px;
+        border: 1px solid var(--jsb-accent);
+        border-radius: var(--jsb-radius);
+        box-shadow: 0 0 0 3px var(--jsb-accent-soft);
+        font: 12.5px var(--jsb-font-mono);
+      }
+
+      .field .floating {
+        position: absolute;
+        top: -8px;
+        left: 8px;
+        padding: 0 4px;
+        background: var(--jsb-card);
+        font: 500 11px var(--jsb-font-body);
+        color: var(--jsb-accent);
+      }
+
+      .field .spacer {
+        flex: 1;
+      }
+
+      .target-field {
+        position: relative;
+      }
+
+      .listbox {
+        position: absolute;
+        z-index: 1;
+        top: calc(100% + 4px);
+        right: 0;
+        left: 0;
+        padding: 4px;
+        border: 1px solid var(--jsb-line);
+        border-radius: var(--jsb-radius);
+        background: var(--jsb-paper-2);
+        box-shadow: var(--jsb-shadow);
+        font: 12.5px/28px var(--jsb-font-mono);
+      }
+
+      .listbox div {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 8px;
+        border-radius: 4px;
+      }
+
+      .listbox .on {
+        background: var(--jsb-accent-soft);
+      }
+
+      .listbox small {
+        color: var(--jsb-muted);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 26px;
+        padding: 0 6px 0 10px;
+        border: 1px solid var(--jsb-line-strong);
+        border-radius: 13px;
+        font: 12px var(--jsb-font-mono);
+      }
+
+      .chip .kind {
+        color: var(--jsb-muted);
+      }
+
+      .chip .x {
+        display: grid;
+        place-items: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--jsb-line);
+        color: var(--jsb-muted);
+      }
+
+      .chip .x .icon {
+        width: 10px;
+        height: 10px;
+      }
+
+      .chip.add {
+        padding-right: 10px;
+        border-style: dashed;
+        color: var(--jsb-muted);
+        font-family: var(--jsb-font-body);
+      }
+
+      .preview {
+        margin: 0;
+        padding: 9px 12px;
+        border-radius: var(--jsb-radius);
+        background: var(--jsb-code);
+        color: var(--jsb-code-fg);
+        font: 12.5px var(--jsb-font-mono);
+      }
+
+      .preview .kw {
+        color: var(--jsb-code-keyword);
+      }
+
+      .preview .str {
+        color: var(--jsb-code-string);
+      }
+
+      .dialog footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 22px 18px;
+      }
+
+      /* ---------- Help (MUI Dialog) ---------- */
+
+      .dialog.help {
+        width: 540px;
+      }
+
+      .dialog.help header p {
+        margin-top: 6px;
+        font: 13.5px/1.5 var(--jsb-font-body);
+      }
+
+      .steps {
+        display: grid;
+        gap: 14px;
+        margin: 0;
+        padding: 14px 22px 6px;
+        list-style: none;
+        counter-reset: step;
+      }
+
+      .steps li {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: 12px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        counter-increment: step;
+      }
+
+      .steps li::before {
+        content: counter(step);
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border: 1px solid var(--jsb-accent);
+        border-radius: 50%;
+        color: var(--jsb-accent);
+        font: 500 12px/1 var(--jsb-font-mono);
+      }
+
+      .steps b {
+        display: block;
+        font-weight: 600;
+      }
+
+      .steps span {
+        color: var(--jsb-muted);
+      }
+
+      .steps code,
+      .help-tip code {
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: var(--jsb-accent-soft);
+        color: var(--jsb-ink);
+        font: 12px var(--jsb-font-mono);
+      }
+
+      .help-tip {
+        display: flex;
+        gap: 8px;
+        margin: 12px 22px 0;
+        padding: 10px 12px;
+        border-radius: var(--jsb-radius);
+        background: var(--jsb-paper);
+        color: var(--jsb-muted);
+        font-size: 12.5px;
+      }
+
+      .help-tip .icon {
+        margin-top: 2px;
+        color: var(--jsb-accent);
+      }
+
+      .dialog.help footer {
+        align-items: center;
+      }
+
+      .dialog.help footer a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-right: auto;
+        color: var(--jsb-accent);
+        font-weight: 600;
+        font-size: 12.5px;
+        text-decoration: none;
+      }
+
+      /* ---------- States ---------- */
+
+      [hidden] {
+        display: none !important;
+      }
+
+      /* ---------- Narrow screens: the page shows the note instead (website, phase 4) ---------- */
+
+      @media (max-width: 996px) {
+        .play,
+        .backdrop,
+        .site-nav .links {
+          display: none !important;
+        }
+
+        .site-nav .menu {
+          display: inline-block;
+        }
+
+        .note {
+          display: block;
+        }
+
+        .site-footer {
+          display: flex;
+        }
+      }
+
+      /* ---------- Mockup-only controls, hidden in the renders ---------- */
+
+      .mockup-bar {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        max-width: 520px;
+        padding: 6px;
+        border: 1px solid var(--jsb-line-strong);
+        border-radius: var(--jsb-radius-lg);
+        background: var(--jsb-paper-2);
+        box-shadow: var(--jsb-shadow);
+        font: 11px var(--jsb-font-mono);
+      }
+
+      .mockup-bar button {
+        padding: 4px 7px;
+        border: 1px solid var(--jsb-line);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--jsb-ink);
+        font: inherit;
+        cursor: pointer;
+      }
+
+      [data-render] .mockup-bar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Icons. In the components, each one is an SVG component of the package -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" /></symbol>
+      <symbol id="i-cross" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" /></symbol>
+      <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2.5l6 11H2z M8 7v3 M8 12v.01" /></symbol>
+      <symbol id="i-skip" viewBox="0 0 16 16"><path d="M4 8h8" /></symbol>
+      <symbol id="i-chev-r" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" /></symbol>
+      <symbol id="i-chev-d" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" /></symbol>
+      <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" /></symbol>
+      <symbol id="i-edit" viewBox="0 0 16 16"><path d="M10.5 2.5l3 3L6 13H3v-3z" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 16 16"><path d="M3 4.5h10 M6.5 4.5V3h3v1.5 M4.5 4.5l.6 8.5h5.8l.6-8.5" /></symbol>
+      <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" /></symbol>
+      <symbol id="i-share" viewBox="0 0 16 16"><path d="M8 10V2.5M5 5.5l3-3 3 3 M3 9v4.5h10V9" /></symbol>
+      <symbol id="i-reset" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.5 M3 2.5V5h2.5" /></symbol>
+      <symbol id="i-collapse" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" /></symbol>
+      <symbol id="i-help" viewBox="0 0 16 16"><path d="M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z M6.1 6.1a2 2 0 0 1 3.9.5c0 1.4-2 1.6-2 3 M8 11.9v.01" /></symbol>
+      <symbol id="i-info" viewBox="0 0 16 16"><path d="M8 7.5v4 M8 4.5v.01 M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z" /></symbol>
+    </svg>
+
+    <nav class="site-nav">
+      <span class="menu">&#9776;</span>
+      <b>JS Boundaries</b>
+      <span class="links">7.4.1</span>
+      <span class="links">Getting Started</span>
+      <span class="links">Classification</span>
+      <span class="links">Selectors</span>
+      <span class="links">Policies</span>
+      <span class="links active">Playground</span>
+      <span class="spacer"></span>
+      <span class="links">Search</span>
+    </nav>
+
+    <!-- The page title is the navbar's active item: the h1 is for screen readers only -->
+    <h1 class="visually-hidden">Playground</h1>
+
+    <p class="note">The playground needs a wider screen. Open this page on a desktop browser to use it.</p>
+
+    <!-- ================= The playground component ================= -->
+    <div class="play" role="application" aria-label="Playground">
+      <!-- Top bar -->
+      <div class="topbar">
+        <button class="btn" type="button">
+          <span class="muted">Example</span> Quick start
+          <svg class="icon"><use href="#i-chev-d" /></svg>
+        </button>
+        <span class="status" data-show="file dependency picker text empty policy">
+          <span class="dot"></span>6 files · 9 dependencies · <span class="bad">2 problems</span>
+        </span>
+        <!-- With no problems, the count reads "0 problems" in --jsb-muted after the --jsb-ok dot (00-shared.md section 6) -->
+        <span class="status" data-show="config">
+          <span class="dot" style="background: var(--jsb-bad)"></span>6 files · 9 dependencies · <span class="bad">config has errors</span>
+        </span>
+        <span class="spacer"></span>
+        <button class="btn text icon-only" type="button" aria-label="Help" title="Help" data-pressed-in="help"><svg class="icon"><use href="#i-help" /></svg></button>
+        <button class="btn text" type="button"><svg class="icon"><use href="#i-reset" /></svg>Reset</button>
+        <button class="btn primary" type="button"><svg class="icon"><use href="#i-share" /></svg>Share</button>
+      </div>
+
+      <div class="body">
+        <!-- ================= Project ================= -->
+        <section class="pane project" aria-label="Project">
+          <div class="pane-head">
+            Project
+            <span class="spacer"></span>
+            <span class="hint" data-show="text">One path per line · dependencies indented</span>
+          </div>
+
+          <ul class="tree" role="tree" data-show="file dependency picker empty config policy">
+            <li class="config" style="--depth: 0" data-selected-in="config policy" data-bad-in="config">
+              <span class="spacer-chev"></span>
+              <span class="glyph">{}</span>
+              <span class="name">eslint.config.js</span>
+              <span class="end" data-show="config"><span class="count bad">2</span></span>
+            </li>
+            <li class="sep" aria-hidden="true"></li>
+            <li style="--depth: 0">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">src/</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="count bad">2</span></span>
+            </li>
+            <li style="--depth: 1">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">components/</span>
+            </li>
+            <li style="--depth: 2">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">atoms/</span>
+            </li>
+            <li style="--depth: 3">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">Button/</span>
+            </li>
+            <li style="--depth: 4"><span class="spacer-chev"></span><span class="name">Button.css</span></li>
+            <li style="--depth: 4" data-target-in="dependency">
+              <span class="spacer-chev"></span><span class="name">Button.spec.js</span>
+              <span class="end" data-show="dependency"><span class="tag">target</span></span>
+            </li>
+            <li style="--depth: 4"><span class="spacer-chev"></span><span class="name">index.js</span></li>
+            <li style="--depth: 1">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">helpers/</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 2">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">format/</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 3" data-bad-in="file dependency picker empty policy">
+              <span class="spacer-chev"></span><span class="name">index.js</span>
+              <span class="end" data-show="file dependency picker empty policy"><svg class="icon bad"><use href="#i-cross" /></svg><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 1">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">modules/</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 2">
+              <svg class="icon chev"><use href="#i-chev-d" /></svg><span class="name folder">checkout/</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 3" data-selected-in="file dependency picker" data-bad-in="file dependency picker empty policy">
+              <span class="spacer-chev"></span><span class="name">index.js</span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="actions" data-show="file"><button class="icon-btn" type="button" aria-label="Rename src/modules/checkout/index.js"><svg class="icon"><use href="#i-edit" /></svg></button><button class="icon-btn" type="button" aria-label="Delete src/modules/checkout/index.js"><svg class="icon"><use href="#i-trash" /></svg></button></span><svg class="icon bad"><use href="#i-cross" /></svg><span class="count bad">1</span></span>
+            </li>
+            <li style="--depth: 1"><span class="spacer-chev"></span><span class="name">index.js</span></li>
+          </ul>
+
+          <pre class="text-mode" data-show="text" aria-label="Project as text">eslint.config.js
+src/components/atoms/Button/Button.css
+src/components/atoms/Button/Button.spec.js
+<span class="dep">  import { Button } from "./index";</span>
+src/components/atoms/Button/index.js
+<span class="dep">  import { format } from "../../../helpers/format";</span>
+<span class="dep">  import "./Button.css";</span>
+src/helpers/format/index.js
+<span class="dep">  import { Button } from "../../components/atoms/Button";</span>
+src/modules/checkout/index.js
+<span class="dep">  import { Button } from "../../components/atoms/Button";</span>
+<span class="dep">  import { format } from "../../helpers/format";</span>
+<span class="dep">  import { renderButton } from "../../components/atoms/Button/Button.spec";</span>
+<span class="dep">  import React from "react";</span>
+src/index.js
+<span class="dep">  import "./modules/checkout";</span>
+src/pages/<span class="caret"></span>
+</pre>
+
+          <div class="project-foot">
+            <button class="btn text small" type="button"><svg class="icon"><use href="#i-plus" /></svg>File</button>
+            <button class="btn text small" type="button"><svg class="icon"><use href="#i-plus" /></svg>Folder</button>
+            <span class="spacer"></span>
+            <span class="segmented" role="group" aria-label="Project view">
+              <button type="button" data-pressed-in="file dependency picker empty config policy">Tree</button>
+              <button type="button" data-pressed-in="text">Text</button>
+            </span>
+          </div>
+        </section>
+
+        <!-- ================= Node in focus ================= -->
+        <section class="pane node" aria-label="Node in focus">
+          <!-- A file -->
+          <div class="pane-head" data-show="file dependency picker text">
+            File <span class="path">src/modules/checkout/index.js</span>
+          </div>
+          <div class="code" data-show="file dependency picker text">
+            <ol class="lines">
+              <li class="line">
+                <span class="ln">1</span>
+                <span class="stmt"><span class="kw">import</span> { Button } <span class="kw">from</span> <span class="str">"../../components/atoms/Button"</span>;</span>
+                <span class="actions"></span>
+                <span class="verdict v-ok"><svg class="icon"><use href="#i-check" /></svg>policy 1</span>
+              </li>
+              <li class="line">
+                <span class="ln">2</span>
+                <span class="stmt"><span class="kw">import</span> { format } <span class="kw">from</span> <span class="str">"../../helpers/format"</span>;</span>
+                <span class="actions"></span>
+                <span class="verdict v-ok"><svg class="icon"><use href="#i-check" /></svg>policy 1</span>
+              </li>
+              <li class="line" data-focus-in="dependency">
+                <span class="ln">3</span>
+                <span class="stmt"><span class="kw">import</span> { renderButton } <span class="kw">from</span> <span class="str">"../../components/atoms/Button/Button.spec"</span>;</span>
+                <span class="actions">
+                  <button class="icon-btn" type="button" aria-label="Edit"><svg class="icon"><use href="#i-edit" /></svg></button>
+                  <button class="icon-btn" type="button" aria-label="Delete"><svg class="icon"><use href="#i-trash" /></svg></button>
+                </span>
+                <span class="verdict v-bad"><svg class="icon"><use href="#i-cross" /></svg>policy 2</span>
+              </li>
+              <li class="line">
+                <span class="ln">4</span>
+                <span class="stmt"><span class="kw">import</span> React <span class="kw">from</span> <span class="str">"react"</span>;</span>
+                <span class="actions"></span>
+                <span class="verdict" title="Not checked: the dependency is not local"><svg class="icon"><use href="#i-skip" /></svg>not checked · external</span>
+              </li>
+            </ol>
+            <button class="add-dep" type="button"><svg class="icon"><use href="#i-plus" /></svg>Dependency</button>
+            <p class="code-foot">Dependencies are added and edited with the picker. Click a line to see its verdict in Problems.</p>
+          </div>
+
+          <!-- The config node -->
+          <div class="pane-head" data-show="config policy">
+            Config <span class="path">eslint.config.js</span>
+            <span class="spacer"></span>
+            <span class="hint">JSON5 · the <span class="mono">settings</span> and <span class="mono">rules</span> of an ESLint config</span>
+          </div>
+          <div class="code editor" data-show="config policy">
+            <ol class="lines">
+              <li class="line"><span class="gut"></span><span class="ln">1</span><span class="stmt">{</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">2</span><span class="stmt">  <span class="key">settings</span>: {</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">3</span><span class="stmt">    <span class="str">"boundaries/elements"</span>: [</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">4</span><span class="stmt">      { <span class="key">type</span>: <span class="str">"helper"</span>, <span class="key">pattern</span>: <span class="str">"helpers/*"</span> },</span></li>
+              <li class="line"><span class="gut"><svg class="icon" style="color: var(--jsb-code-number)" data-show="config"><use href="#i-warn" /></svg></span><span class="ln">5</span><span class="stmt">      <span data-class-in="config:u-warn">{ <span class="key">type</span>: <span class="str">"component"</span>, <span class="key"><span data-show="config">patern</span><span data-show="policy">pattern</span></span>: <span class="str">"components/*/*"</span> }</span>,</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">6</span><span class="stmt">      { <span class="key">type</span>: <span class="str">"module"</span>, <span class="key">pattern</span>: <span class="str">"modules/*"</span> },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">7</span><span class="stmt">    ],</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">8</span><span class="stmt">    <span class="str">"boundaries/files"</span>: [</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">9</span><span class="stmt">      { <span class="key">pattern</span>: <span class="str">"**/*.spec.js"</span>, <span class="key">category</span>: <span class="str">"test"</span> },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">10</span><span class="stmt">      { <span class="key">pattern</span>: <span class="str">"**/*.css"</span>, <span class="key">category</span>: <span class="str">"style"</span> },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">11</span><span class="stmt">    ],</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">12</span><span class="stmt">  },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">13</span><span class="stmt">  <span class="key">rules</span>: {</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">14</span><span class="stmt">    <span class="str">"boundaries/dependencies"</span>: [<span class="num">2</span>, {</span></li>
+              <li class="line" data-active-in="config"><span class="gut"><svg class="icon" style="color: var(--jsb-code-error)" data-show="config"><use href="#i-cross" /></svg></span><span class="ln">15</span><span class="stmt">      <span class="key">default</span>: <span class="str" data-class-in="config:u-error"><span data-show="config">"dissallow"</span><span data-show="policy">"disallow"</span></span>,</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">16</span><span class="stmt">      <span class="key">policies</span>: [</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">17</span><span class="stmt">        {</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">18</span><span class="stmt">          <span class="key">from</span>: { <span class="key">element</span>: { <span class="key">type</span>: <span class="str">"component"</span> } },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">19</span><span class="stmt">          <span class="key">allow</span>: { <span class="key">to</span>: { <span class="key">element</span>: { <span class="key">type</span>: <span class="str">"helper"</span> } } },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">20</span><span class="stmt">        },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">21</span><span class="stmt">        {</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">22</span><span class="stmt">          <span class="key">from</span>: { <span class="key">element</span>: { <span class="key">type</span>: <span class="str">"module"</span> } },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">23</span><span class="stmt">          <span class="key">allow</span>: { <span class="key">to</span>: { <span class="key">element</span>: { <span class="key">types</span>: [<span class="str">"component"</span>, <span class="str">"helper"</span>] } } },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">24</span><span class="stmt">        },</span></li>
+              <li class="line" data-policy-in="policy"><span class="gut"></span><span class="ln">25</span><span class="stmt">        {</span></li>
+              <li class="line" data-policy-in="policy"><span class="gut"></span><span class="ln">26</span><span class="stmt">          <span class="com">// No element may import a test file, whatever element it belongs to</span></span></li>
+              <li class="line" data-policy-in="policy"><span class="gut"></span><span class="ln">27</span><span class="stmt">          <span class="key">disallow</span>: { <span class="key">to</span>: { <span class="key">file</span>: { <span class="key">categories</span>: <span class="str">"test"</span> } } },</span></li>
+              <li class="line" data-policy-in="policy"><span class="gut"></span><span class="ln">28</span><span class="stmt">        },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">29</span><span class="stmt">      ],</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">30</span><span class="stmt">    }],</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">31</span><span class="stmt">  },</span></li>
+              <li class="line"><span class="gut"></span><span class="ln">32</span><span class="stmt">}</span></li>
+            </ol>
+            <!-- Above the range and from its start, where @codemirror/lint opens its hover tooltip -->
+            <div class="lint-tip" style="top: 240px; left: 167px" data-show="config">
+              <b>[boundaries/dependencies] Invalid rule options.</b>
+              Value "dissallow" should be equal to one of the allowed values.
+              <a href="#">More info</a>
+            </div>
+          </div>
+
+          <!-- Nothing in focus -->
+          <div class="pane-head" data-show="empty">Nothing open</div>
+          <div class="empty" data-show="empty">
+            <h2>Open a file or the config</h2>
+            <p>Pick a file in the project to see its dependencies and their verdicts, or open <span class="mono">eslint.config.js</span> to edit the settings and the rules.</p>
+            <div class="row">
+              <button class="btn" type="button">Open eslint.config.js</button>
+              <button class="btn text" type="button"><svg class="icon"><use href="#i-plus" /></svg>File</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= Inspector ================= -->
+        <aside class="pane inspector" aria-label="Inspector">
+          <div class="pane-head">Inspector</div>
+
+          <!-- A file -->
+          <div class="inspector-body" data-show="file dependency picker text">
+            <div class="inspector-title">src/modules/checkout/index.js</div>
+            <div class="facet">
+              <b>element</b>
+              <dl>
+                <dt>types</dt><dd>[ "module" ]</dd>
+                <dt>path</dt><dd>"src/modules/checkout"</dd>
+                <dt>captured</dt><dd class="null">null</dd>
+              </dl>
+            </div>
+            <div class="facet">
+              <b>file</b>
+              <dl>
+                <dt>categories</dt><dd class="null">null</dd>
+              </dl>
+            </div>
+            <div class="facet">
+              <b>module</b>
+              <dl>
+                <dt>origin</dt><dd>"local"</dd>
+              </dl>
+            </div>
+            <div class="summary">
+              <span>4 dependencies</span>
+              <span class="ok"><svg class="icon"><use href="#i-check" /></svg>2</span>
+              <span class="bad"><svg class="icon"><use href="#i-cross" /></svg>1</span>
+              <span class="faint"><svg class="icon"><use href="#i-skip" /></svg>1 not checked</span>
+            </div>
+          </div>
+
+          <!-- The config node -->
+          <div class="inspector-body" data-show="config policy">
+            <div class="inspector-title">eslint.config.js</div>
+            <div class="section-label">Element types</div>
+            <div class="rows">
+              <div><span>helper</span><span class="muted">1 file</span><small>helpers/*</small></div>
+              <div data-show="config"><span class="warn">component</span><span class="warn">ignored</span><small>invalid descriptor, line 5</small></div>
+              <div data-show="policy"><span>component</span><span class="muted">3 files</span><small>components/*/*</small></div>
+              <div><span>module</span><span class="muted">1 file</span><small>modules/*</small></div>
+            </div>
+            <div class="section-label">File categories</div>
+            <div class="rows">
+              <div><span>test</span><span class="muted">1 file</span><small>**/*.spec.js</small></div>
+              <div><span>style</span><span class="muted">1 file</span><small>**/*.css</small></div>
+            </div>
+            <div class="section-label">Policies</div>
+            <div class="rows" data-show="config">
+              <div><span>boundaries/dependencies</span><span class="bad">not evaluated</span><small>3 policies · invalid options</small></div>
+            </div>
+            <div class="rows" data-show="policy">
+              <div><span>0 · component → helper</span><span class="muted">1 dependency</span></div>
+              <div><span>1 · module → component, helper</span><span class="muted">2 dependencies</span></div>
+              <div><span>2 · disallow → test</span><span class="bad">1 dependency</span></div>
+              <div><span>default · disallow</span><span class="bad">1 dependency</span></div>
+            </div>
+          </div>
+
+          <!-- Nothing in focus -->
+          <div class="inspector-body" data-show="empty">
+            <div class="inspector-title">Sketch</div>
+            <div class="numbers">
+              <div><b>6</b><span>files</span></div>
+              <div><b>9</b><span>dependencies</span></div>
+              <div><b>3</b><span>element types</span></div>
+              <div><b>2</b><span>file categories</span></div>
+              <div><b>3</b><span>policies</span></div>
+              <div><b class="bad">2</b><span>disallowed</span></div>
+            </div>
+            <div class="summary">
+              <span class="ok"><svg class="icon"><use href="#i-check" /></svg>3 allowed</span>
+              <span class="faint"><svg class="icon"><use href="#i-skip" /></svg>4 not checked</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ================= Problems ================= -->
+        <section class="pane problems handle-x" aria-label="Problems">
+          <div class="pane-head">
+            Problems
+            <div class="tabs" role="tablist">
+              <button class="tab" role="tab" data-selected-tab-in="empty">Sketch <span class="count bad" data-show="file dependency picker text empty policy">2</span><span class="count bad" data-show="config">2</span></button>
+              <button class="tab mono-label" role="tab" data-show="file dependency picker text" data-selected-tab-in="file picker text">checkout/index.js <span class="count bad">1</span></button>
+              <button class="tab mono-label" role="tab" data-show="config" data-selected-tab-in="config">eslint.config.js <span class="count bad">2</span></button>
+              <button class="tab mono-label" role="tab" data-show="dependency" data-selected-tab-in="dependency">line 3 <svg class="icon bad"><use href="#i-cross" /></svg></button>
+              <button class="tab mono-label" role="tab" data-show="policy" data-selected-tab-in="policy">eslint.config.js</button>
+            </div>
+            <span class="spacer"></span>
+            <button class="icon-btn" type="button" aria-label="Collapse the problems"><svg class="icon"><use href="#i-collapse" /></svg></button>
+          </div>
+
+          <!-- Sketch tab -->
+          <div class="problems-body" data-show="empty">
+            <div class="problem">
+              <svg class="icon bad"><use href="#i-cross" /></svg>
+              <span class="where">src/helpers/format/index.js<span class="line-no">:1</span> → ../../components/atoms/Button</span>
+              <span class="msg">There is no policy allowing dependencies from elements of type "helper" to elements of type "component"</span>
+              <span class="meta">disallowed · default</span>
+            </div>
+            <div class="problem">
+              <svg class="icon bad"><use href="#i-cross" /></svg>
+              <span class="where">src/modules/checkout/index.js<span class="line-no">:3</span> → ../../components/atoms/Button/Button.spec</span>
+              <span class="msg">Dependencies to file of category "test" are not allowed. Denied by policy at index 2</span>
+              <span class="meta">disallowed · policy 2</span>
+            </div>
+          </div>
+
+          <!-- File tab -->
+          <div class="problems-body" data-show="file picker text">
+            <div class="problem">
+              <svg class="icon bad"><use href="#i-cross" /></svg>
+              <span class="where"><span class="line-no">:3</span> ../../components/atoms/Button/Button.spec</span>
+              <span class="msg">Dependencies to file of category "test" are not allowed. Denied by policy at index 2</span>
+              <span class="meta">disallowed · policy 2</span>
+            </div>
+          </div>
+
+          <!-- Config node tab -->
+          <div class="problems-body" data-show="config">
+            <div class="problems-note" style="margin-bottom: 4px">
+              <svg class="icon"><use href="#i-info" /></svg>
+              Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.
+            </div>
+            <!-- In the order of the engine (normalizeConfig: settings before rules); a row reads the title and the detail, without its More info link -->
+            <div class="problem">
+              <svg class="icon warn"><use href="#i-warn" /></svg>
+              <span class="where">eslint.config.js<span class="line-no">:5:7</span></span>
+              <span class="msg">Some element descriptors are invalid and will be ignored. Invalid descriptors: [{"match":"folder","type":"component","patern":"components/*/*"}].</span>
+              <span class="meta">warning · settings › boundaries/elements › 1</span>
+            </div>
+            <div class="problem">
+              <svg class="icon bad"><use href="#i-cross" /></svg>
+              <span class="where">eslint.config.js<span class="line-no">:15:16</span></span>
+              <span class="msg">[boundaries/dependencies] Invalid rule options. Value "dissallow" should be equal to one of the allowed values.</span>
+              <span class="meta">error · rules › boundaries/dependencies › 1 › default</span>
+            </div>
+          </div>
+
+          <!-- Dependency tab -->
+          <div class="detail" data-show="dependency">
+            <div>
+              <div class="verdict-line bad"><svg class="icon"><use href="#i-cross" /></svg>disallowed · policy 2</div>
+              <p class="message">Dependencies to file of category "test" are not allowed. Denied by policy at index 2</p>
+              <div class="facts">
+                <span>to <b>src/components/atoms/Button/Button.spec.js</b></span>
+                <span>element <b>component</b></span>
+                <span>file <b>test</b></span>
+                <span>kind <b>value</b></span>
+                <span>syntax <b>import</b></span>
+              </div>
+              <button class="link" type="button">Open policy in config <svg class="icon"><use href="#i-arrow" /></svg></button>
+            </div>
+            <pre class="policy-card"><span class="com">// policies[2]</span>
+{
+  <span class="com">// No element may import a test file, whatever element it belongs to</span>
+  disallow: { to: { file: { categories: <span class="str">"test"</span> } } },
+}</pre>
+          </div>
+
+          <!-- Config node opened from "Open policy in config" -->
+          <div class="problems-body" data-show="policy">
+            <div class="problems-note">
+              <svg class="icon"><use href="#i-info" /></svg>
+              No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================= Dependency picker ================= -->
+    <div class="backdrop" data-show="picker">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+        <header>
+          <h2 id="picker-title">Add a dependency</h2>
+          <p>to src/modules/checkout/index.js</p>
+        </header>
+        <div class="form">
+          <div class="row">
+            <label class="lab">Target</label>
+            <div>
+              <div class="radios">
+                <span class="radio on"><i></i>A file of the sketch</span>
+                <span class="radio"><i></i>An external module</span>
+              </div>
+              <div class="target-field">
+                <div class="field">
+                  <span class="floating">File</span>
+                  src/helpers/format/index.js
+                  <span class="spacer"></span>
+                  <svg class="icon muted"><use href="#i-chev-d" /></svg>
+                </div>
+                <div class="listbox" role="listbox">
+                  <div class="on"><span>src/helpers/format/index.js</span><small>helper</small></div>
+                  <div><span>src/components/atoms/Button/index.js</span><small>component</small></div>
+                  <div><span>src/index.js</span><small>no element</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <label class="lab">Syntax</label>
+            <div class="radios">
+              <span class="radio on"><i></i>import</span>
+              <span class="radio"><i></i>export … from</span>
+              <span class="radio"><i></i>require()</span>
+              <span class="radio"><i></i>import()</span>
+            </div>
+          </div>
+          <div class="row">
+            <label class="lab">Kind</label>
+            <div class="radios">
+              <span class="radio on"><i></i>value</span>
+              <span class="radio"><i></i>type</span>
+            </div>
+          </div>
+          <div class="row">
+            <label class="lab">Imported</label>
+            <div class="chips">
+              <span class="chip"><span class="kind">default</span> format <span class="x"><svg class="icon"><use href="#i-cross" /></svg></span></span>
+              <span class="chip"><span class="kind">named</span> round <span class="x"><svg class="icon"><use href="#i-cross" /></svg></span></span>
+              <span class="chip add"><svg class="icon"><use href="#i-plus" /></svg>Name</span>
+            </div>
+          </div>
+          <div class="row">
+            <label class="lab">Preview</label>
+            <pre class="preview"><span class="kw">import</span> format, { round } <span class="kw">from</span> <span class="str">"../../helpers/format"</span>;</pre>
+          </div>
+        </div>
+        <footer>
+          <button class="btn text" type="button">Cancel</button>
+          <button class="btn primary" type="button">Add</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ================= Help ================= -->
+    <div class="backdrop" data-show="help">
+      <div class="dialog help" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <header>
+          <h2 id="help-title">How the playground works</h2>
+          <p class="muted">Sketch a project, write its boundaries config, and see how the plugin classifies each file and which imports it allows. In the browser, nothing to install.</p>
+        </header>
+        <ol class="steps">
+          <li><div><b>Sketch the files</b><span>Add, rename and delete files in Project, or switch it to text and write one path per line.</span></div></li>
+          <li><div><b>Write the config</b><span>Open <code>eslint.config.js</code> and edit its <code>settings</code> and <code>rules</code>, the same ones the plugin takes. Problems are underlined as you type.</span></div></li>
+          <li><div><b>Add dependencies</b><span>Select a file to see its element, then add its imports to see which ones the rules allow, and which policy decides.</span></div></li>
+        </ol>
+        <p class="help-tip"><svg class="icon"><use href="#i-info" /></svg><span>The sketch starts with the example of the Quick start. Reset brings it back, and Share copies a link with the whole sketch.</span></p>
+        <footer>
+          <a href="#">Read the Quick start<svg class="icon"><use href="#i-arrow" /></svg></a>
+          <button class="btn primary" type="button">Got it</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- The site footer, drawn short: the page hides it on wide screens only (section 6, "Page") -->
+    <footer class="site-footer">
+      <b>Docs</b>
+      <span>Getting Started</span>
+      <span>Settings</span>
+      <span>Rules</span>
+      <b>Community</b>
+      <span>Discussions</span>
+      <span>Contribute</span>
+      <small>Copyright © 2020-2026 Javier Brea. MIT licensed.</small>
+    </footer>
+
+    <!-- Mockup-only: switches the state and the theme -->
+    <div class="mockup-bar" aria-hidden="true">
+      <button data-go="empty">empty</button>
+      <button data-go="file">file</button>
+      <button data-go="dependency">dependency</button>
+      <button data-go="picker">picker</button>
+      <button data-go="config">config</button>
+      <button data-go="policy">policy</button>
+      <button data-go="text">text</button>
+      <button data-go="help">help</button>
+      <button data-theme-toggle>theme</button>
+    </div>
+
+    <script>
+      // Applies the state and the theme named in the hash: #state=file&theme=dark&render
+      const STATES = ["empty", "file", "dependency", "picker", "config", "policy", "text", "help"];
+
+      // The help dialog opens over the file state
+      function inList(element, attribute, state) {
+        const list = element.getAttribute(attribute).split(" ");
+        return list.includes(state) || (state === "help" && list.includes("file"));
+      }
+
+      function apply() {
+        const params = new URLSearchParams(location.hash.slice(1));
+        const state = STATES.includes(params.get("state")) ? params.get("state") : "file";
+        const theme = params.get("theme") === "dark" ? "dark" : "light";
+        const root = document.documentElement;
+        root.dataset.state = state;
+        root.dataset.theme = theme;
+        if (params.has("render")) root.dataset.render = "";
+
+        // An attribute, not the property: SVG elements have no hidden property
+        document.querySelectorAll("[data-show]").forEach((el) => {
+          el.toggleAttribute("hidden", !inList(el, "data-show", state));
+        });
+        const toggles = {
+          "data-selected-in": "is-selected",
+          "data-bad-in": "is-bad",
+          "data-target-in": "is-target",
+          "data-focus-in": "is-focus",
+          "data-policy-in": "is-policy",
+          "data-active-in": "is-active-line",
+        };
+        Object.entries(toggles).forEach(([attribute, className]) => {
+          document.querySelectorAll(`[${attribute}]`).forEach((el) => {
+            el.classList.toggle(className, inList(el, attribute, state));
+          });
+        });
+        document.querySelectorAll("[data-class-in]").forEach((el) => {
+          const [states, className] = el.getAttribute("data-class-in").split(":");
+          const list = states.split(" ");
+          el.classList.toggle(className, list.includes(state) || (state === "help" && list.includes("file")));
+        });
+        document.querySelectorAll("[data-pressed-in]").forEach((el) => {
+          el.setAttribute("aria-pressed", String(inList(el, "data-pressed-in", state)));
+        });
+        document.querySelectorAll("[data-selected-tab-in]").forEach((el) => {
+          el.setAttribute("aria-selected", String(inList(el, "data-selected-tab-in", state)));
+        });
+        // "Open policy in config" scrolls the editor to the policy
+        const editor = document.querySelector(".editor");
+        const policy = document.querySelector(".is-policy");
+        editor.scrollTop = policy ? policy.offsetTop - 120 : 0;
+      }
+
+      document.querySelectorAll("[data-go]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const params = new URLSearchParams(location.hash.slice(1));
+          params.set("state", button.dataset.go);
+          location.hash = params.toString();
+        });
+      });
+      document.querySelector("[data-theme-toggle]").addEventListener("click", () => {
+        const params = new URLSearchParams(location.hash.slice(1));
+        params.set("theme", document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+        location.hash = params.toString();
+      });
+      window.addEventListener("hashchange", apply);
+      apply();
+    </script>
+  </body>
+</html>

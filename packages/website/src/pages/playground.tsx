@@ -5,7 +5,6 @@ import { Suspense, lazy } from "react";
 import type { ReactNode } from "react";
 
 import { useMediaQuery } from "../components/motion/useMediaQuery";
-import Eyebrow from "../components/ui/Eyebrow/Eyebrow";
 
 import styles from "./playground.module.css";
 
@@ -17,10 +16,9 @@ const NARROW_QUERY = "(max-width: 996px)";
 
 // The playground and its host objects load in their own chunk, requested only by this page and only in the browser
 const LazyPlayground = lazy(async () => {
-  const { MemoryStore, Playground, SketchSource } = await import(
-    "@boundaries/playground"
-  );
-  const source = new SketchSource();
+  const { MemoryStore, Playground, QUICK_START_EXAMPLE, SketchSource } =
+    await import("@boundaries/playground");
+  const source = new SketchSource(QUICK_START_EXAMPLE.sketch);
   const store = new MemoryStore();
 
   return {
@@ -64,28 +62,27 @@ function Stage(): ReactNode {
 }
 
 /**
- * Page of the playground: the header and the note are in the server render, and the playground loads in the browser.
+ * Page of the playground: it has no visible header, because the navbar's active item is its title, and it fills the page below the navbar on wide screens. The heading, the note and the loading box are in the server render, and the playground loads in the browser.
  * @returns The page.
  */
 export default function PlaygroundPage(): ReactNode {
   return (
-    <Layout title="Playground" description={LEAD}>
-      <main className={styles.page}>
-        <div className="jsb-wrap">
-          <header className={styles.head}>
-            <Eyebrow>Drafting table</Eyebrow>
-            <Heading as="h1" className={styles.title}>
-              Playground
-            </Heading>
-            <p className={styles.lead}>{LEAD}</p>
-          </header>
-          {/* Both are in the server render, and CSS shows the one that fits the screen, so nothing moves when the page loads */}
-          <p className={styles.note}>
-            The playground needs a wider screen. Open this page on a desktop
-            browser to use it.
-          </p>
-          <BrowserOnly fallback={<Loading />}>{() => <Stage />}</BrowserOnly>
-        </div>
+    <Layout
+      title="Playground"
+      description={LEAD}
+      wrapperClassName={styles.wrapper}
+    >
+      <main>
+        {/* The heading is for screen readers and the outline: the playground has no title of its own */}
+        <Heading as="h1" className={styles.hidden}>
+          Playground
+        </Heading>
+        {/* Both are in the server render, and CSS shows the one that fits the screen, so nothing moves when the page loads */}
+        <p className={styles.note}>
+          The playground needs a wider screen. Open this page on a desktop
+          browser to use it.
+        </p>
+        <BrowserOnly fallback={<Loading />}>{() => <Stage />}</BrowserOnly>
       </main>
     </Layout>
   );

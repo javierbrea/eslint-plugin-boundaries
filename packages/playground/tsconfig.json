@@ -14,7 +14,8 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": true,
     "isolatedModules": true,
-    "types": ["jest"]
+    "types": ["jest"],
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src/**/*"]
 }
