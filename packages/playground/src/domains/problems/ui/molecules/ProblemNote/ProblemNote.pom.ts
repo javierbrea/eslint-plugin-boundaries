@@ -1,11 +1,11 @@
 import { Pom } from "@/shared/testing/pom";
 import { NotePom } from "@/ui-kit/molecules/Note/Note.pom";
 
-import { RULES_NOTE_TEST_ID } from "./RulesNote.constants";
+import { PROBLEM_NOTE_TEST_ID } from "./ProblemNote.constants";
 
-/** Page object of the note about invalid rule options. */
-export class RulesNotePom extends Pom {
-  protected readonly defaultTestId = RULES_NOTE_TEST_ID;
+/** Page object of a note above the problems of a tab. */
+export class ProblemNotePom extends Pom {
+  protected readonly defaultTestId = PROBLEM_NOTE_TEST_ID;
 
   /**
    * The note it is made of, which has the same root element.

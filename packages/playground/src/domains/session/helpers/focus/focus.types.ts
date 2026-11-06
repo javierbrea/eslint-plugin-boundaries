@@ -1,23 +1,41 @@
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 
-/** What is in focus: nothing, the config node or a file. Phase 6 adds a dependency of the open file. */
+/** What is in focus: nothing, the config node, a file, or a dependency of the open file. */
 export type Focus =
   | { readonly kind: "none" }
   | { readonly kind: "config" }
-  | { readonly kind: "file"; readonly path: string };
+  | { readonly kind: "file"; readonly path: string }
+  /** A dependency of a file: the file is open, and the line of the dependency is `index + 1`. */
+  | {
+      readonly kind: "dependency";
+      readonly path: string;
+      readonly index: number;
+    };
 
-/** What a row, a button or a node opens: everything that opens something produces one, and the session opens it in one transition. Phase 6 adds a dependency of a file. */
+/** What a row, a button or a node opens: everything that opens something produces one, and the session opens it in one transition. */
 export type Target =
-  /** The config node, scrolled to a range of its text when there is one. */
-  | { readonly kind: "config"; readonly range?: TextRange }
+  /** The config node, scrolled to a range of its text when there is one. A range with the dependency it came from highlights the policy that decided that dependency. */
+  | {
+      readonly kind: "config";
+      readonly range?: TextRange;
+      /** The dependency that `Open policy in config` came from. */
+      readonly dependency?: DependencyRef;
+    }
   /** A file of the sketch. */
-  | { readonly kind: "file"; readonly path: string };
+  | { readonly kind: "file"; readonly path: string }
+  /** A dependency of a file: the file opens with the dependency in focus. */
+  | {
+      readonly kind: "dependency";
+      readonly path: string;
+      readonly index: number;
+    };
 
 /** How the project pane shows the sketch: as a tree, or as one path per line. */
 export type ProjectView = "tree" | "text";
 
-/** A tab of the problems panel in M1: the sketch as a whole, or the node in focus. Phase 6 adds the dependency in focus. */
-export type ProblemsTabId = "sketch" | "node";
+/** A tab of the problems panel: the sketch as a whole, the node in focus, or the dependency in focus. */
+export type ProblemsTabId = "sketch" | "node" | "dependency";
 
 /** A request to show a range of the config: the editor scrolls to it and puts the cursor at its start each time the key changes. */
 export type ConfigReveal = {
@@ -25,4 +43,12 @@ export type ConfigReveal = {
   readonly range: TextRange;
   /** Changes for each request, so that the same range can be shown again after the user scrolled away. */
   readonly key: number;
+};
+
+/** The policy of the config that the user opened from a dependency: its range stays marked in the editor while the config is in focus, and the note of the problems panel says where it came from. */
+export type PolicyHighlight = {
+  /** Where the policy is written in the config text. */
+  readonly range: TextRange;
+  /** The dependency that `Open policy in config` came from. */
+  readonly dependency: DependencyRef;
 };

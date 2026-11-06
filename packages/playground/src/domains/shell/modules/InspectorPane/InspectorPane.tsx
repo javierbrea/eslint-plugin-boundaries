@@ -6,6 +6,7 @@ import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { FileInspector } from "@/domains/files/ui/molecules/FileInspector";
 import { ProjectSummary } from "@/domains/project/ui/molecules/ProjectSummary";
 import { useEvaluation, useFocus, useOpen } from "@/domains/session/data/store";
+import { getFocusedPath } from "@/domains/session/helpers/focus";
 import type { Focus, Target } from "@/domains/session/helpers/focus";
 import { InspectorLayout } from "@/domains/shell/ui/templates/InspectorLayout";
 
@@ -34,8 +35,11 @@ function InspectorContent({
   evaluation,
   onOpen,
 }: Readonly<InspectorContentProps>): ReactNode {
-  if (current.kind === "file") {
-    return <FileInspector path={current.path} evaluation={evaluation} />;
+  // A dependency in focus belongs to the open file, which the inspector keeps describing
+  const filePath = getFocusedPath(current);
+
+  if (filePath !== undefined) {
+    return <FileInspector path={filePath} evaluation={evaluation} />;
   }
   if (current.kind === "config") {
     return <ConfigInspector evaluation={evaluation} onOpen={onOpen} />;

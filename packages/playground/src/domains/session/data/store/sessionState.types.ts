@@ -3,6 +3,7 @@ import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import type {
   ConfigReveal,
   Focus,
+  PolicyHighlight,
   ProblemsTabId,
   ProjectView,
 } from "@/domains/session/helpers/focus";
@@ -17,12 +18,14 @@ export type SessionState = {
   readonly capabilities: ProjectCapabilities;
   /** What is in focus. */
   readonly focus: Focus;
-  /** The selected tab of the problems panel. It is `node` only while something is in focus. */
+  /** The selected tab of the problems panel. It is `node` only while a file, the config or a dependency is in focus, and `dependency` only while a dependency is. */
   readonly tab: ProblemsTabId;
   /** Whether the problems panel shows its head only. */
   readonly problemsCollapsed: boolean;
   /** The range that the config editor must scroll to. It is set only while the config is in focus. */
   readonly reveal: ConfigReveal | undefined;
+  /** The policy that the user opened from a dependency, which the config editor keeps marked. It is kept while the config stays in focus: the focus leaving the config, or the config opening without a dependency, drops it. */
+  readonly highlight: PolicyHighlight | undefined;
   /** How many ranges were revealed so far: the key of the next request is the next number, so that a key is never used twice even when the request before it was dropped. */
   readonly revealCount: number;
   /** How the project pane shows the sketch. */

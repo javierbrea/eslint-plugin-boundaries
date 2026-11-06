@@ -66,4 +66,33 @@ describe("useShownTab", () => {
     // Assert
     expect(result.current).toBe("sketch");
   });
+
+  it("should be the tab of the dependency when a dependency is opened", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(useShownTab);
+
+    // Act
+    act(() =>
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 })
+    );
+
+    // Assert
+    expect(result.current).toBe("dependency");
+  });
+
+  it("should go back to the tab of the node when the dependency is no longer in focus though the tab of the dependency is selected", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(useShownTab);
+
+    act(() =>
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 })
+    );
+
+    // Act
+    act(() => store.open({ kind: "config" }));
+    act(() => store.selectTab("dependency"));
+
+    // Assert
+    expect(result.current).toBe("node");
+  });
 });

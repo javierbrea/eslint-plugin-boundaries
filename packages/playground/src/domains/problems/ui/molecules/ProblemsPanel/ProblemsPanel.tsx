@@ -6,13 +6,13 @@ import Tooltip from "@mui/material/Tooltip";
 import { useId } from "react";
 import type { ReactNode } from "react";
 
+import { VERDICT_COLORS } from "@/domains/problems/ui/helpers/verdictColors";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
-import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {
   COLLAPSE_PROBLEMS_LABEL,
@@ -43,10 +43,10 @@ const MonoLabel = styled("span")(({ theme }) => ({
 }));
 
 const ToneIcon = styled("span", {
-  shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone?: Tone }>(({ tone }) => ({
+  shouldForwardProp: (prop) => prop !== "iconColor",
+})<{ iconColor?: string }>(({ iconColor }) => ({
   display: "inline-flex",
-  color: tone === undefined ? undefined : TONE_COLORS[tone],
+  color: iconColor,
 }));
 
 // The chevron of the button points down to collapse the panel and up to expand it
@@ -79,7 +79,24 @@ function getTabElementId(prefix: string, tabId: string): string {
 }
 
 /**
- * The content of a tab: its label, its icon and its count.
+ * Picks the color of the icon of a tab.
+ * @param tab The tab.
+ * @param tab.tone The tone of the count.
+ * @param tab.iconTone The tone of the verdict that the tab gives its icon.
+ * @returns The color of the verdict when the tab has one, else the color of its count, else `undefined`, which leaves the icon in the color of the label.
+ */
+function getIconColor({
+  tone,
+  iconTone,
+}: ProblemsPanelTab): string | undefined {
+  if (iconTone !== undefined) {
+    return VERDICT_COLORS[iconTone];
+  }
+  return tone === undefined ? undefined : TONE_COLORS[tone];
+}
+
+/**
+ * The content of a tab: its label, its icon and its count. The icon is in the tone of the verdict that the tab gives it, else in the tone of the count, else in the color of the label.
  * @param props TabLabel props.
  * @param props.tab The tab.
  * @returns The nodes inside the tab, laid out in a row by the theme of the tab.
@@ -91,7 +108,7 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsPanelTab }>): ReactNode {
     <>
       {mono ? <MonoLabel>{label}</MonoLabel> : label}
       {icon === undefined ? null : (
-        <ToneIcon tone={tone}>
+        <ToneIcon iconColor={getIconColor(tab)}>
           <Icon name={icon} />
         </ToneIcon>
       )}

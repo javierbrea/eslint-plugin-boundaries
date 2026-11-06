@@ -21,6 +21,7 @@ import {
   useStartRename,
   useToggleFolder,
 } from "@/domains/session/data/store";
+import { getFocusedPath } from "@/domains/session/helpers/focus";
 import type { Focus } from "@/domains/session/helpers/focus";
 
 import type {
@@ -34,17 +35,10 @@ const NO_REQUEST: DeleteRequest = { path: "", files: 0 };
 /**
  * Gets the id of the tree item that a focus is on.
  * @param openNode What is in focus.
- * @returns The path of the file, the id of the config node, or `undefined` when no item has the focus.
+ * @returns The path of the file, which is the file of a dependency in focus too, the id of the config node, or `undefined` when no item has the focus.
  */
 function getFocusId(openNode: Focus): string | undefined {
-  switch (openNode.kind) {
-    case "file":
-      return openNode.path;
-    case "config":
-      return CONFIG_PATH;
-    default:
-      return undefined;
-  }
+  return openNode.kind === "config" ? CONFIG_PATH : getFocusedPath(openNode);
 }
 
 /**

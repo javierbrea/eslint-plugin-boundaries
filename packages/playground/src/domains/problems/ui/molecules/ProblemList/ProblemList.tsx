@@ -93,7 +93,19 @@ const Empty = styled("p")(({ theme }) => ({
 }));
 
 /**
- * What a row shows: an icon for the level, where the problem is, what is wrong and a meta line.
+ * Writes the source of the statement of a dependency after its position.
+ * @param item The row.
+ * @returns A space and the source, which an arrow introduces when the row names the file that has the dependency; `null` when the row has no source.
+ */
+function getSourceText(item: ProblemItem): string | null {
+  if (item.source === undefined) {
+    return null;
+  }
+  return item.location === undefined ? ` ${item.source}` : ` → ${item.source}`;
+}
+
+/**
+ * What a row shows: an icon for the level, where the problem is, what is wrong and a meta line. A dependency says where its statement points to after its position: with an arrow when the row names the file, and right after the line when the list is about one file.
  * @param props RowContent props.
  * @param props.item The row.
  * @returns The content of the row.
@@ -109,6 +121,7 @@ function RowContent({ item }: Readonly<{ item: ProblemItem }>): ReactNode {
         {item.position === undefined ? null : (
           <Position>{item.position}</Position>
         )}
+        {getSourceText(item)}
       </Where>
       <Message>{item.message}</Message>
       <Meta>{item.meta}</Meta>
@@ -121,8 +134,8 @@ function RowContent({ item }: Readonly<{ item: ProblemItem }>): ReactNode {
  * @param props ProblemList props.
  * @param props.items The rows, in order.
  * @param props.onOpen Called with the target of the row the user presses.
- * @param props.empty What to say when there are no rows.
- * @returns The list, or the text for no rows.
+ * @param props.empty What to say when there are no rows. The list draws nothing when there are none and this is unset.
+ * @returns The list, the text for no rows, or nothing.
  */
 export function ProblemList({
   items,
@@ -130,7 +143,9 @@ export function ProblemList({
   empty,
 }: Readonly<ProblemListProps>): ReactNode {
   if (items.length === 0) {
-    return <Empty data-testid={PROBLEM_LIST_TEST_ID}>{empty}</Empty>;
+    return empty === undefined ? null : (
+      <Empty data-testid={PROBLEM_LIST_TEST_ID}>{empty}</Empty>
+    );
   }
 
   return (

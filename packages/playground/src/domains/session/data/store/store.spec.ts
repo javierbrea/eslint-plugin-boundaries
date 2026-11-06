@@ -1,4 +1,4 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Engine } from "@/domains/evaluation/helpers/engine";
 
@@ -42,6 +42,29 @@ const SKETCH: Sketch = {
     { path: "src/index.js", kind: "file" },
   ],
   dependencies: [],
+};
+
+/** A value import of the format helper by `src/index.js` */
+const INDEX_IMPORTS_FORMAT: SketchDependency = {
+  from: "src/index.js",
+  target: { kind: "node", path: "src/helpers/format.js" },
+  syntax: "import",
+  importKind: "value",
+  specifiers: [{ kind: "named", name: "format" }],
+};
+
+/** A require of `react` by `src/index.js` */
+const INDEX_REQUIRES_REACT: SketchDependency = {
+  from: "src/index.js",
+  target: { kind: "external", name: "react" },
+  syntax: "require",
+  importKind: "value",
+  specifiers: [],
+};
+
+const SKETCH_WITH_DEPENDENCY: Sketch = {
+  ...SKETCH,
+  dependencies: [INDEX_IMPORTS_FORMAT],
 };
 
 const OTHER_SKETCH: Sketch = {
@@ -440,6 +463,43 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("open with a dependency", () => {
+    it("should put the dependency in focus and select its tab", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      // Act
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+      expect(store.getState().tab).toBe("dependency");
+    });
+
+    it("should keep the policy that a config target came from highlighted", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+      const range = { from: 1, to: 2, line: 1, column: 2 };
+      const dependency = { path: "src/index.js", index: 0 };
+
+      // Act
+      store.open({ kind: "config", range, dependency });
+
+      // Assert
+      expect(store.getState().highlight).toEqual({ range, dependency });
+    });
+  });
+
   describe("selectItem", () => {
     it("should select a folder", () => {
       // Arrange
@@ -625,6 +685,168 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("addDependency", () => {
+    it("should add the dependency and put it in focus", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, focus: openNode, tab } = store.getState();
+
+      expect(sketch.dependencies).toEqual([INDEX_IMPORTS_FORMAT]);
+      expect(openNode).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 0,
+      });
+      expect(tab).toBe("dependency");
+    });
+
+    it("should evaluate the dependency at once, without waiting for a timer", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(evaluation.sketch).toBe(sketch);
+      expect(evaluation.dependencies).toHaveLength(1);
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should evaluate the config edit that was waiting too", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+
+      store.changeConfig("{ settings: {}, rules: {}, }");
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(evaluation.sketch).toBe(sketch);
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should call the listener once", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.addDependency(INDEX_IMPORTS_FORMAT);
+
+      // Assert
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it("should change nothing and notify no listener when the dependency points to its own file", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH, ALL_CAPABILITIES);
+      const before = store.getState();
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.addDependency({
+        ...INDEX_IMPORTS_FORMAT,
+        target: { kind: "node", path: "src/index.js" },
+      });
+
+      // Assert
+      expect(store.getState()).toBe(before);
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("replaceDependency", () => {
+    it("should replace the dependency in its position, and evaluate the new one at once", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      // Act
+      store.replaceDependency(
+        { path: "src/index.js", index: 0 },
+        INDEX_REQUIRES_REACT
+      );
+
+      // Assert
+      const { sketch, evaluation } = store.getState();
+
+      expect(sketch.dependencies).toEqual([INDEX_REQUIRES_REACT]);
+      expect(evaluation.sketch).toBe(sketch);
+      expect(evaluation.dependencies[0].source).toBe("react");
+    });
+
+    it("should change nothing without editDependencies", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH_WITH_DEPENDENCY, NO_CAPABILITIES);
+      const before = store.getState();
+
+      // Act
+      store.replaceDependency(
+        { path: "src/index.js", index: 0 },
+        INDEX_REQUIRES_REACT
+      );
+
+      // Assert
+      expect(store.getState()).toBe(before);
+    });
+  });
+
+  describe("removeDependency", () => {
+    it("should remove the dependency, and the focus goes to its file when it was in focus", () => {
+      // Arrange
+      const store = createSessionStore(
+        SKETCH_WITH_DEPENDENCY,
+        ALL_CAPABILITIES
+      );
+
+      store.open({ kind: "dependency", path: "src/index.js", index: 0 });
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      const { sketch, focus: openNode, tab, evaluation } = store.getState();
+
+      expect(sketch.dependencies).toEqual([]);
+      expect(openNode).toEqual({ kind: "file", path: "src/index.js" });
+      expect(tab).toBe("node");
+      expect(evaluation.dependencies).toEqual([]);
+    });
+
+    it("should change nothing without editDependencies", () => {
+      // Arrange
+      const store = createSessionStore(SKETCH_WITH_DEPENDENCY, NO_CAPABILITIES);
+      const before = store.getState();
+      const listener = jest.fn();
+
+      store.subscribe(listener);
+
+      // Act
+      store.removeDependency({ path: "src/index.js", index: 0 });
+
+      // Assert
+      expect(store.getState()).toBe(before);
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
   describe("setView", () => {
     it("should change how the project is shown", () => {
       // Arrange
@@ -703,6 +925,10 @@ describe("createSessionStore", () => {
       ["removing a node", (store) => store.removeNode("src/index.js")],
       ["changing the config", (store) => store.changeConfig("{}")],
       ["typing in text mode", (store) => store.setTextDraft("main.js\n")],
+      [
+        "adding a dependency",
+        (store) => store.addDependency(INDEX_IMPORTS_FORMAT),
+      ],
     ])(
       "should change nothing, notify no listener and evaluate nothing when %s is not allowed",
       (_title, edit) => {

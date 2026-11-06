@@ -1,3 +1,5 @@
+import type { SketchDependency } from "@/contract";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 import type {
   ProblemsTabId,
   ProjectView,
@@ -37,6 +39,15 @@ export type SessionStore = {
   readonly cancelRename: () => void;
   /** Removes a node and everything under it. */
   readonly removeNode: (path: string) => void;
+  /** Adds a dependency at the end of the dependencies of its file, and puts it in focus. The sketch can refuse it: nothing changes then. */
+  readonly addDependency: (dependency: SketchDependency) => void;
+  /** Replaces a dependency with another one of the same file, in the same position; it stays in focus if it was. The sketch can refuse it: nothing changes then. */
+  readonly replaceDependency: (
+    ref: DependencyRef,
+    dependency: SketchDependency
+  ) => void;
+  /** Removes a dependency. A dependency in focus moves with the ones after it, and the file takes the focus when the one in focus is removed. */
+  readonly removeDependency: (ref: DependencyRef) => void;
   /** Shows the project as a tree or as text. */
   readonly setView: (view: ProjectView) => void;
   /** Keeps what the user typed in text mode. */

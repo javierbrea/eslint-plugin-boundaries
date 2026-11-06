@@ -4,6 +4,7 @@ export type { RenameOutcome, SessionStore } from "./store.types";
 export { EVALUATION_DELAY } from "./store.constants";
 export { SessionProvider } from "./SessionProvider";
 export {
+  useAddDependency,
   useAddNode,
   useCancelRename,
   useCapabilities,
@@ -15,11 +16,14 @@ export {
   useFocus,
   useOpen,
   usePickedFolder,
+  usePolicyHighlight,
   useProblemsCollapsed,
   useReadText,
+  useRemoveDependency,
   useRemoveNode,
   useRenameNode,
   useRenaming,
+  useReplaceDependency,
   useReveal,
   useSelectItem,
   useSelectTab,

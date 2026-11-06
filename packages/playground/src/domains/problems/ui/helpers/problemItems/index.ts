@@ -6,6 +6,7 @@ export type {
 export {
   getConfigProblemItems,
   getCountTone,
+  getDependencyProblemItems,
   getTabLabel,
   getTextProblemItems,
   toProblemListContent,

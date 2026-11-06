@@ -1,9 +1,11 @@
-import type { ProjectCapabilities, Sketch } from "@/contract";
+import type { ProjectCapabilities, Sketch, SketchDependency } from "@/contract";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import {
   CONFIG_PATH,
+  addDependency as addSketchDependency,
   addNode as addSketchNode,
   fromText,
+  getFileDependencies,
   getFiles,
   getParentPath,
   getUniquePath,
@@ -11,13 +13,20 @@ import {
   isSameOrInside,
   isSameProject,
   movePath,
+  removeDependency as removeSketchDependency,
   removeNode as removeSketchNode,
   renameInFolder,
+  replaceDependency as replaceSketchDependency,
   setConfig,
 } from "@/domains/project/helpers/sketch";
-import type { EditResult } from "@/domains/project/helpers/sketch";
+import type {
+  DependencyRef,
+  EditResult,
+} from "@/domains/project/helpers/sketch";
+import { moveFocus, moveHighlight } from "@/domains/session/helpers/focus";
 import type {
   Focus,
+  PolicyHighlight,
   ProblemsTabId,
   ProjectView,
   Target,
@@ -56,6 +65,7 @@ export function createSessionState(
     tab: "sketch",
     problemsCollapsed: false,
     reveal: undefined,
+    highlight: undefined,
     revealCount: 0,
     view: "tree",
     textDraft: undefined,
@@ -91,26 +101,48 @@ function openAncestors(
 }
 
 /**
- * Leaves nothing in focus. The tab of the problems panel goes back to the sketch's, and the range to reveal, which belongs to the config, goes.
+ * Leaves nothing in focus. The tab of the problems panel goes back to the sketch's, and the range to reveal and the highlight, which belong to the config, go.
  * @param state The state before.
  * @returns The state after.
  */
 function closeFocus(state: SessionState): SessionState {
-  return { ...state, focus: NO_FOCUS, tab: "sketch", reveal: undefined };
+  return {
+    ...state,
+    focus: NO_FOCUS,
+    tab: "sketch",
+    reveal: undefined,
+    highlight: undefined,
+  };
 }
 
 /**
- * Replaces the sketch with one that the text made. A file in focus that the new sketch no longer has, such as one whose line was deleted in text mode, leaves nothing in focus.
- * @param state The state before.
+ * Keeps a sketch whose nodes or dependencies an edit changed, and moves with it what points into them: the focus, the tab that follows it and the dependency a highlight came from. A file in focus that the new sketch no longer has, such as one whose line was deleted in text mode, leaves nothing in focus. A dependency in focus that is gone leaves its file in focus, and the tab of the node replaces the dependency's.
+ * @param state The state before, whose sketch is the one before the edit.
  * @param sketch The new sketch.
  * @returns The state after.
  */
-function replaceSketch(state: SessionState, sketch: Sketch): SessionState {
-  const { focus: openNode } = state;
+function followSketch(state: SessionState, sketch: Sketch): SessionState {
+  const moved = moveFocus(state.focus, state.sketch, sketch);
+  const followed: SessionState = {
+    ...state,
+    sketch,
+    highlight: moveHighlight(state.highlight, state.sketch, sketch),
+  };
 
-  return openNode.kind === "file" && !getFiles(sketch).includes(openNode.path)
-    ? closeFocus({ ...state, sketch })
-    : { ...state, sketch };
+  if (moved === state.focus) {
+    return followed;
+  }
+  if (moved.kind === "none") {
+    return closeFocus(followed);
+  }
+  return {
+    ...followed,
+    focus: moved,
+    tab:
+      moved.kind !== "dependency" && state.tab === "dependency"
+        ? "node"
+        : state.tab,
+  };
 }
 
 /**
@@ -153,34 +185,60 @@ function getTargetFolder({
 }
 
 /**
- * Opens a target: puts it in focus, selects the tab of the node in focus and shows the node in the tree. A config target with a range scrolls the editor to it; the range of a request that was already shown stays, so that the editor does not scroll again.
+ * Gets the focus that opening a target gives.
+ * @param openNode What is in focus.
+ * @param target What to open.
+ * @returns The focus on the target: the same object when it already is the focus, so that nothing that reads it renders again.
+ */
+function getTargetFocus(openNode: Focus, target: Target): Focus {
+  if (target.kind === "config") {
+    return CONFIG_FOCUS;
+  }
+  if (target.kind === "file") {
+    return openNode.kind === "file" && openNode.path === target.path
+      ? openNode
+      : { kind: "file", path: target.path };
+  }
+  return openNode.kind === "dependency" &&
+    openNode.path === target.path &&
+    openNode.index === target.index
+    ? openNode
+    : { kind: "dependency", path: target.path, index: target.index };
+}
+
+/**
+ * Gets the policy to keep highlighted when a target opens: the one a config target says with the dependency it came from.
+ * @param target What is opened.
+ * @returns The highlight, or `undefined` for every other target, and for a config target that lacks the range or the dependency.
+ */
+function getTargetHighlight(target: Target): PolicyHighlight | undefined {
+  return target.kind === "config" &&
+    target.range !== undefined &&
+    target.dependency !== undefined
+    ? { range: target.range, dependency: target.dependency }
+    : undefined;
+}
+
+/**
+ * Opens a target: puts it in focus, selects the most specific tab (the dependency's for a dependency, the node's otherwise) and shows the node in the tree, with the folders above a file or the file of a dependency open. A config target with a range scrolls the editor to it; the range of a request that was already shown stays, so that the editor does not scroll again. A config target with a range and a dependency keeps that policy highlighted while the config stays in focus. Opening a file while one of its dependencies is in focus puts the file in focus, and the dependency tab goes.
  * @param state The state before.
  * @param target What to open.
  * @returns The state after.
  */
 export function openTarget(state: SessionState, target: Target): SessionState {
-  const { focus: openNode } = state;
-  let nextFocus: Focus = CONFIG_FOCUS;
-
-  if (target.kind === "file") {
-    nextFocus =
-      openNode.kind === "file" && openNode.path === target.path
-        ? openNode
-        : { kind: "file", path: target.path };
-  }
-
   const opened: SessionState = {
     ...state,
-    focus: nextFocus,
-    tab: "node",
+    focus: getTargetFocus(state.focus, target),
+    tab: target.kind === "dependency" ? "dependency" : "node",
     // The focus replaces the folder the user selected, and shows even if a folder above it is closed
     pickedFolder: undefined,
     closedFolders:
-      target.kind === "file"
-        ? openAncestors(state.closedFolders, target.path)
-        : state.closedFolders,
-    // The range to reveal belongs to the config, so it goes when the focus leaves it
+      target.kind === "config"
+        ? state.closedFolders
+        : openAncestors(state.closedFolders, target.path),
+    // The range to reveal and the highlight belong to the config, so they go when the focus leaves it
     reveal: target.kind === "config" ? state.reveal : undefined,
+    highlight: getTargetHighlight(target),
   };
 
   if (target.kind !== "config" || target.range === undefined) {
@@ -307,6 +365,26 @@ export function cancelRename(state: SessionState): SessionState {
 }
 
 /**
+ * Moves the path of the file in focus, or of the file that has the dependency in focus, with a rename.
+ * @param openNode What is in focus.
+ * @param renamed The path of the node that is renamed.
+ * @param move Gives the path that a path has after the rename.
+ * @returns The focus with the new path; the same object when the file is not inside the renamed node, and for the config and nothing.
+ */
+function moveFocusPath(
+  openNode: Focus,
+  renamed: string,
+  move: (path: string) => string
+): Focus {
+  if (openNode.kind === "file" || openNode.kind === "dependency") {
+    return isSameOrInside(openNode.path, renamed)
+      ? { ...openNode, path: move(openNode.path) }
+      : openNode;
+  }
+  return openNode;
+}
+
+/**
  * Renames a node in its folder with the name the user typed, and ends the rename. The sketch, the focus, the folder the user selected and the closed folders move together, and the tab of the problems panel stays; the folders above the new path open, so that the node shows where it went.
  * @param state The state before.
  * @param path The path of the node.
@@ -328,7 +406,7 @@ export function renameNode(
     return result;
   }
 
-  const { focus: openNode, pickedFolder } = state;
+  const { focus: openNode, pickedFolder, highlight } = state;
   const newPath = result.path;
   const move = (moved: string): string => movePath(moved, path, newPath);
 
@@ -337,10 +415,19 @@ export function renameNode(
     state: {
       ...state,
       sketch: result.sketch,
-      focus:
-        openNode.kind === "file" && isSameOrInside(openNode.path, path)
-          ? { kind: "file", path: move(openNode.path) }
-          : openNode,
+      // The dependencies of a renamed file keep their order, so a dependency in focus keeps its index
+      focus: moveFocusPath(openNode, path, move),
+      highlight:
+        highlight !== undefined &&
+        isSameOrInside(highlight.dependency.path, path)
+          ? {
+              ...highlight,
+              dependency: {
+                ...highlight.dependency,
+                path: move(highlight.dependency.path),
+              },
+            }
+          : highlight,
       pickedFolder: pickedFolder === undefined ? undefined : move(pickedFolder),
       closedFolders: openAncestors(
         new Set(Array.from(state.closedFolders, move)),
@@ -352,7 +439,7 @@ export function renameNode(
 }
 
 /**
- * Removes a node and everything under it. What was inside it leaves the focus, the selection, the rename and the closed folders.
+ * Removes a node and everything under it. What was inside it leaves the focus, the selection, the rename and the closed folders. A dependency in focus follows its file, and its file takes the focus when only its target went.
  * @param state The state before.
  * @param path The path of the node.
  * @returns The state after, or the same one when there is no node at the path or without `editTree`.
@@ -365,24 +452,88 @@ export function removeNode(state: SessionState, path: string): SessionState {
   const isRemoved = (candidate: string | undefined): boolean =>
     candidate !== undefined && isSameOrInside(candidate, path);
 
-  return applyEdit(state, removeSketchNode(state.sketch, path), (sketch) => {
-    const removed: SessionState = {
-      ...state,
-      sketch,
-      pickedFolder: isRemoved(state.pickedFolder)
-        ? undefined
-        : state.pickedFolder,
-      renaming: isRemoved(state.renaming) ? undefined : state.renaming,
-      closedFolders: new Set(
-        Array.from(state.closedFolders).filter((folder) => !isRemoved(folder))
-      ),
-    };
-    const { focus: openNode } = state;
+  return applyEdit(state, removeSketchNode(state.sketch, path), (sketch) =>
+    followSketch(
+      {
+        ...state,
+        pickedFolder: isRemoved(state.pickedFolder)
+          ? undefined
+          : state.pickedFolder,
+        renaming: isRemoved(state.renaming) ? undefined : state.renaming,
+        closedFolders: new Set(
+          Array.from(state.closedFolders).filter((folder) => !isRemoved(folder))
+        ),
+      },
+      sketch
+    )
+  );
+}
 
-    return openNode.kind === "file" && isRemoved(openNode.path)
-      ? closeFocus(removed)
-      : removed;
-  });
+/**
+ * Adds a dependency at the end of the dependencies of its file, and puts it in focus: the file shows with the dependency selected, and the problems panel selects its tab.
+ * @param state The state before.
+ * @param dependency The dependency to add.
+ * @returns The state after, or the same one when the sketch refuses the dependency, such as one whose target is its own file, or without `editDependencies`.
+ */
+export function addDependency(
+  state: SessionState,
+  dependency: SketchDependency
+): SessionState {
+  if (!state.capabilities.editDependencies) {
+    return state;
+  }
+
+  return applyEdit(
+    state,
+    addSketchDependency(state.sketch, dependency),
+    (sketch) =>
+      openTarget(
+        { ...state, sketch },
+        {
+          kind: "dependency",
+          path: dependency.from,
+          index: getFileDependencies(sketch, dependency.from).length - 1,
+        }
+      )
+  );
+}
+
+/**
+ * Replaces a dependency with another one of the same file, in the same position. It stays in focus if it was.
+ * @param state The state before.
+ * @param ref The file and the position of the dependency to replace.
+ * @param dependency The dependency that takes its place.
+ * @returns The state after, or the same one when the sketch refuses the edit, such as when there is no dependency at the position, or without `editDependencies`.
+ */
+export function replaceDependency(
+  state: SessionState,
+  ref: DependencyRef,
+  dependency: SketchDependency
+): SessionState {
+  return state.capabilities.editDependencies
+    ? applyEdit(
+        state,
+        replaceSketchDependency(state.sketch, ref, dependency),
+        (sketch) => followSketch(state, sketch)
+      )
+    : state;
+}
+
+/**
+ * Removes a dependency. The ones after it in its file move up one line, and a dependency in focus moves with them: the one in focus that is removed leaves its file in focus, and the problems panel selects the tab of the node.
+ * @param state The state before.
+ * @param ref The file and the position of the dependency to remove.
+ * @returns The state after, or the same one when there is no dependency at the position or without `editDependencies`.
+ */
+export function removeDependency(
+  state: SessionState,
+  ref: DependencyRef
+): SessionState {
+  return state.capabilities.editDependencies
+    ? applyEdit(state, removeSketchDependency(state.sketch, ref), (sketch) =>
+        followSketch(state, sketch)
+      )
+    : state;
 }
 
 /**
@@ -413,10 +564,29 @@ export function setTextDraft(state: SessionState, text: string): SessionState {
 }
 
 /**
- * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them.
+ * Keeps the dependencies of a sketch that the text of text mode does not decide: the ones whose file and whose node target are still files of the new tree, in their order. It is what a host that lets the user edit the tree but not the dependencies gets from the text, which can only add, rename and remove files.
+ * @param previous The sketch before the text was read, whose dependencies stay.
+ * @param read The sketch that the text made, whose tree says which files remain.
+ * @returns The sketch that the text made, with the dependencies of the previous one that still fit it.
+ */
+function keepDependencies(previous: Sketch, read: Sketch): Sketch {
+  const files = new Set(getFiles(read));
+
+  return {
+    ...read,
+    dependencies: previous.dependencies.filter(
+      ({ from, target }) =>
+        files.has(from) &&
+        (target.kind === "external" || files.has(target.path))
+    ),
+  };
+}
+
+/**
+ * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise the dependencies of the sketch stay as they were, as far as their files remain.
  * @param state The state before.
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
- * @returns The state after.
+ * @returns The state after. A dependency in focus follows its file, and the same index of the same file when the text rewrote the dependencies.
  */
 function readDraft(state: SessionState, settle: boolean): SessionState {
   const { textDraft } = state;
@@ -426,9 +596,12 @@ function readDraft(state: SessionState, settle: boolean): SessionState {
   }
 
   const result = fromText(textDraft, state.sketch);
-  const read = isSameProject(state.sketch, result.sketch)
+  const sketch = state.capabilities.editDependencies
+    ? result.sketch
+    : keepDependencies(state.sketch, result.sketch);
+  const read = isSameProject(state.sketch, sketch)
     ? state
-    : replaceSketch(state, result.sketch);
+    : followSketch(state, sketch);
 
   return settle && result.problems.length === 0
     ? { ...read, textDraft: undefined }
@@ -454,7 +627,7 @@ export function settleText(state: SessionState): SessionState {
 }
 
 /**
- * Selects a tab of the problems panel, and expands the panel: a tab that is pressed while the panel is collapsed is pressed to read it.
+ * Selects a tab of the problems panel, and expands the panel: a tab that is pressed while the panel is collapsed is pressed to read it. The sketch's and the node's tabs are accepted while a dependency is in focus, so that the user can read them without losing the dependency.
  * @param state The state before.
  * @param tab The tab.
  * @returns The state after.

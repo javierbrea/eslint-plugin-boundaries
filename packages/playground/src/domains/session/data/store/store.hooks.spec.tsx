@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { ProjectCapabilities } from "@/contract";
 
 import {
+  useAddDependency,
   useAddNode,
   useCancelRename,
   useCapabilities,
@@ -15,11 +16,14 @@ import {
   useFocus,
   useOpen,
   usePickedFolder,
+  usePolicyHighlight,
   useProblemsCollapsed,
   useReadText,
+  useRemoveDependency,
   useRemoveNode,
   useRenameNode,
   useRenaming,
+  useReplaceDependency,
   useReveal,
   useSelectItem,
   useSelectTab,
@@ -81,6 +85,7 @@ describe("store hooks", () => {
       ["useView", useView],
       ["useTextDraft", useTextDraft],
       ["useReveal", useReveal],
+      ["usePolicyHighlight", usePolicyHighlight],
       ["useProblemsCollapsed", useProblemsCollapsed],
       ["usePickedFolder", usePickedFolder],
       ["useClosedFolders", useClosedFolders],
@@ -94,6 +99,9 @@ describe("store hooks", () => {
       ["useRenameNode", useRenameNode],
       ["useCancelRename", useCancelRename],
       ["useRemoveNode", useRemoveNode],
+      ["useAddDependency", useAddDependency],
+      ["useReplaceDependency", useReplaceDependency],
+      ["useRemoveDependency", useRemoveDependency],
       ["useSetView", useSetView],
       ["useSetTextDraft", useSetTextDraft],
       ["useReadText", useReadText],
@@ -227,6 +235,18 @@ describe("store hooks", () => {
         { range: RANGE, key: 1 },
       ],
       [
+        "usePolicyHighlight",
+        usePolicyHighlight,
+        (store) =>
+          store.open({
+            kind: "config",
+            range: RANGE,
+            dependency: { path: "src/index.js", index: 0 },
+          }),
+        undefined,
+        { range: RANGE, dependency: { path: "src/index.js", index: 0 } },
+      ],
+      [
         "useProblemsCollapsed",
         useProblemsCollapsed,
         (store) => store.setProblemsCollapsed(true),
@@ -352,6 +372,17 @@ describe("store hooks", () => {
       ["useRenameNode", useRenameNode, (store) => store.renameNode],
       ["useCancelRename", useCancelRename, (store) => store.cancelRename],
       ["useRemoveNode", useRemoveNode, (store) => store.removeNode],
+      ["useAddDependency", useAddDependency, (store) => store.addDependency],
+      [
+        "useReplaceDependency",
+        useReplaceDependency,
+        (store) => store.replaceDependency,
+      ],
+      [
+        "useRemoveDependency",
+        useRemoveDependency,
+        (store) => store.removeDependency,
+      ],
       ["useSetView", useSetView, (store) => store.setView],
       ["useSetTextDraft", useSetTextDraft, (store) => store.setTextDraft],
       ["useReadText", useReadText, (store) => store.readText],
