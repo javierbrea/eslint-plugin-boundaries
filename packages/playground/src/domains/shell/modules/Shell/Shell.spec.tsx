@@ -60,6 +60,19 @@ const WARNING_ONLY: Sketch = {
   ),
 };
 
+/** The additional dependency node of {@link WITH_ADDITIONAL_NODES}, as the config writes it */
+const ADDITIONAL_NODES =
+  '[{ selector: "ImportDeclaration > Literal", kind: "value", name: "custom" }]';
+
+/** The quick-start config with a valid additional dependency node, whose selector the playground does not run: one warning, at the setting, which is on line 8 */
+const WITH_ADDITIONAL_NODES: Sketch = {
+  ...QUICK_START,
+  config: QUICK_START.config.replace(
+    '    "boundaries/files": [',
+    `    "boundaries/additional-dependency-nodes": ${ADDITIONAL_NODES},\n    "boundaries/files": [`
+  ),
+};
+
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
 
@@ -780,6 +793,28 @@ describe("Shell", () => {
       expect(
         getProblemRow(shell, "eslint.config.js:5:7").locationWithPosition
       ).toBe("eslint.config.js:5:7");
+    });
+
+    it("should show the warning about the additional dependency nodes as any other warning: counted, listed and underlined at the setting", () => {
+      // Arrange
+      const { shell } = renderShell({ initialSketch: WITH_ADDITIONAL_NODES });
+
+      // Act
+      const row = getProblemRow(shell, "eslint.config.js:8:47");
+      row.press();
+
+      // Assert
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
+      expect(row.message).toBe(
+        'The playground does not run the selectors of "boundaries/additional-dependency-nodes". A statement that only one of them reads is not checked as ESLint checks it: the playground reads a statement only through the built-in selectors of "boundaries/dependency-nodes".'
+      );
+      expect(row.meta).toBe(
+        "warning · settings › boundaries/additional-dependency-nodes"
+      );
+      expect(shell.node.config.editor.underlinedText("warning")).toBe(
+        ADDITIONAL_NODES
+      );
+      expect(shell.node.config.editor.underlinedText("error")).toBeNull();
     });
 
     it("should say that the rules are not evaluated while their options are invalid", () => {

@@ -1,4 +1,5 @@
 import { DEPENDENCY_NODE_KEYS_MAP } from "@boundaries/config";
+import type { DependenciesRuleOptionsNormalized } from "@boundaries/config";
 import { describeDependency, evaluateDependency } from "@boundaries/policies";
 
 import type { SketchDependency, SketchDependencySyntax } from "@/contract";
@@ -8,6 +9,7 @@ import type {
   DependenciesInput,
   DependencyJudgment,
 } from "./dependencies.types";
+import { getReadNodeKinds } from "./dependencyNodes";
 import type { DependencyResult, DependencyVerdict } from "./engine.types";
 
 /** The verdict of every dependency while none is evaluated */
@@ -40,24 +42,43 @@ function getSpecifiers({ syntax, specifiers }: SketchDependency): string[] {
 }
 
 /**
+ * Explains a custom message that renders to an empty text, for which ESLint stops with an error instead of reporting.
+ * @param options The options of the rule.
+ * @param policyIndex The index of the policy that decided the dependency, or `null` when the default did.
+ * @returns A sentence that names the template and where it is set: the message of the policy that decided when it has one, and otherwise the one of the rule options, as `@boundaries/policies` resolves it.
+ */
+function explainEmptyMessage(
+  options: DependenciesRuleOptionsNormalized,
+  policyIndex: number | null
+): string {
+  const policyMessage =
+    policyIndex === null ? undefined : options.policies[policyIndex].message;
+  const template = policyMessage ?? options.message;
+  const owner =
+    policyMessage === undefined
+      ? "the rule options"
+      : `the policy at index ${policyIndex}`;
+  return `The custom message ${JSON.stringify(template)} of ${owner} renders to an empty text for this dependency, and ESLint stops with an error when a rule reports a problem with no message.`;
+}
+
+/**
  * Decides a dependency as the `dependencies` rule does.
  * @param dependency The dependency.
  * @param source The source its statement writes.
  * @param judgment What the rule decides with.
  * @param judgment.settings
+ * @param judgment.readNodeKinds
  * @param judgment.rule
- * @returns Not checked when the plugin does not read its syntax or the rule skips it, and otherwise allowed or disallowed with the policy that decided. A custom message that fails to render makes it disallowed, with the error text and no policy.
+ * @returns Not checked when the plugin does not read its syntax or the rule skips it, and otherwise allowed or disallowed with the policy that decided. A custom message that fails to render makes it disallowed, with the error text and no policy. A custom message that renders to an empty text makes it disallowed too, with the policy that decided and a message that says so, because ESLint stops with an error when a rule reports a problem with no message, and the playground cannot stop.
  */
 function judge(
   dependency: SketchDependency,
   source: string,
-  { settings, rule }: DependencyJudgment
+  { settings, readNodeKinds, rule }: DependencyJudgment
 ): DependencyVerdict {
   const nodeKind = NODE_KINDS[dependency.syntax];
-  // The plugin only visits the syntaxes that `boundaries/dependency-nodes` selects
-  if (
-    !settings.dependencyNodes.some((selector) => selector.name === nodeKind)
-  ) {
+  // The playground reads a syntax only through the built-in selectors of `boundaries/dependency-nodes`
+  if (!readNodeKinds.has(nodeKind)) {
     return { status: "not-checked", reason: "not-read" };
   }
 
@@ -85,7 +106,10 @@ function judge(
       : {
           status: "disallowed",
           policy,
-          message: evaluation.message,
+          message:
+            evaluation.message === ""
+              ? explainEmptyMessage(rule.options, evaluation.policyIndex)
+              : evaluation.message,
           level: rule.level,
         };
   } catch (error) {
@@ -115,6 +139,7 @@ export function evaluateDependencies({
   rule,
 }: DependenciesInput): DependencyResult[] {
   const seen = new Map<string, number>();
+  const readNodeKinds = getReadNodeKinds(settings);
 
   return sketch.dependencies.map((dependency): DependencyResult => {
     const index = seen.get(dependency.from) ?? 0;
@@ -127,7 +152,7 @@ export function evaluateDependencies({
       verdict:
         rule === undefined
           ? NOT_EVALUATED
-          : judge(dependency, source, { settings, rule }),
+          : judge(dependency, source, { settings, readNodeKinds, rule }),
     };
   });
 }

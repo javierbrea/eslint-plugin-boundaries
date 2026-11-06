@@ -7,7 +7,6 @@ import type {
   FileCategorySummary,
   RuleSummary,
 } from "./engine.types";
-import { getEvaluatedRuleName } from "./evaluatedRule";
 import { getRangeOf } from "./locations";
 import type { SummariesInput } from "./summaries.types";
 import {
@@ -129,11 +128,10 @@ function countPolicies(entry: unknown): number {
 /**
  * Summarizes the rules of the plugin written in the config.
  * @param input What the summaries are built from.
- * @returns One summary per key of `rules` that has the prefix of the plugin, in the order they are written. A rule is valid when no error is about its entry: its options pass the schema, as ESLint checks them, and its severity and name are known. The one that the playground evaluates is marked.
+ * @returns One summary per key of `rules` that has the prefix of the plugin, in the order they are written. A rule is valid when no error is about its entry: its options pass the schema, as ESLint checks them, and its severity and name are known. The one that the playground evaluates, as `selectRule` chose it, is marked.
  */
 export function summarizeRules(input: SummariesInput): RuleSummary[] {
   const rules = asRecord(input.config.value[RULES_KEY]) ?? {};
-  const evaluatedName = getEvaluatedRuleName(input.config);
   return Object.entries(rules)
     .filter(([ruleName]) => ruleName.startsWith(`${PLUGIN_NAME}/`))
     .map(([ruleName, entry]) => {
@@ -142,7 +140,7 @@ export function summarizeRules(input: SummariesInput): RuleSummary[] {
         name: ruleName,
         policies: countPolicies(entry),
         valid: !hasErrorUnder(input.diagnostics, path),
-        evaluated: ruleName === evaluatedName,
+        evaluated: ruleName === input.evaluatedRuleName,
         range: getRangeOf(input.config.ast, path),
       };
     });

@@ -34,7 +34,11 @@ export type EvaluatedRule = {
   readonly defaultPolicy: PolicyRef;
 };
 
-/** The rule that decides the dependencies of a sketch, or why none does */
-export type RuleSelection =
+/** The rule that decides the dependencies of a sketch, or why none does, and the rule that was chosen either way */
+export type RuleSelection = {
+  /** The rule that was chosen: the first of `boundaries/dependencies` and the deprecated `boundaries/element-types` that is written and that ESLint runs, and when neither runs, the first that is written. `undefined` when neither is written. It is set whenever a rule is written, also while no dependency is evaluated, so that the rule that says why can be marked */
+  readonly ruleName: EvaluatedRuleName | undefined;
+} & (
   | { readonly rule: EvaluatedRule; readonly notEvaluated?: undefined }
-  | { readonly rule?: undefined; readonly notEvaluated: NotEvaluatedReason };
+  | { readonly rule?: undefined; readonly notEvaluated: NotEvaluatedReason }
+);

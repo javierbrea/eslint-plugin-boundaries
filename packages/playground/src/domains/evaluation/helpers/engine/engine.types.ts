@@ -46,6 +46,7 @@ export type ConfigProblem = {
   readonly path: readonly (string | number)[];
   /** The value at `path`; the parse position for a parse error */
   readonly range: TextRange;
+  /** `parse` for the problem of a text that is not one JSON5 object, and `config` for every other, such as the diagnostics of `@boundaries/config` and the warnings of the playground about what it does not run. No pane reads it */
   readonly source: "parse" | "config";
 };
 
@@ -100,7 +101,7 @@ export type RuleSummary = {
   readonly policies: number;
   /** Its options pass the rule schema, and the selector of every policy can be normalized */
   readonly valid: boolean;
-  /** Whether it is the rule whose dependencies the playground evaluates: `boundaries/dependencies` when it is written, and otherwise the deprecated `boundaries/element-types`. It says which rule is taken, not that its dependencies are evaluated: `Evaluation.notEvaluated` says when they are not, such as when the rule is off */
+  /** Whether it is the rule whose dependencies the playground evaluates: the first of `boundaries/dependencies` and the deprecated `boundaries/element-types` that is written and that ESLint runs, so `boundaries/dependencies` when both run, and when neither runs the first that is written, in that order. It says which rule is taken, not that its dependencies are evaluated: `Evaluation.notEvaluated` says when they are not, such as when the rule is off */
   readonly evaluated: boolean;
   readonly range: TextRange;
 };
@@ -142,7 +143,7 @@ export type DependencyVerdict =
       readonly status: "disallowed";
       /** The policy that disallowed it, or the default. It is `undefined` only when a custom message fails to render: `message` is then the error text, and nothing says which policy decided */
       readonly policy: PolicyRef | undefined;
-      /** The message that the plugin reports */
+      /** The message that the plugin reports. When a custom message fails to render, or renders to an empty text, it is the text that says so: ESLint stops with an error there instead of reporting */
       readonly message: string;
       /** `error` for the severity `error` of the rule, `warning` for `warn` */
       readonly level: "error" | "warning";
@@ -191,7 +192,7 @@ export type PolicySummary = {
 export type Evaluation = {
   readonly sketch: Sketch;
   readonly configParsed: boolean;
-  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, then an error at each descriptor that makes describing the files throw */
+  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node */
   readonly problems: readonly ConfigProblem[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;

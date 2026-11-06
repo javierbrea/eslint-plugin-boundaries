@@ -476,6 +476,34 @@ describe("configRows", () => {
       ]);
     });
 
+    it.each([
+      ["off", '"off"'],
+      ["written with only a severity", "[2]"],
+    ])(
+      "should list the policies of the deprecated rule, and say that the dependencies rule is not evaluated here, when the dependencies rule is %s",
+      (_title, entry) => {
+        // Arrange
+        const evaluation = evaluateConfig(`{
+        settings: {},
+        rules: {
+          "boundaries/dependencies": ${entry},
+          "boundaries/element-types": [2, { default: "disallow", rules: [{ from: "a", allow: ["b"] }] }],
+        },
+      }`);
+
+        // Act
+        const rows = getPoliciesRows(evaluation);
+
+        // Assert
+        expect(evaluation.notEvaluated).toBeUndefined();
+        expect(readRows(rows)).toEqual([
+          "boundaries/dependencies | not evaluated here",
+          "0 · a → b | 0 dependencies",
+          "default · disallow | 0 dependencies",
+        ]);
+      }
+    );
+
     it("should say that the evaluated rule is not evaluated while its options are invalid, as before", () => {
       // Arrange
       const config = QUICK_START.config.replace(

@@ -18,5 +18,7 @@ export type DependenciesInput = {
 /** What the rule decides a dependency with */
 export type DependencyJudgment = {
   readonly settings: SettingsNormalized;
+  /** The node kinds whose syntaxes the playground reads, from the built-in selectors of the settings */
+  readonly readNodeKinds: ReadonlySet<string>;
   readonly rule: EvaluatedRule;
 };

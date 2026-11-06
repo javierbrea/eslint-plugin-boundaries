@@ -506,6 +506,149 @@ describe("Dependencies", () => {
       });
     });
 
+    describe("when boundaries/additional-dependency-nodes has selectors", () => {
+      // With these nodes ESLint 9.39.5 reports the `import` of a helper file and not its `require()` call, which it never visits: the selector of the additional node is not one that reads a `require()` call, whatever its name is (measured on 2026-11-06 with the workspace build of `@boundaries/eslint-plugin` 7.4.2)
+      const OTHER_SELECTOR_SETTINGS = {
+        ...SETTINGS,
+        "boundaries/dependency-nodes": ["import"],
+        "boundaries/additional-dependency-nodes": [
+          {
+            selector: "CallExpression[callee.name='jest.mock'] > Literal",
+            kind: "value",
+            name: "require",
+          },
+        ],
+      };
+
+      it("should not read a syntax through an additional selector that has the name of its node kind but is not a built-in one", () => {
+        // Act
+        const verdict = verdictOf(
+          QUICK_START_RULE,
+          dependencyOn(FORMAT, BUTTON, { syntax: "require" }),
+          OTHER_SELECTOR_SETTINGS
+        );
+
+        // Assert
+        expect(verdict).toEqual({ status: "not-checked", reason: "not-read" });
+      });
+
+      it("should keep reading the syntaxes that the setting selects", () => {
+        // Act
+        const verdict = verdictOf(
+          QUICK_START_RULE,
+          dependencyOn(FORMAT, BUTTON),
+          OTHER_SELECTOR_SETTINGS
+        );
+
+        // Assert
+        expect(verdict.status).toBe("disallowed");
+      });
+
+      it.each<[SketchDependencySyntax, string, string]>([
+        [
+          "import",
+          "ImportDeclaration:not([importKind=type]) > Literal",
+          "import",
+        ],
+        [
+          "export-from",
+          "ExportNamedDeclaration:not([exportKind=type]) > Literal",
+          "export",
+        ],
+        ["require", "CallExpression[callee.name=require] > Literal", "require"],
+        [
+          "require",
+          "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
+          "require",
+        ],
+        ["dynamic-import", "ImportExpression > Literal", "dynamic-import"],
+      ])(
+        "should read the syntax %s through a built-in selector that an additional node repeats: %s",
+        (syntax, selector, nodeName) => {
+          // Arrange
+          const settings = {
+            ...SETTINGS,
+            "boundaries/dependency-nodes": [],
+            "boundaries/additional-dependency-nodes": [
+              { selector, kind: "value", name: nodeName },
+            ],
+          };
+
+          // Act
+          const verdict = verdictOf(
+            QUICK_START_RULE,
+            dependencyOn(FORMAT, BUTTON, { syntax }),
+            settings
+          );
+
+          // Assert
+          expect(verdict.status).toBe("disallowed");
+        }
+      );
+
+      it("should read only the syntax of the built-in selector that an additional node repeats", () => {
+        // Arrange
+        const input = createInput(
+          {
+            settings: {
+              ...SETTINGS,
+              "boundaries/dependency-nodes": [],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector: "CallExpression[callee.name=require] > Literal",
+                  kind: "value",
+                  name: "require",
+                },
+              ],
+            },
+            rules: { "boundaries/dependencies": QUICK_START_RULE },
+          },
+          [
+            dependencyOn(FORMAT, BUTTON, { syntax: "import" }),
+            dependencyOn(FORMAT, BUTTON, { syntax: "export-from" }),
+            dependencyOn(FORMAT, BUTTON, { syntax: "require" }),
+            dependencyOn(FORMAT, BUTTON, { syntax: "dynamic-import" }),
+          ]
+        );
+
+        // Act
+        const results = evaluateDependencies(input);
+
+        // Assert
+        expect(results.map(({ verdict }) => verdict.status)).toEqual([
+          "not-checked",
+          "not-checked",
+          "disallowed",
+          "not-checked",
+        ]);
+      });
+
+      it("should not read a syntax through a built-in selector that an additional node gives another name", () => {
+        // Arrange
+        const settings = {
+          ...SETTINGS,
+          "boundaries/dependency-nodes": [],
+          "boundaries/additional-dependency-nodes": [
+            {
+              selector: "CallExpression[callee.name=require] > Literal",
+              kind: "value",
+              name: "custom",
+            },
+          ],
+        };
+
+        // Act
+        const verdict = verdictOf(
+          QUICK_START_RULE,
+          dependencyOn(FORMAT, BUTTON, { syntax: "require" }),
+          settings
+        );
+
+        // Assert
+        expect(verdict).toEqual({ status: "not-checked", reason: "not-read" });
+      });
+    });
+
     describe("with the severity of the rule", () => {
       it.each([
         [2, "error"],
@@ -643,6 +786,205 @@ describe("Dependencies", () => {
           ),
           level: "warning",
         });
+      });
+    });
+
+    describe("with a custom message that renders to an empty text", () => {
+      // ESLint 9.39.5 stops the lint with "Missing `message` property in report() call; add a message that describes the linting problem." when a message renders to an empty text, whether the rule or the policy sets it (measured on 2026-11-06 with the workspace build of `@boundaries/eslint-plugin` 7.4.2). A helper has no parents, so its first parent has no type
+      const EMPTY = "{{from.element.parents.[0].type}}";
+
+      it("should disallow with a message that says the rule options render it empty, and keep the policy that decided", () => {
+        // Arrange
+        const rule = [2, { default: "disallow", message: EMPTY, policies: [] }];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(FORMAT, BUTTON));
+
+        // Assert
+        expect(verdict).toEqual({
+          status: "disallowed",
+          policy: { index: null, range: expect.any(Object) },
+          message:
+            'The custom message "{{from.element.parents.[0].type}}" of the rule options renders to an empty text for this dependency, and ESLint stops with an error when a rule reports a problem with no message.',
+          level: "error",
+        });
+      });
+
+      it("should disallow with a message that says the policy renders it empty, and keep that policy", () => {
+        // Arrange
+        const rule = [
+          2,
+          {
+            default: "allow",
+            policies: [
+              {
+                disallow: { to: { file: { categories: "test" } } },
+                message: EMPTY,
+              },
+            ],
+          },
+        ];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(CHECKOUT, SPEC));
+
+        // Assert
+        expect(verdict).toEqual({
+          status: "disallowed",
+          policy: { index: 0, range: expect.any(Object) },
+          message:
+            'The custom message "{{from.element.parents.[0].type}}" of the policy at index 0 renders to an empty text for this dependency, and ESLint stops with an error when a rule reports a problem with no message.',
+          level: "error",
+        });
+      });
+
+      it("should name the policy that sets the message and not the rule options, which set one too", () => {
+        // Arrange
+        const rule = [
+          2,
+          {
+            default: "disallow",
+            message: "Never import {{ to.element.types.[0] }}",
+            policies: [
+              {
+                disallow: { to: { file: { categories: "test" } } },
+                message: EMPTY,
+              },
+            ],
+          },
+        ];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(CHECKOUT, SPEC));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: 0 },
+          message:
+            'The custom message "{{from.element.parents.[0].type}}" of the policy at index 0 renders to an empty text for this dependency, and ESLint stops with an error when a rule reports a problem with no message.',
+        });
+      });
+
+      it("should name the rule options when the policy that decided sets no message", () => {
+        // Arrange
+        const rule = disallowing(
+          { to: { file: { categories: "test" } } },
+          { message: EMPTY }
+        );
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(CHECKOUT, SPEC));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: 0 },
+          message: expect.stringContaining(
+            "of the rule options renders to an empty text"
+          ),
+        });
+      });
+
+      it("should name the rule options when the default decided, even if a policy sets an empty message", () => {
+        // Arrange
+        const rule = [
+          2,
+          {
+            default: "disallow",
+            message: EMPTY,
+            policies: [
+              {
+                disallow: { to: { file: { categories: "test" } } },
+                message: EMPTY,
+              },
+            ],
+          },
+        ];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(FORMAT, BUTTON));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: null },
+          message: expect.stringContaining(
+            "of the rule options renders to an empty text"
+          ),
+        });
+      });
+
+      it("should give the level of the severity to the verdict", () => {
+        // Arrange
+        const rule = [1, { default: "disallow", message: EMPTY, policies: [] }];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(FORMAT, BUTTON));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          level: "warning",
+          message: expect.stringContaining("renders to an empty text"),
+        });
+      });
+
+      it("should keep the message of a policy that renders text, as the plugin reports it", () => {
+        // Arrange
+        const rule = [
+          2,
+          {
+            default: "allow",
+            message: EMPTY,
+            policies: [
+              {
+                disallow: { to: { file: { categories: "test" } } },
+                message:
+                  "Never import test files from {{ from.element.types.[0] }}s",
+              },
+            ],
+          },
+        ];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(CHECKOUT, SPEC));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: 0 },
+          message: "Never import test files from modules",
+        });
+      });
+
+      it("should keep a message that renders only white space, which ESLint reports", () => {
+        // Arrange
+        const rule = [
+          2,
+          { default: "disallow", message: `  ${EMPTY}  `, policies: [] },
+        ];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(FORMAT, BUTTON));
+
+        // Assert
+        expect(verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: null },
+          message: "    ",
+        });
+      });
+
+      it("should not look at the message of a dependency the rule allows", () => {
+        // Arrange
+        const rule = [2, { default: "allow", message: EMPTY, policies: [] }];
+
+        // Act
+        const verdict = verdictOf(rule, dependencyOn(FORMAT, BUTTON));
+
+        // Assert
+        expect(verdict).toMatchObject({ status: "allowed" });
       });
     });
 

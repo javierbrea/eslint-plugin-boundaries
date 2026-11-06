@@ -1,6 +1,6 @@
 import { areRulesValid } from "./diagnostics";
 import type { TextRange } from "./engine.types";
-import { getEvaluatedRuleName, selectRule } from "./evaluatedRule";
+import { selectRule } from "./evaluatedRule";
 import type { RuleSelection } from "./evaluatedRule.types";
 import { normalizeConfigSafely } from "./normalizeConfigSafely";
 import { parseConfig } from "./parseConfig";
@@ -62,68 +62,6 @@ const POLICIES_CONFIG = `{
 }`;
 
 describe("EvaluatedRule", () => {
-  describe("getEvaluatedRuleName", () => {
-    it.each([
-      [
-        "only the dependencies rule",
-        '{ rules: { "boundaries/dependencies": 2 } }',
-        "boundaries/dependencies",
-      ],
-      [
-        "only the deprecated rule",
-        '{ rules: { "boundaries/element-types": 2 } }',
-        "boundaries/element-types",
-      ],
-      [
-        "both, written in the order of the deprecated one first",
-        '{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": 0 } }',
-        "boundaries/dependencies",
-      ],
-      [
-        "the dependencies rule with options that fail its schema, which the normalized config leaves out",
-        '{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": [2, { default: "maybe" }] } }',
-        "boundaries/dependencies",
-      ],
-    ])(
-      "should choose the dependencies rule when it is written: %s",
-      (_title, text, expected) => {
-        // Arrange
-        const config = read(text);
-
-        // Act
-        const ruleName = getEvaluatedRuleName(config);
-
-        // Assert
-        expect(ruleName).toBe(expected);
-      }
-    );
-
-    it.each([
-      ["no rules", "{}"],
-      [
-        "rules that are not an object",
-        '{ rules: ["boundaries/dependencies"] }',
-      ],
-      [
-        "rules of the plugin that are not those",
-        '{ rules: { "boundaries/no-private": 2, "boundaries/external": 2 } }',
-      ],
-      [
-        "the rules of another plugin",
-        '{ rules: { "other/dependencies": 2, "import/no-cycle": 2 } }',
-      ],
-    ])("should choose none for %s", (_title, text) => {
-      // Arrange
-      const config = read(text);
-
-      // Act
-      const ruleName = getEvaluatedRuleName(config);
-
-      // Assert
-      expect(ruleName).toBeUndefined();
-    });
-  });
-
   describe("selectRule", () => {
     it.each([
       [
@@ -143,7 +81,10 @@ describe("EvaluatedRule", () => {
       const selection = select(text);
 
       // Assert
-      expect(selection).toEqual({ notEvaluated: "rules-invalid" });
+      expect(selection).toEqual({
+        ruleName: "boundaries/dependencies",
+        notEvaluated: "rules-invalid",
+      });
     });
 
     it("should say that the rules are invalid before it looks for the rule", () => {
@@ -151,7 +92,10 @@ describe("EvaluatedRule", () => {
       const selection = select('{ rules: { "boundaries/no-private": "on" } }');
 
       // Assert
-      expect(selection).toEqual({ notEvaluated: "rules-invalid" });
+      expect(selection).toEqual({
+        ruleName: undefined,
+        notEvaluated: "rules-invalid",
+      });
     });
 
     it.each([
@@ -171,7 +115,10 @@ describe("EvaluatedRule", () => {
         const selection = select(text);
 
         // Assert
-        expect(selection).toEqual({ notEvaluated: "no-rule" });
+        expect(selection).toEqual({
+          ruleName: undefined,
+          notEvaluated: "no-rule",
+        });
       }
     );
 
@@ -196,7 +143,10 @@ describe("EvaluatedRule", () => {
         );
 
         // Assert
-        expect(selection).toEqual({ notEvaluated: "rule-off" });
+        expect(selection).toEqual({
+          ruleName: "boundaries/dependencies",
+          notEvaluated: "rule-off",
+        });
       }
     );
 
@@ -205,17 +155,10 @@ describe("EvaluatedRule", () => {
       const selection = select('{ rules: { "boundaries/element-types": 0 } }');
 
       // Assert
-      expect(selection).toEqual({ notEvaluated: "rule-off" });
-    });
-
-    it("should say that the dependencies rule is off even when the deprecated rule is on, because it is the one that is evaluated", () => {
-      // Act
-      const selection = select(
-        '{ rules: { "boundaries/element-types": [2, {}], "boundaries/dependencies": 0 } }'
-      );
-
-      // Assert
-      expect(selection).toEqual({ notEvaluated: "rule-off" });
+      expect(selection).toEqual({
+        ruleName: "boundaries/element-types",
+        notEvaluated: "rule-off",
+      });
     });
 
     it.each([
@@ -231,7 +174,10 @@ describe("EvaluatedRule", () => {
         );
 
         // Assert
-        expect(selection).toEqual({ notEvaluated: "no-options" });
+        expect(selection).toEqual({
+          ruleName: "boundaries/dependencies",
+          notEvaluated: "no-options",
+        });
       }
     );
 
@@ -381,6 +327,174 @@ describe("EvaluatedRule", () => {
 
       // Assert
       expect(rule?.options.default).toBe("disallow");
+    });
+
+    describe("the rule it chooses", () => {
+      const ELEMENT_TYPES_ENTRY =
+        '[2, { default: "disallow", rules: [{ from: "a", allow: "b" }] }]';
+
+      it.each([
+        [
+          "only the dependencies rule",
+          '{ rules: { "boundaries/dependencies": 2 } }',
+          "boundaries/dependencies",
+        ],
+        [
+          "only the deprecated rule",
+          '{ rules: { "boundaries/element-types": 2 } }',
+          "boundaries/element-types",
+        ],
+        [
+          "both, written in the order of the deprecated one first",
+          '{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": 0 } }',
+          "boundaries/dependencies",
+        ],
+        [
+          "the dependencies rule with options that fail its schema, which the normalized config leaves out",
+          '{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": [2, { default: "maybe" }] } }',
+          "boundaries/dependencies",
+        ],
+      ])(
+        "should choose the dependencies rule when it is written and no rule runs: %s",
+        (_title, text, expected) => {
+          // Act
+          const { ruleName } = select(text);
+
+          // Assert
+          expect(ruleName).toBe(expected);
+        }
+      );
+
+      it.each([
+        ["no rules", "{}"],
+        [
+          "rules that are not an object",
+          '{ rules: ["boundaries/dependencies"] }',
+        ],
+        [
+          "rules of the plugin that are not those",
+          '{ rules: { "boundaries/no-private": 2, "boundaries/external": 2 } }',
+        ],
+        [
+          "the rules of another plugin",
+          '{ rules: { "other/dependencies": 2, "import/no-cycle": 2 } }',
+        ],
+      ])("should choose none for %s", (_title, text) => {
+        // Act
+        const { ruleName } = select(text);
+
+        // Assert
+        expect(ruleName).toBeUndefined();
+      });
+
+      it("should choose the dependencies rule when both run", () => {
+        // Act
+        const { ruleName } = select(`{
+  rules: {
+    "boundaries/element-types": ${ELEMENT_TYPES_ENTRY},
+    "boundaries/dependencies": [2, { default: "allow" }],
+  },
+}`);
+
+        // Assert
+        expect(ruleName).toBe("boundaries/dependencies");
+      });
+
+      it.each([
+        ["off", '"off"'],
+        ["off by its number", "0"],
+        ["off with options", '["off", { default: "allow" }]'],
+        [
+          "off with options that fail the schema, as ESLint does not validate them",
+          '["off", { default: "maybe" }]',
+        ],
+        [
+          "off with a policy that cannot be normalized, which the normalized rules leave out",
+          '["off", { policies: [{ disallow: {} }] }]',
+        ],
+        ["a severity alone", "2"],
+        ["a list with only the severity", "[1]"],
+      ])(
+        "should choose the deprecated rule, and place its policies, when the dependencies rule is %s",
+        (_title, entry) => {
+          // Arrange
+          const text = `{
+  rules: {
+    "boundaries/dependencies": ${entry},
+    "boundaries/element-types": ${ELEMENT_TYPES_ENTRY},
+  },
+}`;
+
+          // Act
+          const { ruleName, rule, notEvaluated } = select(text);
+
+          // Assert
+          expect(ruleName).toBe("boundaries/element-types");
+          expect(notEvaluated).toBeUndefined();
+          expect(rule?.options.default).toBe("disallow");
+          expect(slice(text, rule!.policies[0].range)).toBe(
+            '{ from: "a", allow: "b" }'
+          );
+        }
+      );
+
+      it("should choose the deprecated rule when it is written before the dependencies rule, which is off", () => {
+        // Act
+        const { ruleName, rule } = select(
+          `{ rules: { "boundaries/element-types": ${ELEMENT_TYPES_ENTRY}, "boundaries/dependencies": 0 } }`
+        );
+
+        // Assert
+        expect(ruleName).toBe("boundaries/element-types");
+        expect(rule?.level).toBe("error");
+      });
+
+      it("should keep the dependencies rule, and the reason it is not evaluated, when the deprecated rule is off or has no options", () => {
+        // Arrange
+        const texts = [
+          '{ rules: { "boundaries/dependencies": 0, "boundaries/element-types": "off" } }',
+          '{ rules: { "boundaries/dependencies": 0, "boundaries/element-types": 2 } }',
+          '{ rules: { "boundaries/dependencies": 2, "boundaries/element-types": "off" } }',
+          '{ rules: { "boundaries/element-types": [1], "boundaries/dependencies": "error" } }',
+        ];
+
+        // Act
+        const selections = texts.map(select);
+
+        // Assert
+        expect(selections).toEqual([
+          { ruleName: "boundaries/dependencies", notEvaluated: "rule-off" },
+          { ruleName: "boundaries/dependencies", notEvaluated: "rule-off" },
+          { ruleName: "boundaries/dependencies", notEvaluated: "no-options" },
+          { ruleName: "boundaries/dependencies", notEvaluated: "no-options" },
+        ]);
+      });
+
+      it("should keep the dependencies rule when the rules are invalid, because ESLint runs none of them", () => {
+        // Act
+        const selection = select(
+          `{ rules: { "boundaries/dependencies": [2, { default: "maybe" }], "boundaries/element-types": ${ELEMENT_TYPES_ENTRY} } }`
+        );
+
+        // Assert
+        expect(selection).toEqual({
+          ruleName: "boundaries/dependencies",
+          notEvaluated: "rules-invalid",
+        });
+      });
+
+      it("should keep the deprecated rule when the rules are invalid and it is the only one written", () => {
+        // Act
+        const selection = select(
+          '{ rules: { "boundaries/element-types": [2, { default: "maybe" }] } }'
+        );
+
+        // Assert
+        expect(selection).toEqual({
+          ruleName: "boundaries/element-types",
+          notEvaluated: "rules-invalid",
+        });
+      });
     });
   });
 });

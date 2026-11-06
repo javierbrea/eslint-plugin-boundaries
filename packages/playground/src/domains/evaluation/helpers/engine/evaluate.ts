@@ -4,6 +4,7 @@ import type { Sketch } from "@/contract";
 import { getFiles } from "@/domains/project/helpers/sketch";
 
 import { evaluateDependencies } from "./dependencies";
+import { getAdditionalNodesProblems } from "./dependencyNodes";
 import { describeFiles } from "./describeFiles";
 import { areRulesValid, toConfigProblems } from "./diagnostics";
 import type { Engine, Evaluation } from "./engine.types";
@@ -34,7 +35,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
       normalized: normalizeConfig({ settings: {}, rules: {} }),
       problems: parsed.problems,
       rulesValid: true,
-      selection: { notEvaluated: "config-unparsed" },
+      selection: { ruleName: undefined, notEvaluated: "config-unparsed" },
     };
   }
   // A policy half typed in the editor makes `normalizeConfig` throw, which would break the panes. The playground is the host that resolves the root path, as the plugin does for ESLint
@@ -53,6 +54,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
     problems: [
       ...parsed.problems,
       ...toConfigProblems(normalized.diagnostics, parsed.ast),
+      ...getAdditionalNodesProblems(parsed, normalized.value.settings),
     ],
     rulesValid,
     selection: selectRule({
@@ -111,6 +113,7 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
     settings,
     diagnostics: normalized.diagnostics,
     described,
+    evaluatedRuleName: selection.ruleName,
   };
 
   return {
