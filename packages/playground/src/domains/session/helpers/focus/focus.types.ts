@@ -19,7 +19,7 @@ export type Target =
   | {
       readonly kind: "config";
       readonly range?: TextRange;
-      /** The index of the policy that the range holds in the options of the rule, or `null` for the default. It travels with the range because the range moves when the user edits the config, and the index is what the note names. */
+      /** The index of the policy that the range holds in the options of the rule, or `null` for the default. The note names it, and the store finds it again after each evaluation of the config, from where the range of the highlight starts. */
       readonly policy?: number | null;
       /** The dependency that `Open policy in config` came from. */
       readonly dependency?: DependencyRef;
@@ -49,10 +49,10 @@ export type ConfigReveal = {
 
 /** The policy of the config that the user opened from a dependency: its range stays marked in the editor while the config is in focus, and the note of the problems panel says where it came from. */
 export type PolicyHighlight = {
-  /** Where the policy was written in the config text when it was opened. */
+  /** Where the policy is written in the config text now. The editor moves it with each edit of the user and reports it with the text, so that it keeps pointing at the same text. */
   readonly range: TextRange;
-  /** The index of the policy in the options of the rule, or `null` for the default. */
-  readonly policy: number | null;
+  /** The index of the policy in the options of the rule, or `null` for the default. It is `undefined` when it is not known: no policy of the evaluation starts where the range starts, such as when the user edited the policy until it is not one, and the note leaves the number out. While the evaluation is behind the text, it is the one the last evaluation found. */
+  readonly policy: number | null | undefined;
   /** The dependency that `Open policy in config` came from. */
   readonly dependency: DependencyRef;
 };

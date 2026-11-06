@@ -851,6 +851,34 @@ describe("problemItems", () => {
         expect(content.empty).toBe("No problems in the config.");
       });
 
+      it("should leave the number out when no policy of the evaluation starts at the highlighted range", () => {
+        // Act
+        const content = toProblemListContent({
+          ...CONFIG_FACTS,
+          highlight: { ...HIGHLIGHT, policy: undefined },
+        });
+
+        // Assert
+        expect(content.notes).toEqual([
+          "No problems in the config. A policy is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.",
+        ]);
+        expect(content.empty).toBeUndefined();
+      });
+
+      it("should leave the number out after the problems of the config too", () => {
+        // Act
+        const content = toProblemListContent({
+          ...CONFIG_FACTS,
+          configProblems: [INVALID_OPTIONS],
+          highlight: { ...HIGHLIGHT, policy: undefined },
+        });
+
+        // Assert
+        expect(content.notes).toEqual([
+          "A policy is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.",
+        ]);
+      });
+
       it("should come after the note about dependencies that are not evaluated", () => {
         // Act
         const content = toProblemListContent({

@@ -6,4 +6,10 @@ export type {
   ProjectView,
   Target,
 } from "./focus.types";
-export { getFocusedPath, moveFocus, moveHighlight } from "./focus";
+export {
+  findHighlightPolicy,
+  getFocusedPath,
+  moveFocus,
+  moveHighlight,
+  moveHighlightRange,
+} from "./focus";

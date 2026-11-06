@@ -191,7 +191,7 @@ export function useToggleFolder(): SessionStore["toggleFolder"] {
 }
 
 /**
- * Gets the command that replaces the config text.
+ * Gets the command that replaces the config text, with where the highlighted policy is after an edit of the editor.
  * @returns The stable method of the store.
  */
 export function useChangeConfig(): SessionStore["changeConfig"] {

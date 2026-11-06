@@ -30,7 +30,9 @@ import {
   toDiagnostics,
 } from "@/domains/config/ui/helpers/editorDiagnostics";
 import {
+  getHighlightRange,
   highlightExtension,
+  highlightRangeField,
   setHighlight,
 } from "@/domains/config/ui/helpers/editorHighlight";
 import {
@@ -76,11 +78,11 @@ const EXTENSIONS: Extension[] = [
  * The editor of the config node: JSON5 in a code area, with the problems of the config underlined at their ranges, marked in the gutter and explained on hover. With a snapshot, it opens as it was left: the main loop of the playground is to edit the config, check a file and go back, and the undo history must survive it.
  * @param props Editor props.
  * @param props.value The config text.
- * @param props.onChange Called with the text after each edit of the user.
+ * @param props.onChange Called with the text and with where the highlight is after each edit of the user.
  * @param props.problems The problems to show.
  * @param props.label The accessible name of the editor.
  * @param props.readOnly Whether the text cannot be edited.
- * @param props.highlight The lines to mark.
+ * @param props.highlight The range to mark.
  * @param props.reveal The range to scroll to.
  * @param props.snapshot Where the editor leaves its state when it unmounts and starts from when it mounts.
  * @returns The editor, as tall as its container.
@@ -124,7 +126,10 @@ export function ConfigEditor({
             transaction.annotation(FROM_PROPS)
           );
           if (update.docChanged && !fromProps) {
-            onChangeRef.current(update.state.doc.toString());
+            onChangeRef.current(
+              update.state.doc.toString(),
+              getHighlightRange(update.state)
+            );
           }
         })
       ),
@@ -175,7 +180,13 @@ export function ConfigEditor({
   const highlightFrom = highlight?.from;
   const highlightTo = highlight?.to;
   useEffect(() => {
-    viewRef.current?.dispatch({
+    const view = viewRef.current;
+    const marked = view?.state.field(highlightRangeField);
+    // The range the editor reported with an edit comes back as the prop, and the editor already has it: setting it again would only repeat a transaction
+    if (marked?.from === highlightFrom && marked?.to === highlightTo) {
+      return;
+    }
+    view?.dispatch({
       effects: setHighlight.of(
         highlightFrom === undefined || highlightTo === undefined
           ? undefined

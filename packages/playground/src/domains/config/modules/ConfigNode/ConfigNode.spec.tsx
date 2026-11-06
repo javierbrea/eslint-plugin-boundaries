@@ -235,6 +235,98 @@ describe("ConfigNode", () => {
       expect(node.editor.highlightedLines).toEqual([]);
     });
 
+    describe("after the user edits the config", () => {
+      /**
+       * Renders the node with the third policy highlighted.
+       * @returns What {@link renderNode} returns.
+       */
+      function renderHighlighted(): NodeRender {
+        const render = renderNode();
+
+        act(() =>
+          render.store.open({
+            kind: "config",
+            range: TEST_POLICY_RANGE,
+            policy: 2,
+            dependency: { path: FILE, index: 2 },
+          })
+        );
+
+        return render;
+      }
+
+      it("should move the range of the highlight in the store with the text, in the same change", () => {
+        // Arrange
+        const { node, store } = renderHighlighted();
+
+        // Act
+        node.editor.typeAt(0, "// note\n");
+
+        // Assert
+        const { sketch, highlight } = store.getState();
+
+        expect(sketch.config).toBe(`// note\n${QUICK_START.config}`);
+        expect(highlight).toEqual({
+          range: {
+            ...TEST_POLICY_RANGE,
+            from: TEST_POLICY_RANGE.from + 8,
+            to: TEST_POLICY_RANGE.to + 8,
+            line: TEST_POLICY_RANGE.line + 1,
+          },
+          policy: 2,
+          dependency: { path: FILE, index: 2 },
+        });
+      });
+
+      it("should keep the same lines marked, and not dispatch again to set them", () => {
+        // Arrange
+        const { node } = renderHighlighted();
+        const marked = node.editor.highlightedLineTexts;
+        const recording = node.editor.recordDispatches();
+
+        // Act
+        node.editor.typeAt(0, "// note\n");
+
+        // Assert
+        expect(node.editor.highlightedLineTexts).toEqual(marked);
+        expect(node.editor.highlightedLines).toEqual([
+          TEST_POLICY_RANGE.line + 1,
+          TEST_POLICY_RANGE.line + 2,
+          TEST_POLICY_RANGE.line + 3,
+          TEST_POLICY_RANGE.line + 4,
+        ]);
+        expect(recording.count).toBe(1);
+        expect(recording.hasEffects).toBe(false);
+      });
+
+      it("should drop the highlight of the store when the user deletes the policy", () => {
+        // Arrange
+        const { node, store } = renderHighlighted();
+
+        // Act
+        node.editor.replaceText(
+          TEST_POLICY_RANGE.from,
+          TEST_POLICY_RANGE.to,
+          ""
+        );
+
+        // Assert
+        expect(store.getState().highlight).toBeUndefined();
+        expect(node.editor.highlightedLines).toEqual([]);
+      });
+
+      it("should have no highlight in the store for an edit when none was opened", () => {
+        // Arrange
+        const { node, store } = renderNode();
+
+        // Act
+        node.editor.typeAt(0, "// note\n");
+
+        // Assert
+        expect(store.getState().highlight).toBeUndefined();
+      });
+    });
+
     it("should mark no line when the focus leaves the config", () => {
       // Arrange
       const { node, store } = renderNode();

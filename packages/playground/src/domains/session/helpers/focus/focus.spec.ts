@@ -1,7 +1,13 @@
 import type { Sketch, SketchDependency } from "@/contract";
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 
-import { getFocusedPath, moveFocus, moveHighlight } from "./focus";
+import {
+  findHighlightPolicy,
+  getFocusedPath,
+  moveFocus,
+  moveHighlight,
+  moveHighlightRange,
+} from "./focus";
 import type { Focus, PolicyHighlight } from "./focus.types";
 
 const RANGE: TextRange = { from: 10, to: 20, line: 2, column: 3 };
@@ -318,6 +324,99 @@ describe("focus", () => {
         expect(moved).toEqual(dependencyFocus("src/a.js", 2));
       });
 
+      it("should keep the focus on the line when a line before it was edited into what it says", () => {
+        // Arrange
+        const openNode = dependencyFocus("src/a.js", 1);
+        const sketch = after({
+          dependencies: [
+            rebuilt(A_TO_C),
+            rebuilt(A_TO_C),
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(openNode, BEFORE, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should keep the focus on the line when it was edited into what no line said before, though a later line says what it said", () => {
+        // Arrange
+        const twice: Sketch = {
+          ...BEFORE,
+          dependencies: [A_TO_B, A_TO_C, A_TO_B],
+        };
+        const openNode = dependencyFocus("src/a.js", 0);
+        const sketch: Sketch = {
+          ...twice,
+          dependencies: [
+            rebuilt(dependency("src/a.js", "src/d.js")),
+            rebuilt(A_TO_C),
+            rebuilt(A_TO_B),
+          ],
+        };
+
+        // Act
+        const moved = moveFocus(openNode, twice, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should keep the focus on the line when it was edited into what another line says and no line says what it said", () => {
+        // Arrange
+        const openNode = dependencyFocus("src/a.js", 0);
+        const sketch = after({
+          dependencies: [
+            rebuilt(A_TO_C),
+            rebuilt(A_TO_C),
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(openNode, BEFORE, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should keep the focus on the line when other lines were added and deleted and it stayed at its index", () => {
+        // Arrange
+        const openNode = dependencyFocus("src/a.js", 1);
+        const sketch = after({
+          dependencies: [rebuilt(A_TO_D), rebuilt(A_TO_C), rebuilt(B_TO_A)],
+        });
+
+        // Act
+        const moved = moveFocus(openNode, BEFORE, sketch);
+
+        // Assert
+        expect(moved).toBe(openNode);
+      });
+
+      it("should follow the dependency when two lines of its file were swapped", () => {
+        // Arrange
+        const sketch = after({
+          dependencies: [
+            rebuilt(A_TO_C),
+            rebuilt(A_TO_B),
+            rebuilt(B_TO_A),
+            rebuilt(A_TO_D),
+          ],
+        });
+
+        // Act
+        const moved = moveFocus(dependencyFocus("src/a.js", 0), BEFORE, sketch);
+
+        // Assert
+        expect(moved).toEqual(dependencyFocus("src/a.js", 1));
+      });
+
       it("should not move the focus for the lines that changed in another file", () => {
         // Arrange
         const openNode = dependencyFocus("src/a.js", 1);
@@ -602,6 +701,192 @@ describe("focus", () => {
 
       // Assert
       expect(moved).toBeUndefined();
+    });
+  });
+
+  describe("moveHighlightRange", () => {
+    const HIGHLIGHT: PolicyHighlight = {
+      range: RANGE,
+      policy: 2,
+      dependency: { path: "src/a.js", index: 2 },
+    };
+
+    const MOVED: TextRange = { from: 14, to: 24, line: 3, column: 3 };
+
+    it("should give nothing when there is no highlight, whatever the editor says", () => {
+      // Act
+      const results = [
+        moveHighlightRange(undefined, MOVED),
+        moveHighlightRange(undefined, null),
+        moveHighlightRange(undefined, undefined),
+      ];
+
+      // Assert
+      expect(results).toEqual([undefined, undefined, undefined]);
+    });
+
+    it("should keep the same highlight when the change did not come from the editor, which reports no range", () => {
+      // Act
+      const moved = moveHighlightRange(HIGHLIGHT, undefined);
+
+      // Assert
+      expect(moved).toBe(HIGHLIGHT);
+    });
+
+    it("should drop the highlight when the editor has none after the edit", () => {
+      // Act
+      const moved = moveHighlightRange(HIGHLIGHT, null);
+
+      // Assert
+      expect(moved).toBeUndefined();
+    });
+
+    it("should keep the same highlight when the editor reports the range it has", () => {
+      // Act
+      const moved = moveHighlightRange(HIGHLIGHT, { ...RANGE });
+
+      // Assert
+      expect(moved).toBe(HIGHLIGHT);
+    });
+
+    it.each<[string, Partial<TextRange>]>([
+      ["from", { from: RANGE.from + 4 }],
+      ["to", { to: RANGE.to + 4 }],
+      ["line", { line: RANGE.line + 1 }],
+      ["column", { column: RANGE.column + 1 }],
+    ])(
+      "should take the range of the editor when its %s is not the one the highlight has",
+      (_name, change) => {
+        // Act
+        const moved = moveHighlightRange(HIGHLIGHT, { ...RANGE, ...change });
+
+        // Assert
+        expect(moved).toEqual({ ...HIGHLIGHT, range: { ...RANGE, ...change } });
+      }
+    );
+
+    it("should keep the policy and the dependency of the highlight when it takes the range", () => {
+      // Act
+      const moved = moveHighlightRange(HIGHLIGHT, MOVED);
+
+      // Assert
+      expect(moved).toEqual({
+        range: MOVED,
+        policy: 2,
+        dependency: { path: "src/a.js", index: 2 },
+      });
+    });
+  });
+
+  describe("findHighlightPolicy", () => {
+    const HIGHLIGHT: PolicyHighlight = {
+      range: RANGE,
+      policy: 1,
+      dependency: { path: "src/a.js", index: 2 },
+    };
+
+    /**
+     * Builds a policy of an evaluation.
+     * @param index Its index in the options, or `null` for the default.
+     * @param from The offset it starts at.
+     * @returns The policy, whose range starts at the offset.
+     */
+    function policyAt(index: number | null, from: number) {
+      return { index, range: { ...RANGE, from, to: from + 30 } };
+    }
+
+    it("should give nothing when there is no highlight", () => {
+      // Act
+      const found = findHighlightPolicy(undefined, [policyAt(0, RANGE.from)]);
+
+      // Assert
+      expect(found).toBeUndefined();
+    });
+
+    it("should give the highlight the index of the policy that starts where its range starts", () => {
+      // Act
+      const found = findHighlightPolicy(HIGHLIGHT, [
+        policyAt(0, RANGE.from - 8),
+        policyAt(2, RANGE.from),
+        policyAt(null, RANGE.from + 40),
+      ]);
+
+      // Assert
+      expect(found).toEqual({ ...HIGHLIGHT, policy: 2 });
+    });
+
+    it("should give the highlight null when the default starts where its range starts", () => {
+      // Act
+      const found = findHighlightPolicy(HIGHLIGHT, [
+        policyAt(0, RANGE.from - 8),
+        policyAt(null, RANGE.from),
+      ]);
+
+      // Assert
+      expect(found).toEqual({ ...HIGHLIGHT, policy: null });
+    });
+
+    it("should give the highlight no index when no policy starts where its range starts", () => {
+      // Act
+      const found = findHighlightPolicy(HIGHLIGHT, [
+        policyAt(0, RANGE.from - 8),
+        policyAt(1, RANGE.from + 1),
+        policyAt(null, RANGE.from + 40),
+      ]);
+
+      // Assert
+      expect(found).toEqual({ ...HIGHLIGHT, policy: undefined });
+    });
+
+    it("should give the highlight no index when the evaluation has no policies", () => {
+      // Act
+      const found = findHighlightPolicy(HIGHLIGHT, []);
+
+      // Assert
+      expect(found).toEqual({ ...HIGHLIGHT, policy: undefined });
+    });
+
+    it("should find a policy again that the highlight did not know", () => {
+      // Arrange
+      const unknown: PolicyHighlight = { ...HIGHLIGHT, policy: undefined };
+
+      // Act
+      const found = findHighlightPolicy(unknown, [policyAt(3, RANGE.from)]);
+
+      // Assert
+      expect(found).toEqual({ ...HIGHLIGHT, policy: 3 });
+    });
+
+    it("should keep the same highlight when the index is the one it had", () => {
+      // Act
+      const found = findHighlightPolicy(HIGHLIGHT, [policyAt(1, RANGE.from)]);
+
+      // Assert
+      expect(found).toBe(HIGHLIGHT);
+    });
+
+    it("should keep the same highlight when the default is the policy it had", () => {
+      // Arrange
+      const byDefault: PolicyHighlight = { ...HIGHLIGHT, policy: null };
+
+      // Act
+      const found = findHighlightPolicy(byDefault, [
+        policyAt(null, RANGE.from),
+      ]);
+
+      // Assert
+      expect(found).toBe(byDefault);
+    });
+
+    it("should keep the same highlight when it had no index and no policy starts there", () => {
+      // Arrange
+      const unknown: PolicyHighlight = { ...HIGHLIGHT, policy: undefined };
+
+      // Act
+      const found = findHighlightPolicy(unknown, [policyAt(1, RANGE.from + 1)]);
+
+      // Assert
+      expect(found).toBe(unknown);
     });
   });
 });

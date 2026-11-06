@@ -1,6 +1,6 @@
 import type { Sketch, SketchDependency } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
-import type { Engine } from "@/domains/evaluation/helpers/engine";
+import type { Engine, TextRange } from "@/domains/evaluation/helpers/engine";
 
 import { createSessionStore } from "./store";
 import { EVALUATION_DELAY } from "./store.constants";
@@ -71,6 +71,36 @@ const OTHER_SKETCH: Sketch = {
   ...SKETCH,
   tree: [{ path: "main.js", kind: "file" }],
 };
+
+/** A config with two policies, one per line */
+const POLICY_CONFIG = [
+  "{",
+  '  settings: { "boundaries/elements": [{ type: "helper", pattern: "src/helpers/*" }] },',
+  "  rules: {",
+  '    "boundaries/dependencies": [2, {',
+  '      default: "disallow",',
+  "      policies: [",
+  '        { allow: { to: { element: { type: "helper" } } } },',
+  '        { disallow: { to: { file: { categories: "test" } } } },',
+  "      ],",
+  "    }],",
+  "  },",
+  "}",
+].join("\n");
+
+/** The policy that an edit puts before the second one */
+const INSERTED_POLICY =
+  '        { allow: { to: { element: { type: "main" } } } },\n';
+
+const SECOND_POLICY_AT = POLICY_CONFIG.indexOf("        { disallow");
+
+/** The config with a policy before the second one, which is the third now */
+const EDITED_POLICY_CONFIG =
+  POLICY_CONFIG.slice(0, SECOND_POLICY_AT) +
+  INSERTED_POLICY +
+  POLICY_CONFIG.slice(SECOND_POLICY_AT);
+
+const POLICY_SKETCH: Sketch = { ...SKETCH, config: POLICY_CONFIG };
 
 describe("createSessionStore", () => {
   beforeEach(() => {
@@ -567,6 +597,111 @@ describe("createSessionStore", () => {
 
       // Assert
       expect(store.getState().sketch).toEqual({ ...SKETCH, config: "{}" });
+    });
+
+    describe("with the highlighted policy", () => {
+      const DEPENDENCY = { path: "src/index.js", index: 0 };
+
+      /**
+       * Creates a store with the config open at its second policy.
+       * @returns The store, and the range that the second policy has after an edit that puts a policy before it, as the editor reports it.
+       */
+      function openSecondPolicy(): {
+        store: SessionStore;
+        moved: TextRange;
+      } {
+        const store = createSessionStore(POLICY_SKETCH, ALL_CAPABILITIES);
+        const second = store.getState().evaluation.policies[1];
+
+        store.open({
+          kind: "config",
+          range: second.range,
+          policy: 1,
+          dependency: DEPENDENCY,
+        });
+
+        return {
+          store,
+          moved: {
+            ...second.range,
+            from: second.range.from + INSERTED_POLICY.length,
+            to: second.range.to + INSERTED_POLICY.length,
+            line: second.range.line + 1,
+          },
+        };
+      }
+
+      it("should move the range with the text in one notification", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+        const listener = jest.fn(() => {
+          const { sketch, highlight } = store.getState();
+
+          expect(sketch.config).toBe(EDITED_POLICY_CONFIG);
+          expect(highlight?.range).toEqual(moved);
+        });
+        store.subscribe(listener);
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+
+        // Assert
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
+      it("should keep the index of the policy until the config is evaluated, and find it again then", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+        const whileBehind = store.getState().highlight?.policy;
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+
+        // Assert
+        expect(whileBehind).toBe(1);
+        expect(store.getState().highlight).toEqual({
+          range: moved,
+          policy: 2,
+          dependency: DEPENDENCY,
+        });
+      });
+
+      it("should find the policy again with the evaluation that an edit of the tree makes at once", () => {
+        // Arrange
+        const { store, moved } = openSecondPolicy();
+        store.changeConfig(EDITED_POLICY_CONFIG, moved);
+
+        // Act
+        store.addNode("folder");
+
+        // Assert
+        expect(store.getState().highlight?.policy).toBe(2);
+      });
+
+      it("should drop the highlight when the editor says it has none", () => {
+        // Arrange
+        const { store } = openSecondPolicy();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG, null);
+
+        // Assert
+        expect(store.getState().highlight).toBeUndefined();
+      });
+
+      it("should leave the highlight alone when the text changes without a range", () => {
+        // Arrange
+        const { store } = openSecondPolicy();
+        const { highlight } = store.getState();
+
+        // Act
+        store.changeConfig(EDITED_POLICY_CONFIG);
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+
+        // Assert
+        expect(store.getState().highlight?.range).toBe(highlight?.range);
+      });
     });
   });
 

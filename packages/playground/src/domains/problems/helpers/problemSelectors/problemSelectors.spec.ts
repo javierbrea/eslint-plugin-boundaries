@@ -1035,6 +1035,28 @@ describe("problemSelectors", () => {
         });
       });
 
+      it("should give no index when the highlight does not know the policy, which the note leaves out", () => {
+        // Act
+        const facts = getRows(
+          getProblemList(
+            inputs("node", CONFIG_FOCUS, {
+              highlight: {
+                range: POLICY_RANGE,
+                policy: undefined,
+                dependency: { path: CHECKOUT, index: 2 },
+              },
+            })
+          )
+        );
+
+        // Assert
+        expect(facts.highlight).toEqual({
+          policy: undefined,
+          dependency: { path: CHECKOUT, index: 2 },
+        });
+        expect(facts.highlight).toHaveProperty("policy", undefined);
+      });
+
       it("should give no highlight when there is none", () => {
         // Act
         const facts = getRows(getProblemList(inputs("node", CONFIG_FOCUS, {})));

@@ -1,5 +1,8 @@
 import type { ProjectCapabilities, Sketch, SketchDependency } from "@/contract";
-import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import type {
+  Evaluation,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
 import {
   CONFIG_PATH,
   addDependency as addSketchDependency,
@@ -25,9 +28,11 @@ import type {
   EditResult,
 } from "@/domains/project/helpers/sketch";
 import {
+  findHighlightPolicy,
   getFocusedPath,
   moveFocus,
   moveHighlight,
+  moveHighlightRange,
 } from "@/domains/session/helpers/focus";
 import type {
   Focus,
@@ -572,18 +577,30 @@ export function removeDependency(
 }
 
 /**
- * Replaces the config text.
+ * Replaces the config text. The editor reports an edit of the user with where the highlighted policy is after it, and the text and the range change in one state, so that they never disagree: the highlight stays on the same text, and the evaluation of the new text finds its policy again.
  * @param state The state before.
  * @param config The new config, as JSON5 text.
- * @returns The state after, or the same one when the text did not change or without `editConfig`.
+ * @param highlight Where the editor says the highlighted policy is after the edit: `null` when it has none now, such as when the edit deleted the policy, which drops the highlight, and `undefined` for a text that did not come from the editor, which leaves the highlight as it was.
+ * @returns The state after, or the same one when neither the text nor the range changed or without `editConfig`.
  */
 export function changeConfig(
   state: SessionState,
-  config: string
+  config: string,
+  highlight?: TextRange | null
 ): SessionState {
-  return config === state.sketch.config || !state.capabilities.editConfig
+  if (!state.capabilities.editConfig) {
+    return state;
+  }
+
+  const sketch =
+    config === state.sketch.config
+      ? state.sketch
+      : setConfig(state.sketch, config);
+  const moved = moveHighlightRange(state.highlight, highlight);
+
+  return sketch === state.sketch && moved === state.highlight
     ? state
-    : { ...state, sketch: setConfig(state.sketch, config) };
+    : { ...state, sketch, highlight: moved };
 }
 
 /**
@@ -599,10 +616,10 @@ export function setTextDraft(state: SessionState, text: string): SessionState {
 }
 
 /**
- * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
+ * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The sources are read with the resolvers of the evaluation of the state. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
  * @param state The state before.
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
- * @returns The state after. A dependency in focus follows its file and, when the text rewrote the dependencies, the line that says the same (the same line when it was edited in place); its file is in focus when the line is gone.
+ * @returns The state after. A dependency in focus follows its file and, when the text rewrote the dependencies, stays on its line when the line still says the same or says something that no line said before (as long as the file has as many lines), and otherwise follows the line that says the same; its file is in focus when the line is gone.
  */
 function readDraft(state: SessionState, settle: boolean): SessionState {
   const { textDraft } = state;
@@ -674,7 +691,7 @@ export function setProblemsCollapsed(
 }
 
 /**
- * Keeps a new evaluation of the sketch.
+ * Keeps a new evaluation of the sketch. When it is the evaluation of the config text the sketch has, the highlighted policy is found again in it, by where the range of the highlight starts: the policies may have moved or changed index since the highlight was set, and the note names the index of the evaluation. While the evaluation is behind the text, which is the delay of the store after the last keystroke, the highlight keeps the index it had.
  * @param state The state before.
  * @param evaluation What the engine says about the sketch.
  * @returns The state after.
@@ -683,5 +700,16 @@ export function setEvaluation(
   state: SessionState,
   evaluation: Evaluation
 ): SessionState {
-  return evaluation === state.evaluation ? state : { ...state, evaluation };
+  if (evaluation === state.evaluation) {
+    return state;
+  }
+
+  return {
+    ...state,
+    evaluation,
+    highlight:
+      evaluation.sketch.config === state.sketch.config
+        ? findHighlightPolicy(state.highlight, evaluation.policies)
+        : state.highlight,
+  };
 }

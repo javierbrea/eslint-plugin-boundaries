@@ -86,7 +86,8 @@ export function createSessionStore(
     open: (target) => set(openTarget(state, target)),
     selectItem: (id) => set(selectItem(state, id)),
     toggleFolder: (path, isOpen) => set(toggleFolder(state, path, isOpen)),
-    changeConfig: (config) => set(changeConfig(state, config)),
+    changeConfig: (config, highlight) =>
+      set(changeConfig(state, config, highlight)),
     addNode: (kind) => set(addNode(state, kind)),
     startRename: (path) => set(startRename(state, path)),
     renameNode: (path, typedName) => {

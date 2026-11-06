@@ -24,7 +24,7 @@ export type SessionState = {
   readonly problemsCollapsed: boolean;
   /** The range that the config editor must scroll to. It is set only while the config is in focus. */
   readonly reveal: ConfigReveal | undefined;
-  /** The policy that the user opened from a dependency, which the config editor keeps marked. It is kept while the config stays in focus: the focus leaving the config, or the config opening without a dependency, drops it. */
+  /** The policy that the user opened from a dependency, which the config editor keeps marked. It is kept while the config stays in focus: the focus leaving the config, or the config opening without a dependency, drops it. Its range moves with each edit of the config, as the editor reports it with the text, and an edit that deletes the policy drops it; its policy is found again after each evaluation of the text. */
   readonly highlight: PolicyHighlight | undefined;
   /** How many ranges were revealed so far: the key of the next request is the next number, so that a key is never used twice even when the request before it was dropped. */
   readonly revealCount: number;

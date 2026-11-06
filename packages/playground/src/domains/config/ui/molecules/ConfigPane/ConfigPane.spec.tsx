@@ -152,7 +152,27 @@ describe("ConfigPane", () => {
 
     // Assert
     expect(props.onChange).toHaveBeenCalledTimes(1);
-    expect(props.onChange).toHaveBeenCalledWith(`${CONFIG}\n// done`);
+    expect(props.onChange).toHaveBeenCalledWith(`${CONFIG}\n// done`, null);
+  });
+
+  it("should call onChange with the text and where the highlight is after an edit before it", () => {
+    // Arrange
+    const props = createProps({ highlight: OPTION_RANGE });
+    render(<ConfigPane {...props} />);
+    const { editor } = new ConfigPanePom();
+
+    // Act
+    editor.typeAt(0, "// done\n");
+
+    // Assert
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith(`// done\n${CONFIG}`, {
+      from: OPTION_RANGE.from + 8,
+      to: OPTION_RANGE.to + 8,
+      line: OPTION_RANGE.line + 1,
+      // The editor reads the column from the text, and does not copy the one of the range it was given
+      column: 47,
+    });
   });
 
   it("should let the user edit the text by default", () => {

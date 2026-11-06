@@ -403,9 +403,9 @@ function getDependencyDetail(
 }
 
 /**
- * Gives the policy that a highlight names. The highlight carries the index of the policy it was opened with, because its range moves when the user edits the config and the editor keeps the lines marked, so that the note keeps saying which policy it is.
+ * Gives the policy that a highlight names. The highlight carries the index of its policy, which the session finds again by the range of the highlight each time the config is evaluated, so that the note keeps saying which policy it is when the user adds or deletes one before it; the index is `undefined` when no policy of the evaluation starts at the range, and the note leaves the number out.
  * @param highlight The policy that the user opened from a dependency, if any.
- * @returns The policy and the dependency, or `undefined` when there is no highlight.
+ * @returns The policy, which can be unknown, and the dependency, or `undefined` when there is no highlight.
  */
 function getHighlightFacts(
   highlight: PolicyHighlight | undefined

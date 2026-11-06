@@ -169,14 +169,26 @@ export function toProblemsTabs(
 }
 
 /**
+ * Names the highlighted policy for the start of the sentence of the note.
+ * @param policy The index of the policy in the options, `null` for the default, or `undefined` when no policy of the evaluation starts where the highlight is.
+ * @returns `Policy 2`, `The default`, or `A policy`.
+ */
+function getHighlightSubject(policy: HighlightFacts["policy"]): string {
+  if (policy === undefined) {
+    return "A policy";
+  }
+  return policy === null ? "The default" : `Policy ${policy}`;
+}
+
+/**
  * Writes the sentence of the note about the highlighted policy.
  * @param highlight The policy that is highlighted and the dependency it was opened from.
  * @param highlight.policy
  * @param highlight.dependency
- * @returns A sentence such as `Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.`, or `The default is highlighted, …` for the default.
+ * @returns A sentence such as `Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.`, `The default is highlighted, …` for the default, and `A policy is highlighted, …` when no policy of the evaluation starts where the highlight is, so that the sentence names no number.
  */
 function getHighlightSentence({ policy, dependency }: HighlightFacts): string {
-  const subject = policy === null ? "The default" : `Policy ${policy}`;
+  const subject = getHighlightSubject(policy);
 
   return `${subject} is highlighted, opened from the dependency at line ${dependency.index + 1} of ${dependency.path}.`;
 }

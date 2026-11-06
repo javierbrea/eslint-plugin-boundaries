@@ -11,15 +11,15 @@ import type { ConfigReveal } from "@/domains/session/helpers/focus";
 export type ConfigEditorProps = {
   /** The config text. A value that differs from the document replaces it, and is not reported back through `onChange` */
   readonly value: string;
-  /** Called with the whole text after each edit of the user */
-  readonly onChange: (value: string) => void;
+  /** Called after each edit of the user with the whole text and with where the highlight is after the edit: its range, moved by the edit, or `null` when the editor has none, such as when the edit deleted the text it marked. The two come together, so that a parent that keeps both never has a text and a range that disagree */
+  readonly onChange: (value: string, highlight: TextRange | null) => void;
   /** The problems of the config, underlined at their ranges and marked in the gutter */
   readonly problems: readonly ConfigProblem[];
   /** The accessible name of the editor */
   readonly label: string;
   /** The text can be selected and copied, and not edited */
   readonly readOnly?: boolean;
-  /** Lines to mark until it is unset, such as the policy that "Open policy in config" points at. It is read when its offsets change; the lines follow the edits of the user, and are dropped when `value` replaces the text */
+  /** The range to mark until it is unset, such as the policy that "Open policy in config" points at: the editor marks the lines it touches. It is read when its offsets change, and not when the editor already has that range, such as the one it reported with an edit, which comes back. The range follows the edits of the user and is reported with them, and is dropped when an edit deletes its text or when `value` replaces the text */
   readonly highlight?: TextRange;
   /** Scrolls to a range and puts the cursor at its start when its key changes */
   readonly reveal?: ConfigReveal;

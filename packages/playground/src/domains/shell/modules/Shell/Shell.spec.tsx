@@ -1154,6 +1154,35 @@ describe("Shell", () => {
       expect(getTabs(shell)).toEqual(["Sketch*"]);
     });
 
+    it("should keep the dependency in focus on its line when another line is turned into what it says", () => {
+      // Arrange
+      useFakeTimeouts();
+      const shell = renderExample();
+      shell.project.click(FILE);
+      shell.node.file.lines.line(1).click();
+      shell.project.foot.pressView("Text");
+      const { text } = shell.project;
+      const buttonLine =
+        '  import { Button } from "../../components/atoms/Button";';
+      const formatLine = '  import { format } from "../../helpers/format";';
+      const lines = text.value.split("\n");
+      // The first dependency of the open file is its first line below it
+      const firstLine = lines.indexOf(FILE) + 1;
+
+      // Act
+      expect(lines[firstLine]).toBe(buttonLine);
+
+      lines[firstLine] = formatLine;
+      text.type(lines.join("\n"));
+      wait(TEXT_READ_WAIT);
+
+      // Assert
+      expect(shell.problems.tabs.at(-1)?.text).toBe("line 2");
+      expect(shell.problems.tabs.at(-1)?.isSelected).toBe(true);
+      expect(shell.node.file.lines.line(1).isSelected).toBe(true);
+      expect(shell.node.file.lines.line(0).isSelected).toBe(false);
+    });
+
     it("should keep the file in focus when the text still has it", () => {
       // Arrange
       const { shell } = renderShell();
@@ -1587,6 +1616,95 @@ describe("Shell", () => {
         expect(shell.problems.note.text).toBe(
           "No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
         );
+      });
+
+      it("should name the policy by its new number, with the same lines marked, when a policy is put before it in the editor", () => {
+        // Arrange
+        useFakeTimeouts();
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+        shell.problems.detail.openPolicy();
+        const { editor } = shell.node.config;
+        const marked = editor.highlightedLineTexts;
+        const policyAt = EXAMPLE.config.indexOf(
+          "        {\n          // No element may import"
+        );
+
+        // Act
+        editor.typeAt(
+          policyAt,
+          [
+            "        {",
+            '          from: { element: { type: "helper" } },',
+            '          allow: { to: { element: { type: "helper" } } },',
+            "        },",
+            "",
+          ].join("\n")
+        );
+        const noteWhileBehind = shell.problems.note.text;
+        wait(EVALUATION_WAIT);
+
+        // Assert
+        expect(noteWhileBehind).toBe(
+          "No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
+        );
+        expect(shell.problems.note.text).toBe(
+          "No problems in the config. Policy 3 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
+        );
+        expect(editor.highlightedLineTexts).toEqual(marked);
+      });
+
+      it("should leave the number out while the evaluation has no policy that starts where the highlight is, and name it again when it has", () => {
+        // Arrange
+        useFakeTimeouts();
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+        shell.problems.detail.openPolicy();
+        const { editor } = shell.node.config;
+        const severityAt =
+          EXAMPLE.config.indexOf('"boundaries/dependencies": [2,') +
+          '"boundaries/dependencies": ['.length;
+
+        // Act
+        // With the rule off the evaluation has no policies at all
+        editor.replaceText(severityAt, severityAt + 1, "0");
+        wait(EVALUATION_WAIT);
+        const notesWhileOff = shell.problems.notes.map(({ text }) => text);
+        editor.replaceText(severityAt, severityAt + 1, "2");
+        wait(EVALUATION_WAIT);
+
+        // Assert
+        expect(notesWhileOff).toEqual([
+          "Dependencies are not evaluated while the rule is off: ESLint does not run a rule whose severity is off.",
+          "No problems in the config. A policy is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js.",
+        ]);
+        expect(shell.problems.note.text).toBe(
+          "No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
+        );
+      });
+
+      it("should drop the note and the lines when the policy is deleted in the editor", () => {
+        // Arrange
+        useFakeTimeouts();
+        const shell = renderExample();
+        shell.project.click(FILE);
+        shell.node.file.lines.line(2).click();
+        shell.problems.detail.openPolicy();
+        const { editor } = shell.node.config;
+        const policyAt = EXAMPLE.config.indexOf(
+          "        {\n          // No element may import"
+        );
+        const policyEnd = EXAMPLE.config.indexOf("        },\n", policyAt) + 11;
+
+        // Act
+        editor.replaceText(policyAt, policyEnd, "");
+        wait(EVALUATION_WAIT);
+
+        // Assert
+        expect(editor.highlightedLines).toEqual([]);
+        expect(shell.problems.note.isRendered).toBe(false);
       });
 
       it("should drop the highlight when a file is opened", () => {

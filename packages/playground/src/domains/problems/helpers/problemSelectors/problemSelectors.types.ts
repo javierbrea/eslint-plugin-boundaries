@@ -104,8 +104,8 @@ export type ProblemListInputs = {
 
 /** The policy that the config tab keeps highlighted, and the dependency it was opened from. */
 export type HighlightFacts = {
-  /** The index of the policy in the options, or `null` for the default. */
-  readonly policy: number | null;
+  /** The index of the policy in the options, or `null` for the default. It is `undefined` when no policy of the evaluation starts at the highlighted range, such as after the user edited the policy until it is not one: the note leaves the number out. */
+  readonly policy: number | null | undefined;
   /** The dependency that `Open policy in config` came from. */
   readonly dependency: DependencyRef;
 };
@@ -122,7 +122,7 @@ export type ProblemRowsFacts = {
   readonly dependencies: readonly FailingDependency[];
   /** Why no dependency is evaluated, for the note above the list of the sketch and of the config. `undefined` when they are, and for the list of a file. */
   readonly notEvaluated: NotEvaluatedReason | undefined;
-  /** The policy that is highlighted in the config, for the note above the list of the config. `undefined` when none is, and when no policy of the evaluation is at the highlighted range any more. */
+  /** The policy that is highlighted in the config, for the note above the list of the config. `undefined` when none is. */
   readonly highlight: HighlightFacts | undefined;
 };
 

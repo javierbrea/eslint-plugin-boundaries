@@ -2296,6 +2296,311 @@ describe("Transitions", () => {
     });
   });
 
+  describe("the highlight of a policy, after the config was edited", () => {
+    const FROM = { path: "src/index.js", index: 2 };
+
+    /** A config with two policies and a default, one policy per line, so that an edit can put a policy before the second one */
+    const POLICY_CONFIG = [
+      "{",
+      '  settings: { "boundaries/elements": [{ type: "helper", pattern: "src/helpers/*" }] },',
+      "  rules: {",
+      '    "boundaries/dependencies": [2, {',
+      '      default: "disallow",',
+      "      policies: [",
+      '        { allow: { to: { element: { type: "helper" } } } },',
+      '        { disallow: { to: { file: { categories: "test" } } } },',
+      "      ],",
+      "    }],",
+      "  },",
+      "}",
+    ].join("\n");
+
+    /** The policy that the edit puts before the second one */
+    const INSERTED =
+      '        { allow: { to: { element: { type: "main" } } } },\n';
+
+    const SECOND_AT = POLICY_CONFIG.indexOf("        { disallow");
+
+    const EDITED_CONFIG =
+      POLICY_CONFIG.slice(0, SECOND_AT) +
+      INSERTED +
+      POLICY_CONFIG.slice(SECOND_AT);
+
+    const POLICY_SKETCH: Sketch = { ...SKETCH, config: POLICY_CONFIG };
+
+    const POLICY_EVALUATION = createEngine().evaluate(POLICY_SKETCH);
+
+    const EDITED_EVALUATION = createEngine().evaluate({
+      ...SKETCH,
+      config: EDITED_CONFIG,
+    });
+
+    /** The second policy, as the evaluation of the config before the edit places it, and the default */
+    const [, SECOND, DEFAULT] = POLICY_EVALUATION.policies;
+
+    /** Where the editor says the second policy is after the edit: the lines of the policy that was put before it are above */
+    const MOVED: TextRange = {
+      ...SECOND.range,
+      from: SECOND.range.from + INSERTED.length,
+      to: SECOND.range.to + INSERTED.length,
+      line: SECOND.range.line + 1,
+    };
+
+    /**
+     * Creates the state after the config was opened at the second policy.
+     * @param overrides What differs from it.
+     * @returns The state, whose evaluation is the one of the config before the edit.
+     */
+    function createOpened(overrides: Partial<SessionState> = {}): SessionState {
+      return createState({
+        sketch: POLICY_SKETCH,
+        evaluation: POLICY_EVALUATION,
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: { range: SECOND.range, policy: 1, dependency: FROM },
+        ...overrides,
+      });
+    }
+
+    it("should have an evaluation whose policies are the two of the rule and its default, which the cases below tell apart", () => {
+      // Act
+      const indexes = EDITED_EVALUATION.policies.map(({ index }) => index);
+
+      // Assert
+      expect(POLICY_EVALUATION.policies.map(({ index }) => index)).toEqual([
+        0,
+        1,
+        null,
+      ]);
+      expect(indexes).toEqual([0, 1, 2, null]);
+      expect(EDITED_EVALUATION.policies[2].range.from).toBe(MOVED.from);
+    });
+
+    describe("the edit", () => {
+      it("should move the range with the text, in one state", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toEqual({
+          range: MOVED,
+          policy: 1,
+          dependency: FROM,
+        });
+      });
+
+      it("should keep the index of the policy, which the evaluation finds again", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state.highlight?.policy).toBe(1);
+        expect(state.evaluation).toBe(POLICY_EVALUATION);
+      });
+
+      it("should drop the highlight when the editor says it has none, with the text", () => {
+        // Act
+        const state = changeConfig(createOpened(), EDITED_CONFIG, null);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toBeUndefined();
+      });
+
+      it("should keep the highlight when the text changes without the editor, which says nothing of it", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = changeConfig(before, EDITED_CONFIG);
+
+        // Assert
+        expect(state.sketch.config).toBe(EDITED_CONFIG);
+        expect(state.highlight).toBe(before.highlight);
+      });
+
+      it("should take the range though the text is the same", () => {
+        // Act
+        const state = changeConfig(createOpened(), POLICY_CONFIG, MOVED);
+
+        // Assert
+        expect(state.sketch).toBe(POLICY_SKETCH);
+        expect(state.highlight?.range).toEqual(MOVED);
+      });
+
+      it("should return the same state when neither the text nor the range changes", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = changeConfig(before, POLICY_CONFIG, SECOND.range);
+
+        // Assert
+        expect(state).toBe(before);
+      });
+
+      it("should not move the range without editConfig", () => {
+        // Arrange
+        const before = createOpened({ capabilities: CONFIG_LOCKED });
+
+        // Act
+        const state = changeConfig(before, EDITED_CONFIG, MOVED);
+
+        // Assert
+        expect(state).toBe(before);
+      });
+
+      it("should leave no highlight when there was none", () => {
+        // Act
+        const state = changeConfig(
+          createOpened({ highlight: undefined }),
+          EDITED_CONFIG,
+          MOVED
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+      });
+    });
+
+    describe("the evaluation", () => {
+      it("should find the policy again by where the range starts, when the policies moved", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
+
+        // Act
+        const state = setEvaluation(edited, EDITED_EVALUATION);
+
+        // Assert
+        expect(state.highlight).toEqual({
+          range: MOVED,
+          policy: 2,
+          dependency: FROM,
+        });
+        expect(state.evaluation).toBe(EDITED_EVALUATION);
+      });
+
+      it("should find the default again", () => {
+        // Arrange
+        const before = createOpened({
+          highlight: { range: DEFAULT.range, policy: 1, dependency: FROM },
+        });
+
+        // Act
+        const state = setEvaluation(
+          changeConfig(before, POLICY_CONFIG, DEFAULT.range),
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBeNull();
+      });
+
+      it("should leave the index unknown when no policy starts where the range starts", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), EDITED_CONFIG, {
+          ...MOVED,
+          from: MOVED.from + 1,
+        });
+
+        // Act
+        const state = setEvaluation(edited, EDITED_EVALUATION);
+
+        // Assert
+        expect(state.highlight).toEqual({
+          range: { ...MOVED, from: MOVED.from + 1 },
+          policy: undefined,
+          dependency: FROM,
+        });
+      });
+
+      it("should find the policy again after the index was unknown", () => {
+        // Arrange
+        const lost = setEvaluation(
+          changeConfig(createOpened(), EDITED_CONFIG, {
+            ...MOVED,
+            from: MOVED.from + 1,
+          }),
+          EDITED_EVALUATION
+        );
+        const restored = changeConfig(lost, EDITED_CONFIG, MOVED);
+
+        // Act
+        const state = setEvaluation(
+          restored,
+          createEngine().evaluate({ ...SKETCH, config: EDITED_CONFIG })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBe(2);
+      });
+
+      it("should leave the index unknown when the evaluation has no policies", () => {
+        // Arrange
+        const edited = changeConfig(createOpened(), "{}", MOVED);
+
+        // Act
+        const state = setEvaluation(
+          edited,
+          createEngine().evaluate({ ...SKETCH, config: "{}" })
+        );
+
+        // Assert
+        expect(state.highlight?.policy).toBeUndefined();
+      });
+
+      it("should keep the index it had while the evaluation is behind the text, though a policy of it starts at the range", () => {
+        // Arrange
+        // The index is not the one of the policy that starts at the range, so that finding it again would show
+        const edited = changeConfig(
+          createOpened({
+            highlight: { range: SECOND.range, policy: 5, dependency: FROM },
+          }),
+          EDITED_CONFIG,
+          SECOND.range
+        );
+        const behind = createEngine().evaluate({
+          ...POLICY_SKETCH,
+          config: `${POLICY_CONFIG}\n`,
+        });
+
+        // Act
+        const state = setEvaluation(edited, behind);
+
+        // Assert
+        expect(state.evaluation).toBe(behind);
+        expect(state.highlight).toBe(edited.highlight);
+        expect(state.highlight?.policy).toBe(5);
+      });
+
+      it("should keep the same highlight when the index is the one it had", () => {
+        // Arrange
+        const before = createOpened();
+
+        // Act
+        const state = setEvaluation(
+          before,
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight).toBe(before.highlight);
+      });
+
+      it("should leave no highlight when there was none", () => {
+        // Act
+        const state = setEvaluation(
+          createOpened({ highlight: undefined }),
+          createEngine().evaluate({ ...POLICY_SKETCH })
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+      });
+    });
+  });
+
   describe("addDependency", () => {
     it("should return the same state without editDependencies", () => {
       // Arrange

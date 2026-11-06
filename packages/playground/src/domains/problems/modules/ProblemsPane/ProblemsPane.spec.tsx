@@ -6,6 +6,7 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import { renderInSession } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import type { PolicyHighlight } from "@/domains/session/helpers/focus";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { ProblemsPane } from "./ProblemsPane";
@@ -853,8 +854,73 @@ describe("ProblemsPane", () => {
         const { store, pane } = renderPane(FULL_QUICK_START);
         focusDependency(store, FILE, 2);
         pane.detail.openPolicy();
+        const comment = "// A comment before everything\n";
+        const { range } = store.getState().highlight as PolicyHighlight;
 
         // Act
+        // The editor reports the range of the policy, moved by the edit, with the text
+        act(() =>
+          store.changeConfig(`${comment}${FULL_QUICK_START.config}`, {
+            ...range,
+            from: range.from + comment.length,
+            to: range.to + comment.length,
+            line: range.line + 1,
+          })
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
+      it("should name the policy by its new index when a policy is put before it", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+        const { range } = store.getState().highlight as PolicyHighlight;
+        const policy =
+          '        { allow: { to: { element: { type: "helper" } } } },\n';
+        const at = FULL_QUICK_START.config.lastIndexOf("        {", range.from);
+
+        // Act
+        act(() =>
+          store.changeConfig(
+            FULL_QUICK_START.config.slice(0, at) +
+              policy +
+              FULL_QUICK_START.config.slice(at),
+            {
+              ...range,
+              from: range.from + policy.length,
+              to: range.to + policy.length,
+              line: range.line + 1,
+            }
+          )
+        );
+        act(() => {
+          jest.advanceTimersByTime(EVALUATION_DELAY);
+        });
+
+        // Assert
+        expect(pane.note.text).toBe(
+          `No problems in the config. Policy 3 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+        );
+      });
+
+      it("should leave the number out when no policy starts where the highlight is after the config is evaluated", () => {
+        // Arrange
+        jest.useFakeTimers();
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        focusDependency(store, FILE, 2);
+        pane.detail.openPolicy();
+
+        // Act
+        // A text that does not come from the editor says nothing of where the policy went
         act(() =>
           store.changeConfig(
             `// A comment before everything\n${FULL_QUICK_START.config}`
@@ -866,7 +932,7 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(pane.note.text).toBe(
-          `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`
+          `No problems in the config. A policy is highlighted, opened from the dependency at line 3 of ${FILE}.`
         );
       });
 
