@@ -99,6 +99,20 @@ describe("FileNode", () => {
     jest.useRealTimers();
   });
 
+  describe("testId", () => {
+    it("should render its own test id on the pane, in place of the one of the pane", () => {
+      // Arrange
+      renderNode();
+
+      // Act
+      const { isRendered } = new FileNodePom({ testId: "file-node" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(new FileNodePom({ testId: "file-pane" }).isRendered).toBe(false);
+    });
+  });
+
   describe("the pane", () => {
     it("should be the landmark that the label it is given names", () => {
       // Act

@@ -11,6 +11,7 @@ import {
   useTree,
 } from "@/domains/session/data/store";
 
+import { DEPENDENCY_PICKER_DIALOG_TEST_ID } from "./DependencyPickerDialog.constants";
 import type { DependencyPickerDialogProps } from "./DependencyPickerDialog.types";
 
 /**
@@ -20,7 +21,7 @@ import type { DependencyPickerDialogProps } from "./DependencyPickerDialog.types
  * @param props.from Path of the file the dependency belongs to.
  * @param props.index The position of the dependency being edited, or `undefined` to add one.
  * @param props.onClose Called when the dialog has to close.
- * @returns The dialog.
+ * @returns The dialog, which carries the test id of this element.
  */
 export function DependencyPickerDialog({
   open: isOpen,
@@ -61,6 +62,7 @@ export function DependencyPickerDialog({
       initial={initial}
       onCancel={onClose}
       onSubmit={submit}
+      testId={DEPENDENCY_PICKER_DIALOG_TEST_ID}
     />
   );
 }

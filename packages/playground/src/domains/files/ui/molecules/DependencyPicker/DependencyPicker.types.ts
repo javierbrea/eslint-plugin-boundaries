@@ -18,8 +18,10 @@ export type DependencyPickerProps = {
   readonly initial?: SketchDependency;
   /** Called when the user gives up: the cancel button, Escape, or a click outside the dialog */
   readonly onCancel: () => void;
-  /** Called with the dependency of the draft when the user confirms it; only a draft that `getDependencyError` accepts */
+  /** Called with the dependency of the draft when the user confirms it, with the name that is being typed in the editor of the names if there is one; only a draft that `getDependencyError` accepts */
   readonly onSubmit: (dependency: SketchDependency) => void;
+  /** The test id of the root element, for a component that is the dialog to give it its own. It defaults to the test id of the dialog */
+  readonly testId?: string;
 };
 
 /** An option of the list of files, as its page object reads it. */

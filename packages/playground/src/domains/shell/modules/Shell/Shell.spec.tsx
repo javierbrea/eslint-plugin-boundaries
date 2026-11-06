@@ -158,12 +158,15 @@ function renderExample(overrides: Partial<ShellProps> = {}): ShellPom {
  * @param shell The shell, with the file open.
  * @param path The path of the file the dependency points to.
  * @param specifier The name it imports.
+ * @param options What differs from a user who confirms the name before adding the dependency.
+ * @param options.confirmName Whether the user presses the button that adds the name, or leaves it typed and adds the dependency.
  * @returns A promise that settles when the picker is gone.
  */
 async function addDependencyOf(
   shell: ShellPom,
   path: string,
-  specifier: string
+  specifier: string,
+  { confirmName = true }: { readonly confirmName?: boolean } = {}
 ): Promise<void> {
   const { picker } = shell.node.file;
 
@@ -173,7 +176,9 @@ async function addDependencyOf(
   picker.names.openEditor();
   picker.names.chooseKind("named");
   picker.names.typeName(specifier);
-  picker.names.confirm();
+  if (confirmName) {
+    picker.names.confirm();
+  }
   picker.confirm();
   await picker.waitUntilGone();
 }
@@ -1445,6 +1450,22 @@ describe("Shell", () => {
 
         // Act
         await addDependencyOf(shell, OTHER_FILE, "round");
+
+        // Assert
+        expect(shell.node.file.lines.lineTexts[4]).toBe(
+          '5import { round } from "../../helpers/format";policy 1'
+        );
+      });
+
+      it("should hold the name that was typed and not confirmed when the user adds it", async () => {
+        // Arrange
+        const shell = renderExample();
+        shell.project.click(FILE);
+
+        // Act
+        await addDependencyOf(shell, OTHER_FILE, "round", {
+          confirmName: false,
+        });
 
         // Assert
         expect(shell.node.file.lines.lineTexts[4]).toBe(

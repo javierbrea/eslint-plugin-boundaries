@@ -11,4 +11,6 @@ export type NamesEditorProps = {
   readonly onAdd: (specifier: SketchSpecifier) => void;
   /** Called with the position of the name that the user removes */
   readonly onRemove: (index: number) => void;
+  /** Called with the name that the editor would add, as it would add it, each time the user changes it: `undefined` while the editor is closed or its name is empty, and when the editor goes away. The kind is the one the editor shows, which is the first one that the syntax holds when the picked one is no longer held. A name that is typed and not confirmed is not in `specifiers`, so the picker that counts it as part of the statement needs this */
+  readonly onPendingChange: (specifier: SketchSpecifier | undefined) => void;
 };

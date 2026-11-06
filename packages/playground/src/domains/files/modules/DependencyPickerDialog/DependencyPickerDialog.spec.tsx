@@ -66,6 +66,28 @@ function getCheckoutDependencies({
 }
 
 describe("DependencyPickerDialog", () => {
+  describe("testId", () => {
+    it("should render its own test id on the dialog, in place of the one of the picker", () => {
+      // Arrange
+      renderDialog();
+
+      // Act
+      const { isRendered } = new DependencyPickerDialogPom({
+        testId: "dependency-picker-dialog",
+        portal: true,
+      });
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(
+        new DependencyPickerDialogPom({
+          testId: "dependency-picker",
+          portal: true,
+        }).isRendered
+      ).toBe(false);
+    });
+  });
+
   describe("while it is closed", () => {
     it("should draw nothing", () => {
       // Act

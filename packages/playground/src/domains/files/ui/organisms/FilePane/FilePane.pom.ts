@@ -84,9 +84,9 @@ class AddDependencyButtonPom extends Pom {
   }
 }
 
-/** Page object of the file pane. */
+/** Page object of the file pane. It finds its root by the test id of the pane, or by the `testId` option when a module that is this pane gives it another. */
 export class FilePanePom extends Pom {
-  protected readonly defaultTestId = FILE_PANE_TEST_ID;
+  protected readonly defaultTestId: string = FILE_PANE_TEST_ID;
 
   /**
    * The landmark the pane is, which has the same root element.

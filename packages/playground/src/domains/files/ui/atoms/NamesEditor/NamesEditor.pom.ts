@@ -1,4 +1,4 @@
-import { fireEvent, within } from "@testing-library/react";
+import { act, fireEvent, within } from "@testing-library/react";
 
 import { Pom } from "@/shared/testing/pom";
 
@@ -97,15 +97,16 @@ export class NamesEditorPom extends Pom {
   }
 
   /**
-   * Presses the button that removes a name.
+   * Presses the button that removes a name. The button takes the focus first, as a click gives it.
    * @param chipText The text of the chip of the name, such as `default format`.
    */
   remove(chipText: string): void {
-    fireEvent.click(
-      this.scope.getByRole("button", {
-        name: `${REMOVE_NAME_LABEL} ${chipText}`,
-      })
-    );
+    const button = this.scope.getByRole("button", {
+      name: `${REMOVE_NAME_LABEL} ${chipText}`,
+    });
+
+    act(() => button.focus());
+    fireEvent.click(button);
   }
 
   /**

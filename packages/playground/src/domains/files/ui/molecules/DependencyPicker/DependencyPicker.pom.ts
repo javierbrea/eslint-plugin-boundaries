@@ -169,9 +169,9 @@ class FileFieldPom extends Pom {
   }
 }
 
-/** Page object of the dialog that adds and edits a dependency. It is rendered in an overlay, outside the element that opened it, so build it without a parent, or with the `portal` option. */
+/** Page object of the dialog that adds and edits a dependency. It is rendered in an overlay, outside the element that opened it, so build it without a parent, or with the `portal` option. It finds its root by the test id of the dialog, or by the `testId` option when a module that is this dialog gives it another. */
 export class DependencyPickerPom extends Pom {
-  protected readonly defaultTestId = DEPENDENCY_PICKER_TEST_ID;
+  protected readonly defaultTestId: string = DEPENDENCY_PICKER_TEST_ID;
 
   /**
    * The title of the dialog.

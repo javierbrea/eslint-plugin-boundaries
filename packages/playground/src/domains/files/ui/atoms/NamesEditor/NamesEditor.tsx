@@ -7,6 +7,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
+import type { SketchSpecifier } from "@/contract";
 import {
   SPECIFIER_KIND_LABELS,
   getChipLabel,
@@ -90,12 +91,47 @@ const AliasInput = styled(OutlinedInput)({ width: 76 });
 const As = styled("span")({ color: "var(--jsb-muted)" });
 
 /**
- * The names of a statement as chips with a button that removes each one, and a chip that opens an editor in the same row to add one: the kind among the ones the syntax holds, the name and, for a named one, an optional alias. Enter or the confirm button adds the name, and Escape or the cancel button closes the editor. The focus goes back to the chip that adds a name when the editor closes or a name is removed.
+ * Writes the name that the user is writing as the name that the confirm button adds: without the spaces around the name and the alias, and with an alias only when the name is a named one.
+ * @param entry The name in the editor.
+ * @returns The name, or `undefined` while the field of the name is empty.
+ */
+function toSpecifier(entry: NewName): SketchSpecifier | undefined {
+  const written = entry.name.trim();
+  const alias = entry.alias.trim();
+
+  if (written === "") {
+    return undefined;
+  }
+  return entry.kind === "named" && alias !== ""
+    ? { kind: entry.kind, name: written, alias }
+    : { kind: entry.kind, name: written };
+}
+
+/**
+ * Tells whether two names are the same name.
+ * @param first A name, or `undefined` for none.
+ * @param second Another name, or `undefined` for none.
+ * @returns True when both are none, or have the same kind, name and alias.
+ */
+function isSameSpecifier(
+  first: SketchSpecifier | undefined,
+  second: SketchSpecifier | undefined
+): boolean {
+  return (
+    first?.kind === second?.kind &&
+    first?.name === second?.name &&
+    first?.alias === second?.alias
+  );
+}
+
+/**
+ * The names of a statement as chips with a button that removes each one, and a chip that opens an editor in the same row to add one: the kind among the ones the syntax holds, the name and, for a named one, an optional alias. Enter or the confirm button adds the name, and Escape or the cancel button closes the editor. The name that is being typed is told to the parent, which counts it before it is added. The focus goes back to the chip that adds a name when the editor closes, and when a name is removed while the editor is closed; it stays in the field of the name when a name is removed while the editor is open.
  * @param props NamesEditor props.
  * @param props.specifiers The names of the statement.
  * @param props.kinds The kinds of name that the syntax holds.
  * @param props.onAdd Called with the name that the user adds.
  * @param props.onRemove Called with the position of the name that the user removes.
+ * @param props.onPendingChange Called with the name that the editor would add when the user changes it, or with `undefined` when there is none.
  * @returns The group of the names and the control that adds one.
  */
 export function NamesEditor({
@@ -103,10 +139,14 @@ export function NamesEditor({
   kinds,
   onAdd,
   onRemove,
+  onPendingChange,
 }: Readonly<NamesEditorProps>): ReactNode {
   const [newName, setNewName] = useState<NewName | null>(null);
   const addChipRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const wasEditingRef = useRef(false);
+  const reportedRef = useRef<SketchSpecifier | undefined>(undefined);
+  const onPendingChangeRef = useRef(onPendingChange);
   const isEditing = newName !== null;
   // The syntax may change while the editor is open, and the kind that was picked is no longer held
   const editing =
@@ -116,6 +156,29 @@ export function NamesEditor({
           ...newName,
           kind: kinds.includes(newName.kind) ? newName.kind : kinds[0],
         };
+
+  // The name that the confirm button would add, which the picker counts as part of the statement
+  const pending = editing === null ? undefined : toSpecifier(editing);
+
+  // The parent is told by value, and by the callback it has now: a render that changes nothing of the name tells it nothing, whether or not the callback is the same function
+  useEffect(() => {
+    onPendingChangeRef.current = onPendingChange;
+    if (!isSameSpecifier(reportedRef.current, pending)) {
+      reportedRef.current = pending;
+      onPendingChange(pending);
+    }
+  });
+
+  // The name goes away with the editor, which unmounts when the syntax holds no names
+  useEffect(
+    () => () => {
+      if (reportedRef.current !== undefined) {
+        reportedRef.current = undefined;
+        onPendingChangeRef.current(undefined);
+      }
+    },
+    []
+  );
 
   // The editor takes the focus when it opens, and the chip that opened it takes it back when it closes: the controls of the editor are gone by then
   useEffect(() => {
@@ -130,27 +193,22 @@ export function NamesEditor({
    * @param entry The name in the editor.
    */
   function confirmName(entry: NewName): void {
-    const written = entry.name.trim();
-    const alias = entry.alias.trim();
+    const specifier = toSpecifier(entry);
 
-    if (written === "") {
+    if (specifier === undefined) {
       return;
     }
-    onAdd(
-      entry.kind === "named" && alias !== ""
-        ? { kind: entry.kind, name: written, alias }
-        : { kind: entry.kind, name: written }
-    );
+    onAdd(specifier);
     setNewName(null);
   }
 
   /**
-   * Removes a name, and leaves the focus where it can be used: the button that was pressed is gone.
+   * Removes a name, and leaves the focus where it can be used, since the button that was pressed goes away: in the field of the name while the editor is open, which has no chip that adds a name, and on that chip otherwise.
    * @param index The position of the name.
    */
   function removeName(index: number): void {
     onRemove(index);
-    addChipRef.current?.focus();
+    ((isEditing ? nameInputRef : addChipRef).current as HTMLElement).focus();
   }
 
   /**
@@ -237,6 +295,7 @@ export function NamesEditor({
           <NameInput
             size="small"
             autoFocus
+            inputRef={nameInputRef}
             value={editing.name}
             slotProps={{ input: { "aria-label": NAME_FIELD_LABEL } }}
             onChange={(changeEvent) =>

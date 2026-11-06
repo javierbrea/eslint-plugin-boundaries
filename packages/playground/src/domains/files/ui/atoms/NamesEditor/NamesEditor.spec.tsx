@@ -1,6 +1,9 @@
 import { render } from "@testing-library/react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 
 import type { SketchSpecifier } from "@/contract";
+import type { SpecifierKind } from "@/domains/project/helpers/sketch";
 
 import { NamesEditor } from "./NamesEditor";
 import { NamesEditorPom } from "./NamesEditor.pom";
@@ -13,6 +16,8 @@ const SPECIFIERS: readonly SketchSpecifier[] = [
   { kind: "namespace", name: "ns" },
 ];
 
+const KINDS: readonly SpecifierKind[] = ["default", "named", "namespace"];
+
 /** What a spec gets from the editor it renders. */
 type Page = {
   /** The page object of the editor. */
@@ -23,23 +28,26 @@ type Page = {
   onKeyDown: jest.Mock<void, []>;
   /** Renders the editor again with other props. */
   update: (changes: Partial<NamesEditorProps>) => void;
+  /** Takes the editor away from the page. */
+  unmount: () => void;
 };
 
 /**
  * Renders the editor inside an element that records the key presses that reach it, as the dialog of the picker does.
  * @param changes What differs from the editor of an `import`: the four names of every kind, and the three kinds of name.
- * @returns The page object of the editor, its props, the spy of the key presses and the function that updates it.
+ * @returns The page object of the editor, its props, the spy of the key presses, the function that updates it and the one that unmounts it.
  */
 function renderEditor(changes: Partial<NamesEditorProps> = {}): Page {
   const onKeyDown = jest.fn<void, []>();
   const props: NamesEditorProps = {
     specifiers: SPECIFIERS,
-    kinds: ["default", "named", "namespace"],
+    kinds: KINDS,
     onAdd: jest.fn(),
     onRemove: jest.fn(),
+    onPendingChange: jest.fn(),
     ...changes,
   };
-  const { rerender } = render(
+  const { rerender, unmount } = render(
     <div onKeyDown={onKeyDown}>
       <NamesEditor {...props} />
     </div>
@@ -55,7 +63,47 @@ function renderEditor(changes: Partial<NamesEditorProps> = {}): Page {
           <NamesEditor {...props} {...next} />
         </div>
       ),
+    unmount,
   };
+}
+
+/**
+ * The editor over names that its additions and removals change, as the picker holds them: a name that is removed goes away from the list, and the editor draws the chips that are left.
+ * @param props Held props.
+ * @param props.initial The names the statement starts with.
+ * @returns The editor.
+ */
+function Held({
+  initial,
+}: Readonly<{ initial: readonly SketchSpecifier[] }>): ReactNode {
+  const [specifiers, setSpecifiers] = useState(initial);
+
+  return (
+    <NamesEditor
+      specifiers={specifiers}
+      kinds={KINDS}
+      onPendingChange={jest.fn()}
+      onAdd={(specifier) => setSpecifiers([...specifiers, specifier])}
+      onRemove={(index) =>
+        setSpecifiers(
+          specifiers.filter((_specifier, position) => position !== index)
+        )
+      }
+    />
+  );
+}
+
+/**
+ * Renders the editor over names that its additions and removals change.
+ * @param initial The names the statement starts with.
+ * @returns The page object of the editor.
+ */
+function renderHeldEditor(
+  initial: readonly SketchSpecifier[] = SPECIFIERS
+): NamesEditorPom {
+  render(<Held initial={initial} />);
+
+  return new NamesEditorPom();
 }
 
 describe("NamesEditor", () => {
@@ -125,6 +173,56 @@ describe("NamesEditor", () => {
 
       // Assert
       expect(editor.isAddChipFocused).toBe(true);
+    });
+
+    it("should give the focus to the chip that adds a name when the last name is removed and its chip is gone", () => {
+      // Arrange
+      const editor = renderHeldEditor();
+
+      // Act
+      editor.remove("namespace ns");
+
+      // Assert
+      expect(editor.chipTexts).toEqual([
+        "default format",
+        "named round",
+        "named floor as f",
+      ]);
+      expect(editor.isAddChipFocused).toBe(true);
+    });
+
+    it("should keep the focus in the field of the name when the last name is removed while the editor is open", () => {
+      // Arrange
+      const editor = renderHeldEditor();
+      editor.openEditor();
+
+      // Act
+      editor.remove("namespace ns");
+
+      // Assert
+      expect(editor.chipTexts).toEqual([
+        "default format",
+        "named round",
+        "named floor as f",
+      ]);
+      expect(editor.isNameFocused).toBe(true);
+    });
+
+    it("should keep the focus in the field of the name when an earlier name is removed while the editor is open", () => {
+      // Arrange
+      const editor = renderHeldEditor();
+      editor.openEditor();
+
+      // Act
+      editor.remove("default format");
+
+      // Assert
+      expect(editor.chipTexts).toEqual([
+        "named round",
+        "named floor as f",
+        "namespace ns",
+      ]);
+      expect(editor.isNameFocused).toBe(true);
     });
 
     it("should keep the editor open when a name is removed while it is open", () => {
@@ -537,6 +635,216 @@ describe("NamesEditor", () => {
       // Assert
       expect(props.onAdd).not.toHaveBeenCalled();
       expect(editor.isEditorOpen).toBe(true);
+    });
+  });
+
+  describe("the name being typed", () => {
+    it("should be reported with its kind and its name as soon as it has a name, and not before", () => {
+      // Arrange
+      const { editor, props } = renderEditor();
+      editor.openEditor();
+
+      // Act
+      const reportedOnOpen = [...jest.mocked(props.onPendingChange).mock.calls];
+      editor.typeName("format");
+
+      // Assert
+      expect(reportedOnOpen).toEqual([]);
+      expect(props.onPendingChange).toHaveBeenCalledTimes(1);
+      expect(props.onPendingChange).toHaveBeenLastCalledWith({
+        kind: "default",
+        name: "format",
+      });
+    });
+
+    it("should be reported again with each change of the kind, the name and the alias", () => {
+      // Arrange
+      const { editor, props } = renderEditor({ specifiers: [] });
+      editor.openEditor();
+      editor.typeName("round");
+
+      // Act
+      editor.chooseKind("named");
+      editor.typeAlias("r");
+
+      // Assert
+      expect(jest.mocked(props.onPendingChange).mock.calls).toEqual([
+        [{ kind: "default", name: "round" }],
+        [{ kind: "named", name: "round" }],
+        [{ kind: "named", name: "round", alias: "r" }],
+      ]);
+    });
+
+    it("should be reported as the confirm button would add it: without the spaces, and with no alias for a kind that cannot have one", () => {
+      // Arrange
+      const { editor, props } = renderEditor();
+      editor.openEditor();
+      editor.chooseKind("named");
+      editor.typeAlias(" r ");
+      editor.chooseKind("namespace");
+
+      // Act
+      editor.typeName("  ns ");
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenLastCalledWith({
+        kind: "namespace",
+        name: "ns",
+      });
+      expect(
+        jest.mocked(props.onPendingChange).mock.calls.at(-1)?.[0]
+      ).not.toHaveProperty("alias");
+    });
+
+    it("should be reported as nothing once the name is made of spaces", () => {
+      // Arrange
+      const { editor, props } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      editor.typeName("   ");
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenCalledTimes(2);
+      expect(props.onPendingChange).toHaveBeenLastCalledWith(undefined);
+    });
+
+    it("should be reported as nothing once the name is added", () => {
+      // Arrange
+      const { editor, props } = renderEditor({ specifiers: [] });
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      editor.confirm();
+
+      // Assert
+      expect(props.onAdd).toHaveBeenCalledWith({
+        kind: "default",
+        name: "format",
+      });
+      expect(props.onPendingChange).toHaveBeenLastCalledWith(undefined);
+    });
+
+    it("should be reported as nothing when the cancel button closes the editor", () => {
+      // Arrange
+      const { editor, props } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      editor.cancel();
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenCalledTimes(2);
+      expect(props.onPendingChange).toHaveBeenLastCalledWith(undefined);
+    });
+
+    it("should be reported as nothing when Escape closes the editor", () => {
+      // Arrange
+      const { editor, props } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      editor.pressNameKey("Escape");
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenCalledTimes(2);
+      expect(props.onPendingChange).toHaveBeenLastCalledWith(undefined);
+    });
+
+    it("should be reported with the first kind of the new syntax when the kind that was picked is no longer held", () => {
+      // Arrange
+      const { editor, props, update } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      update({ kinds: ["named", "namespace"] });
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenLastCalledWith({
+        kind: "named",
+        name: "format",
+      });
+    });
+
+    it("should not be reported again by a render that changes nothing of it", () => {
+      // Arrange
+      const { editor, props, update } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+      const reported = jest.mocked(props.onPendingChange).mock.calls.length;
+
+      // Act
+      update({ kinds: [...KINDS], specifiers: [...SPECIFIERS] });
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenCalledTimes(reported);
+    });
+
+    it("should be reported to the callback it has now, and not again because the callback changed", () => {
+      // Arrange
+      const { editor, props, update } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+      const first = jest.mocked(props.onPendingChange);
+      const reported = first.mock.calls.length;
+      const second = jest.fn();
+
+      // Act
+      update({ onPendingChange: second });
+      editor.typeName("format2");
+
+      // Assert
+      expect(first).toHaveBeenCalledTimes(reported);
+      expect(second).toHaveBeenCalledTimes(1);
+      expect(second).toHaveBeenCalledWith({ kind: "default", name: "format2" });
+    });
+
+    it("should be reported as nothing to the callback it has now when the editor goes away", () => {
+      // Arrange
+      const { editor, props, update, unmount } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+      const first = jest.mocked(props.onPendingChange);
+      const reported = first.mock.calls.length;
+      const second = jest.fn();
+      update({ onPendingChange: second });
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(first).toHaveBeenCalledTimes(reported);
+      expect(second).toHaveBeenCalledTimes(1);
+      expect(second).toHaveBeenCalledWith(undefined);
+    });
+
+    it("should be reported as nothing when the editor goes away while a name is being typed", () => {
+      // Arrange
+      const { editor, props, unmount } = renderEditor();
+      editor.openEditor();
+      editor.typeName("format");
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(props.onPendingChange).toHaveBeenLastCalledWith(undefined);
+    });
+
+    it("should not be reported at all while the editor stays closed", () => {
+      // Arrange
+      const { props, unmount } = renderEditor();
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(props.onPendingChange).not.toHaveBeenCalled();
     });
   });
 

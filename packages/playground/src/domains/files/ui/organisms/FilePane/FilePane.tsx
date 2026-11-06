@@ -58,6 +58,7 @@ const Hint = styled("p")(({ theme }) => ({
  * @param props.onEdit Called with the position of the line whose edit action was pressed.
  * @param props.onRemove Called with the position of the line whose delete action was pressed.
  * @param props.onAdd Called when the user presses `+ Dependency`.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The pane.
  */
 export function FilePane({
@@ -70,6 +71,7 @@ export function FilePane({
   onEdit,
   onRemove,
   onAdd,
+  testId = FILE_PANE_TEST_ID,
 }: Readonly<FilePaneProps>): ReactNode {
   const addButton = useRef<HTMLButtonElement>(null);
   // The lines have delete actions only when the dependencies can be edited, which is when the button is drawn
@@ -79,7 +81,7 @@ export function FilePane({
   );
 
   return (
-    <PaneFrame label={frameLabel} testId={FILE_PANE_TEST_ID}>
+    <PaneFrame label={frameLabel} testId={testId}>
       <PaneHead label={FILE_PANE_LABEL} path={path} />
       <Code>
         <DependencyLines

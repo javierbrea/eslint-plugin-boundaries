@@ -50,6 +50,31 @@ function renderPane(overrides: Partial<FilePaneProps> = {}): PaneRender {
 }
 
 describe("FilePane", () => {
+  describe("testId", () => {
+    it("should render the test id of the pane by default", () => {
+      // Arrange
+      renderPane();
+
+      // Act
+      const { isRendered } = new FilePanePom({ testId: "file-pane" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+    });
+
+    it("should render the test id of a module that is the pane in place of its own", () => {
+      // Arrange
+      renderPane({ testId: "other-pane" });
+
+      // Act
+      const { isRendered } = new FilePanePom({ testId: "other-pane" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(new FilePanePom({ testId: "file-pane" }).isRendered).toBe(false);
+    });
+  });
+
   it("should be the landmark that its label names", () => {
     // Arrange
     const { pane } = renderPane();

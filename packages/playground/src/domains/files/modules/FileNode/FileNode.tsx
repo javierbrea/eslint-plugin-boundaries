@@ -9,6 +9,7 @@ import {
   useRemoveDependency,
 } from "@/domains/session/data/store";
 
+import { FILE_NODE_TEST_ID } from "./FileNode.constants";
 import type { FileNodeProps, PickerRequest } from "./FileNode.types";
 import { useDependencyLines } from "./hooks/useDependencyLines";
 import { useSelectedDependency } from "./hooks/useSelectedDependency";
@@ -21,7 +22,7 @@ const CLOSED: PickerRequest = { isOpen: false, index: undefined };
  * @param props FileNode props.
  * @param props.path The path of the open file.
  * @param props.frameLabel The accessible name of the landmark of the pane.
- * @returns The file pane, and the picker while it is open.
+ * @returns The file pane, which carries the test id of the node, and the picker while it is open.
  */
 function FileNodeContent({
   path,
@@ -67,6 +68,7 @@ function FileNodeContent({
         onEdit={edit}
         onRemove={remove}
         onAdd={add}
+        testId={FILE_NODE_TEST_ID}
       />
       <DependencyPickerDialog
         open={picker.isOpen}

@@ -12,6 +12,7 @@ import TextField from "@mui/material/TextField";
 import { useId, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import type { SketchSpecifier } from "@/contract";
 import { NamesEditor } from "@/domains/files/ui/atoms/NamesEditor";
 import { Statement } from "@/domains/files/ui/atoms/Statement";
 import {
@@ -215,7 +216,7 @@ function FormRow({
 }
 
 /**
- * The dialog that adds a dependency to a file or edits one: the target (a file of the sketch or an external module), the syntax, the kind, the names and a preview of the statement they write, which shows why a draft is refused. The draft is its own: the dialog calls `onSubmit` only with a dependency that the sketch can hold, and starts from `initial`, or empty, each time it opens.
+ * The dialog that adds a dependency to a file or edits one: the target (a file of the sketch or an external module), the syntax, the kind, the names and a preview of the statement they write, which shows why a draft is refused. The draft is its own: the dialog calls `onSubmit` only with a dependency that the sketch can hold, and starts from `initial`, or empty, each time it opens. A name that is typed in the editor of the names and not added yet counts as if it had been: the preview writes it after the names that are added, the draft is checked with it and the dependency that is submitted holds it, until the editor closes.
  * @param props DependencyPicker props.
  * @param props.open Whether the dialog is open.
  * @param props.from Path of the file the dependency belongs to.
@@ -224,7 +225,8 @@ function FormRow({
  * @param props.resolvers The resolvers of the config, which the source in the preview is written for.
  * @param props.initial The dependency being edited, or `undefined` to add one.
  * @param props.onCancel Called when the user gives up.
- * @param props.onSubmit Called with the dependency of the draft when the user confirms it.
+ * @param props.onSubmit Called with the dependency of the draft when the user confirms it, with the name being typed if there is one.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The dialog.
  */
 export function DependencyPicker({
@@ -236,9 +238,14 @@ export function DependencyPicker({
   initial,
   onCancel,
   onSubmit,
+  testId = DEPENDENCY_PICKER_TEST_ID,
 }: Readonly<DependencyPickerProps>): ReactNode {
   const baseId = useId();
   const [draft, setDraft] = useState(() => createDraft(initial));
+  // The name that the editor of the names holds and has not added, which is part of the statement
+  const [pending, setPending] = useState<SketchSpecifier | undefined>();
+  // Counts the times the dialog opened: the editor of the names is new each time, so it starts closed, and the name it held is gone with it
+  const [openings, setOpenings] = useState(0);
   const [wasOpen, setWasOpen] = useState(isOpen);
   const files = useMemo(() => getFiles({ tree }), [tree]);
   const options = useMemo(
@@ -251,11 +258,19 @@ export function DependencyPicker({
     setWasOpen(isOpen);
     if (isOpen) {
       setDraft(createDraft(initial));
+      // The editor that held the name unmounts after this render, so the preview of the first one must not write it
+      setPending(undefined);
+      setOpenings(openings + 1);
     }
   }
 
   const { importKinds, specifierKinds } = getSyntaxFacts(draft.syntax);
-  const dependency = toDependency(draft, from);
+  // The name that was typed and not confirmed counts as if it had been: the statement, the check and the dependency that is submitted hold the names that are confirmed and then that one
+  const withPending =
+    pending === undefined
+      ? draft
+      : { ...draft, specifiers: [...draft.specifiers, pending] };
+  const dependency = toDependency(withPending, from);
   const refusal =
     dependency === undefined
       ? undefined
@@ -271,7 +286,7 @@ export function DependencyPicker({
       onClose={() => onCancel()}
       maxWidth={false}
       aria-labelledby={titleId}
-      data-testid={DEPENDENCY_PICKER_TEST_ID}
+      data-testid={testId}
     >
       <DialogTitle id={titleId}>
         {isEditing ? EDIT_TITLE : ADD_TITLE}
@@ -346,6 +361,7 @@ export function DependencyPicker({
           {specifierKinds.length > 0 ? (
             <FormRow label={IMPORTED_ROW_LABEL} labelId={`${baseId}-imported`}>
               <NamesEditor
+                key={openings}
                 specifiers={draft.specifiers}
                 kinds={specifierKinds}
                 onAdd={(specifier) =>
@@ -354,6 +370,7 @@ export function DependencyPicker({
                     specifiers: [...draft.specifiers, specifier],
                   })
                 }
+                onPendingChange={setPending}
                 onRemove={(index) =>
                   setDraft({
                     ...draft,
@@ -368,7 +385,7 @@ export function DependencyPicker({
           <FormRow label={PREVIEW_ROW_LABEL} labelId={`${baseId}-preview`}>
             <Preview>
               <Statement
-                tokens={getPreviewTokens(draft, from, files, resolvers)}
+                tokens={getPreviewTokens(withPending, from, files, resolvers)}
               />
             </Preview>
             {refusal === undefined ? null : (

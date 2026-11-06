@@ -141,6 +141,37 @@ function fillMockupDraft(picker: DependencyPickerPom): void {
 }
 
 describe("DependencyPicker", () => {
+  describe("testId", () => {
+    it("should render the test id of the dialog by default", () => {
+      // Arrange
+      renderPicker();
+
+      // Act
+      const { isRendered } = new DependencyPickerPom({
+        testId: "dependency-picker",
+      });
+
+      // Assert
+      expect(isRendered).toBe(true);
+    });
+
+    it("should render the test id of a module that is the dialog in place of its own", () => {
+      // Arrange
+      renderPicker({ testId: "other-picker" });
+
+      // Act
+      const { isRendered } = new DependencyPickerPom({
+        testId: "other-picker",
+      });
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(
+        new DependencyPickerPom({ testId: "dependency-picker" }).isRendered
+      ).toBe(false);
+    });
+  });
+
   describe("title", () => {
     it("should offer to add a dependency, and say which file it belongs to", () => {
       // Arrange
@@ -927,6 +958,279 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(props.onSubmit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("a name that is typed and not confirmed", () => {
+    it("should be written in the preview after the names that are confirmed, and be no chip", () => {
+      // Arrange
+      const { picker } = renderPicker();
+      pickFile(picker, FORMAT);
+      addName(picker, "default", "format");
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+
+      // Act
+      picker.names.typeName("round");
+      picker.names.typeAlias("r");
+
+      // Assert
+      expect(picker.preview.text).toBe(
+        'import format, { round as r } from "../../helpers/format";'
+      );
+      expect(picker.names.chipTexts).toEqual(["default format"]);
+    });
+
+    it("should be added with the dependency, after the names that are confirmed, as if it had been confirmed", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      addName(picker, "default", "format");
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("round");
+      picker.names.typeAlias("r");
+
+      // Act
+      picker.confirm();
+
+      // Assert
+      expect(props.onSubmit).toHaveBeenCalledTimes(1);
+      expect(props.onSubmit).toHaveBeenCalledWith({
+        from: FROM,
+        target: { kind: "node", path: FORMAT },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [
+          { kind: "default", name: "format" },
+          { kind: "named", name: "round", alias: "r" },
+        ],
+      });
+    });
+
+    it("should be added when it is the only name", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("format");
+
+      // Act
+      picker.confirm();
+
+      // Assert
+      expect(props.onSubmit).toHaveBeenCalledWith({
+        from: FROM,
+        target: { kind: "node", path: FORMAT },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "default", name: "format" }],
+      });
+    });
+
+    it("should be saved with the dependency that is edited", () => {
+      // Arrange
+      const { picker, props } = renderPicker({ initial: MOCKUP_DEPENDENCY });
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("floor");
+
+      // Act
+      picker.confirm();
+
+      // Assert
+      expect(picker.footerButtonTexts).toEqual(["Cancel", "Save"]);
+      expect(props.onSubmit).toHaveBeenCalledWith({
+        ...MOCKUP_DEPENDENCY,
+        specifiers: [
+          { kind: "default", name: "format" },
+          { kind: "named", name: "round" },
+          { kind: "named", name: "floor" },
+        ],
+      });
+    });
+
+    it("should be written once when it is confirmed", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("format");
+
+      // Act
+      picker.names.confirm();
+      picker.confirm();
+
+      // Assert
+      expect(picker.preview.text).toBe(
+        'import format from "../../helpers/format";'
+      );
+      expect(picker.names.chipTexts).toEqual(["default format"]);
+      expect(props.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          specifiers: [{ kind: "default", name: "format" }],
+        })
+      );
+    });
+
+    it("should refuse the draft, and say why in the preview, when it cannot be written", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+
+      // Act
+      picker.names.typeName("1abc");
+      picker.confirm();
+
+      // Assert
+      expect(picker.refusal).toBe('"1abc" is not a valid name.');
+      expect(picker.isConfirmEnabled).toBe(false);
+      expect(props.onSubmit).not.toHaveBeenCalled();
+    });
+
+    it("should stop refusing the draft once the name is fixed", () => {
+      // Arrange
+      const { picker } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("1abc");
+
+      // Act
+      picker.names.typeName("abc");
+
+      // Assert
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
+    });
+
+    it("should be checked together with the names that are confirmed", () => {
+      // Arrange
+      const { picker } = renderPicker();
+      pickFile(picker, FORMAT);
+      addName(picker, "default", "format");
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+
+      // Act
+      picker.names.typeName("format");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "format" is used twice in the statement.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+    });
+
+    it("should not count when it is made of spaces", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+
+      // Act
+      picker.names.typeName("   ");
+      picker.confirm();
+
+      // Assert
+      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(props.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ specifiers: [] })
+      );
+    });
+
+    it.each([
+      [
+        "the cancel button",
+        (picker: DependencyPickerPom) => picker.names.cancel(),
+      ],
+      [
+        "Escape",
+        (picker: DependencyPickerPom) => picker.names.pressNameKey("Escape"),
+      ],
+    ])("should be forgotten when %s closes the editor", (_how, closeEditor) => {
+      // Arrange
+      const { picker, props } = renderPicker({ initial: MOCKUP_DEPENDENCY });
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("floor");
+
+      // Act
+      closeEditor(picker);
+      picker.confirm();
+
+      // Assert
+      expect(picker.preview.text).toBe(
+        'import format, { round } from "../../helpers/format";'
+      );
+      expect(props.onSubmit).toHaveBeenCalledWith(MOCKUP_DEPENDENCY);
+    });
+
+    it("should be written with the kind that the editor shows after the syntax changes", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("format");
+
+      // Act
+      picker.syntax.select("export … from");
+      picker.confirm();
+
+      // Assert
+      expect(picker.names.selectedKind).toBe("named");
+      expect(picker.preview.text).toBe(
+        'export { format } from "../../helpers/format";'
+      );
+      expect(props.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          syntax: "export-from",
+          specifiers: [{ kind: "named", name: "format" }],
+        })
+      );
+    });
+
+    it("should be dropped with the editor when the syntax holds no names, and stay dropped when it holds them again", () => {
+      // Arrange
+      const { picker, props } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("format");
+
+      // Act
+      picker.syntax.select("require()");
+      const withRequire = picker.preview.text;
+      picker.syntax.select("import");
+      picker.confirm();
+
+      // Assert
+      expect(withRequire).toBe('require("../../helpers/format");');
+      expect(picker.names.isEditorOpen).toBe(false);
+      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(props.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ specifiers: [] })
+      );
+    });
+
+    it("should be forgotten, with its editor, when the dialog opens again", () => {
+      // Arrange
+      const { picker, props, update } = renderPicker();
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.typeName("format");
+      update({ open: false });
+
+      // Act
+      update({ open: true });
+      pickFile(picker, FORMAT);
+      picker.confirm();
+
+      // Assert
+      expect(picker.names.isEditorOpen).toBe(false);
+      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(props.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ specifiers: [] })
+      );
     });
   });
 
