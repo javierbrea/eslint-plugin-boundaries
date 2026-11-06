@@ -614,6 +614,7 @@ function readDraft(state: SessionState, settle: boolean): SessionState {
   // Without `editDependencies` the dependency lines are neither read nor reported, as `getTextProblems` reads them, so a draft whose nodes were all read settles
   const { sketch, problems } = fromText(textDraft, state.sketch, {
     dependencies: state.capabilities.editDependencies,
+    resolvers: state.evaluation.resolvers,
   });
   const read = isSameProject(state.sketch, sketch)
     ? state

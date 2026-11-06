@@ -1,6 +1,7 @@
 import type { SettingsNormalized } from "@boundaries/config";
 
 import type { Sketch } from "@/contract";
+import type { SourceResolver } from "@/domains/project/helpers/sketch";
 
 import type { EvaluatedRule } from "./evaluatedRule.types";
 
@@ -13,6 +14,8 @@ export type DependenciesInput = {
   readonly settings: SettingsNormalized;
   /** The rule that decides, or `undefined` when no dependency is evaluated */
   readonly rule: EvaluatedRule | undefined;
+  /** The resolvers that the sources of the statements are written for, as `Evaluation.resolvers` has them */
+  readonly resolvers: readonly SourceResolver[];
 };
 
 /** What the rule decides a dependency with */

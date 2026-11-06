@@ -4,7 +4,7 @@ import type {
   Evaluation,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import { toText } from "@/domains/project/helpers/sketch";
+import { DEFAULT_RESOLVERS, toText } from "@/domains/project/helpers/sketch";
 import type { Focus } from "@/domains/session/helpers/focus";
 
 import type { SessionState } from "./sessionState.types";
@@ -1679,7 +1679,7 @@ describe("Transitions", () => {
       // Arrange
       const before = createState({
         view: "text",
-        textDraft: `${toText(SKETCH)}  import bad\n`,
+        textDraft: `${toText(SKETCH, DEFAULT_RESOLVERS)}  import bad\n`,
       });
 
       // Act
@@ -1707,13 +1707,72 @@ describe("Transitions", () => {
 
     it("should return the same state for the draft of the same project", () => {
       // Arrange
-      const before = createState({ view: "text", textDraft: toText(SKETCH) });
+      const before = createState({
+        view: "text",
+        textDraft: toText(SKETCH, DEFAULT_RESOLVERS),
+      });
 
       // Act
       const state = readText(before);
 
       // Assert
       expect(state).toBe(before);
+    });
+
+    describe("when the draft writes a source that only the typescript resolver resolves", () => {
+      const TYPED = 'src/a.ts\n  import "./b";\nsrc/b.ts\n';
+
+      /**
+       * Creates a state for a sketch of two TypeScript files, whose config sets the resolvers given.
+       * @param settings The text of the settings of the config.
+       * @returns The state, with the draft of the text and the evaluation of its config.
+       */
+      function createTypescriptState(settings: string): SessionState {
+        const sketch: Sketch = {
+          config: `{ settings: ${settings}, rules: {} }`,
+          tree: [
+            { path: "src/a.ts", kind: "file" },
+            { path: "src/b.ts", kind: "file" },
+          ],
+          dependencies: [],
+        };
+
+        return {
+          ...createSessionState(
+            sketch,
+            createEngine().evaluate(sketch),
+            ALL_CAPABILITIES
+          ),
+          view: "text",
+          textDraft: TYPED,
+        };
+      }
+
+      it("should read the source with the resolvers of the evaluation of the state", () => {
+        // Arrange
+        const before = createTypescriptState(
+          '{ "import/resolver": "typescript" }'
+        );
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual(["src/a.ts -> src/b.ts"]);
+        expect(state.textDraft).toBeUndefined();
+      });
+
+      it("should leave the line out, and keep the draft, when the resolvers of the evaluation do not resolve it", () => {
+        // Arrange
+        const before = createTypescriptState("{}");
+
+        // Act
+        const state = settleText(before);
+
+        // Assert
+        expect(getEdges(state)).toEqual([]);
+        expect(state.textDraft).toBe(TYPED);
+      });
     });
   });
 
@@ -1735,7 +1794,10 @@ describe("Transitions", () => {
 
     it("should drop the draft of the same project and keep its sketch", () => {
       // Arrange
-      const before = createState({ view: "text", textDraft: toText(SKETCH) });
+      const before = createState({
+        view: "text",
+        textDraft: toText(SKETCH, DEFAULT_RESOLVERS),
+      });
 
       // Act
       const state = settleText(before);
@@ -1802,7 +1864,7 @@ describe("Transitions", () => {
         const before = createDependencyState({
           view: "text",
           capabilities: NO_DEPENDENCY_EDITS,
-          textDraft: `${toText({ tree: SKETCH.tree, dependencies: [] })}  import bad\n`,
+          textDraft: `${toText({ tree: SKETCH.tree, dependencies: [] }, DEFAULT_RESOLVERS)}  import bad\n`,
         });
 
         // Act
@@ -2672,7 +2734,7 @@ describe("Transitions", () => {
 
   describe("the text draft when a dependency is edited", () => {
     // The text of the sketch, as text mode shows it, with a line below it that could not be read
-    const STALE_DRAFT = `${toText(DEPENDENCY_SKETCH)}  import bad\n`;
+    const STALE_DRAFT = `${toText(DEPENDENCY_SKETCH, DEFAULT_RESOLVERS)}  import bad\n`;
 
     const MISSING = { path: "src/index.js", index: 9 };
 
@@ -2986,13 +3048,16 @@ describe("Transitions", () => {
       dependencies: readonly SketchDependency[],
       paths?: readonly string[]
     ): string {
-      return toText({
-        tree:
-          paths === undefined
-            ? SKETCH.tree
-            : paths.map((path) => ({ path, kind: "file" })),
-        dependencies,
-      });
+      return toText(
+        {
+          tree:
+            paths === undefined
+              ? SKETCH.tree
+              : paths.map((path) => ({ path, kind: "file" })),
+          dependencies,
+        },
+        DEFAULT_RESOLVERS
+      );
     }
 
     it("should read the dependency lines into the sketch", () => {

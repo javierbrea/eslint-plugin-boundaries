@@ -2,6 +2,8 @@ import { render } from "@testing-library/react";
 
 import type { Sketch, SketchDependency } from "@/contract";
 import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
+import type { SourceResolver } from "@/domains/project/helpers/sketch";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { DependencyPicker } from "./DependencyPicker";
@@ -73,6 +75,7 @@ function renderPicker(changes: Partial<DependencyPickerProps> = {}): Page {
     from: FROM,
     tree: TREE,
     descriptions: DESCRIPTIONS,
+    resolvers: DEFAULT_RESOLVERS,
     onCancel: jest.fn(),
     onSubmit: jest.fn(),
     ...changes,
@@ -542,6 +545,35 @@ describe("DependencyPicker", () => {
       // Assert
       expect(picker.preview.text).toBe(
         'import format, { round } from "../../helpers/format";'
+      );
+    });
+
+    it("should write the source as the resolvers it is given find the file back", () => {
+      // Arrange
+      const from = "src/modules/checkout/index.ts";
+      const file = "src/helpers/format/index.ts";
+      const typescript: SourceResolver = {
+        name: "typescript",
+        extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
+      };
+      const { picker, update } = renderPicker({
+        from,
+        tree: [
+          { path: from, kind: "file" },
+          { path: file, kind: "file" },
+        ],
+        resolvers: [typescript],
+      });
+      pickFile(picker, file);
+      const withTypescript = picker.preview.text;
+
+      // Act
+      update({ resolvers: DEFAULT_RESOLVERS });
+
+      // Assert
+      expect(withTypescript).toBe('import "../../helpers/format";');
+      expect(picker.preview.text).toBe(
+        'import "../../helpers/format/index.ts";'
       );
     });
 

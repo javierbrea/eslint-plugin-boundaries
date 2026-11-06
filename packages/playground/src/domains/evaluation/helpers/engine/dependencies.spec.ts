@@ -3,6 +3,7 @@ import type {
   SketchDependencySyntax,
   SketchSpecifier,
 } from "@/contract";
+import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
 
 import { evaluateDependencies } from "./dependencies";
 import type { DependenciesInput } from "./dependencies.types";
@@ -89,6 +90,7 @@ function createInput(
       rules: value.rules,
       rulesValid: areRulesValid(diagnostics),
     }).rule,
+    resolvers: DEFAULT_RESOLVERS,
   };
 }
 

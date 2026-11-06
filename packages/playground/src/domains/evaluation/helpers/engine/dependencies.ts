@@ -130,13 +130,15 @@ function judge(
  * @param input.paths
  * @param input.settings
  * @param input.rule
- * @returns A result for each dependency, in the order of `Sketch.dependencies`, with the source its statement writes and its position among the dependencies of its file. Every verdict is `not-evaluated` when there is no rule to evaluate.
+ * @param input.resolvers
+ * @returns A result for each dependency, in the order of `Sketch.dependencies`, with the source its statement writes, as the resolvers of the config find the file back, and its position among the dependencies of its file. Every verdict is `not-evaluated` when there is no rule to evaluate.
  */
 export function evaluateDependencies({
   sketch,
   paths,
   settings,
   rule,
+  resolvers,
 }: DependenciesInput): DependencyResult[] {
   const seen = new Map<string, number>();
   const readNodeKinds = getReadNodeKinds(settings);
@@ -144,7 +146,7 @@ export function evaluateDependencies({
   return sketch.dependencies.map((dependency): DependencyResult => {
     const index = seen.get(dependency.from) ?? 0;
     seen.set(dependency.from, index + 1);
-    const source = getDependencySource(paths, dependency);
+    const source = getDependencySource(paths, dependency, resolvers);
     return {
       dependency,
       ref: { path: dependency.from, index },

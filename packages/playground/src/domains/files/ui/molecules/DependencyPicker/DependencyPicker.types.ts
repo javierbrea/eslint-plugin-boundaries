@@ -1,5 +1,6 @@
 import type { Sketch, SketchDependency } from "@/contract";
 import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { SourceResolver } from "@/domains/project/helpers/sketch";
 
 /** Props of {@link DependencyPicker}. */
 export type DependencyPickerProps = {
@@ -11,6 +12,8 @@ export type DependencyPickerProps = {
   readonly tree: Sketch["tree"];
   /** The description of each file, by path, for the element types the options show */
   readonly descriptions: ReadonlyMap<string, FileDescription>;
+  /** The resolvers of the config, which the source of the statement in the preview is written for */
+  readonly resolvers: readonly SourceResolver[];
   /** The dependency being edited, or `undefined` to add one */
   readonly initial?: SketchDependency;
   /** Called when the user gives up: the cancel button, Escape, or a click outside the dialog */

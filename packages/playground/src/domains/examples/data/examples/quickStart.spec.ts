@@ -1,6 +1,7 @@
 import { evaluate, parse } from "@humanwhocodes/momoa";
 
 import {
+  DEFAULT_RESOLVERS,
   buildTree,
   fromText,
   getDependencyError,
@@ -97,7 +98,11 @@ describe("QUICK_START_EXAMPLE", () => {
     const { sketch } = QUICK_START_EXAMPLE;
 
     // Act
-    const { sketch: sorted } = fromText(toText(sketch), sketch);
+    const { sketch: sorted } = fromText(
+      toText(sketch, DEFAULT_RESOLVERS),
+      sketch,
+      { resolvers: DEFAULT_RESOLVERS }
+    );
 
     // Assert
     expect(sketch.tree).toEqual(sorted.tree);
@@ -137,7 +142,7 @@ describe("QUICK_START_EXAMPLE", () => {
 
   it("should write its dependencies in text mode as the mockup lists them under their files", () => {
     // Act
-    const text = toText(QUICK_START_EXAMPLE.sketch);
+    const text = toText(QUICK_START_EXAMPLE.sketch, DEFAULT_RESOLVERS);
 
     // Assert
     // The text of the `text` state of the mockup, without its last line (`src/pages/`), which the mockup adds as typing in progress

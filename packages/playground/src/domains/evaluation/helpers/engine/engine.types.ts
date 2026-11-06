@@ -1,5 +1,8 @@
 import type { Sketch, SketchDependency } from "@/contract";
-import type { DependencyRef } from "@/domains/project/helpers/sketch";
+import type {
+  DependencyRef,
+  SourceResolver,
+} from "@/domains/project/helpers/sketch";
 
 /** A range of the config text: offsets for the editor, and the line and column of its start for the problem list */
 export type TextRange = {
@@ -198,8 +201,10 @@ export type PolicySummary = {
 export type Evaluation = {
   readonly sketch: Sketch;
   readonly configParsed: boolean;
-  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node */
+  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, then the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node, and last the warnings about the entries of `import/resolver` that it does not run */
   readonly problems: readonly ConfigProblem[];
+  /** The resolvers that the sources of the dependencies are written and read with, in the order ESLint tries them: the `node` and `typescript` resolvers of `settings["import/resolver"]` with their `extensions`, or `node` with its default extensions when the setting is not written or holds none of them. The same array while the config text does not change */
+  readonly resolvers: readonly SourceResolver[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
   /** Every file of the tree, by path */

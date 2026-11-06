@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 
+import type { Sketch } from "@/contract";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import { useFocus } from "@/domains/session/data/store";
 import type { SessionStore } from "@/domains/session/data/store";
@@ -8,6 +9,7 @@ import {
   HOOK_SKETCH,
   renderHookInSession,
   renderInSession,
+  waitForEvaluation,
 } from "@/domains/session/data/store/store.mock";
 
 import { useTextProblems } from "./useTextProblems";
@@ -60,6 +62,85 @@ describe("useTextProblems", () => {
         reason: '"./b" does not resolve to a file of the sketch.',
       },
     ]);
+  });
+
+  describe("with the resolvers of the config", () => {
+    const TYPESCRIPT_SKETCH: Sketch = {
+      config: '{ settings: { "import/resolver": "typescript" }, rules: {} }',
+      tree: [
+        { path: "src/a.ts", kind: "file" },
+        { path: "src/b.ts", kind: "file" },
+      ],
+      dependencies: [],
+    };
+
+    const TYPED = 'src/a.ts\n  import "./b";\nsrc/b.ts\n';
+
+    it("should read the sources of the draft with them", () => {
+      // Arrange
+      const { store, result } = renderHookInSession(
+        useTextProblems,
+        TYPESCRIPT_SKETCH
+      );
+
+      act(() => store.setView("text"));
+
+      // Act
+      act(() => store.setTextDraft(TYPED));
+
+      // Assert
+      expect(result.current).toEqual([]);
+    });
+
+    it("should read them with the node resolver while the config sets none", () => {
+      // Arrange
+      const { store, result } = renderHookInSession(useTextProblems, {
+        ...TYPESCRIPT_SKETCH,
+        config: "{ settings: {}, rules: {} }",
+      });
+
+      act(() => store.setView("text"));
+
+      // Act
+      act(() => store.setTextDraft(TYPED));
+
+      // Assert
+      expect(result.current).toEqual([
+        {
+          line: 2,
+          text: '  import "./b";',
+          reason: '"./b" does not resolve to a file of the sketch.',
+        },
+      ]);
+    });
+
+    describe("when the config changes the resolvers", () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it("should read the draft again with them", () => {
+        // Arrange
+        const { store, result } = renderHookInSession(useTextProblems, {
+          ...TYPESCRIPT_SKETCH,
+          config: "{ settings: {}, rules: {} }",
+        });
+
+        act(() => store.setView("text"));
+        act(() => store.setTextDraft(TYPED));
+
+        // Act
+        act(() => store.changeConfig(TYPESCRIPT_SKETCH.config));
+        waitForEvaluation();
+
+        // Assert
+        expect(result.current).toEqual([]);
+      });
+    });
   });
 
   it("should give the same array while the draft does not change", () => {

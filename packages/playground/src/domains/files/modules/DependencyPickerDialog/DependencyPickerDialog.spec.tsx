@@ -1,6 +1,6 @@
 import { act } from "@testing-library/react";
 
-import type { SketchDependency } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { getFileDependencies } from "@/domains/project/helpers/sketch";
 import { renderInSession } from "@/domains/session/data/store/store.mock";
@@ -26,10 +26,12 @@ type DialogRender = SessionRender & {
 /**
  * Renders the dialog in a session.
  * @param props What differs from an open dialog that adds a dependency to the checkout file.
+ * @param sketch The sketch of the session, the quick start by default.
  * @returns The render, the store, the spy of the dialog and its page object.
  */
 function renderDialog(
-  props: Partial<DependencyPickerDialogProps> = {}
+  props: Partial<DependencyPickerDialogProps> = {},
+  sketch: Sketch = QUICK_START
 ): DialogRender {
   const onClose = jest.fn();
 
@@ -44,7 +46,7 @@ function renderDialog(
           {...props}
         />
       </ThemeRoot>,
-      { sketch: QUICK_START }
+      { sketch }
     ),
     picker: new DependencyPickerDialogPom({ portal: true }),
     onClose,
@@ -118,6 +120,43 @@ describe("DependencyPickerDialog", () => {
       // Assert
       expect(picker.file.listedFiles.map(({ path }) => path)).toContain(
         "new-file.js"
+      );
+    });
+
+    it("should preview the source as the resolvers of the config find the file back", () => {
+      // Arrange
+      const from = "src/modules/checkout/index.ts";
+      const file = "src/helpers/format/index.ts";
+      const tree: Sketch["tree"] = [
+        { path: from, kind: "file" },
+        { path: file, kind: "file" },
+      ];
+      const typescript = renderDialog(
+        { from },
+        {
+          config:
+            '{ settings: { "import/resolver": "typescript" }, rules: {} }',
+          tree,
+          dependencies: [],
+        }
+      );
+      typescript.picker.file.open();
+      typescript.picker.file.choose(file);
+      const withTypescript = typescript.picker.preview.text;
+      typescript.unmount();
+
+      // Act
+      const node = renderDialog(
+        { from },
+        { config: "{ settings: {}, rules: {} }", tree, dependencies: [] }
+      );
+      node.picker.file.open();
+      node.picker.file.choose(file);
+
+      // Assert
+      expect(withTypescript).toBe('import "../../helpers/format";');
+      expect(node.picker.preview.text).toBe(
+        'import "../../helpers/format/index.ts";'
       );
     });
 

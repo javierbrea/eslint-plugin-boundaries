@@ -27,10 +27,23 @@ export type TextProblem = {
   readonly reason: string;
 };
 
+/** The resolvers of `import/resolver` that the playground runs: the ones of the packages `eslint-import-resolver-node` and `eslint-import-resolver-typescript` */
+export type SourceResolverName = "node" | "typescript";
+
+/** A resolver of the `import/resolver` setting that the playground runs, to write the source of a dependency the way the resolver finds the file back, and to read it */
+export type SourceResolver = {
+  /** Which resolver it is */
+  readonly name: SourceResolverName;
+  /** The extensions it adds to a source, and to the `index` of a folder, in the order it tries them: its `extensions` option, or its default list */
+  readonly extensions: readonly string[];
+};
+
 /** What text mode reads. */
 export type TextReadOptions = {
   /** Whether the indented lines are read as dependencies. When it is `false` they are ignored, whatever they say: they are not read and never reported as problems, and the dependencies of the sketch given stay, as far as their files remain. A host that lets the user edit the tree but not the dependencies reads text mode so. It defaults to `true`. */
   readonly dependencies?: boolean;
+  /** The resolvers that the sources of the dependencies are read with, in the order they are tried. They come from the config, as `Evaluation.resolvers` has them */
+  readonly resolvers: readonly SourceResolver[];
 };
 
 /** The result of an edit: the new sketch, or why the edit is refused */

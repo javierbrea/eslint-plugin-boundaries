@@ -1166,6 +1166,252 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("with the resolvers of the config", () => {
+      const NODE_RESOLVERS = [
+        { name: "node", extensions: [".mjs", ".js", ".json", ".node"] },
+      ];
+
+      const TYPESCRIPT_RESOLVERS = [
+        {
+          name: "typescript",
+          extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
+        },
+      ];
+
+      const TYPESCRIPT_FILES = [
+        "src/a.ts",
+        "src/b.ts",
+        "src/c.mjs",
+        "src/d/index.tsx",
+      ];
+
+      const TYPESCRIPT_DEPENDENCIES = [
+        importOf("src/a.ts", "src/b.ts"),
+        importOf("src/a.ts", "src/c.mjs"),
+        importOf("src/a.ts", "src/d/index.tsx"),
+      ];
+
+      /**
+       * Writes the config of the quick start with the settings that are given besides its own.
+       * @param settings The settings to add.
+       * @returns The config text.
+       */
+      function configWithSettings(settings: object): string {
+        return JSON.stringify(
+          {
+            settings: { ...QUICK_START_SETTINGS, ...settings },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+      }
+
+      it("should use the node resolver while the config does not set them, and write the sources of the quick start as it does", () => {
+        // Arrange
+        const sketch = createSketch(
+          QUICK_START_CONFIG,
+          QUICK_START_FILES,
+          QUICK_START_DEPENDENCIES
+        );
+
+        // Act
+        const { resolvers, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(resolvers).toEqual(NODE_RESOLVERS);
+        expect(dependencies.map(({ source }) => source)).toEqual([
+          "./index",
+          "../../../helpers/format",
+          "./Button.css",
+          "../../components/atoms/Button",
+          "../../components/atoms/Button",
+          "../../helpers/format",
+          "../../components/atoms/Button/Button.spec",
+          "react",
+          "./modules/checkout",
+        ]);
+      });
+
+      it("should use the node resolver when the config cannot be read", () => {
+        // Act
+        const { resolvers } = evaluate(
+          createSketch("{ settings: ", QUICK_START_FILES)
+        );
+
+        // Assert
+        expect(resolvers).toEqual(NODE_RESOLVERS);
+      });
+
+      it("should write the sources for the resolvers of import/resolver", () => {
+        // Arrange
+        const sources = [
+          {},
+          { "import/resolver": "typescript" },
+          { "import/resolver": ["typescript", "node"] },
+          { "import/resolver": { node: { extensions: [".ts"] } } },
+          { "import/resolve": { extensions: [".ts", ".tsx"] } },
+        ].map((settings) =>
+          createSketch(
+            configWithSettings(settings),
+            TYPESCRIPT_FILES,
+            TYPESCRIPT_DEPENDENCIES
+          )
+        );
+
+        // Act
+        const written = sources.map((sketch) =>
+          evaluate(sketch).dependencies.map(({ source }) => source)
+        );
+
+        // Assert
+        expect(written).toEqual([
+          ["./b.ts", "./c", "./d/index.tsx"],
+          ["./b", "./c.mjs", "./d"],
+          ["./b", "./c", "./d"],
+          ["./b", "./c.mjs", "./d/index.tsx"],
+          ["./b", "./c.mjs", "./d"],
+        ]);
+      });
+
+      it("should say which resolvers it ran", () => {
+        // Act
+        const { resolvers } = evaluate(
+          createSketch(
+            configWithSettings({
+              "import/resolver": {
+                typescript: { extensions: [".ts"] },
+                node: true,
+              },
+            }),
+            TYPESCRIPT_FILES
+          )
+        );
+
+        // Assert
+        expect(resolvers).toEqual([
+          { name: "typescript", extensions: [".ts"] },
+          { name: "node", extensions: [".mjs", ".js", ".json", ".node"] },
+        ]);
+      });
+
+      it("should warn about a resolver it does not run, after the warning about the additional dependency nodes, and still write the sources", () => {
+        // Arrange
+        const config = `{
+  settings: {
+    "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }],
+    "import/resolver": ["alias", "typescript"],
+    "boundaries/additional-dependency-nodes": [
+      { selector: "ImportDeclaration > Literal", kind: "value", name: "custom" },
+    ],
+    "boundaries/cache": "yes",
+  },
+}`;
+        const sketch = createSketch(
+          config,
+          TYPESCRIPT_FILES,
+          TYPESCRIPT_DEPENDENCIES
+        );
+
+        // Act
+        const { problems, resolvers, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ path }) => path)).toEqual([
+          ["settings", "boundaries/cache"],
+          ["settings", "boundaries/additional-dependency-nodes"],
+          ["settings", "import/resolver", 0],
+        ]);
+        expect(problems[2]).toEqual({
+          level: "warning",
+          title: 'The playground does not run the "alias" resolver.',
+          detail:
+            'The playground finds the files of the sources with the "node" and "typescript" resolvers only, so ESLint can resolve a source to another file.',
+          links: [],
+          path: ["settings", "import/resolver", 0],
+          range: expect.objectContaining({ line: 4, column: 25 }),
+          source: "config",
+        });
+        expect(slice(config, problems[2].range)).toBe('"alias"');
+        expect(resolvers).toEqual(TYPESCRIPT_RESOLVERS);
+        expect(dependencies.map(({ source }) => source)).toEqual([
+          "./b",
+          "./c.mjs",
+          "./d",
+        ]);
+      });
+
+      it("should warn and use the node resolver when the config sets only resolvers it does not run", () => {
+        // Arrange
+        const sketch = createSketch(
+          configWithSettings({ "import/resolver": { webpack: {} } }),
+          TYPESCRIPT_FILES,
+          TYPESCRIPT_DEPENDENCIES
+        );
+
+        // Act
+        const { problems, resolvers, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ title }) => title)).toEqual([
+          'The playground does not run the "webpack" resolver.',
+        ]);
+        expect(problems[0].detail).toContain(
+          'None of the resolvers of the setting is one it runs, so it uses "node" with its default extensions.'
+        );
+        expect(resolvers).toEqual(NODE_RESOLVERS);
+        expect(dependencies.map(({ source }) => source)).toEqual([
+          "./b.ts",
+          "./c",
+          "./d/index.tsx",
+        ]);
+      });
+
+      it("should warn about a value that is not a resolver config", () => {
+        // Arrange
+        const sketch = createSketch(
+          configWithSettings({ "import/resolver": ["typescript", 5] }),
+          TYPESCRIPT_FILES
+        );
+
+        // Act
+        const { problems, resolvers } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ title, path }) => ({ title, path }))).toEqual([
+          {
+            title:
+              'The playground does not run a value of "import/resolver" that is not a resolver.',
+            path: ["settings", "import/resolver", 1],
+          },
+        ]);
+        expect(resolvers).toEqual(TYPESCRIPT_RESOLVERS);
+      });
+
+      it("should give the same resolvers to sketches with the same config text, and others when the text changes", () => {
+        // Arrange
+        const config = configWithSettings({ "import/resolver": "typescript" });
+        const first = createSketch(config, TYPESCRIPT_FILES);
+        const second = createSketch(config, [...TYPESCRIPT_FILES, "src/e.ts"]);
+        const third = createSketch(
+          configWithSettings({ "import/resolver": "node" }),
+          TYPESCRIPT_FILES
+        );
+
+        // Act
+        const [firstResolvers, secondResolvers, thirdResolvers] = [
+          first,
+          second,
+          third,
+        ].map((sketch) => evaluate(sketch).resolvers);
+
+        // Assert
+        expect(secondResolvers).toBe(firstResolvers);
+        expect(thirdResolvers).not.toBe(firstResolvers);
+        expect(thirdResolvers).toEqual(NODE_RESOLVERS);
+      });
+    });
+
     describe("when the config is not one JSON5 object", () => {
       it.each([
         [

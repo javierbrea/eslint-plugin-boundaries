@@ -1,4 +1,6 @@
 import type { SketchDependency } from "@/contract";
+import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
+import type { SourceResolver } from "@/domains/project/helpers/sketch";
 
 import {
   changeSyntax,
@@ -236,7 +238,12 @@ describe("dependencyDraft", () => {
   describe("getPreviewTokens", () => {
     it("should write the statement of the mockup, with the source from the folder of the file", () => {
       // Act
-      const tokens = getPreviewTokens(MOCKUP_DRAFT, FROM, FILES);
+      const tokens = getPreviewTokens(
+        MOCKUP_DRAFT,
+        FROM,
+        FILES,
+        DEFAULT_RESOLVERS
+      );
 
       // Assert
       expect(tokens).toEqual([
@@ -249,6 +256,33 @@ describe("dependencyDraft", () => {
       ]);
     });
 
+    it("should write the source as the resolvers it is given find the file back", () => {
+      // Arrange
+      const from = "src/modules/checkout/index.ts";
+      const file = "src/helpers/format/index.ts";
+      const files = [from, file];
+      const draft: DependencyDraft = { ...MOCKUP_DRAFT, file };
+      const typescript: SourceResolver = {
+        name: "typescript",
+        extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
+      };
+
+      // Act
+      const [withTypescript, withNode] = [[typescript], DEFAULT_RESOLVERS].map(
+        (resolvers) => getPreviewTokens(draft, from, files, resolvers).at(-2)
+      );
+
+      // Assert
+      expect(withTypescript).toEqual({
+        kind: "source",
+        text: '"../../helpers/format"',
+      });
+      expect(withNode).toEqual({
+        kind: "source",
+        text: '"../../helpers/format/index.ts"',
+      });
+    });
+
     it("should write the name of an external module as it is", () => {
       // Arrange
       const draft: DependencyDraft = {
@@ -259,7 +293,7 @@ describe("dependencyDraft", () => {
       };
 
       // Act
-      const tokens = getPreviewTokens(draft, FROM, FILES);
+      const tokens = getPreviewTokens(draft, FROM, FILES, DEFAULT_RESOLVERS);
 
       // Assert
       expect(tokens.at(-2)).toEqual({ kind: "source", text: '"react"' });
@@ -270,7 +304,8 @@ describe("dependencyDraft", () => {
       const tokens = getPreviewTokens(
         { ...MOCKUP_DRAFT, file: null },
         FROM,
-        FILES
+        FILES,
+        DEFAULT_RESOLVERS
       );
 
       // Assert
@@ -286,7 +321,7 @@ describe("dependencyDraft", () => {
       };
 
       // Act
-      const text = getPreviewTokens(draft, FROM, FILES)
+      const text = getPreviewTokens(draft, FROM, FILES, DEFAULT_RESOLVERS)
         .map((token) => token.text)
         .join("");
 

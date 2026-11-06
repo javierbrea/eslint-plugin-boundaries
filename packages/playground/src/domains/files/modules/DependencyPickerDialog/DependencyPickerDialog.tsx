@@ -14,7 +14,7 @@ import {
 import type { DependencyPickerDialogProps } from "./DependencyPickerDialog.types";
 
 /**
- * The dialog that adds a dependency to a file or edits one, connected to the store: it reads the tree and the descriptions of the files for the options, and the dependency being edited, and it adds or replaces the dependency the user confirms. It is its own element so that the file pane does not read the tree or the descriptions, which change with edits that leave the lines as they were.
+ * The dialog that adds a dependency to a file or edits one, connected to the store: it reads the tree and the descriptions of the files for the options, the resolvers of the config for the preview, and the dependency being edited, and it adds or replaces the dependency the user confirms. It is its own element so that the file pane does not read the tree or the descriptions, which change with edits that leave the lines as they were.
  * @param props DependencyPickerDialog props.
  * @param props.open Whether the dialog is open.
  * @param props.from Path of the file the dependency belongs to.
@@ -30,6 +30,7 @@ export function DependencyPickerDialog({
 }: Readonly<DependencyPickerDialogProps>): ReactNode {
   const tree = useTree();
   const descriptions = useSessionSelector((state) => state.evaluation.files);
+  const resolvers = useSessionSelector((state) => state.evaluation.resolvers);
   const initial = useSessionSelector((state) =>
     index === undefined
       ? undefined
@@ -56,6 +57,7 @@ export function DependencyPickerDialog({
       from={from}
       tree={tree}
       descriptions={descriptions}
+      resolvers={resolvers}
       initial={initial}
       onCancel={onClose}
       onSubmit={submit}
