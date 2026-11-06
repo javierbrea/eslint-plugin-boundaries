@@ -49,6 +49,7 @@ function ProjectPaneContent(): ReactNode {
             tree={nodes}
             counts={counts}
             editable={editTree}
+            target={undefined}
             selectedId={tree.selectedId}
             collapsed={tree.collapsed}
             renaming={tree.renaming}

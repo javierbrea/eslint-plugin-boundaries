@@ -24,7 +24,8 @@ const READ_ONLY: ProjectCapabilities = {
   editConfig: false,
 };
 
-const QUICK_START = QUICK_START_EXAMPLE.sketch;
+// The cases of the panes of phase 5 read the files and the config of the quick start, without its dependencies, whose verdicts the cases of the dependencies read from the whole example
+const QUICK_START: Sketch = { ...QUICK_START_EXAMPLE.sketch, dependencies: [] };
 
 const { evaluate } = createEngine();
 
@@ -296,7 +297,7 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Assert
-      expect(getStatus(shell)).toBe("6 files · 0 problems");
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
 
     it("should say that the config has errors when it has", () => {
@@ -304,7 +305,9 @@ describe("Shell", () => {
       const { shell } = renderShell({ initialSketch: MISTAKES });
 
       // Assert
-      expect(getStatus(shell)).toBe("6 files · config has errors");
+      expect(getStatus(shell)).toBe(
+        "6 files · 0 dependencies · config has errors"
+      );
     });
 
     it("should count the problems of a config that has only warnings, and not say it has errors", () => {
@@ -312,7 +315,7 @@ describe("Shell", () => {
       const { shell } = renderShell({ initialSketch: WARNING_ONLY });
 
       // Assert
-      expect(getStatus(shell)).toBe("6 files · 1 problem");
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
     });
 
     it("should count the files with the sketch that an edit of the tree makes, at once", () => {
@@ -324,7 +327,7 @@ describe("Shell", () => {
       shell.project.item("src/index.js").deleteAction.press();
 
       // Assert
-      expect(getStatus(shell)).toBe("5 files · 0 problems");
+      expect(getStatus(shell)).toBe("5 files · 0 dependencies · 0 problems");
     });
 
     it("should count the files at once after a node is added and after one is renamed", () => {
@@ -339,8 +342,8 @@ describe("Shell", () => {
       shell.project.rename("src/index.js", "main.spec.js");
 
       // Assert
-      expect(added).toBe("7 files · 0 problems");
-      expect(getStatus(shell)).toBe("7 files · 0 problems");
+      expect(added).toBe("7 files · 0 dependencies · 0 problems");
+      expect(getStatus(shell)).toBe("7 files · 0 dependencies · 0 problems");
       expect(shell.project.item("src/main.spec.js").isRendered).toBe(true);
     });
 
@@ -355,7 +358,7 @@ describe("Shell", () => {
       wait(TEXT_READ_WAIT);
 
       // Assert
-      expect(getStatus(shell)).toBe("7 files · 0 problems");
+      expect(getStatus(shell)).toBe("7 files · 0 dependencies · 0 problems");
     });
 
     it("should evaluate the config together with the tree when an edit of the tree comes before the config is evaluated", () => {
@@ -374,7 +377,9 @@ describe("Shell", () => {
       shell.project.item("src/index.js").deleteAction.press();
 
       // Assert
-      expect(getStatus(shell)).toBe("5 files · config has errors");
+      expect(getStatus(shell)).toBe(
+        "5 files · 0 dependencies · config has errors"
+      );
     });
   });
 
@@ -510,7 +515,7 @@ describe("Shell", () => {
       shell.node.empty.addFileButton.press();
 
       // Assert
-      expect(getStatus(shell)).toBe("7 files · 0 problems");
+      expect(getStatus(shell)).toBe("7 files · 0 dependencies · 0 problems");
     });
 
     it("should give the file it adds a name that is free", () => {
@@ -683,8 +688,10 @@ describe("Shell", () => {
       wait(EVALUATION_WAIT);
 
       // Assert
-      expect(before).toBe("6 files · 0 problems");
-      expect(getStatus(shell)).toBe("6 files · config has errors");
+      expect(before).toBe("6 files · 0 dependencies · 0 problems");
+      expect(getStatus(shell)).toBe(
+        "6 files · 0 dependencies · config has errors"
+      );
       expect(getTabs(shell)).toEqual(["Sketch1", "eslint.config.js1*"]);
     });
   });
@@ -707,8 +714,10 @@ describe("Shell", () => {
       wait(1);
 
       // Assert
-      expect(beforeTheLastDelay).toBe("6 files · 0 problems");
-      expect(getStatus(shell)).toBe("6 files · config has errors");
+      expect(beforeTheLastDelay).toBe("6 files · 0 dependencies · 0 problems");
+      expect(getStatus(shell)).toBe(
+        "6 files · 0 dependencies · config has errors"
+      );
     });
 
     it("should list them in the sketch tab with their count", () => {
@@ -958,7 +967,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.project.item("src/extra.js").isRendered).toBe(true);
-      expect(getStatus(shell)).toBe("7 files · 0 problems");
+      expect(getStatus(shell)).toBe("7 files · 0 dependencies · 0 problems");
       expect(
         getPaths(onSketchChange.mock.calls.at(-1)?.[0] as Sketch)
       ).toContain("src/extra.js");
@@ -976,8 +985,8 @@ describe("Shell", () => {
 
       // Assert
       expect(getTabs(shell)).toEqual(["Sketch1*"]);
-      expect(getStatus(shell)).toBe("6 files · 1 problem");
-      expect(getProblemItem(shell, "Project text:18").text).toContain(
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
+      expect(getProblemItem(shell, "Project text:9").text).toContain(
         "The path cannot have `.` or `..` segments."
       );
     });
@@ -992,7 +1001,7 @@ describe("Shell", () => {
       shell.project.text.blur();
 
       // Assert
-      const unreadable = getProblemItem(shell, "Project text:18");
+      const unreadable = getProblemItem(shell, "Project text:9");
 
       expect(unreadable.opens).toBe(false);
       expect(unreadable.tagName).toBe("LI");
@@ -1010,7 +1019,7 @@ describe("Shell", () => {
       shell.project.text.blur();
 
       // Act
-      getProblemItem(shell, "Project text:18").press();
+      getProblemItem(shell, "Project text:9").press();
 
       // Assert
       expect(shell.node.shown).toBe("empty");
@@ -1030,7 +1039,7 @@ describe("Shell", () => {
 
       // Assert
       expect(getTabs(shell)).toEqual(["Sketch*"]);
-      expect(getStatus(shell)).toBe("6 files · 0 problems");
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
 
     it("should leave nothing in focus when the file in focus is no longer in the text", () => {
@@ -1059,8 +1068,7 @@ describe("Shell", () => {
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
-      // The import of src/index.js that pointed to the file resolves to nothing now
-      expect(getTabs(shell)).toEqual(["Sketch1*"]);
+      expect(getTabs(shell)).toEqual(["Sketch*"]);
     });
 
     it("should keep the file in focus when the text still has it", () => {
@@ -1135,7 +1143,7 @@ describe("Shell", () => {
       shell.project.rename("src/modules", "features");
 
       // Assert
-      expect(getStatus(shell)).toBe("6 files · 0 problems");
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
 
     it("should keep the tab of the sketch when the file in focus is renamed while that tab is selected", () => {
@@ -1440,8 +1448,8 @@ describe("Shell", () => {
 
       // Assert
       expect([getStatus(first), getStatus(second)]).toEqual([
-        "5 files · 0 problems",
-        "6 files · 0 problems",
+        "5 files · 0 dependencies · 0 problems",
+        "6 files · 0 dependencies · 0 problems",
       ]);
       expect(firstSpy).toHaveBeenCalledTimes(1);
       expect(secondSpy).not.toHaveBeenCalled();
@@ -1493,8 +1501,8 @@ describe("Shell", () => {
 
       // Assert
       expect([getStatus(first), getStatus(second)]).toEqual([
-        "6 files · 0 problems",
-        "6 files · config has errors",
+        "6 files · 0 dependencies · 0 problems",
+        "6 files · 0 dependencies · config has errors",
       ]);
     });
 
@@ -1506,7 +1514,7 @@ describe("Shell", () => {
       rerender({ initialSketch: MISTAKES });
 
       // Assert
-      expect(getStatus(shell)).toBe("6 files · 0 problems");
+      expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
   });
 });

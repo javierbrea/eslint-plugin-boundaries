@@ -1595,7 +1595,9 @@ describe("ProjectPane", () => {
           "",
         ].join("\n")
       );
-      expect(pane.layout.head.hint).toBe("One path per line");
+      expect(pane.layout.head.hint).toBe(
+        "One path per line · dependencies indented"
+      );
       expect(pane.tree.isRendered).toBe(false);
     });
 

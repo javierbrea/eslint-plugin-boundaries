@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import {
   getElementTypeRow,
   getFileCategoryRow,
-  getRuleRow,
+  getPoliciesRows,
 } from "@/domains/config/ui/helpers/configRows";
 import type { ConfigRow } from "@/domains/config/ui/helpers/configRows";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
@@ -125,7 +125,7 @@ function RowList({ rows, onOpen }: Readonly<RowListProps>): ReactNode {
 }
 
 /**
- * What the inspector shows for the config: its element types, its file categories and its policies, each with how many files or policies it has and where it is written.
+ * What the inspector shows for the config: its element types and its file categories, each with how many files it matches, and its policies: one row for each policy of the rule that the playground evaluates and one for its default, with how many dependencies each decided, and a row for each other rule that says it is not evaluated here. Every row opens its entry in the config.
  * @param props ConfigInspector props.
  * @param props.evaluation What the engine says about the sketch.
  * @param props.onOpen Called with the target of the row that the user chose.
@@ -149,7 +149,7 @@ export function ConfigInspector({
         onOpen={onOpen}
       />
       <SectionLabel>Policies</SectionLabel>
-      <RowList rows={evaluation.rules.map(getRuleRow)} onOpen={onOpen} />
+      <RowList rows={getPoliciesRows(evaluation)} onOpen={onOpen} />
     </Root>
   );
 }

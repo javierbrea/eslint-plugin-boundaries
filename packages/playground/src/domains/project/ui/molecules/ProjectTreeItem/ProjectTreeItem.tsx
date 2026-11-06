@@ -73,6 +73,11 @@ const Row = styled("div")(({ theme }) => ({
   "&[data-kind='folder']": { color: "var(--jsb-muted)" },
   "&[data-kind='config']": { color: "var(--jsb-accent)" },
   "&[data-bad]": { color: "var(--jsb-bad)" },
+  // What the dependency in focus points to: outlined inside the row, so that the neighbors do not cover it
+  "&[data-target]": {
+    outline: "1px dashed var(--jsb-accent)",
+    outlineOffset: -1,
+  },
   // The row actions show on hover and while the row has the focus
   "&:hover [data-actions], &[data-focused] [data-actions], &:focus-within [data-actions]":
     { maxWidth: 52, opacity: 1 },
@@ -89,6 +94,14 @@ const Chevron = styled("span")({
 const Glyph = styled("span")(({ theme }) => ({
   flex: "none",
   color: "var(--jsb-faint)",
+  ...theme.typography.monoTiny,
+  fontWeight: "inherit",
+  lineHeight: "inherit",
+}));
+
+// The weight and the line height are the ones of the row
+const TargetTag = styled("span")(({ theme }) => ({
+  color: "var(--jsb-accent)",
   ...theme.typography.monoTiny,
   fontWeight: "inherit",
   lineHeight: "inherit",
@@ -122,6 +135,15 @@ const Failure = styled("span")({
 });
 
 const Group = styled("ul")({ margin: 0, padding: 0, listStyle: "none" });
+
+/**
+ * Writes the value of a data attribute that a row sets without a value, so that the styles select the rows that have it.
+ * @param isSet Whether the row has the attribute.
+ * @returns An empty value to set the attribute, or `undefined` to leave it out.
+ */
+function flag(isSet: boolean): "" | undefined {
+  return isSet ? "" : undefined;
+}
 
 /**
  * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The config is red only when it has errors.
@@ -198,7 +220,7 @@ function useFocusRequest(
 }
 
 /**
- * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
+ * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. The item that the dependency in focus points to is outlined and tagged `target`. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
  * @param props ProjectTreeItem props.
  * @param props.ref The ref of the root element of the item.
  * @param props.id The id attribute of the item.
@@ -236,6 +258,7 @@ export function ProjectTreeItem({
   const badge = getBadge(item, context.counts);
   const isFailingFile = item.kind === "file" && badge.count > 0;
   const isBad = isRowBad(item, isFailingFile, context.counts);
+  const isTarget = context.target === itemId;
 
   /**
    * Starts the rename with F2 and removes the node with Delete.
@@ -271,7 +294,8 @@ export function ProjectTreeItem({
         <Row
           {...getContentProps()}
           data-kind={item.kind}
-          data-bad={isBad ? "" : undefined}
+          data-bad={flag(isBad)}
+          data-target={flag(isTarget)}
         >
           <Chevron aria-hidden>
             {itemStatus.expandable ? (
@@ -305,6 +329,7 @@ export function ProjectTreeItem({
             </Name>
           )}
           <End>
+            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
             {canEdit && !isRenaming ? (
               <Actions data-actions="">
                 <Tooltip title={RENAME_ACTION_LABEL}>

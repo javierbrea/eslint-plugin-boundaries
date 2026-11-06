@@ -8,16 +8,20 @@ import { TopBar } from "@/domains/shell/ui/atoms/TopBar";
 import { SHELL_TOP_BAR_TEST_ID } from "./ShellTopBar.constants";
 
 /**
- * The top bar of the instance, with the numbers of the store: how many files the sketch has and how many problems.
+ * The top bar of the instance, with the numbers of the store: how many files and dependencies the sketch has and how many problems.
  * @returns The bar.
  */
 export function ShellTopBar(): ReactNode {
   const files = useSessionSelector((state) => state.evaluation.files.size);
+  const dependencies = useSessionSelector(
+    (state) => state.evaluation.sketch.dependencies.length
+  );
   const { total, hasErrors, configHasErrors } = useProblemSummary();
 
   return (
     <TopBar
       files={files}
+      dependencies={dependencies}
       problems={total}
       tone={getCountTone(hasErrors)}
       configHasErrors={configHasErrors}

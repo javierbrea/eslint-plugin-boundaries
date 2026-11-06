@@ -16,6 +16,7 @@ const NO_COUNTS: ProblemCounts = {
 const VALUE: ProjectTreeContextValue = {
   counts: NO_COUNTS,
   editable: true,
+  target: undefined,
   renaming: "src/index.js",
   focusRequest: undefined,
   onFocusDone: jest.fn(),

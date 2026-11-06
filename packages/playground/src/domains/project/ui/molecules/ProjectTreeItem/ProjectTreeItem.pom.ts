@@ -80,6 +80,40 @@ class ProjectRowPom extends Pom {
   }
 
   /**
+   * Whether the row is outlined as the target of the dependency in focus.
+   * @returns True when the row has a `data-target` attribute.
+   */
+  get isTarget(): boolean {
+    return this.root.hasAttribute("data-target");
+  }
+
+  /**
+   * What the row looks like as the target of the dependency in focus, which jsdom cannot tell from the other rows: it is read from the rule that applies to the rows that have the attribute.
+   * @returns The declarations of that rule.
+   */
+  get targetStyle(): Record<string, string> {
+    return getStyle(this.root, `${OWN_CLASS}[data-target]`);
+  }
+
+  /**
+   * The tag that says the item is the target, which the row draws at its end.
+   * @returns The text of the tag, or null when the row draws none.
+   */
+  get targetTag(): string | null {
+    return this.root.querySelector("[data-target-tag]")?.textContent ?? null;
+  }
+
+  /**
+   * The color of the tag of the target.
+   * @returns The computed color of the tag, or an empty string when the row draws none.
+   */
+  get targetTagColor(): string {
+    const tag = this.root.querySelector("[data-target-tag]");
+
+    return tag === null ? "" : getComputedStyle(tag).color;
+  }
+
+  /**
    * What the row reads, from the chevron to the badge.
    * @returns The text of the row: the glyph of the config, the name, and the number of the badge.
    */

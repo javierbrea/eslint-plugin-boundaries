@@ -4,6 +4,7 @@ import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { ProjectSummary } from "./ProjectSummary";
 import { ProjectSummaryPom } from "./ProjectSummary.pom";
@@ -29,7 +30,7 @@ function renderSummary(
 }
 
 describe("ProjectSummary", () => {
-  it("should show the sketch with the numbers of its files, element types, file categories and policies", () => {
+  it("should show the sketch with the numbers of its files, dependencies, element types, file categories, policies and disallowed dependencies", () => {
     // Arrange
     const summary = renderSummary();
 
@@ -41,9 +42,11 @@ describe("ProjectSummary", () => {
     expect(title.tagName).toBe("DIV");
     expect(numbers).toEqual([
       "6files",
+      "9dependencies",
       "3element types",
       "2file categories",
       "3policies",
+      "2disallowed",
     ]);
   });
 
@@ -67,7 +70,7 @@ describe("ProjectSummary", () => {
     const { numbers } = summary;
 
     // Assert
-    expect(numbers[3]).toBe("3policies");
+    expect(numbers[4]).toBe("3policies");
   });
 
   it("should show zeros for a config that cannot be read, and the files all the same", () => {
@@ -81,9 +84,11 @@ describe("ProjectSummary", () => {
     // Assert
     expect(numbers).toEqual([
       "6files",
+      "9dependencies",
       "0element types",
       "0file categories",
       "0policies",
+      "0disallowed",
     ]);
   });
 
@@ -96,5 +101,141 @@ describe("ProjectSummary", () => {
 
     // Assert
     expect(numbers[0]).toBe("0files");
+  });
+
+  describe("the dependencies", () => {
+    it("should count the dependencies of the quick-start example by what the engine decided", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const { verdictCounts, verdictsLine } = summary;
+
+      // Assert
+      expect(verdictCounts.map(({ text }) => text)).toEqual([
+        "3 allowed",
+        "4 not checked",
+      ]);
+      expect(verdictsLine).toBe("3 allowed4 not checked");
+    });
+
+    it("should draw the allowed dependencies in the color of the allowed ones, and the ones not checked in the faint one", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const colors = summary.verdictCounts.map(({ color }) => color);
+
+      // Assert
+      expect(colors).toEqual(["var(--jsb-ok)", "var(--jsb-faint)"]);
+    });
+
+    it("should mark the allowed with a check and the ones not checked with a skip", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const paths = summary.verdictCounts.map(({ iconPath }) => iconPath);
+
+      // Assert
+      expect(paths).toEqual([ICON_PATHS.check, ICON_PATHS.skip]);
+    });
+
+    it("should draw the disallowed dependencies in the color of errors when there are any", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const color = summary.countColor("disallowed");
+
+      // Assert
+      expect(color).toBe("var(--jsb-bad)");
+    });
+
+    it("should draw the disallowed dependencies as the other numbers when there are none", () => {
+      // Arrange
+      const sketch: Sketch = { ...QUICK_START, dependencies: [] };
+      const summary = renderSummary(evaluate(sketch));
+
+      // Act
+      const disallowed = summary.countColor("disallowed");
+      const files = summary.countColor("files");
+
+      // Assert
+      expect(summary.count("disallowed")).toBe("0");
+      expect(disallowed).toBe(files);
+      expect(disallowed).not.toBe("var(--jsb-bad)");
+    });
+
+    it("should draw no other number in the color of errors", () => {
+      // Arrange
+      const summary = renderSummary();
+      const labels = [
+        "files",
+        "dependencies",
+        "element types",
+        "file categories",
+        "policies",
+        "disallowed",
+      ];
+
+      // Act
+      const colors = labels.map((label) => summary.countColor(label));
+
+      // Assert
+      expect(
+        labels.filter((_label, index) => colors[index] === "var(--jsb-bad)")
+      ).toEqual(["disallowed"]);
+    });
+
+    it("should count a dependency that a warning disallows as disallowed", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const summary = renderSummary(evaluate({ ...QUICK_START, config }));
+
+      // Act
+      const disallowed = summary.count("disallowed");
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(disallowed).toBe("2");
+    });
+
+    it("should say that the dependencies are not evaluated, with no counts, while the rule is off", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["off",'
+      );
+      const summary = renderSummary(evaluate({ ...QUICK_START, config }));
+
+      // Act
+      const { verdictsLine, verdictCounts, numbers } = summary;
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(verdictsLine).toBe("not evaluated");
+      expect(verdictCounts).toEqual([]);
+      expect(numbers[1]).toBe("9dependencies");
+      expect(numbers[5]).toBe("0disallowed");
+    });
+
+    it("should count zero allowed and zero not checked for a sketch with no dependencies", () => {
+      // Arrange
+      const sketch: Sketch = { ...QUICK_START, dependencies: [] };
+      const summary = renderSummary(evaluate(sketch));
+
+      // Act
+      const { verdictCounts } = summary;
+
+      // Assert
+      expect(verdictCounts.map(({ text }) => text)).toEqual([
+        "0 allowed",
+        "0 not checked",
+      ]);
+    });
   });
 });

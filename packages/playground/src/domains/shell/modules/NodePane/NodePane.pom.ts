@@ -1,7 +1,7 @@
 import { CONFIG_NODE_TEST_ID } from "@/domains/config/modules/ConfigNode/ConfigNode.constants";
 import { ConfigNodePom } from "@/domains/config/modules/ConfigNode/ConfigNode.pom";
-import { FILE_PANE_TEST_ID } from "@/domains/files/ui/molecules/FilePane/FilePane.constants";
-import { FilePanePom } from "@/domains/files/ui/molecules/FilePane/FilePane.pom";
+import { FILE_PANE_TEST_ID } from "@/domains/files/ui/organisms/FilePane/FilePane.constants";
+import { FilePanePom } from "@/domains/files/ui/organisms/FilePane/FilePane.pom";
 import { EMPTY_NODE_PANE_TEST_ID } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.constants";
 import { EmptyNodePanePom } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.pom";
 import { Pom } from "@/shared/testing/pom";

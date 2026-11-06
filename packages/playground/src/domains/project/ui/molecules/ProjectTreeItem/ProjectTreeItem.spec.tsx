@@ -64,6 +64,7 @@ function renderItems(
   const initial: ProjectTreeContextValue = {
     counts: NO_COUNTS,
     editable: true,
+    target: undefined,
     renaming: undefined,
     focusRequest: undefined,
     onFocusDone: jest.fn(),
@@ -288,6 +289,100 @@ describe("ProjectTreeItem", () => {
       expect(redFile).toBe(true);
       expect(redConfigWithErrors).toBe(true);
       expect(item("eslint.config.js").row.isBad).toBe(false);
+    });
+  });
+
+  describe("target", () => {
+    it("should mark the item that the dependency in focus points to", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const { isTarget } = item("src/index.js").row;
+
+      // Assert
+      expect(isTarget).toBe(true);
+    });
+
+    it("should tag the item as the target, in the accent color, at the end of its row", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const { targetTag, targetTagColor, text } = item("src/index.js").row;
+
+      // Assert
+      expect(targetTag).toBe("target");
+      expect(targetTagColor).toBe("var(--jsb-accent)");
+      expect(text).toBe(`index.js${targetTag}`);
+    });
+
+    it("should outline and tag only that item", () => {
+      // Arrange
+      renderItems({ target: "src/index.js" });
+
+      // Act
+      const rows = [
+        "eslint.config.js",
+        "src",
+        "src/components/Button.js",
+        "index.js",
+      ].map((path) => item(path).row);
+
+      // Assert
+      expect(rows.map(({ isTarget }) => isTarget)).toEqual([
+        false,
+        false,
+        false,
+        false,
+      ]);
+      expect(rows.map(({ targetTag }) => targetTag)).toEqual([
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    it("should outline no item while no dependency is in focus", () => {
+      // Arrange
+      renderItems();
+
+      // Act
+      const { isTarget, targetTag } = item("src/index.js").row;
+
+      // Assert
+      expect(isTarget).toBe(false);
+      expect(targetTag).toBeNull();
+    });
+
+    it("should move the outline when the dependency in focus changes", () => {
+      // Arrange
+      const page = renderItems({ target: "src/index.js" });
+
+      // Act
+      page.update({ target: "index.js" });
+
+      // Assert
+      expect(item("src/index.js").row.isTarget).toBe(false);
+      expect(item("index.js").row.isTarget).toBe(true);
+    });
+
+    it("should keep the badge and the cross of a failing file that is the target", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", 2]]),
+      };
+      renderItems({ target: "src/index.js", counts });
+
+      // Act
+      const { badgeNames, targetTag } = item("src/index.js").row;
+
+      // Assert
+      expect(targetTag).toBe("target");
+      expect(badgeNames).toEqual(["2 failing dependencies"]);
     });
   });
 

@@ -5,4 +5,5 @@ export const PROJECT_PANE_LAYOUT_TEST_ID = "project-pane-layout";
 export const PROJECT_PANE_LAYOUT_LABEL = "Project";
 
 /** The hint in the head while the project is shown as text. */
-export const PROJECT_PANE_LAYOUT_TEXT_HINT = "One path per line";
+export const PROJECT_PANE_LAYOUT_TEXT_HINT =
+  "One path per line · dependencies indented";

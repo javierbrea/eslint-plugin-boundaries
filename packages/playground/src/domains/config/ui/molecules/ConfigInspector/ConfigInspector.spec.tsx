@@ -104,7 +104,7 @@ describe("ConfigInspector", () => {
     ]);
   });
 
-  it("should list each rule with its policies", () => {
+  it("should list each policy of the rule with the dependencies it decided, and the default", () => {
     // Arrange
     const { inspector } = renderInspector();
 
@@ -112,7 +112,27 @@ describe("ConfigInspector", () => {
     const { rowTexts } = inspector.group("Policies");
 
     // Assert
-    expect(rowTexts).toEqual(["boundaries/dependencies | 3 policies"]);
+    expect(rowTexts).toEqual([
+      "0 · component → helper | 1 dependency",
+      "1 · module → component, helper | 2 dependencies",
+      "2 · disallow → test | 1 dependency",
+      "default · disallow | 1 dependency",
+    ]);
+  });
+
+  it("should draw in the color of errors the dependencies of a policy that disallowed any, and the others apart", () => {
+    // Arrange
+    const { inspector } = renderInspector();
+
+    // Act
+    const allowing = inspector.row(/^0 · component/).statusColor;
+    const disallowing = inspector.row(/^2 · disallow/).statusColor;
+    const byDefault = inspector.row(/^default/).statusColor;
+
+    // Assert
+    expect(allowing).toBe("var(--jsb-muted)");
+    expect(disallowing).toBe("var(--jsb-bad)");
+    expect(byDefault).toBe("var(--jsb-bad)");
   });
 
   it("should join the patterns of a descriptor that has several", () => {
@@ -129,7 +149,7 @@ describe("ConfigInspector", () => {
     expect(rowTexts[0]).toBe("helper | 1 file | helpers/*, utils/*");
   });
 
-  it("should write one policy in the singular", () => {
+  it("should list the policies of the rule, and say that the other rules are not evaluated here", () => {
     // Arrange
     const sketch: Sketch = {
       config: `{
@@ -149,9 +169,24 @@ describe("ConfigInspector", () => {
 
     // Assert
     expect(rowTexts).toEqual([
-      "boundaries/dependencies | 1 policy",
-      "boundaries/no-unknown | 0 policies",
+      "0 · a → b | 0 dependencies",
+      "default · allow | 0 dependencies",
+      "boundaries/no-unknown | not evaluated here",
     ]);
+  });
+
+  it("should say that the rule is off in place of its policies", () => {
+    // Arrange
+    const sketch = createSketchWithConfig([
+      ['"boundaries/dependencies": [2,', '"boundaries/dependencies": ["off",'],
+    ]);
+    const { inspector } = renderInspector(evaluate(sketch));
+
+    // Act
+    const { rowTexts } = inspector.group("Policies");
+
+    // Assert
+    expect(rowTexts).toEqual(["boundaries/dependencies | not evaluated | off"]);
   });
 
   it("should say that a descriptor with a mistake is ignored, and where it is", () => {
@@ -242,9 +277,41 @@ describe("ConfigInspector", () => {
     });
   });
 
-  it("should open the config at the entry of a rule when its row is chosen", () => {
+  it("should open the config at the policy when its row is chosen", () => {
     // Arrange
     const evaluation = evaluate(QUICK_START);
+    const { props, inspector } = renderInspector(evaluation);
+
+    // Act
+    inspector.row(/^2 · disallow/).press();
+
+    // Assert
+    expect(props.onOpen).toHaveBeenCalledTimes(1);
+    expect(props.onOpen).toHaveBeenCalledWith({
+      kind: "config",
+      range: evaluation.policies[2].range,
+    });
+  });
+
+  it("should open the config at the default when its row is chosen", () => {
+    // Arrange
+    const evaluation = evaluate(QUICK_START);
+    const { props, inspector } = renderInspector(evaluation);
+
+    // Act
+    inspector.row(/^default/).press();
+
+    // Assert
+    expect(props.onOpen).toHaveBeenCalledTimes(1);
+    expect(props.onOpen).toHaveBeenCalledWith({
+      kind: "config",
+      range: evaluation.policies[3].range,
+    });
+  });
+
+  it("should open the config at the entry of a rule that is not evaluated when its row is chosen", () => {
+    // Arrange
+    const evaluation = evaluate(WITH_PROBLEMS);
     const { props, inspector } = renderInspector(evaluation);
 
     // Act
