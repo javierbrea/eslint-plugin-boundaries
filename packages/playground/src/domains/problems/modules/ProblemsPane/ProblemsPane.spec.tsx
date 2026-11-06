@@ -254,7 +254,7 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(pane.list.row("Project text:2").message).toContain(
-        '"./y" does not resolve to a file of the sketch.'
+        '"./y" does not resolve to a file of the sketch: the "node" resolver finds none.'
       );
       expect(pane.list.row("Project text:2").meta).toContain(
         "  import x from './y';"

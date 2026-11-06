@@ -287,7 +287,7 @@ describe("ProjectText", () => {
       expect(typescriptProblems).toEqual([]);
       expect(withNode.store.getState().sketch.dependencies).toEqual([]);
       expect(withNode.getTextProblems()).toEqual([
-        '2|  import "./b";|"./b" does not resolve to a file of the sketch.',
+        '2|  import "./b";|"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
       ]);
     });
   });

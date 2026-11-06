@@ -60,7 +60,8 @@ const UNREADABLE_LINE = "  import { a } from './b'";
 const TEXT_PROBLEM: TextProblem = {
   line: 2,
   text: UNREADABLE_LINE,
-  reason: '"./b" does not resolve to a file of the sketch.',
+  reason:
+    '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
 };
 
 const NO_FOCUS: Focus = { kind: "none" };
@@ -286,7 +287,8 @@ describe("problemSelectors", () => {
         {
           line: 2,
           text: '  import "./b";',
-          reason: '"./b" does not resolve to a file of the sketch.',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
       ]);
     });

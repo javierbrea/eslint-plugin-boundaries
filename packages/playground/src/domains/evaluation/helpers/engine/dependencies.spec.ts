@@ -8,7 +8,11 @@ import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
 import { evaluateDependencies } from "./dependencies";
 import type { DependenciesInput } from "./dependencies.types";
 import { areRulesValid } from "./diagnostics";
-import type { DependencyVerdict, SkipReason } from "./engine.types";
+import type {
+  DependencyVerdict,
+  DisallowedVerdict,
+  SkipReason,
+} from "./engine.types";
 import { selectRule } from "./evaluatedRule";
 import { normalizeConfigSafely } from "./normalizeConfigSafely";
 import { parseConfig } from "./parseConfig";
@@ -163,9 +167,6 @@ function disallowing(disallow: object, options: object = {}): [number, object] {
 
 /** The verdict of a dependency that a policy allowed */
 type AllowedVerdict = Extract<DependencyVerdict, { status: "allowed" }>;
-
-/** The verdict of a dependency that was disallowed */
-type DisallowedVerdict = Extract<DependencyVerdict, { status: "disallowed" }>;
 
 /** The dependency of a module on a helper that the policies of the specifier cases decide */
 const MODULE_ON_HELPER = dependencyOn(CHECKOUT, FORMAT);

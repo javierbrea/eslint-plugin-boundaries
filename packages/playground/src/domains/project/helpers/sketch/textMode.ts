@@ -76,6 +76,22 @@ export function toText(
 }
 
 /**
+ * Names the resolvers that tried a source, so that the reason of a source that resolves to nothing says which ones: with the default `node` resolver, `./b` finds no `b.ts`.
+ * @param resolvers The resolvers that the source was read with.
+ * @returns `the "node" resolver finds`, or `the "typescript" and "node" resolvers find` for several, each name once.
+ */
+function describeResolvers(resolvers: readonly SourceResolver[]): string {
+  const names = Array.from(
+    new Set(resolvers.map((resolver) => `"${resolver.name}"`))
+  );
+  const last = names.at(-1);
+
+  return names.length === 1
+    ? `the ${last} resolver finds`
+    : `the ${names.slice(0, -1).join(", ")} and ${last} resolvers find`;
+}
+
+/**
  * Reads an indented line as a dependency of a file.
  * @param text The line as it was written.
  * @param from The path of the file above the line.
@@ -104,7 +120,7 @@ function readDependency(
     const path = resolveAmong(files, from, source, resolvers);
 
     if (path === undefined) {
-      return `"${source}" does not resolve to a file of the sketch.`;
+      return `"${source}" does not resolve to a file of the sketch: ${describeResolvers(resolvers)} none.`;
     }
     target = { kind: "node", path };
   } else if (source.startsWith("/")) {

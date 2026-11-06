@@ -590,7 +590,8 @@ describe("TextMode", () => {
         {
           line: 2,
           text: '  import "./b";',
-          reason: '"./b" does not resolve to a file of the sketch.',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
       ]);
       expect(withNode.sketch.dependencies).toEqual([]);
@@ -850,15 +851,18 @@ describe("TextMode", () => {
       expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
         {
           line: 2,
-          reason: '"./missing" does not resolve to a file of the sketch.',
+          reason:
+            '"./missing" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
         {
           line: 3,
-          reason: '"../../above" does not resolve to a file of the sketch.',
+          reason:
+            '"../../above" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
         {
           line: 4,
-          reason: '"./pages" does not resolve to a file of the sketch.',
+          reason:
+            '"./pages" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
       ]);
     });
@@ -1363,7 +1367,40 @@ describe("TextMode", () => {
         {
           line: 2,
           text: '  import "./b";',
-          reason: '"./b" does not resolve to a file of the sketch.',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
+        },
+      ]);
+    });
+
+    it("should name every resolver that tried the source, each name once", () => {
+      // Arrange
+      const text = 'src/a.js\n  import "./b";\nsrc/b.cjs\n';
+
+      // Act
+      const withTwo = readTextProblems(text, {
+        resolvers: [...TYPESCRIPT_RESOLVERS, ...DEFAULT_RESOLVERS],
+      });
+      // `node` and `eslint-import-resolver-node` are two entries of the setting for the same resolver
+      const withSameName = readTextProblems(text, {
+        resolvers: [...DEFAULT_RESOLVERS, ...DEFAULT_RESOLVERS],
+      });
+
+      // Assert
+      expect(withTwo).toEqual([
+        {
+          line: 2,
+          text: '  import "./b";',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "typescript" and "node" resolvers find none.',
+        },
+      ]);
+      expect(withSameName).toEqual([
+        {
+          line: 2,
+          text: '  import "./b";',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
       ]);
     });

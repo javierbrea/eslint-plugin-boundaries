@@ -59,7 +59,8 @@ describe("useTextProblems", () => {
       {
         line: 2,
         text: UNREADABLE_LINE,
-        reason: '"./b" does not resolve to a file of the sketch.',
+        reason:
+          '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
       },
     ]);
   });
@@ -109,7 +110,8 @@ describe("useTextProblems", () => {
         {
           line: 2,
           text: '  import "./b";',
-          reason: '"./b" does not resolve to a file of the sketch.',
+          reason:
+            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
         },
       ]);
     });
