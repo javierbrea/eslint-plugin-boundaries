@@ -52,6 +52,13 @@ export const TYPOGRAPHY = {
     fontWeight: REGULAR,
     lineHeight: 1.45,
   },
+  // The label that floats over the border of a field, a notch smaller than the text it names
+  fieldLabel: {
+    fontFamily: BODY_FONT,
+    fontSize: "11px",
+    fontWeight: MEDIUM,
+    lineHeight: 1.3,
+  },
   paneLabel: {
     fontFamily: MONO_FONT,
     fontSize: "10.5px",

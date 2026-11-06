@@ -278,6 +278,133 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
       sizeSmall: {
         "& .MuiOutlinedInput-input:not(textarea)": { padding: "1px 6px" },
       },
+      // The border leaves a gap for the label as wide as a hidden copy of it, which MUI draws in the font of the input: the copy takes the font of the label, so that the gap fits it
+      notchedOutline: ({ theme }) => ({
+        "& legend": {
+          fontFamily: theme.typography.fieldLabel.fontFamily,
+          fontSize: theme.typography.fieldLabel.fontSize,
+          fontWeight: theme.typography.fieldLabel.fontWeight,
+        },
+      }),
+    },
+  },
+  // The label always floats over the border of the field, as the picker draws it, on the card that the dialog is
+  MuiInputLabel: {
+    defaultProps: { shrink: true },
+    styleOverrides: {
+      root: ({ theme }) => ({
+        ...theme.typography.fieldLabel,
+        color: "var(--jsb-muted)",
+        "&.Mui-focused": { color: "var(--jsb-accent)" },
+        "&.Mui-error": { color: "var(--jsb-bad)" },
+      }),
+      // On the border, 8 px from the corner, with the card behind it: the border has no gap for it while the field is empty and has no focus
+      outlined: {
+        padding: "0 4px",
+        backgroundColor: "var(--jsb-card)",
+        transform: "translate(8px, -7px)",
+        maxWidth: "calc(100% - 16px)",
+      },
+    },
+  },
+  // A field with a list of options: 38 px tall as the other fields, with the chevron at its end and no button to clear it, since a dependency always has a file. The popup is a card of its own, on the lighter surface of the listboxes
+  MuiAutocomplete: {
+    styleOverrides: {
+      root: {
+        "& .MuiOutlinedInput-root": {
+          padding: 0,
+          // The room that MUI keeps for the buttons at the end, which is one button, since the other is gone
+          ".MuiAutocomplete-hasPopupIcon&": { paddingRight: 36 },
+          ".MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon&": {
+            paddingRight: 36,
+          },
+          "& .MuiAutocomplete-input": { padding: 10 },
+          "& .MuiAutocomplete-endAdornment": { right: 6 },
+        },
+      },
+      clearIndicator: { display: "none" },
+      popupIndicator: { color: "var(--jsb-muted)" },
+      paper: {
+        // Room between the field and its list, whichever side the list opens to
+        margin: "4px 0",
+        backgroundColor: "var(--jsb-paper-2)",
+        border: "1px solid var(--jsb-line)",
+        borderRadius: "var(--jsb-radius)",
+        boxShadow: "var(--jsb-shadow)",
+      },
+      listbox: ({ theme }) => ({
+        padding: 4,
+        "& .MuiAutocomplete-option": {
+          ...theme.typography.mono,
+          minHeight: 28,
+          padding: "0 8px",
+          gap: 12,
+          justifyContent: "space-between",
+          borderRadius: 4,
+          // The option that the pointer or the arrows are on
+          "&.Mui-focused": { backgroundColor: HOVER_BACKGROUND },
+          "&.Mui-focusVisible": { backgroundColor: HOVER_BACKGROUND },
+          // The option that is picked, which stays the same under the pointer
+          "&[aria-selected='true']": {
+            backgroundColor: "var(--jsb-accent-soft)",
+          },
+          "&[aria-selected='true'].Mui-focused": {
+            backgroundColor: "var(--jsb-accent-soft)",
+          },
+        },
+      }),
+      noOptions: ({ theme }) => ({
+        ...theme.typography.mono,
+        padding: "6px 8px",
+        color: "var(--jsb-muted)",
+      }),
+    },
+  },
+  // 26 px pills for the names of a statement: the kind of the name and the name, and a button to remove it
+  MuiChip: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        ...theme.typography.monoSmall,
+        height: 26,
+        borderRadius: 13,
+        lineHeight: 1,
+      }),
+      outlined: {
+        color: "var(--jsb-ink)",
+        backgroundColor: "transparent",
+        borderColor: "var(--jsb-line-strong)",
+        // The chip that can be pressed, such as the one that adds a name, answers as a button does
+        "&.MuiChip-clickable:hover": { backgroundColor: HOVER_BACKGROUND },
+        "&.Mui-focusVisible": { backgroundColor: HOVER_BACKGROUND },
+      },
+      label: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "0 10px",
+      },
+    },
+  },
+  // The small radio, whose ring is the 16 px of the picker inside its 20 px box, with no padding around it. The text of its label is 5 px from the box, which makes the 7 px of the mockup between the ring and the text
+  MuiRadio: {
+    defaultProps: { size: "small" },
+    styleOverrides: {
+      root: {
+        padding: 0,
+        color: "var(--jsb-faint)",
+        "&.Mui-checked": { color: "var(--jsb-accent)" },
+        // The focus is on the input inside the radio, so the ring cannot use :focus-visible
+        "&.Mui-focusVisible": {
+          outline: FOCUS_RING,
+          outlineOffset: 0,
+          borderRadius: "50%",
+        },
+      },
+    },
+  },
+  MuiFormControlLabel: {
+    styleOverrides: {
+      root: { margin: 0, gap: 5 },
     },
   },
 };

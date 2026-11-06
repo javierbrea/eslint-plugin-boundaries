@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 // The text styles of the panes, by role. MUI only knows its own variants, so the theme declares these to read `theme.typography.mono` with its type
 declare module "@mui/material/styles" {
   interface TypographyVariants {
+    /** The label that floats over the border of a field */
+    fieldLabel: CSSProperties;
     /** The small uppercase label of a pane head or of a group in the inspector */
     paneLabel: CSSProperties;
     /** Mono text of rows, names, paths and inputs */
@@ -24,6 +26,7 @@ declare module "@mui/material/styles" {
   }
 
   interface TypographyVariantsOptions {
+    fieldLabel?: CSSProperties;
     paneLabel?: CSSProperties;
     mono?: CSSProperties;
     monoSmall?: CSSProperties;

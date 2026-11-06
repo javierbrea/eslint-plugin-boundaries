@@ -1,13 +1,18 @@
+import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Paper from "@mui/material/Paper";
+import Radio from "@mui/material/Radio";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
+import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
@@ -22,6 +27,7 @@ import { TYPOGRAPHY } from "./typography";
 
 /** A variant of the type scale, which the specs read from the theme. */
 type Variant =
+  | "fieldLabel"
   | "paneLabel"
   | "mono"
   | "monoSmall"
@@ -81,6 +87,7 @@ describe("createPlaygroundTheme", () => {
 
     it.each<[Variant, string, string, number, number | string]>([
       ["caption", "var(--jsb-font-body)", "12px", 400, 1.45],
+      ["fieldLabel", "var(--jsb-font-body)", "11px", 500, 1.3],
       ["paneLabel", "var(--jsb-font-mono)", "10.5px", 500, 1],
       ["mono", "var(--jsb-font-mono)", "12.5px", 400, 1.45],
       ["monoSmall", "var(--jsb-font-mono)", "12px", 400, 1.45],
@@ -872,6 +879,362 @@ describe("the widgets of MUI", () => {
       // Assert
       expect(field.classList).toContain("MuiInputBase-sizeSmall");
       expect(style.padding).toBe("1px 6px");
+    });
+  });
+
+  describe("inputLabel", () => {
+    it("should float over the border of the field even though it is empty and has no focus", () => {
+      // Arrange
+      renderInRoot(<TextField label="Module" />);
+
+      // Act
+      const label = view.getByText("Module", { selector: "label" });
+
+      // Assert
+      expect(label.classList).toContain("MuiInputLabel-shrink");
+    });
+
+    it("should be the 11 px label of the body font, muted, on the card, 8 px from the corner of the field", () => {
+      // Arrange
+      renderInRoot(<TextField label="Module" />);
+      const label = view.getByText("Module", { selector: "label" });
+
+      // Act
+      const style = getStyle(label);
+
+      // Assert
+      expect(style).toMatchObject({
+        "font-family": "var(--jsb-font-body)",
+        "font-size": "11px",
+        "font-weight": "500",
+        "line-height": "1.3",
+        color: "var(--jsb-muted)",
+        padding: "0 4px",
+        "background-color": "var(--jsb-card)",
+        transform: "translate(8px, -7px)",
+        "max-width": "calc(100% - 16px)",
+      });
+    });
+
+    it("should be accent while the field has the focus and red when it is in error", () => {
+      // Arrange
+      renderInRoot(<TextField label="Module" />);
+      const label = view.getByText("Module", { selector: "label" });
+
+      // Act
+      const focused = getStyle(label, `${OWN_CLASS}.Mui-focused`);
+      const error = getStyle(label, `${OWN_CLASS}.Mui-error`);
+
+      // Assert
+      expect(focused.color).toBe("var(--jsb-accent)");
+      expect(error.color).toBe("var(--jsb-bad)");
+    });
+
+    it("should leave a gap in the border as wide as the label, which is the font of the hidden copy that MUI measures", () => {
+      // Arrange
+      renderInRoot(<TextField label="Module" />);
+      const outline = document.querySelector("fieldset") as HTMLElement;
+
+      // Act
+      const legend = getStyle(outline, `${OWN_CLASS} legend`);
+
+      // Assert
+      expect(legend).toEqual({
+        "font-family": "var(--jsb-font-body)",
+        "font-size": "11px",
+        "font-weight": "500",
+      });
+    });
+  });
+
+  describe("autocomplete", () => {
+    /**
+     * Renders a field with two files, with the first one picked, and returns the element that the theme styles.
+     * @returns The root of the autocomplete.
+     */
+    function renderAutocomplete(): HTMLElement {
+      renderInRoot(
+        <Autocomplete
+          options={["src/index.js", "src/helpers/format/index.js"]}
+          value="src/index.js"
+          renderInput={(params) => <TextField {...params} label="File" />}
+        />
+      );
+
+      return document.querySelector(".MuiAutocomplete-root") as HTMLElement;
+    }
+
+    /**
+     * Opens the list of the field.
+     */
+    function openList(): void {
+      fireEvent.mouseDown(view.getByRole("combobox"));
+    }
+
+    it("should have no padding around the input of the field, which is 10 px away from the border as every input", () => {
+      // Arrange
+      const field = renderAutocomplete();
+
+      // Act
+      const root = getStyle(field, `${OWN_CLASS} .MuiOutlinedInput-root`);
+      const input = getStyle(
+        field,
+        `${OWN_CLASS} .MuiOutlinedInput-root .MuiAutocomplete-input`
+      );
+
+      // Assert
+      expect(root.padding).toBe("0");
+      expect(input.padding).toBe("10px");
+    });
+
+    it("should leave the room of one button at the end of the field, whether or not it can be cleared", () => {
+      // Arrange
+      const field = renderAutocomplete();
+
+      // Act
+      const popup = getStyle(
+        field,
+        `.MuiAutocomplete-hasPopupIcon${OWN_CLASS} .MuiOutlinedInput-root`
+      );
+      const popupAndClear = getStyle(
+        field,
+        `.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon${OWN_CLASS} .MuiOutlinedInput-root`
+      );
+
+      // Assert
+      expect(popup["padding-right"]).toBe("36px");
+      expect(popupAndClear["padding-right"]).toBe("36px");
+    });
+
+    it("should put the button 6 px from the end of the field", () => {
+      // Arrange
+      const field = renderAutocomplete();
+
+      // Act
+      const style = getStyle(
+        field,
+        `${OWN_CLASS} .MuiOutlinedInput-root .MuiAutocomplete-endAdornment`
+      );
+
+      // Assert
+      expect(style.right).toBe("6px");
+    });
+
+    it("should have no button to clear it, and a muted one to open the list", () => {
+      // Arrange
+      renderAutocomplete();
+      const clear = document.querySelector(
+        ".MuiAutocomplete-clearIndicator"
+      ) as HTMLElement;
+      const popup = document.querySelector(
+        ".MuiAutocomplete-popupIndicator"
+      ) as HTMLElement;
+
+      // Act
+      const clearStyle = getStyle(clear);
+      const popupStyle = getStyle(popup);
+
+      // Assert
+      expect(clearStyle.display).toBe("none");
+      expect(popupStyle.color).toBe("var(--jsb-muted)");
+    });
+
+    it("should draw the list as a card on the lighter surface, 4 px away from the field", () => {
+      // Arrange
+      renderAutocomplete();
+      openList();
+      const paper = document.querySelector(
+        ".MuiAutocomplete-paper"
+      ) as HTMLElement;
+
+      // Act
+      const style = getStyle(paper);
+
+      // Assert
+      expect(style).toMatchObject({
+        margin: "4px 0",
+        "background-color": "var(--jsb-paper-2)",
+        border: "1px solid var(--jsb-line)",
+        "border-radius": "var(--jsb-radius)",
+        "box-shadow": "var(--jsb-shadow)",
+      });
+    });
+
+    it("should draw each option as a 28 px mono row with 8 px of padding, its text at one end and its detail at the other", () => {
+      // Arrange
+      renderAutocomplete();
+      openList();
+      const listbox = view.getByRole("listbox");
+
+      // Act
+      const list = getStyle(listbox);
+      const option = getStyle(listbox, `${OWN_CLASS} .MuiAutocomplete-option`);
+
+      // Assert
+      expect(list.padding).toBe("4px");
+      expect(option).toMatchObject({
+        "font-family": "var(--jsb-font-mono)",
+        "font-size": "12.5px",
+        "min-height": "28px",
+        padding: "0 8px",
+        gap: "12px",
+        "justify-content": "space-between",
+        "border-radius": "4px",
+      });
+    });
+
+    it("should hover and highlight an option with the soft accent, and fill the one that is picked", () => {
+      // Arrange
+      renderAutocomplete();
+      openList();
+      const listbox = view.getByRole("listbox");
+      const option = `${OWN_CLASS} .MuiAutocomplete-option`;
+
+      // Act
+      const focused = getStyle(listbox, `${option}.Mui-focused`);
+      const focusVisible = getStyle(listbox, `${option}.Mui-focusVisible`);
+      const selected = getStyle(listbox, `${option}[aria-selected='true']`);
+      const selectedFocused = getStyle(
+        listbox,
+        `${option}[aria-selected='true'].Mui-focused`
+      );
+
+      // Assert
+      expect(focused["background-color"]).toBe(HOVER_BACKGROUND);
+      expect(focusVisible["background-color"]).toBe(HOVER_BACKGROUND);
+      expect(selected["background-color"]).toBe("var(--jsb-accent-soft)");
+      expect(selectedFocused["background-color"]).toBe(
+        "var(--jsb-accent-soft)"
+      );
+    });
+
+    it("should say that no option matches in muted mono", () => {
+      // Arrange
+      renderInRoot(
+        <Autocomplete
+          options={[]}
+          noOptionsText="No file matches"
+          renderInput={(params) => <TextField {...params} label="File" />}
+        />
+      );
+      openList();
+
+      // Act
+      const style = getStyle(view.getByText("No file matches") as HTMLElement);
+
+      // Assert
+      expect(style).toMatchObject({
+        "font-family": "var(--jsb-font-mono)",
+        padding: "6px 8px",
+        color: "var(--jsb-muted)",
+      });
+    });
+  });
+
+  describe("chip", () => {
+    it("should be a 26 px pill of mono text, outlined with the strong line, with no fill", () => {
+      // Arrange
+      renderInRoot(<Chip variant="outlined" label="named round" />);
+      const chip = document.querySelector(".MuiChip-root") as HTMLElement;
+
+      // Act
+      const style = getStyle(chip);
+
+      // Assert
+      expect(style).toMatchObject({
+        height: "26px",
+        "border-radius": "13px",
+        "font-family": "var(--jsb-font-mono)",
+        "font-size": "12px",
+        "line-height": "1",
+        color: "var(--jsb-ink)",
+        "background-color": "transparent",
+        "border-color": "var(--jsb-line-strong)",
+      });
+    });
+
+    it("should lay out its label in a row, 6 px between what it holds, with 10 px at the ends", () => {
+      // Arrange
+      renderInRoot(<Chip variant="outlined" label="named round" />);
+      const label = document.querySelector(".MuiChip-label") as HTMLElement;
+
+      // Act
+      const style = getStyle(label);
+
+      // Assert
+      expect(style).toMatchObject({
+        display: "inline-flex",
+        "align-items": "center",
+        gap: "6px",
+        padding: "0 10px",
+      });
+    });
+
+    it("should answer to the pointer and to the keyboard with the soft accent when it can be pressed", () => {
+      // Arrange
+      renderInRoot(<Chip variant="outlined" label="Name" onClick={() => {}} />);
+      const chip = document.querySelector(".MuiChip-root") as HTMLElement;
+
+      // Act
+      const hover = getStyle(chip, `${OWN_CLASS}.MuiChip-clickable:hover`);
+      const focused = getStyle(chip, `${OWN_CLASS}.Mui-focusVisible`);
+
+      // Assert
+      expect(hover["background-color"]).toBe(HOVER_BACKGROUND);
+      expect(focused["background-color"]).toBe(HOVER_BACKGROUND);
+    });
+  });
+
+  describe("radio", () => {
+    it("should be the small radio, with no padding around its ring, which is faint until it is checked", () => {
+      // Arrange
+      renderInRoot(<Radio slotProps={{ input: { "aria-label": "Option" } }} />);
+      const radio = view
+        .getByRole("radio")
+        .closest(".MuiRadio-root") as HTMLElement;
+
+      // Act
+      const style = getStyle(radio);
+      const checked = getStyle(radio, `${OWN_CLASS}.Mui-checked`);
+
+      // Assert
+      expect(radio.classList).toContain("MuiRadio-sizeSmall");
+      expect(style).toMatchObject({ padding: "0", color: "var(--jsb-faint)" });
+      expect(checked.color).toBe("var(--jsb-accent)");
+    });
+
+    it("should draw the keyboard ring around its box, which the focus of its input leaves to the class that MUI sets", () => {
+      // Arrange
+      renderInRoot(<Radio slotProps={{ input: { "aria-label": "Option" } }} />);
+      const radio = view
+        .getByRole("radio")
+        .closest(".MuiRadio-root") as HTMLElement;
+
+      // Act
+      const style = getStyle(radio, `${OWN_CLASS}.Mui-focusVisible`);
+
+      // Assert
+      expect(style).toEqual({
+        outline: FOCUS_RING,
+        "outline-offset": "0",
+        "border-radius": "50%",
+      });
+    });
+  });
+
+  describe("formControlLabel", () => {
+    it("should have no margin and 5 px between the box of the ring and its text", () => {
+      // Arrange
+      renderInRoot(<FormControlLabel control={<Radio />} label="import" />);
+      const label = view
+        .getByText("import")
+        .closest(".MuiFormControlLabel-root") as HTMLElement;
+
+      // Act
+      const style = getStyle(label);
+
+      // Assert
+      expect(style).toMatchObject({ margin: "0", gap: "5px" });
     });
   });
 });
