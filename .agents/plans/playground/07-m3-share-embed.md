@@ -9,7 +9,7 @@ Read first:
 
 - RFC #538, "Research tasks" 5, "Milestones" M3, "Acceptance" (a state shared by URL opens identically elsewhere), "Dependencies" (the teaser and the navbar entry switch on with the first usable version).
 - `packages/playground/src/contract/StateStore.types.ts`, the interface the hash store implements (`load` and `save`, both asynchronous), and the lazy factory of `packages/website/src/pages/playground.tsx`, where the hash store replaces the `MemoryStore`.
-- "From phase 5" below (the examples, saving), and what phase 6 hands off (the complete `Sketch`).
+- "From phase 5" and "From phase 6" below (the examples, saving, the dependencies of a sketch).
 - `packages/website/src/data/site/links.ts` (`GITHUB_PLAYGROUND_ISSUE`), `src/components/home/PlaygroundTeaser/`, `docusaurus.config.ts` navbar items, `src/components/CodeDiff/` (an existing MDX component of the docs, the model for the new one and its `docs-component` element type), `packages/website/docs/quick-start.mdx` (the first page to get a button, in phase 8).
 - Docusaurus docs on client-side routing and `useHistory` / `useLocation` for the hash check.
 
@@ -22,6 +22,13 @@ Preconditions: phase 6 merged.
 - `Playground` (`src/app/Playground.tsx`) saves every sketch that the shell produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
 - The top bar (`src/domains/shell/ui/atoms/TopBar/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
 - The shell takes its sketch once (`initialSketch`), and its store owns it from then on (`src/domains/session/data/store/store.ts`). `Playground` mounts a new shell after each load of the source or the store, which is how a sketch from outside reaches the panes. The top bar reads the store through `ShellTopBar` (`src/domains/shell/modules/ShellTopBar/`).
+
+## From phase 6
+
+- A `Sketch` is complete: its tree, its config and its dependencies (`src/contract/Sketch.types.ts`). `QUICK_START_EXAMPLE` has the nine dependencies of the mockup, which the measurement of step 1 already used.
+- The sketch operations refuse a dependency that the sketch cannot hold (`getDependencyError` of `src/domains/project/helpers/sketch/dependencies.ts`: a target that is not a file of the sketch or is its own file, names that its syntax cannot write, an invalid module name), so a sketch never holds one. A sketch decoded from a URL passes the same check before the shell takes it, after `getPathError` (`src/domains/project/helpers/sketch/paths.ts`) on every path of its tree, which is where quotes and backslashes are refused.
+- The engine (`createEngine` of `src/domains/evaluation/helpers/engine/`) is the single evaluation entry; the verdicts are `Evaluation.dependencies`.
+- `Focus` has four variants (nothing, the config, a file, a dependency of a file; `src/domains/session/helpers/focus/`), which the open point of this file is about.
 
 ## Scope
 
