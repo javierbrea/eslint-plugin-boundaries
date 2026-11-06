@@ -35,11 +35,19 @@ export class VerdictCountPom extends Pom {
   }
 
   /**
-   * The color of the count and its icon.
+   * The color of the icon of the count, which the root sets and the text does not take.
    * @returns The computed color.
    */
   get color(): string {
     return getComputedStyle(this.root).color;
+  }
+
+  /**
+   * The color of the words of the count, which is not the one of its icon.
+   * @returns The computed color of the last element of the count.
+   */
+  get textColor(): string {
+    return getComputedStyle(this.root.lastElementChild as HTMLElement).color;
   }
 
   /**

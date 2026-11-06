@@ -71,11 +71,44 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
-   * The color of the verdict line.
+   * The color of the verdict line, which is the one that its icon takes.
    * @returns The computed value.
    */
   get verdictColor(): string {
     return getComputedStyle(this.verdictLine).color;
+  }
+
+  /**
+   * The color of the words of the verdict line, which is not the one of its icon.
+   * @returns The computed value.
+   */
+  get verdictTextColor(): string {
+    return getComputedStyle(this.verdictLine.lastElementChild as HTMLElement)
+      .color;
+  }
+
+  /**
+   * The text styles of the verdict line.
+   * @returns The computed color, font family, size and weight of the line.
+   */
+  get verdictStyle(): DependencyDetailTextStyle {
+    const { color, fontFamily, fontSize, fontWeight } = getComputedStyle(
+      this.verdictLine
+    );
+
+    return { color, fontFamily, fontSize, fontWeight };
+  }
+
+  /**
+   * The text styles of the sentence under the verdict line.
+   * @returns The computed color, font family, size and weight of the message.
+   */
+  get messageStyle(): DependencyDetailTextStyle {
+    const { color, fontFamily, fontSize, fontWeight } = getComputedStyle(
+      this.messageElement as HTMLElement
+    );
+
+    return { color, fontFamily, fontSize, fontWeight };
   }
 
   /**

@@ -5,7 +5,7 @@ import { countVerdicts } from "@/domains/evaluation/helpers/verdictCounts";
 import { VerdictCount } from "@/domains/evaluation/ui/atoms/VerdictCount";
 import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
-import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {
@@ -36,7 +36,7 @@ const Count = styled("b", {
   shouldForwardProp: (prop) => prop !== "tone",
 })<{ tone?: Tone }>(({ theme, tone }) => ({
   ...theme.typography.figure,
-  color: tone === undefined ? undefined : TONE_COLORS[tone],
+  color: tone === undefined ? undefined : STATE_TEXT[tone],
 }));
 
 const Label = styled("span")(({ theme }) => ({

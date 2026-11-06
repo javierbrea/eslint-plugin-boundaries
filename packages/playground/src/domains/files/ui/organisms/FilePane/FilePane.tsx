@@ -27,18 +27,22 @@ const Code = styled("div")(({ theme }) => ({
   ...theme.typography.code,
 }));
 
-// Aligned with the statements of the lines, which start after the 44 px of the line numbers
-const AddButton = styled(Button)({
-  margin: "8px 0 0 44px",
+// Aligned with the statements of the lines, which start after the 44 px of the line numbers, and 18 px under the last of them: the 10 px that the lines leave below them in the mockup and the 8 px of the button. It is medium weight, and 28 px tall rather than the 30 px of the buttons or the 26 px of the small ones. It sits on the baseline of its line, with its icon as its first child, as the mockup's button does: the line is then a little taller than the button, and the hint a little more than its margin below it
+const AddButton = styled(Button)(({ theme }) => ({
+  height: 28,
+  margin: "18px 0 0 44px",
   borderStyle: "dashed",
   borderColor: "color-mix(in srgb, var(--jsb-code-fg) 35%, transparent)",
   color: "var(--jsb-code-fg)",
-});
+  fontWeight: theme.typography.fontWeightMedium,
+  verticalAlign: "baseline",
+}));
 
 const Hint = styled("p")(({ theme }) => ({
   margin: "18px 0 0 44px",
   padding: "0 14px 0 0",
   ...theme.typography.caption,
+  lineHeight: 1.5,
   color: "var(--jsb-code-comment)",
 }));
 
@@ -89,13 +93,8 @@ export function FilePane({
         />
         {editable ? (
           <>
-            <AddButton
-              ref={addButton}
-              variant="outlined"
-              size="small"
-              startIcon={<Icon name="plus" />}
-              onClick={onAdd}
-            >
+            <AddButton ref={addButton} variant="outlined" onClick={onAdd}>
+              <Icon name="plus" />
               {ADD_DEPENDENCY_LABEL}
             </AddButton>
             <Hint>{FILE_PANE_HINT}</Hint>

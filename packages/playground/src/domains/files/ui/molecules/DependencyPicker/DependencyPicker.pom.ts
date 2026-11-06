@@ -363,6 +363,14 @@ export class DependencyPickerPom extends Pom {
   }
 
   /**
+   * The line height of the preview, which sets how tall a statement of one line makes it.
+   * @returns The computed line height.
+   */
+  get previewLineHeight(): string {
+    return getComputedStyle(this.previewBox).lineHeight;
+  }
+
+  /**
    * The element that says why the draft is refused.
    * @returns The element, or null when the draft is not refused.
    */

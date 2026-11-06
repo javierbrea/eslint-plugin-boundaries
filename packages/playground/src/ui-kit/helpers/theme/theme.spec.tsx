@@ -22,17 +22,25 @@ import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 
 import { createPlaygroundTheme } from "./theme";
-import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
+import {
+  FOCUS_RING,
+  HOVER_BACKGROUND,
+  ROOT_CLASS,
+  STATE_TEXT,
+} from "./theme.constants";
 import { TYPOGRAPHY } from "./typography";
 
 /** A variant of the type scale, which the specs read from the theme. */
 type Variant =
   | "fieldLabel"
   | "paneLabel"
+  | "bodyLarge"
+  | "monoLarge"
   | "mono"
   | "monoSmall"
   | "monoCaption"
   | "monoTiny"
+  | "monoMicro"
   | "code"
   | "dialogTitle"
   | "title"
@@ -50,6 +58,25 @@ describe("tokens", () => {
     expect(HOVER_BACKGROUND).toBe(
       "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)"
     );
+  });
+});
+
+describe("STATE_TEXT", () => {
+  it.each<[keyof typeof STATE_TEXT, string]>([
+    ["ok", "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))"],
+    ["bad", "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"],
+    ["warn", "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"],
+  ])(
+    "should mix 15%% of the ink into the token of the %s state, for contrast",
+    (state, color) => {
+      // Assert
+      expect(STATE_TEXT[state]).toBe(color);
+    }
+  );
+
+  it("should read not-checked text in the muted color, which already passes the contrast", () => {
+    // Assert
+    expect(STATE_TEXT.faint).toBe("var(--jsb-muted)");
   });
 });
 
@@ -89,10 +116,13 @@ describe("createPlaygroundTheme", () => {
       ["caption", "var(--jsb-font-body)", "12px", 400, 1.45],
       ["fieldLabel", "var(--jsb-font-body)", "11px", 500, 1.3],
       ["paneLabel", "var(--jsb-font-mono)", "10.5px", 500, 1],
+      ["bodyLarge", "var(--jsb-font-body)", "13.5px", 400, 1.45],
+      ["monoLarge", "var(--jsb-font-mono)", "13px", 400, 1.45],
       ["mono", "var(--jsb-font-mono)", "12.5px", 400, 1.45],
       ["monoSmall", "var(--jsb-font-mono)", "12px", 400, 1.45],
       ["monoCaption", "var(--jsb-font-mono)", "11.5px", 400, 1.45],
       ["monoTiny", "var(--jsb-font-mono)", "11px", 500, 1],
+      ["monoMicro", "var(--jsb-font-mono)", "10.5px", 400, 1],
       ["code", "var(--jsb-font-mono)", "13px", 400, "28px"],
       ["dialogTitle", "var(--jsb-font-display)", "18px", 600, 1.3],
       ["title", "var(--jsb-font-display)", "16px", 600, 1.3],
@@ -916,7 +946,7 @@ describe("the widgets of MUI", () => {
       });
     });
 
-    it("should be accent while the field has the focus and red when it is in error", () => {
+    it("should be accent while the field has the focus and the text red of errors when it is in error", () => {
       // Arrange
       renderInRoot(<TextField label="Module" />);
       const label = view.getByText("Module", { selector: "label" });
@@ -927,7 +957,9 @@ describe("the widgets of MUI", () => {
 
       // Assert
       expect(focused.color).toBe("var(--jsb-accent)");
-      expect(error.color).toBe("var(--jsb-bad)");
+      expect(error.color).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should leave a gap in the border as wide as the label, which is the font of the hidden copy that MUI measures", () => {

@@ -173,6 +173,20 @@ describe("ProjectSummary", () => {
       expect(colors).toEqual(["var(--jsb-ok)", "var(--jsb-faint)"]);
     });
 
+    it("should write the words of the allowed dependencies in the text color of the allowed ones, and the ones not checked in the muted one", () => {
+      // Arrange
+      const summary = renderSummary();
+
+      // Act
+      const colors = summary.verdictCounts.map(({ textColor }) => textColor);
+
+      // Assert
+      expect(colors).toEqual([
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+        "var(--jsb-muted)",
+      ]);
+    });
+
     it("should mark the allowed with a check and the ones not checked with a skip", () => {
       // Arrange
       const summary = renderSummary();
@@ -192,7 +206,9 @@ describe("ProjectSummary", () => {
       const color = summary.countColor("disallowed");
 
       // Assert
-      expect(color).toBe("var(--jsb-bad)");
+      expect(color).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw the disallowed dependencies in the color of warnings when the rule is a warning", () => {
@@ -209,7 +225,9 @@ describe("ProjectSummary", () => {
       // Assert
       expect(config).not.toBe(QUICK_START.config);
       expect(summary.count("disallowed")).toBe("2");
-      expect(color).toBe("var(--jsb-warn)");
+      expect(color).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw the disallowed dependencies as the other numbers when there are none", () => {
@@ -224,7 +242,9 @@ describe("ProjectSummary", () => {
       // Assert
       expect(summary.count("disallowed")).toBe("0");
       expect(disallowed).toBe(files);
-      expect(disallowed).not.toBe("var(--jsb-bad)");
+      expect(disallowed).not.toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw no other number in the color of errors", () => {
@@ -244,7 +264,11 @@ describe("ProjectSummary", () => {
 
       // Assert
       expect(
-        labels.filter((_label, index) => colors[index] === "var(--jsb-bad)")
+        labels.filter(
+          (_label, index) =>
+            colors[index] ===
+            "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+        )
       ).toEqual(["disallowed"]);
     });
 

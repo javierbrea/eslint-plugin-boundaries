@@ -29,6 +29,7 @@ import {
 import type { LabeledOption } from "@/domains/files/ui/helpers/dependencyLabels";
 import { getDependencyError, getFiles } from "@/domains/project/helpers/sketch";
 import { Icon } from "@/ui-kit/atoms/Icon";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 
 import {
   ADD_LABEL,
@@ -110,6 +111,8 @@ const OptionElement = styled("small")(({ theme }) => ({
 
 const Preview = styled("pre")(({ theme }) => ({
   ...theme.typography.mono,
+  // A statement of one line is as tall as the font, which is the 34 px of the mockup
+  lineHeight: "normal",
   margin: 0,
   padding: "9px 12px",
   borderRadius: "var(--jsb-radius)",
@@ -124,7 +127,7 @@ const Preview = styled("pre")(({ theme }) => ({
 const Refusal = styled("p")(({ theme }) => ({
   ...theme.typography.caption,
   margin: "6px 0 0",
-  color: "var(--jsb-bad)",
+  color: STATE_TEXT.bad,
 }));
 
 /** Props of {@link Choice}. */

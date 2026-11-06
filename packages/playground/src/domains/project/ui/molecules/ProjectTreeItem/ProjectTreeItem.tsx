@@ -16,7 +16,11 @@ import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import type { IconName } from "@/ui-kit/atoms/Icon";
-import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
+import {
+  FOCUS_RING,
+  HOVER_BACKGROUND,
+  STATE_TEXT,
+} from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
@@ -81,7 +85,8 @@ const Row = styled("div")(({ theme }) => ({
   },
   "&[data-kind='folder']": { color: "var(--jsb-muted)" },
   "&[data-kind='config']": { color: "var(--jsb-accent)" },
-  "&[data-bad]": { color: "var(--jsb-bad)" },
+  // The name is text, so it has the text color of errors; the icon and the badge at the end keep the token
+  "&[data-bad]": { color: STATE_TEXT.bad },
   // What the dependency in focus points to: outlined inside the row, so that the neighbors do not cover it
   "&[data-target]": {
     outline: "1px dashed var(--jsb-accent)",
@@ -108,12 +113,10 @@ const Glyph = styled("span")(({ theme }) => ({
   lineHeight: "inherit",
 }));
 
-// The weight and the line height are the ones of the row
+// The row centers it, so it needs no line height of the row's
 const TargetTag = styled("span")(({ theme }) => ({
   color: "var(--jsb-accent)",
-  ...theme.typography.monoTiny,
-  fontWeight: "inherit",
-  lineHeight: "inherit",
+  ...theme.typography.monoMicro,
 }));
 
 const Name = styled("span")({
@@ -345,7 +348,6 @@ export function ProjectTreeItem({
             </Name>
           )}
           <End>
-            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
             {canEdit && !isRenaming ? (
               <Actions data-actions="">
                 <Tooltip title={RENAME_ACTION_LABEL}>
@@ -377,6 +379,8 @@ export function ProjectTreeItem({
                 </Tooltip>
               </Actions>
             ) : null}
+            {/* After the actions, which take a gap even while they are clipped: before them, the tag would be that gap away from the end of the row */}
+            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
             {isFailingFile ? (
               <Failure tone={badge.tone} data-failure="">
                 <Icon name={FAILURE_ICONS[badge.tone]} />

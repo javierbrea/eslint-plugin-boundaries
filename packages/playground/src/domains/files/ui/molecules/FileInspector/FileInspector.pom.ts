@@ -67,6 +67,14 @@ class DependencySummaryPom extends Pom {
   get countTexts(): { text: string; color: string }[] {
     return this.counts.map(({ text, color }) => ({ text, color }));
   }
+
+  /**
+   * The color of the words of each count, which is not the one of its icon.
+   * @returns The computed color of the text of each count, in order.
+   */
+  get countTextColors(): string[] {
+    return this.counts.map(({ textColor }) => textColor);
+  }
 }
 
 /** Page object of a facet of the description of a file, a part of the inspector: the page object of the inspector builds it, so it is exported only as a type. It has no test id: it finds the name of the facet by the `name` option, which is required, and takes the parent of the name as its root. */

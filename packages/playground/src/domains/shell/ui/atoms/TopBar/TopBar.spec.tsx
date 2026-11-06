@@ -114,7 +114,9 @@ describe("TopBar", () => {
       const { problemsColor } = bar;
 
       // Assert
-      expect(problemsColor).toBe("var(--jsb-warn)");
+      expect(problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw no problems in the color of the rest of the status", () => {
@@ -136,7 +138,9 @@ describe("TopBar", () => {
       const { problemsColor } = bar;
 
       // Assert
-      expect(problemsColor).toBe("var(--jsb-bad)");
+      expect(problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw an ok dot when the config has no errors, and a red one when it has", () => {

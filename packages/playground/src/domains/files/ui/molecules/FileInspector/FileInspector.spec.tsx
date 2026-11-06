@@ -175,6 +175,21 @@ describe("FileInspector", () => {
       ]);
     });
 
+    it("should write the words of the counts in the text colors of their verdicts, which the icons do not take", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { countTextColors } = inspector.summary;
+
+      // Assert
+      expect(countTextColors).toEqual([
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+        "var(--jsb-muted)",
+      ]);
+    });
+
     it("should mark the counts with the check, the cross and the skip", () => {
       // Arrange
       const inspector = renderInspector(FILE);
@@ -312,6 +327,9 @@ describe("FileInspector", () => {
 
       // Assert
       expect(countTexts[1]).toEqual({ text: "1", color: "var(--jsb-warn)" });
+      expect(counts[1].textColor).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
       expect(counts[1].icon.pathData).toBe(ICON_PATHS.warn);
     });
   });

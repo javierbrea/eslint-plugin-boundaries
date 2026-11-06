@@ -371,6 +371,23 @@ describe("ProjectTree", () => {
       });
     });
 
+    it("should write the tag in the mono text of 10.5 px", () => {
+      // Arrange
+      renderInRoot(
+        <ProjectTree {...createProps({ target: "src/index.js" })} />
+      );
+      const tree = new ProjectTreePom();
+
+      // Act
+      const { fontFamily, fontSize, fontWeight } =
+        tree.item("src/index.js").row.targetTagStyle;
+
+      // Assert
+      expect(fontFamily).toBe("var(--jsb-font-mono)");
+      expect(fontSize).toBe("10.5px");
+      expect(fontWeight).toBe("400");
+    });
+
     it("should outline no other item", () => {
       // Arrange
       renderInRoot(

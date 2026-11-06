@@ -67,4 +67,12 @@ export class StatementPom extends Pom {
   get backgroundColor(): string {
     return getComputedStyle(this.root).backgroundColor;
   }
+
+  /**
+   * The vertical alignment of the statement in its line, which a host may set, as the website's styles for `code` do.
+   * @returns The computed value.
+   */
+  get verticalAlign(): string {
+    return getComputedStyle(this.root).verticalAlign;
+  }
 }

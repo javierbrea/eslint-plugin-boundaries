@@ -37,6 +37,32 @@ class AddDependencyButtonPom extends Pom {
   }
 
   /**
+   * The size and the place of the button.
+   * @returns The computed height, the margin above it and how it is aligned in its line.
+   */
+  get box(): Pick<
+    CSSStyleDeclaration,
+    "height" | "marginTop" | "verticalAlign"
+  > {
+    const { height, marginTop, verticalAlign } = getComputedStyle(this.root);
+
+    return { height, marginTop, verticalAlign };
+  }
+
+  /**
+   * The text of the button.
+   * @returns The computed font family, size and weight of the label.
+   */
+  get textStyle(): Pick<
+    CSSStyleDeclaration,
+    "fontFamily" | "fontSize" | "fontWeight"
+  > {
+    const { fontFamily, fontSize, fontWeight } = getComputedStyle(this.root);
+
+    return { fontFamily, fontSize, fontWeight };
+  }
+
+  /**
    * The icon of the button.
    * @returns The page object of the plus icon.
    */
@@ -118,6 +144,19 @@ export class FilePanePom extends Pom {
     return this.hintElement === null
       ? ""
       : getComputedStyle(this.hintElement).color;
+  }
+
+  /**
+   * The size and the place of the hint.
+   * @returns The computed line height and the margin above the hint, which are empty when the pane draws no hint.
+   */
+  get hintBox(): Pick<CSSStyleDeclaration, "lineHeight" | "marginTop"> {
+    const { lineHeight, marginTop } =
+      this.hintElement === null
+        ? { lineHeight: "", marginTop: "" }
+        : getComputedStyle(this.hintElement);
+
+    return { lineHeight, marginTop };
   }
 
   /**

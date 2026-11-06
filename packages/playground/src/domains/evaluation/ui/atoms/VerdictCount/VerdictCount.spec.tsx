@@ -23,26 +23,42 @@ describe("VerdictCount", () => {
     expect(text).toBe("4 not checked");
   });
 
-  it.each<[VerdictTone, string]>([
-    ["ok", "var(--jsb-ok)"],
-    ["bad", "var(--jsb-bad)"],
-    ["warn", "var(--jsb-warn)"],
-    ["faint", "var(--jsb-faint)"],
-  ])("should draw the %s tone in %s", (tone, expected) => {
-    // Arrange
-    render(
-      <VerdictCount tone={tone} icon="check">
-        2
-      </VerdictCount>
-    );
-    const verdictCount = new VerdictCountPom();
+  it.each<[VerdictTone, string, string]>([
+    [
+      "ok",
+      "var(--jsb-ok)",
+      "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+    ],
+    [
+      "bad",
+      "var(--jsb-bad)",
+      "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+    ],
+    [
+      "warn",
+      "var(--jsb-warn)",
+      "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))",
+    ],
+    ["faint", "var(--jsb-faint)", "var(--jsb-muted)"],
+  ])(
+    "should draw the %s tone with its icon in %s and its words in %s",
+    (tone, iconColor, wordsColor) => {
+      // Arrange
+      render(
+        <VerdictCount tone={tone} icon="check">
+          2
+        </VerdictCount>
+      );
+      const verdictCount = new VerdictCountPom();
 
-    // Act
-    const { color } = verdictCount;
+      // Act
+      const { color, textColor } = verdictCount;
 
-    // Assert
-    expect(color).toBe(expected);
-  });
+      // Assert
+      expect(color).toBe(iconColor);
+      expect(textColor).toBe(wordsColor);
+    }
+  );
 
   it("should draw the icon it is given, hidden from assistive technology", () => {
     // Arrange

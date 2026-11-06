@@ -7,14 +7,20 @@ declare module "@mui/material/styles" {
     fieldLabel: CSSProperties;
     /** The small uppercase label of a pane head or of a group in the inspector */
     paneLabel: CSSProperties;
+    /** Body text a notch larger than the body, such as the message of a verdict */
+    bodyLarge: CSSProperties;
+    /** Mono text a notch larger than that of rows, such as the verdict of a dependency */
+    monoLarge: CSSProperties;
     /** Mono text of rows, names, paths and inputs */
     mono: CSSProperties;
     /** Mono text a notch smaller, such as the facets of the inspector and the text mode */
     monoSmall: CSSProperties;
     /** Mono text for the detail under a name */
     monoCaption: CSSProperties;
-    /** The smallest mono text: the count of a badge */
+    /** Small mono text: the count of a badge */
     monoTiny: CSSProperties;
+    /** The smallest mono text: the tag that marks a node */
+    monoMicro: CSSProperties;
     /** Mono text of a code area that has its own line pitch, such as the dependencies of a file */
     code: CSSProperties;
     /** The title of a dialog */
@@ -28,10 +34,13 @@ declare module "@mui/material/styles" {
   interface TypographyVariantsOptions {
     fieldLabel?: CSSProperties;
     paneLabel?: CSSProperties;
+    bodyLarge?: CSSProperties;
+    monoLarge?: CSSProperties;
     mono?: CSSProperties;
     monoSmall?: CSSProperties;
     monoCaption?: CSSProperties;
     monoTiny?: CSSProperties;
+    monoMicro?: CSSProperties;
     code?: CSSProperties;
     dialogTitle?: CSSProperties;
     title?: CSSProperties;

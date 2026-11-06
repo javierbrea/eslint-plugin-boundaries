@@ -92,5 +92,16 @@ describe("Statement", () => {
       expect(lineHeight).toBe("inherit");
       expect(backgroundColor).toBe("rgba(0, 0, 0, 0)");
     });
+
+    it("should sit on the baseline of its line, where a host that aligns its code elements to the middle would make the line taller", () => {
+      // Arrange
+      const statement = renderStatement(MOCKUP_TOKENS);
+
+      // Act
+      const { verticalAlign } = statement;
+
+      // Assert
+      expect(verticalAlign).toBe("baseline");
+    });
   });
 });

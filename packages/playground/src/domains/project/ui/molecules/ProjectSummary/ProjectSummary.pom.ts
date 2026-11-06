@@ -57,15 +57,22 @@ export class ProjectSummaryPom extends Pom {
 
   /**
    * The counts of the line under the grid.
-   * @returns The text, the computed color and the outline of the icon of each count, in order; empty while the dependencies are not evaluated.
+   * @returns The text, the computed color of the icon, the computed color of the words and the outline of the icon of each count, in order; empty while the dependencies are not evaluated.
    */
-  get verdictCounts(): { text: string; color: string; iconPath: string }[] {
+  get verdictCounts(): {
+    text: string;
+    color: string;
+    textColor: string;
+    iconPath: string;
+  }[] {
     const { count } = this.childPom(VerdictCountPom);
 
     return Array.from({ length: count }, (_, index) => {
-      const { text, color, icon } = this.childPom(VerdictCountPom, { index });
+      const { text, color, textColor, icon } = this.childPom(VerdictCountPom, {
+        index,
+      });
 
-      return { text, color, iconPath: icon.pathData };
+      return { text, color, textColor, iconPath: icon.pathData };
     });
   }
 

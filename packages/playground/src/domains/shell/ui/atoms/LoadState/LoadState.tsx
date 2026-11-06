@@ -1,6 +1,8 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
+
 import type { LoadStateProps } from "./LoadState.types";
 
 const Message = styled("div", {
@@ -11,7 +13,7 @@ const Message = styled("div", {
   height: "100%",
   padding: 24,
   placeItems: "center",
-  color: failed ? "var(--jsb-bad)" : "var(--jsb-muted)",
+  color: failed ? STATE_TEXT.bad : "var(--jsb-muted)",
   fontFamily: "var(--jsb-font-mono)",
   textAlign: "center",
 }));

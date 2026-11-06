@@ -13,6 +13,12 @@ export type ProjectRowTextStyle = Pick<
   "fontFamily" | "fontSize" | "lineHeight"
 >;
 
+/** The text styles of the tag that marks the target of the dependency in focus. */
+export type ProjectRowTagStyle = Pick<
+  CSSStyleDeclaration,
+  "fontFamily" | "fontSize" | "fontWeight"
+>;
+
 /** The text styles of the glyph that marks the config. */
 export type ProjectRowGlyphStyle = Pick<
   CSSStyleDeclaration,

@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 
 import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
 import { Icon } from "@/ui-kit/atoms/Icon";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 
 import type { VerdictCountProps } from "./VerdictCount.types";
 
-/** The color of each verdict outside a code area, from the tokens of the host. */
-const VERDICT_COLORS: Readonly<Record<VerdictTone, string>> = {
+/** The color of the icon of each verdict outside a code area, from the tokens of the host. The text has its own, which mixes in the ink for contrast. */
+const ICON_COLORS: Readonly<Record<VerdictTone, string>> = {
   ok: "var(--jsb-ok)",
   bad: "var(--jsb-bad)",
   warn: "var(--jsb-warn)",
@@ -18,7 +19,12 @@ const Root = styled("span")<{ tone: VerdictTone }>(({ tone }) => ({
   display: "inline-flex",
   alignItems: "center",
   gap: 4,
-  color: VERDICT_COLORS[tone],
+  // The icon is a shape and keeps the token
+  color: ICON_COLORS[tone],
+}));
+
+const Label = styled("span")<{ tone: VerdictTone }>(({ tone }) => ({
+  color: STATE_TEXT[tone],
 }));
 
 /**
@@ -37,7 +43,7 @@ export function VerdictCount({
   return (
     <Root tone={tone}>
       <Icon name={icon} />
-      {children}
+      <Label tone={tone}>{children}</Label>
     </Root>
   );
 }

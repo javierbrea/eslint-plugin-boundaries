@@ -576,6 +576,17 @@ describe("DependencyPicker", () => {
       expect(previewColor).toBe("var(--jsb-code-fg)");
     });
 
+    it("should be as tall as its font for a statement of one line, with no line height of its own", () => {
+      // Arrange
+      const { picker } = renderPicker();
+
+      // Act
+      const { previewLineHeight } = picker;
+
+      // Assert
+      expect(previewLineHeight).toBe("normal");
+    });
+
     it("should read the source as … while there is no target yet", () => {
       // Arrange
       const { picker } = renderPicker();
@@ -678,7 +689,9 @@ describe("DependencyPicker", () => {
       const { refusalColor } = picker;
 
       // Assert
-      expect(refusalColor).toBe("var(--jsb-bad)");
+      expect(refusalColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should let a sentence that does not fit wrap, never cut it with an ellipsis", () => {

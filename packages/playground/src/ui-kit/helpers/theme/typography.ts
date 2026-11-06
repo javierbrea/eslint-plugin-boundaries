@@ -39,6 +39,13 @@ export const TYPOGRAPHY = {
     fontWeight: REGULAR,
     lineHeight: 1.45,
   },
+  // The message of a verdict, a notch larger than the body
+  bodyLarge: {
+    fontFamily: BODY_FONT,
+    fontSize: "13.5px",
+    fontWeight: REGULAR,
+    lineHeight: 1.45,
+  },
   button: {
     fontSize: "12.5px",
     fontWeight: BOLD,
@@ -67,6 +74,13 @@ export const TYPOGRAPHY = {
     lineHeight: 1,
     textTransform: "uppercase",
   },
+  // The verdict of a dependency, whose line is not the pitch of a code area
+  monoLarge: {
+    fontFamily: MONO_FONT,
+    fontSize: "13px",
+    fontWeight: REGULAR,
+    lineHeight: 1.45,
+  },
   mono: {
     fontFamily: MONO_FONT,
     fontSize: "12.5px",
@@ -89,6 +103,13 @@ export const TYPOGRAPHY = {
     fontFamily: MONO_FONT,
     fontSize: "11px",
     fontWeight: MEDIUM,
+    lineHeight: 1,
+  },
+  // The tag that marks a node, such as the `target` of the tree
+  monoMicro: {
+    fontFamily: MONO_FONT,
+    fontSize: "10.5px",
+    fontWeight: REGULAR,
     lineHeight: 1,
   },
   // The 28 px of a line is the pitch of the dependencies of a file

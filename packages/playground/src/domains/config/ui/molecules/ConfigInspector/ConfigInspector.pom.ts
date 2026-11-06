@@ -68,6 +68,31 @@ class ConfigRowPom extends Pom {
     return getComputedStyle(this.parts[1]).color;
   }
 
+  /**
+   * How the row places its parts.
+   * @returns The computed display, columns, alignment and gaps of the row, which are what keep a long name in its column and the count on the first line.
+   */
+  get layout(): Pick<
+    CSSStyleDeclaration,
+    "display" | "gridTemplateColumns" | "alignItems" | "gap"
+  > {
+    const { display, gridTemplateColumns, alignItems, gap } = getComputedStyle(
+      this.root
+    );
+
+    return { display, gridTemplateColumns, alignItems, gap };
+  }
+
+  /**
+   * Where the detail under the name is placed.
+   * @returns The computed grid column of the last part, or an empty string when the row has no detail.
+   */
+  get detailColumn(): string {
+    return this.parts.length < 3
+      ? ""
+      : getComputedStyle(this.parts[2]).gridColumn;
+  }
+
   /** Presses the row, which opens its entry in the config. */
   press(): void {
     fireEvent.click(this.root);

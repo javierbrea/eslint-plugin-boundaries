@@ -6,12 +6,13 @@ import type { StatementToken } from "@/domains/project/helpers/sketch";
 
 import type { StatementProps } from "./Statement.types";
 
-// A host styles its `code`, such as the chip of the website's docs, so the statement resets the box and takes the font of the text around it: the picker and the file pane each set theirs
+// A host styles its `code`, such as the chip of the website's docs, so the statement resets the box and takes the font of the text around it: the picker and the file pane each set theirs. The alignment is reset too: a `code` aligned to the middle of the line makes the line taller than its line height
 const Code = styled("code")({
   padding: 0,
   border: 0,
   borderRadius: 0,
   backgroundColor: "transparent",
+  verticalAlign: "baseline",
   fontFamily: "inherit",
   fontSize: "inherit",
   lineHeight: "inherit",

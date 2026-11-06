@@ -8,6 +8,7 @@ import type { VerdictTone } from "@/domains/evaluation/ui/helpers/verdictText";
 import type { PolicyCardContent } from "@/domains/problems/ui/helpers/dependencyDetail";
 import { VERDICT_COLORS } from "@/domains/problems/ui/helpers/verdictColors";
 import { Icon } from "@/ui-kit/atoms/Icon";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 
 import { DEPENDENCY_DETAIL_TEST_ID } from "./DependencyDetail.constants";
 import type { DependencyDetailProps } from "./DependencyDetail.types";
@@ -26,16 +27,24 @@ const VerdictLine = styled("div", {
   display: "flex",
   alignItems: "center",
   gap: 8,
-  ...theme.typography.mono,
+  ...theme.typography.monoLarge,
   fontWeight: theme.typography.fontWeightMedium,
   lineHeight: 1.4,
+  // The icon is a shape and keeps the token
   color: VERDICT_COLORS[tone],
+}));
+
+// The text mixes the ink into the token, for contrast
+const VerdictText = styled("span", {
+  shouldForwardProp: (prop) => prop !== "tone",
+})<{ tone: VerdictTone }>(({ tone }) => ({
+  color: STATE_TEXT[tone],
 }));
 
 const Message = styled("p")(({ theme }) => ({
   margin: "6px 0 8px",
   color: "var(--jsb-ink)",
-  ...theme.typography.body1,
+  ...theme.typography.bodyLarge,
 }));
 
 const Facts = styled("div")(({ theme }) => ({
@@ -131,7 +140,7 @@ export function DependencyDetail({
       <div>
         <VerdictLine tone={verdict.tone}>
           <Icon name={verdict.icon} />
-          {verdict.text}
+          <VerdictText tone={verdict.tone}>{verdict.text}</VerdictText>
         </VerdictLine>
         {message === undefined ? null : <Message>{message}</Message>}
         <Facts>

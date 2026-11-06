@@ -1,7 +1,12 @@
 import { createTheme } from "@mui/material/styles";
 import type { Components, PaletteOptions, Theme } from "@mui/material/styles";
 
-import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
+import {
+  FOCUS_RING,
+  HOVER_BACKGROUND,
+  ROOT_CLASS,
+  STATE_TEXT,
+} from "./theme.constants";
 import { TYPOGRAPHY } from "./typography";
 
 /** Prefix of the MUI variables of the playground, so that they never collide with those of a host that uses MUI */
@@ -296,7 +301,7 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
         ...theme.typography.fieldLabel,
         color: "var(--jsb-muted)",
         "&.Mui-focused": { color: "var(--jsb-accent)" },
-        "&.Mui-error": { color: "var(--jsb-bad)" },
+        "&.Mui-error": { color: STATE_TEXT.bad },
       }),
       // On the border, 8 px from the corner, with the card behind it: the border has no gap for it while the field is empty and has no focus
       outlined: {

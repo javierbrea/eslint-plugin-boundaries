@@ -131,8 +131,29 @@ describe("ConfigInspector", () => {
 
     // Assert
     expect(allowing).toBe("var(--jsb-muted)");
-    expect(disallowing).toBe("var(--jsb-bad)");
-    expect(byDefault).toBe("var(--jsb-bad)");
+    expect(disallowing).toBe(
+      "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+    );
+    expect(byDefault).toBe(
+      "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+    );
+  });
+
+  it("should lay a row out as two columns, the name wrapping in the first and the count staying at the top of the second, with the detail under both", () => {
+    // Arrange
+    const { inspector } = renderInspector();
+    const row = inspector.row(/^1 · module/);
+
+    // Act
+    const { display, gridTemplateColumns, alignItems, gap } = row.layout;
+    const { detailColumn } = inspector.row(/^helper/);
+
+    // Assert
+    expect(display).toBe("grid");
+    expect(gridTemplateColumns).toBe("minmax(0, 1fr) auto");
+    expect(alignItems).toBe("start");
+    expect(gap).toBe("2px 10px");
+    expect(detailColumn).toBe("1/-1");
   });
 
   it("should join the patterns of a descriptor that has several", () => {
@@ -228,9 +249,15 @@ describe("ConfigInspector", () => {
     const count = inspector.row(/^helper/).statusColor;
 
     // Assert
-    expect(ignored).toBe("var(--jsb-warn)");
-    expect(ignoredName).toBe("var(--jsb-warn)");
-    expect(notEvaluated).toBe("var(--jsb-bad)");
+    expect(ignored).toBe(
+      "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+    );
+    expect(ignoredName).toBe(
+      "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+    );
+    expect(notEvaluated).toBe(
+      "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+    );
     expect(count).toBe("var(--jsb-muted)");
   });
 

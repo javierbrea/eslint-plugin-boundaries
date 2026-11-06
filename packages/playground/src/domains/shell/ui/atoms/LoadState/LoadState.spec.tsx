@@ -92,7 +92,9 @@ describe("LoadState", () => {
       const { color } = message;
 
       // Assert
-      expect(color).toBe("var(--jsb-bad)");
+      expect(color).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should not pass the failed state to the DOM", () => {

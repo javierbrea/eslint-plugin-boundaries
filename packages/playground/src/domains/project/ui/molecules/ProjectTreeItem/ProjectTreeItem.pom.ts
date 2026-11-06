@@ -15,6 +15,7 @@ import {
 } from "./ProjectTreeItem.constants";
 import type {
   ProjectRowGlyphStyle,
+  ProjectRowTagStyle,
   ProjectRowTextStyle,
 } from "./ProjectTreeItem.types";
 
@@ -111,6 +112,46 @@ class ProjectRowPom extends Pom {
     const tag = this.root.querySelector("[data-target-tag]");
 
     return tag === null ? "" : getComputedStyle(tag).color;
+  }
+
+  /**
+   * The text styles of the tag of the target.
+   * @returns The computed font family, size and weight of the tag, or empty strings when the row draws none.
+   */
+  get targetTagStyle(): ProjectRowTagStyle {
+    const tag = this.root.querySelector("[data-target-tag]");
+    const { fontFamily, fontSize, fontWeight } =
+      tag === null
+        ? { fontFamily: "", fontSize: "", fontWeight: "" }
+        : getComputedStyle(tag);
+
+    return { fontFamily, fontSize, fontWeight };
+  }
+
+  /**
+   * The color of the name of the row, which the row sets and the icons and the badge at its end do not take.
+   * @returns The computed color of the row.
+   */
+  get nameColor(): string {
+    return getComputedStyle(this.root).color;
+  }
+
+  /**
+   * What the end of the row holds, from the left: the actions, the tag of the target, the mark of a failing file and the badge.
+   * @returns A word for each part that the row draws, in order.
+   */
+  get endParts(): string[] {
+    const end = this.root.lastElementChild as HTMLElement;
+
+    return Array.from(end.children).map((part) => {
+      if (part.hasAttribute("data-actions")) {
+        return "actions";
+      }
+      if (part.hasAttribute("data-target-tag")) {
+        return "target tag";
+      }
+      return part.hasAttribute("data-failure") ? "failure" : "badge";
+    });
   }
 
   /**

@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 
 import type { TopBarProps } from "./TopBar.types";
 
@@ -70,9 +70,9 @@ export function TopBar({
           {formatCount(files, "file", "files")} ·{" "}
           {formatCount(dependencies, "dependency", "dependencies")} ·{" "}
           {configHasErrors ? (
-            <Count color={TONE_COLORS.bad}>config has errors</Count>
+            <Count color={STATE_TEXT.bad}>config has errors</Count>
           ) : (
-            <Count color={problems > 0 ? TONE_COLORS[tone] : undefined}>
+            <Count color={problems > 0 ? STATE_TEXT[tone] : undefined}>
               {formatCount(problems, "problem", "problems")}
             </Count>
           )}

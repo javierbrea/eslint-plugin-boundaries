@@ -11,7 +11,7 @@ import type { ConfigRow } from "@/domains/config/ui/helpers/configRows";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { Target } from "@/domains/session/helpers/focus";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
-import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import { CONFIG_INSPECTOR_TEST_ID } from "./ConfigInspector.constants";
@@ -32,12 +32,14 @@ const List = styled("ul")({
   "& > li + li": { borderTop: "1px solid var(--jsb-line)" },
 });
 
-// The status goes under the name when both do not fit, instead of breaking the name in the middle of a word: at the default width of the inspector, a rule name and `not evaluated` take all the room there is
+// The name takes the room the status leaves and wraps inside its column, and the status stays at the end of the first line, as the mockup lays it out: at the default width of the inspector, a rule name and `not evaluated` take all the room there is, and a long name goes onto a second line beside its count. The detail takes the line under both
 const RowButton = styled(ButtonBase)(({ theme }) => ({
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "baseline",
-  gap: "2px 8px",
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  // The count sits next to the first line of the name, not in the middle of it
+  alignItems: "start",
+  justifyContent: "stretch",
+  gap: "2px 10px",
   boxSizing: "border-box",
   width: "100%",
   padding: "7px 10px",
@@ -55,21 +57,19 @@ const Name = styled("span", {
 })<{ tone?: Tone }>(({ tone }) => ({
   overflowWrap: "anywhere",
   textAlign: "left",
-  color: tone === undefined ? undefined : TONE_COLORS[tone],
+  color: tone === undefined ? undefined : STATE_TEXT[tone],
 }));
 
 // A status with no tone is a count, which reads quiet
 const Status = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
 })<{ tone?: Tone }>(({ tone }) => ({
-  // At the end of its line, whether it shares the line with the name or not
-  marginLeft: "auto",
-  color: tone === undefined ? "var(--jsb-muted)" : TONE_COLORS[tone],
+  color: tone === undefined ? "var(--jsb-muted)" : STATE_TEXT[tone],
   whiteSpace: "nowrap",
 }));
 
 const Detail = styled("small")(({ theme }) => ({
-  flexBasis: "100%",
+  gridColumn: "1 / -1",
   textAlign: "left",
   ...theme.typography.monoCaption,
   // The detail sits tight under the name

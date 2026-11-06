@@ -332,6 +332,28 @@ describe("ProjectTreeItem", () => {
       expect(isBad).toBe(true);
     });
 
+    it("should write the name of a failing file in the text color of errors, which its cross and its badge do not take", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 2, hasErrors: true }]]),
+      };
+      renderItems({ counts, editable: false });
+
+      // Act
+      const failing = item("src/index.js").row;
+      const folder = item("src").row;
+
+      // Assert
+      expect(failing.nameColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
+      expect(failing.failureColor).toBe("var(--jsb-bad)");
+      expect(failing.badge().color).toBe("var(--jsb-bad)");
+      expect(folder.nameColor).toBe("var(--jsb-muted)");
+    });
+
     it("should draw the badge of a folder in the color of warnings when the failures under it are all warnings, and not turn its name red", () => {
       // Arrange
       const counts: ProblemCounts = {
@@ -393,6 +415,22 @@ describe("ProjectTreeItem", () => {
       expect(targetTag).toBe("target");
       expect(targetTagColor).toBe("var(--jsb-accent)");
       expect(text).toBe(`index.js${targetTag}`);
+    });
+
+    it("should put the tag after the actions, so that their gap is never between the tag and the end of the row", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 0,
+        configHasErrors: false,
+        byPath: new Map([["src/index.js", { count: 1, hasErrors: true }]]),
+      };
+      renderItems({ target: "src/index.js", counts });
+
+      // Act
+      const { endParts } = item("src/index.js").row;
+
+      // Assert
+      expect(endParts).toEqual(["actions", "target tag", "failure", "badge"]);
     });
 
     it("should outline and tag only that item", () => {

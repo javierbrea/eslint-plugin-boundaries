@@ -173,6 +173,32 @@ describe("FilePane", () => {
       expect(icon.isHidden).toBe(true);
     });
 
+    it("should be 28 px tall, 18 px under the last line, on the baseline of its line", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      const { height, marginTop, verticalAlign } = pane.addButton.box;
+
+      // Assert
+      expect(height).toBe("28px");
+      expect(marginTop).toBe("18px");
+      expect(verticalAlign).toBe("baseline");
+    });
+
+    it("should write its label in the medium weight of 12.5 px", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      const { fontFamily, fontSize, fontWeight } = pane.addButton.textStyle;
+
+      // Assert
+      expect(fontFamily).toBe("var(--jsb-font-body)");
+      expect(fontSize).toBe("12.5px");
+      expect(fontWeight).toBe("500");
+    });
+
     it("should call onAdd when it is pressed", () => {
       // Arrange
       const { props, pane } = renderPane();
@@ -219,6 +245,18 @@ describe("FilePane", () => {
 
       // Assert
       expect(hintColor).toBe("var(--jsb-code-comment)");
+    });
+
+    it("should have a line of 1.5 times its 12 px, which is 18 px, and sit 18 px under the button", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      const { lineHeight, marginTop } = pane.hintBox;
+
+      // Assert
+      expect(lineHeight).toBe("1.5");
+      expect(marginTop).toBe("18px");
     });
 
     it("should not be drawn while the dependencies cannot be edited", () => {

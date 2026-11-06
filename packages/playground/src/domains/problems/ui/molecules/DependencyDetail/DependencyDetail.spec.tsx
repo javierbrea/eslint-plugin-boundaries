@@ -70,36 +70,85 @@ describe("DependencyDetail", () => {
       expect(verdictIcon.isHidden).toBe(true);
     });
 
-    it.each<[DependencyDetailContent["verdict"], string, string]>([
-      [DISALLOWED.verdict, "var(--jsb-bad)", ICON_PATHS.cross],
-      [ALLOWED.verdict, "var(--jsb-ok)", ICON_PATHS.check],
+    it.each<[DependencyDetailContent["verdict"], string, string, string]>([
+      [
+        DISALLOWED.verdict,
+        "var(--jsb-bad)",
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+        ICON_PATHS.cross,
+      ],
+      [
+        ALLOWED.verdict,
+        "var(--jsb-ok)",
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+        ICON_PATHS.check,
+      ],
       [
         { icon: "warn", tone: "warn", text: "disallowed · default" },
         "var(--jsb-warn)",
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))",
         ICON_PATHS.warn,
       ],
-      [NOT_CHECKED.verdict, "var(--jsb-faint)", ICON_PATHS.skip],
-    ])("should draw %j in %s", (verdict, color, path) => {
+      [
+        NOT_CHECKED.verdict,
+        "var(--jsb-faint)",
+        "var(--jsb-muted)",
+        ICON_PATHS.skip,
+      ],
+    ])(
+      "should draw %j with its icon in %s and its words in %s",
+      (verdict, iconColor, textColor, path) => {
+        // Arrange
+        renderInRoot(
+          <DependencyDetail
+            detail={{ ...DISALLOWED, verdict }}
+            onOpen={jest.fn()}
+          />
+        );
+        const detail = new DependencyDetailPom();
+
+        // Act
+        const { verdictColor, verdictTextColor, verdictText, verdictIcon } =
+          detail;
+
+        // Assert
+        expect(verdictColor).toBe(iconColor);
+        expect(verdictTextColor).toBe(textColor);
+        expect(verdictText).toBe(verdict.text);
+        expect(verdictIcon.pathData).toBe(path);
+      }
+    );
+
+    it("should write it in the medium mono text of 13 px", () => {
       // Arrange
-      renderInRoot(
-        <DependencyDetail
-          detail={{ ...DISALLOWED, verdict }}
-          onOpen={jest.fn()}
-        />
-      );
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
       const detail = new DependencyDetailPom();
 
       // Act
-      const { verdictColor, verdictText, verdictIcon } = detail;
+      const { fontFamily, fontSize, fontWeight } = detail.verdictStyle;
 
       // Assert
-      expect(verdictColor).toBe(color);
-      expect(verdictText).toBe(verdict.text);
-      expect(verdictIcon.pathData).toBe(path);
+      expect(fontFamily).toBe("var(--jsb-font-mono)");
+      expect(fontSize).toBe("13px");
+      expect(fontWeight).toBe("500");
     });
   });
 
   describe("the message", () => {
+    it("should be written in the body font of 13.5 px, in the ink color", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { fontFamily, fontSize, color } = detail.messageStyle;
+
+      // Assert
+      expect(fontFamily).toBe("var(--jsb-font-body)");
+      expect(fontSize).toBe("13.5px");
+      expect(color).toBe("var(--jsb-ink)");
+    });
+
     it("should say the message that it is given under the verdict line", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
