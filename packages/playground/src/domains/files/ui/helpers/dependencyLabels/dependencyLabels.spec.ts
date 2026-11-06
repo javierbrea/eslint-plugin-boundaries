@@ -4,7 +4,6 @@ import {
   getChipLabel,
   getChipParts,
   getFileOptionLabel,
-  getSyntaxFacts,
 } from "./dependencyLabels";
 import {
   IMPORT_KIND_OPTIONS,
@@ -73,41 +72,6 @@ describe("dependencyLabels", () => {
         namespace: "namespace",
       });
     });
-  });
-
-  describe("getSyntaxFacts", () => {
-    it("should offer both kinds and the three kinds of name to import", () => {
-      // Act
-      const facts = getSyntaxFacts("import");
-
-      // Assert
-      expect(facts).toEqual({
-        importKinds: ["value", "type"],
-        specifierKinds: ["default", "named", "namespace"],
-      });
-    });
-
-    it("should offer both kinds but no default name to export from, where default is a named name", () => {
-      // Act
-      const facts = getSyntaxFacts("export-from");
-
-      // Assert
-      expect(facts).toEqual({
-        importKinds: ["value", "type"],
-        specifierKinds: ["named", "namespace"],
-      });
-    });
-
-    it.each(["require", "dynamic-import"] as const)(
-      "should offer neither a kind nor a name to %s",
-      (syntax) => {
-        // Act
-        const facts = getSyntaxFacts(syntax);
-
-        // Assert
-        expect(facts).toEqual({ importKinds: [], specifierKinds: [] });
-      }
-    );
   });
 
   describe("getFileOptionLabel", () => {

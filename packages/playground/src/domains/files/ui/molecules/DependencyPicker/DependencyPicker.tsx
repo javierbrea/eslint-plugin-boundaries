@@ -24,10 +24,13 @@ import {
   IMPORT_KIND_OPTIONS,
   SYNTAX_OPTIONS,
   getFileOptionLabel,
-  getSyntaxFacts,
 } from "@/domains/files/ui/helpers/dependencyLabels";
 import type { LabeledOption } from "@/domains/files/ui/helpers/dependencyLabels";
-import { getDependencyError, getFiles } from "@/domains/project/helpers/sketch";
+import {
+  getDependencyError,
+  getFiles,
+  getSyntaxFacts,
+} from "@/domains/project/helpers/sketch";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { STATE_TEXT } from "@/ui-kit/helpers/theme";
 
@@ -325,7 +328,8 @@ export function DependencyPicker({
               onChange={(syntax) => setDraft(changeSyntax(draft, syntax))}
             />
           </FormRow>
-          {importKinds.length > 0 ? (
+          {/* A syntax that holds one kind of statement has nothing to choose */}
+          {importKinds.length > 1 ? (
             <FormRow label={KIND_ROW_LABEL} labelId={`${baseId}-kind`}>
               <Choice
                 labelId={`${baseId}-kind`}

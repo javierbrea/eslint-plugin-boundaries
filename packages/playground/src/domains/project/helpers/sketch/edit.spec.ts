@@ -556,6 +556,27 @@ describe("Edit", () => {
       expect(error).toBe("The path cannot have `.` or `..` segments.");
     });
 
+    it.each(["/ x", " / x", "./ x"])(
+      "should refuse the name %j at the root, since its path would start with a space",
+      (typedName) => {
+        // Act
+        const error = getError(renameInFolder(SKETCH, "docs", typedName));
+
+        // Assert
+        expect(error).toBe("A path cannot start with a space.");
+      }
+    );
+
+    it("should accept a name with a space in a folder, as the path does not start with it", () => {
+      // Act
+      const { path } = getRenamed(
+        renameInFolder(SKETCH, "src/index.js", "/ x.js")
+      );
+
+      // Assert
+      expect(path).toBe("src/ x.js");
+    });
+
     it("should refuse a path that already exists", () => {
       // Act
       const error = getError(

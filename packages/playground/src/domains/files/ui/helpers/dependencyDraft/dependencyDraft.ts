@@ -3,9 +3,9 @@ import type {
   SketchDependencySyntax,
   SketchDependencyTarget,
 } from "@/contract";
-import { getSyntaxFacts } from "@/domains/files/ui/helpers/dependencyLabels";
 import {
   getDependencySource,
+  getSyntaxFacts,
   toStatementTokens,
 } from "@/domains/project/helpers/sketch";
 import type { StatementToken } from "@/domains/project/helpers/sketch";
@@ -32,7 +32,7 @@ export function createDraft(initial?: SketchDependency): DependencyDraft {
 }
 
 /**
- * Changes the syntax of the draft. It keeps the names that the new syntax holds and drops the others, and goes back to `value` when the new syntax does not offer the kind the draft had, which is the case of a syntax that offers none.
+ * Changes the syntax of the draft. It keeps the names that the new syntax holds and drops the others, and goes back to `value` when the new syntax does not hold the kind the draft had, which is the case of `require()` and `import()`, which hold values only.
  * @param draft The draft to change.
  * @param syntax The new syntax.
  * @returns The new draft.

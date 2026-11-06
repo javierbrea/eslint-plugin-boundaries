@@ -186,6 +186,29 @@ describe("Paths", () => {
       expect(error).toBe("A path cannot have quotes or backslashes.");
     });
 
+    it.each([" c.js", "  c.js", " src/c.js"])(
+      "should refuse the path %j that starts with a space, which text mode reads as a dependency",
+      (path) => {
+        // Act
+        const error = getPathError(path);
+
+        // Assert
+        expect(error).toBe("A path cannot start with a space.");
+      }
+    );
+
+    it("should accept a space inside a path or at the end of a segment", () => {
+      // Act
+      const errors = [
+        getPathError("src/ c.js"),
+        getPathError("src/c.js "),
+        getPathError("src /c.js"),
+      ];
+
+      // Assert
+      expect(errors).toEqual([undefined, undefined, undefined]);
+    });
+
     it("should accept characters above the control range", () => {
       // Act
       const error = getPathError("src/\u0080-é-\u{1F600}.js");

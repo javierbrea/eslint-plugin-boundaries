@@ -8,12 +8,5 @@ export {
   getChipLabel,
   getChipParts,
   getFileOptionLabel,
-  getSyntaxFacts,
 } from "./dependencyLabels";
-export type {
-  ChipParts,
-  ImportKind,
-  LabeledOption,
-  SpecifierKind,
-  SyntaxFacts,
-} from "./dependencyLabels.types";
+export type { ChipParts, LabeledOption } from "./dependencyLabels.types";

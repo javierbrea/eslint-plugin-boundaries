@@ -1,21 +1,11 @@
-import type { SketchDependencySyntax, SketchSpecifier } from "@/contract";
+import type { SketchSpecifier } from "@/contract";
 import type { FileDescription } from "@/domains/evaluation/helpers/engine";
 
 import {
   NO_ELEMENT_LABEL,
   SPECIFIER_KIND_LABELS,
-  SYNTAX_FACTS,
 } from "./dependencyLabels.constants";
-import type { ChipParts, SyntaxFacts } from "./dependencyLabels.types";
-
-/**
- * Gets what a syntax lets the user pick: the kinds of statement and the kinds of name it holds.
- * @param syntax The syntax of the dependency.
- * @returns The facts. A list that is empty is a row that the picker hides.
- */
-export function getSyntaxFacts(syntax: SketchDependencySyntax): SyntaxFacts {
-  return SYNTAX_FACTS[syntax];
-}
+import type { ChipParts } from "./dependencyLabels.types";
 
 /**
  * Writes what the picker shows of an element next to a file: the types of its element, joined with a comma.

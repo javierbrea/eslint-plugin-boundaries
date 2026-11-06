@@ -1,5 +1,5 @@
 import type { SketchDependencySyntax, SketchSpecifier } from "@/contract";
-import type { ImportKind } from "@/domains/files/ui/helpers/dependencyLabels";
+import type { ImportKind } from "@/domains/project/helpers/sketch";
 
 /** What the user has set in the picker of a dependency so far. It keeps the file and the module apart, so that switching the kind of target brings back what each one had. */
 export type DependencyDraft = {

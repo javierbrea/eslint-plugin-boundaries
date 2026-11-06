@@ -1,5 +1,5 @@
 import type { SketchSpecifier } from "@/contract";
-import type { SpecifierKind } from "@/domains/files/ui/helpers/dependencyLabels";
+import type { SpecifierKind } from "@/domains/project/helpers/sketch";
 
 /** Props of {@link NamesEditor}. */
 export type NamesEditorProps = {

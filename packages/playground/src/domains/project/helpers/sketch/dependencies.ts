@@ -5,7 +5,13 @@ import type {
   SketchSpecifier,
 } from "@/contract";
 
-import type { DependencyRef, EditResult } from "./sketch.types";
+import { SYNTAX_FACTS } from "./sketch.constants";
+import type {
+  DependencyRef,
+  EditResult,
+  SpecifierKind,
+  SyntaxFacts,
+} from "./sketch.types";
 import { getNodeKind } from "./tree";
 
 const NOT_FOUND = "There is no dependency at that line.";
@@ -13,8 +19,9 @@ const NOT_FOUND = "There is no dependency at that line.";
 /** Matches a JavaScript identifier: a start character, then continuation characters */
 const IDENTIFIER = /^[\p{ID_Start}$_][\p{ID_Continue}$\u200c\u200d]*$/u;
 
-/** The words that cannot be a name in a module, even though they look like an identifier */
+/** The words that cannot be a local name in a module, even though they look like an identifier: the reserved words, and `eval` and `arguments`, which strict mode does not let a binding have */
 const RESERVED_WORDS = new Set([
+  "arguments",
   "await",
   "break",
   "case",
@@ -28,6 +35,7 @@ const RESERVED_WORDS = new Set([
   "do",
   "else",
   "enum",
+  "eval",
   "export",
   "extends",
   "false",
@@ -63,13 +71,21 @@ const RESERVED_WORDS = new Set([
   "yield",
 ]);
 
-/** How a syntax is called in the sentences for the user */
-const SYNTAX_LABELS: Record<SketchDependencySyntax, string> = {
-  import: "`import`",
-  "export-from": "`export … from`",
-  require: "`require()`",
-  "dynamic-import": "`import()`",
-};
+/** The order of the names in a statement: the default name, then the namespace, then the named names */
+const SPECIFIER_ORDER: readonly SpecifierKind[] = [
+  "default",
+  "namespace",
+  "named",
+];
+
+/**
+ * Gets what a syntax holds: its name, the kinds of statement and the kinds of name. The checks of a dependency are derived from the same table.
+ * @param syntax The syntax of the dependency.
+ * @returns The facts of the syntax, as the table of the syntaxes says.
+ */
+export function getSyntaxFacts(syntax: SketchDependencySyntax): SyntaxFacts {
+  return SYNTAX_FACTS[syntax];
+}
 
 /**
  * Gets the dependencies of a file, in the order of the sketch.
@@ -98,11 +114,19 @@ export function getDependency(
 }
 
 /**
- * Tells whether a word can be a name in a statement: it is an identifier that is not reserved.
+ * Tells whether a word is an IdentifierName: any word that looks like an identifier, keywords included. It is what the name of a named specifier with an alias is in an `import`, and what every name is in an `export … from`.
  * @param word The word to check.
  */
-function isName(word: string): boolean {
-  return IDENTIFIER.test(word) && !RESERVED_WORDS.has(word);
+function isIdentifierName(word: string): boolean {
+  return IDENTIFIER.test(word);
+}
+
+/**
+ * Tells whether a word can be a local name of an `import`: an identifier that is not reserved.
+ * @param word The word to check.
+ */
+function isLocalName(word: string): boolean {
+  return isIdentifierName(word) && !RESERVED_WORDS.has(word);
 }
 
 /**
@@ -172,20 +196,31 @@ function getTypeImportError(
 }
 
 /**
- * Tells why a syntax cannot hold the kind and the names of a dependency, as the table of the syntaxes says.
+ * Tells why a syntax cannot hold the kind and the names of a dependency. Which kinds of statement and which kinds of name a syntax holds come from the table of the syntaxes; the grammar that its syntaxes with names share is here.
  * @param dependency The dependency to check.
  * @returns The reason as a sentence for the user, or `undefined` when the syntax holds them.
  */
 function getSyntaxError(dependency: SketchDependency): string | undefined {
   const { syntax, importKind, specifiers } = dependency;
-  const label = SYNTAX_LABELS[syntax];
+  const facts = SYNTAX_FACTS[syntax];
+  const { importKinds, specifierKinds } = facts;
+  const label = `\`${facts.name}\``;
 
-  if (syntax === "require" || syntax === "dynamic-import") {
-    if (importKind === "type") {
-      return `${label} imports values only.`;
-    }
+  if (!importKinds.includes(importKind)) {
+    const held = importKinds.map((kind) => `${kind}s`).join(" and ");
+
+    return `${label} imports ${held} only.`;
+  }
+  if (specifierKinds.length === 0) {
     return specifiers.length > 0 ? `${label} holds no names.` : undefined;
   }
+
+  const refused = specifiers.find(({ kind }) => !specifierKinds.includes(kind));
+
+  if (refused !== undefined) {
+    return `${label} holds ${specifierKinds.join(" or ")} names, not ${refused.kind} names.`;
+  }
+
   const typeImportError =
     importKind === "type" && syntax === "import"
       ? getTypeImportError(specifiers)
@@ -194,10 +229,8 @@ function getSyntaxError(dependency: SketchDependency): string | undefined {
   if (typeImportError !== undefined) {
     return typeImportError;
   }
-  if (countKind(specifiers, "default") > (syntax === "import" ? 1 : 0)) {
-    return syntax === "import"
-      ? "An import holds one default name."
-      : `${label} holds named names or one namespace, not a default name.`;
+  if (countKind(specifiers, "default") > 1) {
+    return `${label} holds one default name.`;
   }
   if (countKind(specifiers, "namespace") > 1) {
     return `${label} holds one namespace.`;
@@ -209,7 +242,7 @@ function getSyntaxError(dependency: SketchDependency): string | undefined {
 }
 
 /**
- * Tells why a specifier cannot be written: its alias, or a name that is not an identifier.
+ * Tells why a specifier cannot be written: its alias, or a name that cannot play its role. In an `import`, what a specifier binds is a local name: the name of a default or namespace specifier, the alias of a named one, or its name when it has no alias. The name of a named specifier that has an alias is only an IdentifierName, so it can be a keyword. In an `export … from`, the name and the alias of a named specifier and the name of a namespace are IdentifierNames.
  * @param specifier The specifier to check.
  * @param syntax The syntax of the statement that holds it.
  * @returns The reason as a sentence for the user, or `undefined` when the specifier is valid.
@@ -225,19 +258,19 @@ function getSpecifierError(
     return `The ${kind} name "${specifierName}" cannot have an alias.`;
   }
 
-  // `default` is the name of a named export, though it cannot be a local name
-  const isDefaultExport = kind === "named" && specifierName === "default";
+  const isImport = syntax === "import";
+  // Nothing renames the name of this specifier, so an import binds it
+  const isNameLocal = isImport && alias === undefined;
+  const isValidName = isNameLocal ? isLocalName : isIdentifierName;
+  const isValidAlias = isImport ? isLocalName : isIdentifierName;
 
-  if (!isDefaultExport && !isName(specifierName)) {
-    return `"${specifierName}" is not a valid name.`;
+  if (!isValidName(specifierName)) {
+    // `default` and the keywords are names to import, though not local names: the alias is the fix
+    return kind === "named" && isNameLocal && isIdentifierName(specifierName)
+      ? `An import of "${specifierName}" needs an alias.`
+      : `"${specifierName}" is not a valid name.`;
   }
-  if (isDefaultExport && syntax === "import" && alias === undefined) {
-    return 'An import of "default" needs an alias.';
-  }
-  // `default` is also a valid name to export under, as in `export { a as default } from "./x"`, and only there
-  const isDefaultAlias = syntax === "export-from" && alias === "default";
-
-  return alias !== undefined && !isDefaultAlias && !isName(alias)
+  return alias !== undefined && !isValidAlias(alias)
     ? `"${alias}" is not a valid name.`
     : undefined;
 }
@@ -272,7 +305,7 @@ function getSpecifiersError(dependency: SketchDependency): string | undefined {
  * Tells why a sketch cannot hold a dependency, so that the edits refuse it and a sketch never has one that cannot be written as a statement. A node path that has quotes or backslashes is not here: no path of the tree can have them, as `getPathError` refuses them wherever a path enters.
  * @param sketch The sketch that would hold it: only its tree counts.
  * @param dependency The dependency to check.
- * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external name that is empty, has spaces or quotes, or starts with `.` or `/`, names that its syntax does not hold (a type import with a default name together with named names or a namespace included), an alias on a default or namespace name, a name that is not an identifier (but `default` as a named name, and as the alias of a name an `export … from` writes), or two names of the statement that are the same locally.
+ * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external module name that is empty, has spaces or quotes, or starts with `.` or `/`, a kind of statement or a kind of name that its syntax does not hold as the table of the syntaxes says (a type import with a default name together with named names or a namespace included), an alias on a default or namespace name, a name that cannot play its role (a local name of an `import` is an identifier that is not a reserved word, nor `eval` or `arguments`; the name of a named specifier that has an alias, and every name of an `export … from`, may be any word that looks like an identifier, keywords and `default` included), a named import of a name that cannot be a local name and has no alias, or two names of the statement that are the same locally.
  */
 export function getDependencyError(
   sketch: Pick<Sketch, "tree">,
@@ -312,7 +345,21 @@ function indexOfRef(
 }
 
 /**
- * Adds a dependency at the end of the list of the sketch, so that it is the last line of its file.
+ * Puts the names of a dependency in the order a statement writes them: the default name, then the namespace, then the named names, each kind in the order given.
+ * @param dependency The dependency to sort. It is not changed.
+ * @returns The dependency with its names in the order of the statement.
+ */
+function sortSpecifiers(dependency: SketchDependency): SketchDependency {
+  return {
+    ...dependency,
+    specifiers: SPECIFIER_ORDER.flatMap((kind) =>
+      dependency.specifiers.filter((specifier) => specifier.kind === kind)
+    ),
+  };
+}
+
+/**
+ * Adds a dependency at the end of the list of the sketch, so that it is the last line of its file. The sketch keeps its names in the order a statement writes them, so that reading its text gives the same names back.
  * @param sketch The sketch to edit. It is not changed.
  * @param dependency The dependency to add.
  * @returns The new sketch, or the reason why the sketch cannot hold the dependency, as {@link getDependencyError} gives it.
@@ -327,14 +374,14 @@ export function addDependency(
     ? {
         sketch: {
           ...sketch,
-          dependencies: [...sketch.dependencies, dependency],
+          dependencies: [...sketch.dependencies, sortSpecifiers(dependency)],
         },
       }
     : { error };
 }
 
 /**
- * Replaces a dependency with another one of the same file, in the same position.
+ * Replaces a dependency with another one of the same file, in the same position. The sketch keeps its names in the order a statement writes them, as {@link addDependency} does.
  * @param sketch The sketch to edit. It is not changed.
  * @param ref The dependency to replace.
  * @param dependency The dependency that takes its place. It has to be of the same file.
@@ -361,7 +408,7 @@ export function replaceDependency(
         sketch: {
           ...sketch,
           dependencies: sketch.dependencies.map((existing, index) =>
-            index === position ? dependency : existing
+            index === position ? sortSpecifiers(dependency) : existing
           ),
         },
       }

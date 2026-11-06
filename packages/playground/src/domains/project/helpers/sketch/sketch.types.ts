@@ -1,5 +1,6 @@
 import type {
   Sketch,
+  SketchDependency,
   SketchDependencySyntax,
   SketchSpecifier,
 } from "@/contract";
@@ -84,4 +85,20 @@ export type ParsedStatement = {
   readonly specifiers: readonly SketchSpecifier[];
   /** The source as written, without its quotes */
   readonly source: string;
+};
+
+/** The kind of a name of a statement: `default`, `named` or `namespace` */
+export type SpecifierKind = SketchSpecifier["kind"];
+
+/** Whether a statement imports values or only types */
+export type ImportKind = SketchDependency["importKind"];
+
+/** What a syntax holds: the one table that the checks of a dependency and the picker read, so that the picker never offers what the sketch refuses */
+export type SyntaxFacts = {
+  /** How the syntax is called, as the statement writes it: `import`, `export … from`, `require()` or `import()` */
+  readonly name: string;
+  /** The kinds of statement it holds, in the order the picker shows them. A syntax that holds one kind has nothing to choose, and the picker hides the row of the kinds */
+  readonly importKinds: readonly ImportKind[];
+  /** The kinds of name it holds, in the order the picker offers them. Empty when it holds no names at all, as `require()` and `import()` do, and the picker hides the row of the names */
+  readonly specifierKinds: readonly SpecifierKind[];
 };

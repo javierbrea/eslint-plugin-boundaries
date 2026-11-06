@@ -1,11 +1,14 @@
-export { CONFIG_PATH } from "./sketch.constants";
+export { CONFIG_PATH, SYNTAX_FACTS } from "./sketch.constants";
 export type {
   DependencyRef,
   EditResult,
+  ImportKind,
   NormalizedPath,
   ParsedStatement,
   RenameResult,
+  SpecifierKind,
   StatementToken,
+  SyntaxFacts,
   TextProblem,
   TextReadOptions,
   TextResult,
@@ -33,6 +36,7 @@ export {
   getDependency,
   getDependencyError,
   getFileDependencies,
+  getSyntaxFacts,
   removeDependency,
   replaceDependency,
 } from "./dependencies";

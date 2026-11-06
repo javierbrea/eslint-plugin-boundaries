@@ -10,10 +10,11 @@ import {
   getDependency,
   getDependencyError,
   getFileDependencies,
+  getSyntaxFacts,
   removeDependency,
   replaceDependency,
 } from "./dependencies";
-import type { EditResult } from "./sketch.types";
+import type { EditResult, ImportKind, SpecifierKind } from "./sketch.types";
 
 /**
  * Creates a dependency of a file on a node of the sketch, with the fields given.
@@ -120,6 +121,21 @@ const TREE: readonly SketchNode[] = [
   { path: "src/pages", kind: "folder" },
 ];
 
+const SYNTAXES = [
+  "import",
+  "export-from",
+  "require",
+  "dynamic-import",
+] as const;
+
+const IMPORT_KINDS: readonly ImportKind[] = ["value", "type"];
+
+const SPECIFIER_KINDS: readonly SpecifierKind[] = [
+  "default",
+  "named",
+  "namespace",
+];
+
 describe("Dependencies", () => {
   describe("getFileDependencies", () => {
     it("should give the dependencies of a file in the order of the sketch", () => {
@@ -190,6 +206,113 @@ describe("Dependencies", () => {
         undefined,
       ]);
     });
+  });
+
+  describe("getSyntaxFacts", () => {
+    it("should hold both kinds and the three kinds of name in an import", () => {
+      // Act
+      const facts = getSyntaxFacts("import");
+
+      // Assert
+      expect(facts).toEqual({
+        name: "import",
+        importKinds: ["value", "type"],
+        specifierKinds: ["default", "named", "namespace"],
+      });
+    });
+
+    it("should hold both kinds but no default name in an export from, where default is a named name", () => {
+      // Act
+      const facts = getSyntaxFacts("export-from");
+
+      // Assert
+      expect(facts).toEqual({
+        name: "export … from",
+        importKinds: ["value", "type"],
+        specifierKinds: ["named", "namespace"],
+      });
+    });
+
+    it.each([
+      ["require", "require()"],
+      ["dynamic-import", "import()"],
+    ] as const)(
+      "should hold values and no name in %s, which is called %s",
+      (syntax, syntaxName) => {
+        // Act
+        const facts = getSyntaxFacts(syntax);
+
+        // Assert
+        expect(facts).toEqual({
+          name: syntaxName,
+          importKinds: ["value"],
+          specifierKinds: [],
+        });
+      }
+    );
+
+    it("should list the syntaxes in the order the picker offers them", () => {
+      // Act
+      const names = SYNTAXES.map((syntax) => getSyntaxFacts(syntax).name);
+
+      // Assert
+      expect(names).toEqual([
+        "import",
+        "export … from",
+        "require()",
+        "import()",
+      ]);
+    });
+  });
+
+  describe("the checks of a dependency against the table of the syntaxes", () => {
+    const sketch = createSketch(TREE);
+
+    it.each(
+      SYNTAXES.flatMap((syntax) =>
+        IMPORT_KINDS.map((importKind) => [syntax, importKind] as const)
+      )
+    )(
+      "should hold the kind of statement exactly when the table of %s lists %s",
+      (syntax, importKind) => {
+        // Arrange
+        const facts = getSyntaxFacts(syntax);
+        const names = facts.specifierKinds
+          .slice(0, 1)
+          .flatMap((kind) => specifiers(kind, "x"));
+
+        // Act
+        const error = getDependencyError(
+          sketch,
+          toNode(A, B, { syntax, importKind, specifiers: names })
+        );
+
+        // Assert
+        expect(error === undefined).toBe(
+          facts.importKinds.includes(importKind)
+        );
+      }
+    );
+
+    it.each(
+      SYNTAXES.flatMap((syntax) =>
+        SPECIFIER_KINDS.map((kind) => [syntax, kind] as const)
+      )
+    )(
+      "should hold a name exactly when the table of %s lists the kind %s",
+      (syntax, kind) => {
+        // Act
+        const error = getDependencyError(
+          sketch,
+          toNode(A, B, { syntax, specifiers: specifiers(kind, "x") })
+        );
+
+        // Assert
+        expect(error === undefined).toBe(
+          getSyntaxFacts(syntax).specifierKinds.includes(kind)
+        );
+      }
+    );
   });
 
   describe("getDependencyError", () => {
@@ -444,7 +567,7 @@ describe("Dependencies", () => {
       [
         "two default names in an import",
         toNode(A, B, { specifiers: specifiers("default", "a", "b") }),
-        "An import holds one default name.",
+        "`import` holds one default name.",
       ],
       [
         "a default name in an export",
@@ -452,7 +575,7 @@ describe("Dependencies", () => {
           syntax: "export-from",
           specifiers: specifiers("default", "a"),
         }),
-        "`export … from` holds named names or one namespace, not a default name.",
+        "`export … from` holds named or namespace names, not default names.",
       ],
       [
         "two namespaces in an import",
@@ -601,6 +724,140 @@ describe("Dependencies", () => {
       expect(error).toBeUndefined();
     });
 
+    it.each([
+      ["import { if as c }", "import", "named", "if as c"],
+      ["import { default as d }", "import", "named", "default as d"],
+      ["import { eval as e }", "import", "named", "eval as e"],
+      ["export { if }", "export-from", "named", "if"],
+      ["export { a as class }", "export-from", "named", "a as class"],
+      ["export { if as class }", "export-from", "named", "if as class"],
+      ["export { default }", "export-from", "named", "default"],
+      ["export { a as default }", "export-from", "named", "a as default"],
+      ["export { eval }", "export-from", "named", "eval"],
+      ["export { a as eval }", "export-from", "named", "a as eval"],
+      ["export * as if", "export-from", "namespace", "if"],
+      ["export * as default", "export-from", "namespace", "default"],
+      ["export * as eval", "export-from", "namespace", "eval"],
+    ] as const)(
+      "should accept the statement %s, as the parser of the Quick start does",
+      (_statement, syntax, kind, written) => {
+        // Act
+        const error = getDependencyError(
+          sketch,
+          toNode(A, B, { syntax, specifiers: specifiers(kind, written) })
+        );
+
+        // Assert
+        expect(error).toBeUndefined();
+      }
+    );
+
+    it.each([
+      ["import { if }", "named", "if", 'An import of "if" needs an alias.'],
+      [
+        "import { eval }",
+        "named",
+        "eval",
+        'An import of "eval" needs an alias.',
+      ],
+      [
+        "import { arguments }",
+        "named",
+        "arguments",
+        'An import of "arguments" needs an alias.',
+      ],
+      [
+        "import { await }",
+        "named",
+        "await",
+        'An import of "await" needs an alias.',
+      ],
+      ["import { let }", "named", "let", 'An import of "let" needs an alias.'],
+      [
+        "import { yield }",
+        "named",
+        "yield",
+        'An import of "yield" needs an alias.',
+      ],
+      [
+        "import { default }",
+        "named",
+        "default",
+        'An import of "default" needs an alias.',
+      ],
+      ["import { a as if }", "named", "a as if", '"if" is not a valid name.'],
+      [
+        "import { a as default }",
+        "named",
+        "a as default",
+        '"default" is not a valid name.',
+      ],
+      [
+        "import { a as eval }",
+        "named",
+        "a as eval",
+        '"eval" is not a valid name.',
+      ],
+      [
+        "import { a as arguments }",
+        "named",
+        "a as arguments",
+        '"arguments" is not a valid name.',
+      ],
+      [
+        "import { a as await }",
+        "named",
+        "a as await",
+        '"await" is not a valid name.',
+      ],
+      ["import eval", "default", "eval", '"eval" is not a valid name.'],
+      [
+        "import arguments",
+        "default",
+        "arguments",
+        '"arguments" is not a valid name.',
+      ],
+      ["import * as eval", "namespace", "eval", '"eval" is not a valid name.'],
+      ["import * as if", "namespace", "if", '"if" is not a valid name.'],
+      ["import { 1a as c }", "named", "1a as c", '"1a" is not a valid name.'],
+      ["import { 1a }", "named", "1a", '"1a" is not a valid name.'],
+    ] as const)(
+      "should refuse the statement %s, as the parser of the Quick start does",
+      (_statement, kind, written, expected) => {
+        // Act
+        const error = getDependencyError(
+          sketch,
+          toNode(A, B, { specifiers: specifiers(kind, written) })
+        );
+
+        // Assert
+        expect(error).toBe(expected);
+      }
+    );
+
+    it.each([
+      ["export { 1a }", "named", "1a", '"1a" is not a valid name.'],
+      ["export { a as 2b }", "named", "a as 2b", '"2b" is not a valid name.'],
+      ["export { 1a as b }", "named", "1a as b", '"1a" is not a valid name.'],
+      ["export { a-b }", "named", "a-b", '"a-b" is not a valid name.'],
+      ["export * as 1ns", "namespace", "1ns", '"1ns" is not a valid name.'],
+    ] as const)(
+      "should refuse the statement %s, since an export needs words that look like an identifier",
+      (_statement, kind, written, expected) => {
+        // Act
+        const error = getDependencyError(
+          sketch,
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers(kind, written),
+          })
+        );
+
+        // Assert
+        expect(error).toBe(expected);
+      }
+    );
+
     it("should report the file before the target and the target before the names", () => {
       // Arrange
       const dependency = toNode("src/missing.js", "src/gone.js", {
@@ -661,6 +918,64 @@ describe("Dependencies", () => {
       // Assert
       expect(result.dependencies).toEqual([toNode(A, B), toNode(B, C), added]);
       expect(getFileDependencies(result, A)).toEqual([toNode(A, B), added]);
+    });
+
+    it("should store the names in the order a statement writes them: the default name, then the namespace, then the named names, in the order given within each kind", () => {
+      // Arrange
+      const sketch = createSketch(TREE);
+      const unordered = toNode(A, B, {
+        specifiers: [
+          ...specifiers("named", "c", "a"),
+          ...specifiers("default", "b"),
+        ],
+      });
+
+      // Act
+      const result = getSketch(addDependency(sketch, unordered));
+
+      // Assert
+      expect(result.dependencies[0].specifiers).toEqual([
+        ...specifiers("default", "b"),
+        ...specifiers("named", "c", "a"),
+      ]);
+    });
+
+    it("should store a default name before a namespace", () => {
+      // Arrange
+      const sketch = createSketch(TREE);
+      const unordered = toNode(A, B, {
+        specifiers: [
+          ...specifiers("namespace", "ns"),
+          ...specifiers("default", "b"),
+        ],
+      });
+
+      // Act
+      const result = getSketch(addDependency(sketch, unordered));
+
+      // Assert
+      expect(result.dependencies[0].specifiers).toEqual([
+        ...specifiers("default", "b"),
+        ...specifiers("namespace", "ns"),
+      ]);
+    });
+
+    it("should not change the dependency given when it sorts its names", () => {
+      // Arrange
+      const sketch = createSketch(TREE);
+      const unordered = toNode(A, B, {
+        specifiers: [
+          ...specifiers("named", "a"),
+          ...specifiers("default", "b"),
+        ],
+      });
+      const before = JSON.stringify(unordered);
+
+      // Act
+      addDependency(sketch, unordered);
+
+      // Assert
+      expect(JSON.stringify(unordered)).toBe(before);
     });
 
     it("should keep the tree and the config", () => {
@@ -727,6 +1042,28 @@ describe("Dependencies", () => {
           importKind: "type",
           specifiers: specifiers("named", "T"),
         }),
+      ]);
+    });
+
+    it("should store the names in the order a statement writes them", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [toNode(A, B)]);
+      const unordered = toNode(A, C, {
+        specifiers: [
+          ...specifiers("named", "c", "a"),
+          ...specifiers("default", "b"),
+        ],
+      });
+
+      // Act
+      const result = getSketch(
+        replaceDependency(sketch, { path: A, index: 0 }, unordered)
+      );
+
+      // Assert
+      expect(result.dependencies[0].specifiers).toEqual([
+        ...specifiers("default", "b"),
+        ...specifiers("named", "c", "a"),
       ]);
     });
 

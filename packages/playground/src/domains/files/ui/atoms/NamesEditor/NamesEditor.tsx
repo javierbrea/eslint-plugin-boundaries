@@ -12,7 +12,7 @@ import {
   getChipLabel,
   getChipParts,
 } from "@/domains/files/ui/helpers/dependencyLabels";
-import type { SpecifierKind } from "@/domains/files/ui/helpers/dependencyLabels";
+import type { SpecifierKind } from "@/domains/project/helpers/sketch";
 import { Icon } from "@/ui-kit/atoms/Icon";
 
 import {

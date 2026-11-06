@@ -6,6 +6,8 @@ import type {
 } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
+import { addDependency, replaceDependency } from "./dependencies";
+import type { EditResult } from "./sketch.types";
 import { fromText, readTextProblems, toText } from "./textMode";
 
 /**
@@ -111,6 +113,17 @@ const QUICK_START_TEXT = [
   "",
 ].join("\n");
 
+/**
+ * Gets the sketch of an edit that is not refused.
+ * @param result The result of adding or replacing a dependency.
+ */
+function getEdited(result: EditResult): Sketch {
+  if ("error" in result) {
+    throw new Error(`The edit was refused: ${result.error}`);
+  }
+  return result.sketch;
+}
+
 const SKETCH = createSketch([
   { path: "src/components/Price/index.js", kind: "file" },
   { path: "src/helpers/format.js", kind: "file" },
@@ -118,6 +131,22 @@ const SKETCH = createSketch([
   { path: "src/index.js", kind: "file" },
   { path: "docs/guides", kind: "folder" },
 ]);
+
+const TWO_FILES = createSketch([
+  { path: "src/a.js", kind: "file" },
+  { path: "src/b.js", kind: "file" },
+]);
+
+/** The names as the picker appends them: the named ones first, then the default */
+const UNORDERED = {
+  specifiers: [...specifiers("named", "c", "a"), ...specifiers("default", "b")],
+};
+
+/** The names of {@link UNORDERED} as a statement writes them */
+const ORDERED = [
+  ...specifiers("default", "b"),
+  ...specifiers("named", "c", "a"),
+];
 
 describe("TextMode", () => {
   describe("toText", () => {
@@ -483,6 +512,31 @@ describe("TextMode", () => {
       ]);
     });
 
+    it("should read a keyword as the name of a named import with an alias, and as the name or the alias of an export", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import { if as condition } from "./b";',
+        '  export { value as class } from "./b";',
+        "src/b.js",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies).toEqual([
+        toNode("src/a.js", "src/b.js", {
+          specifiers: specifiers("named", "if as condition"),
+        }),
+        toNode("src/a.js", "src/b.js", {
+          syntax: "export-from",
+          specifiers: specifiers("named", "value as class"),
+        }),
+      ]);
+    });
+
     it("should read a relative source as the file a resolver finds", () => {
       // Arrange
       const text = [
@@ -725,6 +779,7 @@ describe("TextMode", () => {
         '  import 1 from "react";',
         '  import type A, { B } from "react";',
         '  import type A, * as ns from "react";',
+        '  import eval from "react";',
       ].join("\n");
 
       // Act
@@ -760,6 +815,7 @@ describe("TextMode", () => {
           reason:
             "A type import cannot hold a default name together with named names or a namespace.",
         },
+        { line: 13, reason: '"eval" is not a valid name.' },
       ]);
     });
 
@@ -871,6 +927,29 @@ describe("TextMode", () => {
           line: 2,
           text: 'src/say"hi".js',
           reason: "A path cannot have quotes or backslashes.",
+        },
+      ]);
+    });
+
+    it("should leave out a path that starts with a space after its slash as a problem, as the next read would take its line for a dependency", () => {
+      // Arrange
+      const text = "src/a.js\n/ c.js\n./ d/\nsrc/b.js\n";
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(paths(sketch)).toEqual(["src/a.js", "src/b.js"]);
+      expect(problems).toEqual([
+        {
+          line: 2,
+          text: "/ c.js",
+          reason: "A path cannot start with a space.",
+        },
+        {
+          line: 3,
+          text: "./ d/",
+          reason: "A path cannot start with a space.",
         },
       ]);
     });
@@ -1302,6 +1381,40 @@ describe("TextMode", () => {
       expect(problems).toEqual([]);
       expect(sketch.tree).toEqual(original.tree);
       expect(sketch.dependencies).toStrictEqual(original.dependencies);
+    });
+
+    it("should return the names of a dependency added in any order from its own text", () => {
+      // Arrange
+      const stored = getEdited(
+        addDependency(TWO_FILES, toNode("src/a.js", "src/b.js", UNORDERED))
+      );
+
+      // Act
+      const { sketch, problems } = fromText(toText(stored), stored);
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(stored.dependencies[0].specifiers).toEqual(ORDERED);
+      expect(sketch.dependencies).toEqual(stored.dependencies);
+    });
+
+    it("should return the names of a dependency replaced in any order from its own text", () => {
+      // Arrange
+      const stored = getEdited(
+        replaceDependency(
+          getEdited(addDependency(TWO_FILES, toNode("src/a.js", "src/b.js"))),
+          { path: "src/a.js", index: 0 },
+          toNode("src/a.js", "src/b.js", UNORDERED)
+        )
+      );
+
+      // Act
+      const { sketch, problems } = fromText(toText(stored), stored);
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(stored.dependencies[0].specifiers).toEqual(ORDERED);
+      expect(sketch.dependencies).toEqual(stored.dependencies);
     });
 
     it("should keep the same files and folders when the nodes are in another order", () => {
