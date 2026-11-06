@@ -1,12 +1,13 @@
 import { PLUGIN_NAME, SETTINGS } from "@boundaries/config";
 
 import { hasErrorUnder } from "./diagnostics";
-import { SETTINGS_KEY } from "./engine.constants";
+import { RULES_KEY, SETTINGS_KEY } from "./engine.constants";
 import type {
   ElementTypeSummary,
   FileCategorySummary,
   RuleSummary,
 } from "./engine.types";
+import { getEvaluatedRuleName } from "./evaluatedRule";
 import { getRangeOf } from "./locations";
 import type { SummariesInput } from "./summaries.types";
 import {
@@ -15,9 +16,6 @@ import {
   getKeptIndexes,
   readSettings,
 } from "./writtenConfig";
-
-/** The key of the rules in the config object */
-const RULES_KEY = "rules";
 
 /**
  * Reads the patterns of a descriptor.
@@ -131,10 +129,11 @@ function countPolicies(entry: unknown): number {
 /**
  * Summarizes the rules of the plugin written in the config.
  * @param input What the summaries are built from.
- * @returns One summary per key of `rules` that has the prefix of the plugin, in the order they are written. A rule is valid when no error is about its entry: its options pass the schema, as ESLint checks them, and its severity and name are known.
+ * @returns One summary per key of `rules` that has the prefix of the plugin, in the order they are written. A rule is valid when no error is about its entry: its options pass the schema, as ESLint checks them, and its severity and name are known. The one that the playground evaluates is marked.
  */
 export function summarizeRules(input: SummariesInput): RuleSummary[] {
   const rules = asRecord(input.config.value[RULES_KEY]) ?? {};
+  const evaluatedName = getEvaluatedRuleName(input.config);
   return Object.entries(rules)
     .filter(([ruleName]) => ruleName.startsWith(`${PLUGIN_NAME}/`))
     .map(([ruleName, entry]) => {
@@ -143,6 +142,7 @@ export function summarizeRules(input: SummariesInput): RuleSummary[] {
         name: ruleName,
         policies: countPolicies(entry),
         valid: !hasErrorUnder(input.diagnostics, path),
+        evaluated: ruleName === evaluatedName,
         range: getRangeOf(input.config.ast, path),
       };
     });

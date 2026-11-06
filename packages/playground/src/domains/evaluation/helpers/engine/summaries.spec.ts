@@ -491,6 +491,7 @@ describe("Summaries", () => {
           name: "boundaries/dependencies",
           policies: 3,
           valid: true,
+          evaluated: true,
           range: expect.objectContaining({ line: 14, column: 32 }),
         },
       ]);
@@ -498,6 +499,56 @@ describe("Summaries", () => {
         /^\[2, \{\n {6}default: "disallow",[\s\S]*\}\]$/
       );
     });
+
+    it.each([
+      [
+        "both are written",
+        `{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": 2, "boundaries/no-private": 2 } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+          ["boundaries/no-private", false],
+        ],
+      ],
+      [
+        "only the deprecated one is written",
+        `{ rules: { "boundaries/no-private": 2, "boundaries/element-types": 2 } }`,
+        [
+          ["boundaries/no-private", false],
+          ["boundaries/element-types", true],
+        ],
+      ],
+      [
+        "neither is written",
+        `{ rules: { "boundaries/no-private": 2, "import/no-cycle": 2 } }`,
+        [["boundaries/no-private", false]],
+      ],
+      [
+        "the one that is written fails its schema, so that the normalized config leaves it out",
+        `{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": [2, { default: "maybe" }] } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+        ],
+      ],
+    ])(
+      "should mark as evaluated the dependencies rule before the deprecated one when %s",
+      (_title, text, expected) => {
+        // Arrange
+        const input = createInput(text);
+
+        // Act
+        const summaries = summarizeRules(input);
+
+        // Assert
+        expect(
+          summaries.map(({ name: ruleName, evaluated }) => [
+            ruleName,
+            evaluated,
+          ])
+        ).toEqual(expected);
+      }
+    );
 
     it("should count the policies of the options, or the deprecated rules", () => {
       // Arrange

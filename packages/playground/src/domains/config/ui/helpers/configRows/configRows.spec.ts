@@ -34,6 +34,7 @@ const RULE: RuleSummary = {
   name: "boundaries/dependencies",
   policies: 3,
   valid: true,
+  evaluated: true,
   range: RANGE,
 };
 

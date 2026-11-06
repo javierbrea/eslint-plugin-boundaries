@@ -1,4 +1,5 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 
 /** A range of the config text: offsets for the editor, and the line and column of its start for the problem list */
 export type TextRange = {
@@ -82,6 +83,88 @@ export type RuleSummary = {
   readonly policies: number;
   /** Its options pass the rule schema, and the selector of every policy can be normalized */
   readonly valid: boolean;
+  /** Whether it is the rule whose dependencies the playground evaluates: `boundaries/dependencies` when it is written, and otherwise the deprecated `boundaries/element-types`. It says which rule is taken, not that its dependencies are evaluated: `Evaluation.notEvaluated` says when they are not, such as when the rule is off */
+  readonly evaluated: boolean;
+  readonly range: TextRange;
+};
+
+/** Why a dependency is not checked: the skip reasons of `@boundaries/policies`, and `not-read` when `boundaries/dependency-nodes` leaves its syntax out, so that the plugin never sees it */
+export type SkipReason =
+  | "from-ignored"
+  | "from-unknown"
+  | "to-ignored"
+  | "not-local"
+  | "unknown-local"
+  | "internal"
+  | "not-read";
+
+/** Why no dependency of the sketch is evaluated, in the order the engine checks them. `no-options` is the rule written with no options, such as `"boundaries/dependencies": 2`: the plugin checks nothing then, as the rule runner returns before it reads a dependency */
+export type NotEvaluatedReason =
+  | "config-unparsed"
+  | "rules-invalid"
+  | "no-rule"
+  | "rule-off"
+  | "no-options";
+
+/** The policy that decided a dependency: one of the policies of the rule, by its index in the options, or the default */
+export type PolicyRef = {
+  /** Its index in the options, or `null` for the `default` option */
+  readonly index: number | null;
+  /** Where it is written in the config text: the policy, or the `default` option (the options when `default` is not written) */
+  readonly range: TextRange;
+};
+
+/** What the engine says about a dependency */
+export type DependencyVerdict =
+  | {
+      readonly status: "allowed";
+      /** The policy that allowed it, or the default */
+      readonly policy: PolicyRef;
+    }
+  | {
+      readonly status: "disallowed";
+      /** The policy that disallowed it, or the default. It is `undefined` only when a custom message fails to render: `message` is then the error text, and nothing says which policy decided */
+      readonly policy: PolicyRef | undefined;
+      /** The message that the plugin reports */
+      readonly message: string;
+      /** `error` for the severity `error` of the rule, `warning` for `warn` */
+      readonly level: "error" | "warning";
+    }
+  | {
+      /** The rule does not check it, and it counts as no problem */
+      readonly status: "not-checked";
+      readonly reason: SkipReason;
+    }
+  | {
+      /** No dependency of the sketch is evaluated: `Evaluation.notEvaluated` says why */
+      readonly status: "not-evaluated";
+    };
+
+/** A dependency of the sketch with its verdict */
+export type DependencyResult = {
+  readonly dependency: SketchDependency;
+  /** Its file and its position among the dependencies of that file */
+  readonly ref: DependencyRef;
+  /** The source its statement writes, the one passed to `describeDependency` */
+  readonly source: string;
+  readonly verdict: DependencyVerdict;
+};
+
+/** A policy of the evaluated rule, or its default, with the dependencies it decided */
+export type PolicySummary = {
+  /** Its index in the options, or `null` for the default */
+  readonly index: number | null;
+  /** `disallow` when the policy has a `disallow` and no `allow`, `allow` when it has an `allow` and no `disallow`, `both` otherwise; the value of `default` for the default */
+  readonly action: "allow" | "disallow" | "both";
+  /** The element types and file categories that its `from` selectors name, in order and without duplicates: those of its own `from`, then those of the `from` of the dependency selectors of its `allow` and `disallow`. Empty when it names none; always empty for the default */
+  readonly from: readonly string[];
+  /** The same, for its own `to` and the `to` selectors of its `allow` and `disallow`, which are entity selectors or the `to` of dependency selectors */
+  readonly to: readonly string[];
+  /** How many dependencies it decided. A dependency whose custom message fails to render counts for nobody, as the policy that decided it is not known */
+  readonly decided: number;
+  /** How many of them it disallowed */
+  readonly disallowed: number;
+  /** Where it is written in the config text: the policy, or the `default` option (the options when `default` is not written) */
   readonly range: TextRange;
 };
 
@@ -98,12 +181,18 @@ export type Evaluation = {
   readonly elementTypes: readonly ElementTypeSummary[];
   readonly fileCategories: readonly FileCategorySummary[];
   readonly rules: readonly RuleSummary[];
+  /** A verdict for every dependency of the sketch, in the order of `Sketch.dependencies` */
+  readonly dependencies: readonly DependencyResult[];
+  /** Why no dependency is evaluated, when none is: every verdict is then `not-evaluated`. `undefined` when they are */
+  readonly notEvaluated: NotEvaluatedReason | undefined;
+  /** The policies of the evaluated rule in their order, then its default, with the dependencies each one decided. Empty when `notEvaluated` is set */
+  readonly policies: readonly PolicySummary[];
 };
 
 /** Evaluates sketches, and remembers what it did so that an edit that does not touch the config does not read it again. Each playground has its own, so playgrounds on one page share nothing */
 export type Engine = {
   /**
-   * Evaluates a sketch: reads its config and places the problems in its text, and describes every file of its tree as the plugin does. It is pure and memoized, so evaluating the same sketch object again returns the same evaluation, and a sketch with the same config text as the last one does not read the config again.
+   * Evaluates a sketch: reads its config and places the problems in its text, describes every file of its tree as the plugin does, and decides every dependency as the `dependencies` rule does. It is pure and memoized, so evaluating the same sketch object again returns the same evaluation, and a sketch with the same config text as the last one does not read the config again.
    * @param sketch The sketch to evaluate.
    * @returns What the engine says about the sketch.
    */
