@@ -50,7 +50,7 @@ describe("useTextProblems", () => {
       {
         line: 2,
         text: UNREADABLE_LINE,
-        reason: "Dependencies are not written in text mode yet.",
+        reason: '"./b" does not resolve to a file of the sketch.',
       },
     ]);
   });

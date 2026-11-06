@@ -1,69 +1,231 @@
-import type { Sketch, SketchNode } from "@/contract";
+import type {
+  Sketch,
+  SketchDependency,
+  SketchDependencyTarget,
+  SketchNode,
+} from "@/contract";
 
+import { getDependencyError } from "./dependencies";
 import { normalizePath } from "./paths";
 import { CONFIG_PATH } from "./sketch.constants";
 import type { TextProblem, TextResult } from "./sketch.types";
-import { canonicalizeNodes, getAddError, getNodeKind } from "./tree";
+import {
+  getSourceAmong,
+  isRelativeSource,
+  parseStatement,
+  resolveAmong,
+  toStatement,
+} from "./statements";
+import { canonicalizeNodes, getAddError, getFiles } from "./tree";
 
-/** Matches a line that starts with a space or a tab: a dependency of the file above it, which text mode does not read yet */
+/** Matches a line that starts with a space or a tab: a dependency of the file above it */
 const INDENTED_LINE = /^[ \t]/;
 
+const NO_FILE_REASON =
+  "A dependency is indented under the file that has it, and there is no file above this line.";
+
+const FOLDER_REASON = "A folder has no dependencies: indent them under a file.";
+
+const UNREADABLE_REASON =
+  'Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";';
+
+/** An indented line, which is read once all the files of the text are known */
+type PendingDependency = {
+  /** Number of the line, from 1 */
+  readonly line: number;
+  /** The line as it was written */
+  readonly text: string;
+  /** The node of the last line above that is not indented, if it was read as a node */
+  readonly owner: SketchNode | undefined;
+};
+
 /**
- * Writes a sketch as text mode shows it: `eslint.config.js` first, then one line per file and per empty folder, in the order of the tree, with a `/` after the name of a folder. A line is never indented in M1: dependencies are not written.
- * @param sketch The sketch to write: only its tree counts, so that a caller can keep the text while the config changes.
+ * Writes a sketch as text mode shows it: `eslint.config.js` first, then one line per file and per empty folder, in the order of the tree, with a `/` after the name of a folder. The dependencies of a file follow its line, in order, indented two spaces and written as import statements with the sources that {@link getSourceAmong} gives against the files of the tree. The dependencies of something that is not a file of the tree are not written.
+ * @param sketch The sketch to write: only its tree and dependencies count, so that a caller can keep the text while the config changes.
  * @returns The text, which ends with a newline.
  */
-export function toText(sketch: Pick<Sketch, "tree">): string {
-  const lines = canonicalizeNodes(sketch.tree).map((node) =>
-    node.kind === "folder" ? `${node.path}/` : node.path
+export function toText(sketch: Pick<Sketch, "tree" | "dependencies">): string {
+  const nodes = canonicalizeNodes(sketch.tree);
+  const files = new Set(
+    nodes.filter(({ kind }) => kind === "file").map(({ path }) => path)
+  );
+  const statements = new Map<string, string[]>();
+
+  for (const dependency of sketch.dependencies) {
+    const source = getSourceAmong(files, dependency);
+    const written = statements.get(dependency.from) ?? [];
+
+    written.push(`  ${toStatement(dependency, source)}`);
+    statements.set(dependency.from, written);
+  }
+
+  const lines = nodes.flatMap(({ path, kind }) =>
+    kind === "folder" ? [`${path}/`] : [path, ...(statements.get(path) ?? [])]
   );
 
   return `${[CONFIG_PATH, ...lines].join("\n")}\n`;
 }
 
 /**
- * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. Every other line is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. A line that cannot be read is a problem and is left out: an indented line, an invalid path, a duplicate, a path under a file or a file where a folder is.
+ * Reads an indented line as a dependency of a file.
+ * @param text The line as it was written.
+ * @param from The path of the file above the line.
+ * @param nodes The nodes that the text declares.
+ * @param files The paths of the files among them.
+ * @returns The dependency, or why the line cannot be read, as a sentence for the user.
+ */
+function readDependency(
+  text: string,
+  from: string,
+  nodes: readonly SketchNode[],
+  files: ReadonlySet<string>
+): SketchDependency | string {
+  const parsed = parseStatement(text);
+
+  if (parsed === undefined) {
+    return UNREADABLE_REASON;
+  }
+
+  const { source, ...statement } = parsed;
+  let target: SketchDependencyTarget;
+
+  if (isRelativeSource(source)) {
+    const path = resolveAmong(files, from, source);
+
+    if (path === undefined) {
+      return `"${source}" does not resolve to a file of the sketch.`;
+    }
+    target = { kind: "node", path };
+  } else if (source.startsWith("/")) {
+    return `"${source}" is an absolute path: write the source relative to the file, starting with ./ or ../.`;
+  } else {
+    target = { kind: "external", name: source };
+  }
+
+  const dependency = { from, target, ...statement };
+
+  return getDependencyError({ tree: nodes }, dependency) ?? dependency;
+}
+
+/**
+ * Reads a line that is not indented as a node.
+ * @param line The line as it was written.
+ * @param nodes The nodes of the lines read before.
+ * @returns The node, `undefined` for the config line, which is skipped, or why the line cannot be a node, as a sentence for the user.
+ */
+function readNodeLine(
+  line: string,
+  nodes: readonly SketchNode[]
+): SketchNode | string | undefined {
+  const { path, isFolder } = normalizePath(line);
+
+  if (path === CONFIG_PATH && !isFolder) {
+    return undefined;
+  }
+
+  const kind = isFolder ? "folder" : "file";
+
+  return getAddError(nodes, path, kind) ?? { path, kind };
+}
+
+/**
+ * Reads an indented line as a dependency of the node above it.
+ * @param pending The indented line.
+ * @param nodes The nodes that the text declares.
+ * @param files The paths of the files among them.
+ * @returns The dependency, or why the line cannot be read, as a sentence for the user.
+ */
+function readIndented(
+  pending: PendingDependency,
+  nodes: readonly SketchNode[],
+  files: ReadonlySet<string>
+): SketchDependency | string {
+  const { text, owner } = pending;
+
+  if (owner === undefined) {
+    return NO_FILE_REASON;
+  }
+  return owner.kind === "file"
+    ? readDependency(text, owner.path, nodes, files)
+    : FOLDER_REASON;
+}
+
+/**
+ * Reads the indented lines once every file of the text is known, so that a dependency can point to a file written below it.
+ * @param pending The indented lines, in order.
+ * @param nodes The nodes that the text declares.
+ * @returns The dependencies that were read, in order, and the problems of the lines that were left out.
+ */
+function readPending(
+  pending: readonly PendingDependency[],
+  nodes: readonly SketchNode[]
+): {
+  readonly dependencies: readonly SketchDependency[];
+  readonly problems: readonly TextProblem[];
+} {
+  const files = new Set(getFiles({ tree: nodes }));
+  const dependencies: SketchDependency[] = [];
+  const problems: TextProblem[] = [];
+
+  for (const item of pending) {
+    const result = readIndented(item, nodes, files);
+
+    if (typeof result === "string") {
+      problems.push({ line: item.line, text: item.text, reason: result });
+    } else {
+      dependencies.push(result);
+    }
+  }
+  return { dependencies, problems };
+}
+
+/**
+ * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. A line that is not indented is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. An indented line is a dependency of the file line above it. A line that cannot be read is a problem and is left out: an invalid path, a duplicate, a path under a file, a file where a folder is, a dependency under a folder or under no file (the config line and a line that was left out own nothing), or a dependency that cannot be read as {@link readDependency} says.
  * @param text The text to read.
- * @returns The nodes of the valid lines, and the problems of the lines that were left out, in order.
+ * @returns The nodes of the valid lines, the dependencies of the valid lines in the order of the text, and the problems of the lines that were left out, in order.
  */
 function readLines(text: string): {
   readonly nodes: readonly SketchNode[];
+  readonly dependencies: readonly SketchDependency[];
   readonly problems: readonly TextProblem[];
 } {
   const nodes: SketchNode[] = [];
   const problems: TextProblem[] = [];
+  const pending: PendingDependency[] = [];
+  // What the indented lines below belong to: the last line that is not indented, if it was read as a node
+  let owner: SketchNode | undefined;
 
-  text.split(/\r?\n/).forEach((line, index) => {
+  for (const [index, line] of text.split(/\r?\n/).entries()) {
     if (line.trim() === "") {
-      return;
+      continue;
     }
 
-    const reject = (reason: string): void => {
-      problems.push({ line: index + 1, text: line, reason });
-    };
+    const lineNumber = index + 1;
 
     if (INDENTED_LINE.test(line)) {
-      reject("Dependencies are not written in text mode yet.");
-      return;
+      pending.push({ line: lineNumber, text: line, owner });
+      continue;
     }
 
-    const { path, isFolder } = normalizePath(line);
+    const result = readNodeLine(line, nodes);
 
-    if (path === CONFIG_PATH && !isFolder) {
-      return;
+    owner = typeof result === "object" ? result : undefined;
+    if (typeof result === "string") {
+      problems.push({ line: lineNumber, text: line, reason: result });
+    } else if (result !== undefined) {
+      nodes.push(result);
     }
+  }
 
-    const kind = isFolder ? "folder" : "file";
-    const error = getAddError(nodes, path, kind);
+  const read = readPending(pending, nodes);
 
-    if (error === undefined) {
-      nodes.push({ path, kind });
-    } else {
-      reject(error);
-    }
-  });
-
-  return { nodes, problems };
+  return {
+    nodes,
+    dependencies: read.dependencies,
+    problems: [...problems, ...read.problems].sort(
+      (first, second) => first.line - second.line
+    ),
+  };
 }
 
 /**
@@ -76,26 +238,16 @@ export function readTextProblems(text: string): readonly TextProblem[] {
 }
 
 /**
- * Reads text mode into a sketch, line by line as {@link readTextProblems} says. The tree of the new sketch is made of the valid lines, and the config is the one of the sketch given. The dependencies of the sketch given are kept when their file and their node target are still in the tree.
+ * Reads text mode into a sketch, line by line as {@link readTextProblems} says. The tree of the new sketch is made of the valid lines, its dependencies are the ones that the text declares, in the order of the text, and the config is the one of the sketch given.
  * @param text The text to read.
  * @param sketch The sketch that the text edits. It is not changed.
  * @returns The new sketch and the problems of the lines that were left out, in order.
  */
 export function fromText(text: string, sketch: Sketch): TextResult {
-  const { nodes, problems } = readLines(text);
-  const tree = canonicalizeNodes(nodes);
+  const { nodes, dependencies, problems } = readLines(text);
 
   return {
-    sketch: {
-      ...sketch,
-      tree,
-      dependencies: sketch.dependencies.filter(
-        ({ from, target }) =>
-          getNodeKind(tree, from) === "file" &&
-          (target.kind === "external" ||
-            getNodeKind(tree, target.path) !== undefined)
-      ),
-    },
+    sketch: { ...sketch, tree: canonicalizeNodes(nodes), dependencies },
     problems,
   };
 }

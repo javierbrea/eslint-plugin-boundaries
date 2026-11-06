@@ -129,6 +129,7 @@ describe("ProjectText", () => {
         "docs/",
         "src/components/Button.js",
         "src/index.js",
+        '  import "./components/Button";',
         "",
       ].join("\n")
     );
@@ -349,7 +350,9 @@ describe("ProjectText", () => {
       const { onSketchChange, store, text, getTextProblems } = renderText();
 
       // Act
-      text.type("docs/\nsrc/components/Button.js\nsrc/index.js\n\n\n");
+      text.type(
+        'docs/\nsrc/components/Button.js\nsrc/index.js\n  import "./components/Button";\n\n\n'
+      );
       wait(300);
 
       // Assert
@@ -374,12 +377,14 @@ describe("ProjectText", () => {
       ]);
     });
 
-    it("should drop a dependency that has no file or target in the text, and keep the others", () => {
+    it("should keep the dependencies that the text declares, and drop the ones it does not", () => {
       // Arrange
       const { onSketchChange, text } = renderText();
 
       // Act
-      text.type("src/index.js\nsrc/components/Button.js\n");
+      text.type(
+        'src/index.js\n  import "./components/Button";\nsrc/components/Button.js\n'
+      );
       wait(300);
       text.type("src/index.js\n");
       wait(300);
@@ -409,7 +414,9 @@ describe("ProjectText", () => {
       const { onSketchChange, text } = renderText(dangling);
 
       // Act
-      text.type("docs/\nsrc/components/Button.js\nsrc/index.js\n");
+      text.type(
+        'docs/\nsrc/components/Button.js\nsrc/index.js\n  import "./components/Button";\n'
+      );
       wait(300);
 
       // Assert
@@ -462,12 +469,12 @@ describe("ProjectText", () => {
       const { text, getTextProblems } = renderText();
 
       // Act
-      text.type("src/index.js\n  import x from 'y';\nsrc/../up.js\n");
+      text.type("src/index.js\n  import x = y;\nsrc/../up.js\n");
       wait(300);
 
       // Assert
       expect(getTextProblems()).toEqual([
-        "2|  import x from 'y';|Dependencies are not written in text mode yet.",
+        '2|  import x = y;|Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";',
         "3|src/../up.js|The path cannot have `.` or `..` segments.",
       ]);
     });

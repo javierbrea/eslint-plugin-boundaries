@@ -6,6 +6,7 @@ import { ProjectTextArea } from "@/domains/project/ui/atoms/ProjectTextArea";
 import {
   useCapabilities,
   useReadText,
+  useSessionSelector,
   useSetTextDraft,
   useSettleText,
   useTextDraft,
@@ -20,13 +21,17 @@ import { PROJECT_TEXT_TEST_ID, READ_DELAY } from "./ProjectText.constants";
  */
 export function ProjectText(): ReactNode {
   const tree = useTree();
+  const dependencies = useSessionSelector((state) => state.sketch.dependencies);
   const draft = useTextDraft();
   const { editTree } = useCapabilities();
   const setTextDraft = useSetTextDraft();
   const readText = useReadText();
   const settleText = useSettleText();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const text = useMemo(() => toText({ tree }), [tree]);
+  const text = useMemo(
+    () => toText({ tree, dependencies }),
+    [tree, dependencies]
+  );
 
   // Going back to the tree drops the draft in the store; the read that was waiting goes with it
   useEffect(() => () => clearTimeout(timerRef.current), []);

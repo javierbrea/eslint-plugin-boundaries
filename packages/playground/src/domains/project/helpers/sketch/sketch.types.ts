@@ -1,4 +1,8 @@
-import type { Sketch } from "@/contract";
+import type {
+  Sketch,
+  SketchDependencySyntax,
+  SketchSpecifier,
+} from "@/contract";
 
 /** A node of the tree as the project pane shows it: folders are implied by the paths of their files */
 export type TreeItem = {
@@ -42,8 +46,36 @@ export type NormalizedPath = {
 
 /** The result of reading text mode: the sketch made of its valid lines, and the lines that could not be read */
 export type TextResult = {
-  /** The sketch with the tree of the valid lines. The config is the one of the sketch given */
+  /** The sketch with the tree and the dependencies of the valid lines. The config is the one of the sketch given */
   readonly sketch: Sketch;
   /** The lines that were left out, in order */
   readonly problems: readonly TextProblem[];
+};
+
+/** Identifies a dependency: its file and its position among the dependencies of that file, in the order of `Sketch.dependencies`. Its line is `index + 1` */
+export type DependencyRef = {
+  /** Path of the file that has the dependency */
+  readonly path: string;
+  /** Position among the dependencies of the file, from 0 */
+  readonly index: number;
+};
+
+/** A piece of a statement, so that the ui colors it: a keyword (`import`, `type`, `from`, `export`, `require`, `as`), the source with its quotes, or anything else (names, punctuation, spaces) */
+export type StatementToken = {
+  /** What the piece is */
+  readonly kind: "keyword" | "source" | "text";
+  /** The piece as written. All the pieces of a statement joined are the statement */
+  readonly text: string;
+};
+
+/** A statement read from text: what it says, before its source is resolved to a target */
+export type ParsedStatement = {
+  /** Syntax of the statement */
+  readonly syntax: SketchDependencySyntax;
+  /** Whether the statement imports values or only types */
+  readonly importKind: "value" | "type";
+  /** Names imported or exported by the statement, in the order they are written */
+  readonly specifiers: readonly SketchSpecifier[];
+  /** The source as written, without its quotes */
+  readonly source: string;
 };

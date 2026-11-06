@@ -42,7 +42,7 @@ const UNREADABLE_LINE = "  import { a } from './b'";
 const TEXT_PROBLEM: TextProblem = {
   line: 2,
   text: UNREADABLE_LINE,
-  reason: "Dependencies are not written in text mode yet.",
+  reason: '"./b" does not resolve to a file of the sketch.',
 };
 
 const NO_FOCUS: Focus = { kind: "none" };

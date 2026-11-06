@@ -234,14 +234,14 @@ describe("ProblemsPane", () => {
       const { store, pane } = renderPane();
 
       // Act
-      typeLines(store, "src/index.js\n  import x from 'y';\n");
+      typeLines(store, "src/index.js\n  import x from './y';\n");
 
       // Assert
       expect(pane.list.row("Project text:2").message).toContain(
-        "Dependencies are not written in text mode yet."
+        '"./y" does not resolve to a file of the sketch.'
       );
       expect(pane.list.row("Project text:2").meta).toContain(
-        "  import x from 'y';"
+        "  import x from './y';"
       );
     });
 

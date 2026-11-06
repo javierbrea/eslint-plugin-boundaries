@@ -1,35 +1,52 @@
-import type { Sketch, SketchDependency, SketchNode } from "@/contract";
+import type {
+  Sketch,
+  SketchDependency,
+  SketchNode,
+  SketchSpecifier,
+} from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
 import { fromText, readTextProblems, toText } from "./textMode";
 
 /**
- * Creates a dependency of a file on a node of the sketch.
+ * Creates a dependency of a file on a node of the sketch, with the fields given.
  * @param from The file that has the dependency.
  * @param path The node it points to.
+ * @param fields The fields to set besides the target.
  */
-function toNode(from: string, path: string): SketchDependency {
+function toNode(
+  from: string,
+  path: string,
+  fields: Partial<SketchDependency> = {}
+): SketchDependency {
   return {
     from,
     target: { kind: "node", path },
     syntax: "import",
     importKind: "value",
     specifiers: [],
+    ...fields,
   };
 }
 
 /**
- * Creates a dependency of a file on an external module.
+ * Creates a dependency of a file on an external module, with the fields given.
  * @param from The file that has the dependency.
  * @param moduleName The module it points to.
+ * @param fields The fields to set besides the target.
  */
-function toExternal(from: string, moduleName: string): SketchDependency {
+function toExternal(
+  from: string,
+  moduleName: string,
+  fields: Partial<SketchDependency> = {}
+): SketchDependency {
   return {
     from,
     target: { kind: "external", name: moduleName },
     syntax: "import",
     importKind: "value",
     specifiers: [],
+    ...fields,
   };
 }
 
@@ -54,6 +71,45 @@ function paths(sketch: Sketch): string[] {
     kind === "folder" ? `${path}/` : path
   );
 }
+
+/**
+ * Creates the specifiers of the kind and the names given.
+ * @param kind The kind of the specifiers.
+ * @param names The names; `a as b` sets the alias.
+ */
+function specifiers(
+  kind: SketchSpecifier["kind"],
+  ...names: string[]
+): SketchSpecifier[] {
+  return names.map((entry) => {
+    const [local, alias] = entry.split(" as ");
+
+    return alias === undefined
+      ? { kind, name: local }
+      : { kind, name: local, alias };
+  });
+}
+
+/** The text of the `text` state of the mockup of the playground, without its last line (`src/pages/`), which the mockup adds as typing in progress */
+const QUICK_START_TEXT = [
+  "eslint.config.js",
+  "src/components/atoms/Button/Button.css",
+  "src/components/atoms/Button/Button.spec.js",
+  '  import { Button } from "./index";',
+  "src/components/atoms/Button/index.js",
+  '  import { format } from "../../../helpers/format";',
+  '  import "./Button.css";',
+  "src/helpers/format/index.js",
+  '  import { Button } from "../../components/atoms/Button";',
+  "src/modules/checkout/index.js",
+  '  import { Button } from "../../components/atoms/Button";',
+  '  import { format } from "../../helpers/format";',
+  '  import { renderButton } from "../../components/atoms/Button/Button.spec";',
+  '  import React from "react";',
+  "src/index.js",
+  '  import "./modules/checkout";',
+  "",
+].join("\n");
 
 const SKETCH = createSketch([
   { path: "src/components/Price/index.js", kind: "file" },
@@ -83,23 +139,12 @@ describe("TextMode", () => {
       );
     });
 
-    it("should write the quick start example in the order of its tree", () => {
+    it("should write the quick start example as the text of the mockup, with its dependencies under their files", () => {
       // Act
       const text = toText(QUICK_START_EXAMPLE.sketch);
 
       // Assert
-      expect(text).toBe(
-        [
-          "eslint.config.js",
-          "src/components/atoms/Button/Button.css",
-          "src/components/atoms/Button/Button.spec.js",
-          "src/components/atoms/Button/index.js",
-          "src/helpers/format/index.js",
-          "src/modules/checkout/index.js",
-          "src/index.js",
-          "",
-        ].join("\n")
-      );
+      expect(text).toBe(QUICK_START_TEXT);
     });
 
     it("should write only the config line for an empty sketch", () => {
@@ -110,10 +155,137 @@ describe("TextMode", () => {
       expect(text).toBe("eslint.config.js\n");
     });
 
-    it("should not write dependencies", () => {
+    it("should write the dependencies of a file under its line, indented two spaces, in order", () => {
       // Arrange
       const sketch = createSketch(SKETCH.tree, [
         toNode("src/index.js", "src/helpers/format.js"),
+        toExternal("src/index.js", "react"),
+      ]);
+
+      // Act
+      const text = toText(sketch);
+
+      // Assert
+      expect(text).toBe(
+        [
+          "eslint.config.js",
+          "docs/guides/",
+          "src/components/Price/index.js",
+          "src/helpers/format.js",
+          "src/pages/",
+          "src/index.js",
+          '  import "./helpers/format";',
+          '  import "react";',
+          "",
+        ].join("\n")
+      );
+    });
+
+    it("should write each dependency under its own file whatever the order of the dependencies", () => {
+      // Arrange
+      const sketch = createSketch(SKETCH.tree, [
+        toExternal("src/index.js", "react"),
+        toExternal("src/helpers/format.js", "lodash"),
+        toExternal("src/index.js", "vue"),
+        toExternal("src/helpers/format.js", "ramda"),
+      ]);
+
+      // Act
+      const text = toText(sketch);
+
+      // Assert
+      expect(text).toBe(
+        [
+          "eslint.config.js",
+          "docs/guides/",
+          "src/components/Price/index.js",
+          "src/helpers/format.js",
+          '  import "lodash";',
+          '  import "ramda";',
+          "src/pages/",
+          "src/index.js",
+          '  import "react";',
+          '  import "vue";',
+          "",
+        ].join("\n")
+      );
+    });
+
+    it("should write each syntax as its statement", () => {
+      // Arrange
+      const from = "src/index.js";
+      const sketch = createSketch(SKETCH.tree, [
+        toNode(from, "src/helpers/format.js", {
+          specifiers: [
+            ...specifiers("default", "format"),
+            ...specifiers("named", "round as r"),
+          ],
+        }),
+        toNode(from, "src/helpers/format.js", {
+          syntax: "export-from",
+          importKind: "type",
+        }),
+        toNode(from, "src/helpers/format.js", { syntax: "require" }),
+        toNode(from, "src/helpers/format.js", { syntax: "dynamic-import" }),
+      ]);
+
+      // Act
+      const text = toText(sketch);
+
+      // Assert
+      expect(text).toBe(
+        [
+          "eslint.config.js",
+          "docs/guides/",
+          "src/components/Price/index.js",
+          "src/helpers/format.js",
+          "src/pages/",
+          "src/index.js",
+          '  import format, { round as r } from "./helpers/format";',
+          '  export type * from "./helpers/format";',
+          '  require("./helpers/format");',
+          '  import("./helpers/format");',
+          "",
+        ].join("\n")
+      );
+    });
+
+    it("should write the source that resolves back to the file when another file would resolve first", () => {
+      // Arrange
+      const sketch = createSketch(
+        [
+          { path: "src/Button.js", kind: "file" },
+          { path: "src/Button/index.js", kind: "file" },
+          { path: "src/index.js", kind: "file" },
+        ],
+        [
+          toNode("src/index.js", "src/Button.js"),
+          toNode("src/index.js", "src/Button/index.js"),
+        ]
+      );
+
+      // Act
+      const text = toText(sketch);
+
+      // Assert
+      expect(text).toBe(
+        [
+          "eslint.config.js",
+          "src/Button/index.js",
+          "src/Button.js",
+          "src/index.js",
+          '  import "./Button";',
+          '  import "./Button/index";',
+          "",
+        ].join("\n")
+      );
+    });
+
+    it("should not write the dependencies of something that is not a file of the tree", () => {
+      // Arrange
+      const sketch = createSketch(SKETCH.tree, [
+        toNode("src/pages", "src/index.js"),
+        toNode("src/missing.js", "src/index.js"),
       ]);
 
       // Act
@@ -201,12 +373,41 @@ describe("TextMode", () => {
       expect(paths(sketch)).toEqual(["src/index.js"]);
     });
 
-    it("should leave out an indented line as a problem", () => {
+    it("should read an indented line as a dependency of the file above it", () => {
+      // Arrange
+      const text = [
+        "src/index.js",
+        '  import { format } from "./helpers/format";',
+        "src/helpers/format.js",
+        '  import React from "react";',
+        '  export * from "../index";',
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies).toEqual([
+        toNode("src/index.js", "src/helpers/format.js", {
+          specifiers: specifiers("named", "format"),
+        }),
+        toExternal("src/helpers/format.js", "react", {
+          specifiers: specifiers("default", "React"),
+        }),
+        toNode("src/helpers/format.js", "src/index.js", {
+          syntax: "export-from",
+        }),
+      ]);
+    });
+
+    it("should read a dependency to a file that is written below it, with a tab or a space as indent", () => {
       // Arrange
       const text = [
         "src/index.js",
         '  import "./helpers";',
         '\timport React from "react";',
+        ' require("./helpers/index.js")',
         "src/helpers/index.js",
       ].join("\n");
 
@@ -214,19 +415,373 @@ describe("TextMode", () => {
       const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
+      expect(problems).toEqual([]);
       expect(paths(sketch)).toEqual(["src/helpers/index.js", "src/index.js"]);
+      expect(sketch.dependencies).toEqual([
+        toNode("src/index.js", "src/helpers/index.js"),
+        toExternal("src/index.js", "react", {
+          specifiers: specifiers("default", "React"),
+        }),
+        toNode("src/index.js", "src/helpers/index.js", { syntax: "require" }),
+      ]);
+    });
+
+    it("should keep the dependencies in the order of the text, not of the tree", () => {
+      // Arrange
+      const text = [
+        "src/z.js",
+        '  import "react";',
+        "src/a.js",
+        '  import "vue";',
+        '  import "react";',
+      ].join("\n");
+
+      // Act
+      const { sketch } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([
+        toExternal("src/z.js", "react"),
+        toExternal("src/a.js", "vue"),
+        toExternal("src/a.js", "react"),
+      ]);
+    });
+
+    it("should read the four syntaxes and the types", () => {
+      // Arrange
+      const text = [
+        "src/a.ts",
+        '  import type { T } from "./b";',
+        '  export { x as y } from "./b";',
+        "  export type * as ns from './b'",
+        '  require("./b");',
+        '  import("./b");',
+        "src/b.ts",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies).toEqual([
+        toNode("src/a.ts", "src/b.ts", {
+          importKind: "type",
+          specifiers: specifiers("named", "T"),
+        }),
+        toNode("src/a.ts", "src/b.ts", {
+          syntax: "export-from",
+          specifiers: specifiers("named", "x as y"),
+        }),
+        toNode("src/a.ts", "src/b.ts", {
+          syntax: "export-from",
+          importKind: "type",
+          specifiers: specifiers("namespace", "ns"),
+        }),
+        toNode("src/a.ts", "src/b.ts", { syntax: "require" }),
+        toNode("src/a.ts", "src/b.ts", { syntax: "dynamic-import" }),
+      ]);
+    });
+
+    it("should read a relative source as the file a resolver finds", () => {
+      // Arrange
+      const text = [
+        "src/a/spec.js",
+        '  import "./index";',
+        '  import "../b";',
+        '  import "../c/d.css";',
+        '  import "../../lib";',
+        "src/a/index.js",
+        "src/b.tsx",
+        "src/c/d.css",
+        "lib/index.mjs",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+        { kind: "node", path: "src/a/index.js" },
+        { kind: "node", path: "src/b.tsx" },
+        { kind: "node", path: "src/c/d.css" },
+        { kind: "node", path: "lib/index.mjs" },
+      ]);
+    });
+
+    it("should read a source that is not relative as an external module", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "react";',
+        '  import "@scope/pkg/sub";',
+        '  import "node:fs";',
+        '  import "src/a";',
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+        { kind: "external", name: "react" },
+        { kind: "external", name: "@scope/pkg/sub" },
+        { kind: "external", name: "node:fs" },
+        { kind: "external", name: "src/a" },
+      ]);
+    });
+
+    it("should keep a dependency under a file after blank lines and under a file read with Windows line endings", () => {
+      // Arrange
+      const text = 'src/a.js\r\n\r\n  \r\n  import "react";\r\nsrc/b.js\r\n';
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.dependencies).toEqual([toExternal("src/a.js", "react")]);
+    });
+
+    it("should leave out a dependency under a folder as a problem", () => {
+      // Arrange
+      const text = [
+        "src/",
+        '  import "react";',
+        "src/a.js",
+        "docs/",
+        "",
+        '\timport "vue";',
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
       expect(problems).toEqual([
         {
           line: 2,
-          text: '  import "./helpers";',
-          reason: "Dependencies are not written in text mode yet.",
+          text: '  import "react";',
+          reason: "A folder has no dependencies: indent them under a file.",
+        },
+        {
+          line: 6,
+          text: '\timport "vue";',
+          reason: "A folder has no dependencies: indent them under a file.",
+        },
+      ]);
+    });
+
+    it("should leave out a dependency above every file, and one under the config line, as a problem", () => {
+      // Arrange
+      const text = [
+        '  import "react";',
+        "eslint.config.js",
+        '  import "vue";',
+        "src/a.js",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(paths(sketch)).toEqual(["src/a.js"]);
+      expect(sketch.dependencies).toEqual([]);
+      expect(problems).toEqual([
+        {
+          line: 1,
+          text: '  import "react";',
+          reason:
+            "A dependency is indented under the file that has it, and there is no file above this line.",
         },
         {
           line: 3,
-          text: '\timport React from "react";',
-          reason: "Dependencies are not written in text mode yet.",
+          text: '  import "vue";',
+          reason:
+            "A dependency is indented under the file that has it, and there is no file above this line.",
         },
       ]);
+    });
+
+    it("should leave out a dependency under a line that was left out, instead of giving it to the file above", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "react";',
+        "src/../b.js",
+        '  import "vue";',
+        "src/a.js",
+        '  import "svelte";',
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([toExternal("src/a.js", "react")]);
+      expect(problems.map(({ line }) => line)).toEqual([3, 4, 5, 6]);
+      expect(problems[1].reason).toBe(
+        "A dependency is indented under the file that has it, and there is no file above this line."
+      );
+      expect(problems[3].reason).toBe(
+        "A dependency is indented under the file that has it, and there is no file above this line."
+      );
+    });
+
+    it("should leave out a line that is not a statement, with the forms that are read", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        "  const a = 1;",
+        '  import a = require("react");',
+        '  import { a } from "react"; // note',
+        "  ",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
+      expect(problems).toEqual(
+        [
+          "  const a = 1;",
+          '  import a = require("react");',
+          '  import { a } from "react"; // note',
+        ].map((line, index) => ({
+          line: index + 2,
+          text: line,
+          reason:
+            'Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";',
+        }))
+      );
+    });
+
+    it("should leave out a relative source that resolves to no file as a problem", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "./missing";',
+        '  import "../../above";',
+        '  import "./pages";',
+        "src/pages/",
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
+      expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+        {
+          line: 2,
+          reason: '"./missing" does not resolve to a file of the sketch.',
+        },
+        {
+          line: 3,
+          reason: '"../../above" does not resolve to a file of the sketch.',
+        },
+        {
+          line: 4,
+          reason: '"./pages" does not resolve to a file of the sketch.',
+        },
+      ]);
+    });
+
+    it("should leave out an absolute source as a problem", () => {
+      // Arrange
+      const text = ["src/a.js", '  import "/src/b";', "src/b.js"].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
+      expect(problems).toEqual([
+        {
+          line: 2,
+          text: '  import "/src/b";',
+          reason:
+            '"/src/b" is an absolute path: write the source relative to the file, starting with ./ or ../.',
+        },
+      ]);
+    });
+
+    it("should leave out a dependency that the sketch cannot hold, with the reason", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "./a";',
+        '  import "";',
+        '  import "..";',
+        '  import { default } from "react";',
+        '  import { a, a as a } from "react";',
+        '  import { a b-c } from "react";',
+        "  import { 1a } from 'react'",
+        '  import { a as class } from "react";',
+        '  import 1 from "react";',
+      ].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
+      expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+        { line: 2, reason: "A file cannot depend on itself." },
+        { line: 3, reason: "The module name is empty." },
+        {
+          line: 4,
+          reason:
+            '".." is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+        },
+        { line: 5, reason: 'An import of "default" needs an alias.' },
+        { line: 6, reason: 'The name "a" is used twice in the statement.' },
+        {
+          line: 7,
+          reason:
+            'Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";',
+        },
+        { line: 8, reason: '"1a" is not a valid name.' },
+        { line: 9, reason: '"class" is not a valid name.' },
+        { line: 10, reason: '"1" is not a valid name.' },
+      ]);
+    });
+
+    it("should list the problems of nodes and of dependencies together, in the order of the lines", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "./missing";',
+        "src/../b.js",
+        "src/c.js",
+        "  nonsense",
+        "src/a.js",
+      ].join("\n");
+
+      // Act
+      const { problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(problems.map(({ line }) => line)).toEqual([2, 3, 5, 6]);
+    });
+
+    it("should not keep the dependencies of the sketch given", () => {
+      // Arrange
+      const original = createSketch(SKETCH.tree, [
+        toNode("src/index.js", "src/helpers/format.js"),
+        toExternal("src/index.js", "react"),
+      ]);
+      const text = "src/index.js\nsrc/helpers/format.js\n";
+
+      // Act
+      const { sketch } = fromText(text, original);
+
+      // Assert
+      expect(sketch.dependencies).toEqual([]);
     });
 
     it("should leave out a duplicate as a problem and keep the first", () => {
@@ -341,32 +896,6 @@ describe("TextMode", () => {
       expect(sketch.config).toBe(original.config);
     });
 
-    it("should keep the dependencies whose file and target are still in the tree", () => {
-      // Arrange
-      const original = createSketch(SKETCH.tree, [
-        toNode("src/index.js", "src/helpers/format.js"),
-        toNode("src/index.js", "src/helpers"),
-        toNode("src/index.js", "src/pages"),
-        toExternal("src/index.js", "react"),
-        toNode("src/removed.js", "src/helpers/format.js"),
-        toNode("src/index.js", "src/removed.js"),
-        toExternal("src/removed.js", "react"),
-        toNode("src/pages", "src/index.js"),
-      ]);
-      const text = "src/index.js\nsrc/helpers/format.js\nsrc/pages/\n";
-
-      // Act
-      const { sketch } = fromText(text, original);
-
-      // Assert
-      expect(sketch.dependencies).toEqual([
-        toNode("src/index.js", "src/helpers/format.js"),
-        toNode("src/index.js", "src/helpers"),
-        toNode("src/index.js", "src/pages"),
-        toExternal("src/index.js", "react"),
-      ]);
-    });
-
     it("should not change the sketch given", () => {
       // Arrange
       const before = JSON.stringify(SKETCH);
@@ -389,6 +918,32 @@ describe("TextMode", () => {
 
       // Assert
       expect(problems).toEqual(fromText(text, SKETCH).problems);
+    });
+
+    it("should report the lines of dependencies that fromText leaves out", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import "./missing";',
+        '  import "react";',
+        "src/b.js/",
+        '\timport "vue";',
+      ].join("\n");
+
+      // Act
+      const problems = readTextProblems(text);
+
+      // Assert
+      expect(problems).toEqual(fromText(text, SKETCH).problems);
+      expect(problems.map(({ line }) => line)).toEqual([2, 5]);
+    });
+
+    it("should report nothing for the text of the quick start example, dependencies included", () => {
+      // Act
+      const problems = readTextProblems(QUICK_START_TEXT);
+
+      // Assert
+      expect(problems).toEqual([]);
     });
 
     it("should report the same lines whatever the sketch is", () => {
@@ -436,9 +991,9 @@ describe("TextMode", () => {
           { path: "empty", kind: "folder" },
         ],
         [
-          toNode("src/index.js", "src/helpers/format.js"),
-          toNode("src/index.js", "src/pages"),
           toExternal("src/components/Price/index.js", "react"),
+          toNode("src/index.js", "src/helpers/format.js"),
+          toNode("src/index.js", "src/components/Price/index.js"),
         ]
       );
 
@@ -458,6 +1013,81 @@ describe("TextMode", () => {
         ],
       });
       expect(problems).toEqual([]);
+    });
+
+    it("should return the text of the quick start example from the sketch it reads", () => {
+      // Act
+      const { sketch } = fromText(QUICK_START_TEXT, createSketch([]));
+
+      // Assert
+      expect(toText(sketch)).toBe(QUICK_START_TEXT);
+      expect(sketch.tree).toEqual(QUICK_START_EXAMPLE.sketch.tree);
+      expect(sketch.dependencies).toEqual(
+        QUICK_START_EXAMPLE.sketch.dependencies
+      );
+    });
+
+    it("should return a sketch with every syntax, kind and kind of name from its own text", () => {
+      // Arrange
+      const original = createSketch(
+        [
+          { path: "src/Button/index.js", kind: "file" },
+          { path: "src/lib/util.ts", kind: "file" },
+          { path: "src/styles/main.css", kind: "file" },
+          { path: "src/app.tsx", kind: "file" },
+          { path: "src/Button.js", kind: "file" },
+          { path: "index.js", kind: "file" },
+        ],
+        [
+          toNode("src/Button/index.js", "src/lib/util.ts", {
+            importKind: "type",
+            specifiers: specifiers("named", "Options", "Config as C"),
+          }),
+          toNode("src/app.tsx", "src/Button.js", {
+            specifiers: specifiers("namespace", "ButtonNs"),
+          }),
+          toNode("src/app.tsx", "src/Button/index.js"),
+          toNode("src/app.tsx", "src/styles/main.css"),
+          toNode("src/app.tsx", "index.js", { syntax: "require" }),
+          toNode("src/app.tsx", "src/lib/util.ts", {
+            syntax: "export-from",
+            specifiers: specifiers("named", "default", "a as b"),
+          }),
+          toNode("src/app.tsx", "src/lib/util.ts", {
+            syntax: "export-from",
+            importKind: "type",
+          }),
+          toNode("src/app.tsx", "src/lib/util.ts", {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "util"),
+          }),
+          toNode("src/app.tsx", "src/lib/util.ts", {
+            syntax: "dynamic-import",
+          }),
+          toExternal("src/app.tsx", "@scope/pkg/sub", {
+            specifiers: [
+              ...specifiers("default", "pkg"),
+              ...specifiers("namespace", "ns"),
+            ],
+          }),
+          toExternal("src/app.tsx", "node:fs", { syntax: "require" }),
+          toNode("src/Button.js", "src/Button/index.js", {
+            specifiers: [
+              ...specifiers("default", "Button"),
+              ...specifiers("named", "default as Default", "x as y"),
+            ],
+          }),
+          toNode("index.js", "src/app.tsx"),
+        ]
+      );
+
+      // Act
+      const { sketch, problems } = fromText(toText(original), original);
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(sketch.tree).toEqual(original.tree);
+      expect(sketch.dependencies).toStrictEqual(original.dependencies);
     });
 
     it("should keep the same files and folders when the nodes are in another order", () => {

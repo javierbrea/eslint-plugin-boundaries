@@ -38,7 +38,7 @@ const QUICK_START_CONFIG = `{
 `;
 
 /**
- * The project of the quick-start guide of the docs: one file of each element type, a test, a style and a file outside every element, with the config of the guide. It has no dependencies yet.
+ * The project of the quick-start guide of the docs: one file of each element type, a test, a style and a file outside every element, with the config of the guide and nine dependencies between them, which fail the guide's step 3: a helper that imports a component, and a module that imports a test file.
  */
 export const QUICK_START_EXAMPLE: Example = {
   id: "quick-start",
@@ -54,6 +54,77 @@ export const QUICK_START_EXAMPLE: Example = {
       { path: "src/modules/checkout/index.js", kind: "file" },
       { path: "src/index.js", kind: "file" },
     ],
-    dependencies: [],
+    // Grouped by file in the order of the tree, and in the order the text mode lists them
+    dependencies: [
+      {
+        from: "src/components/atoms/Button/Button.spec.js",
+        target: { kind: "node", path: "src/components/atoms/Button/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "Button" }],
+      },
+      {
+        from: "src/components/atoms/Button/index.js",
+        target: { kind: "node", path: "src/helpers/format/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "format" }],
+      },
+      {
+        from: "src/components/atoms/Button/index.js",
+        target: {
+          kind: "node",
+          path: "src/components/atoms/Button/Button.css",
+        },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [],
+      },
+      {
+        from: "src/helpers/format/index.js",
+        target: { kind: "node", path: "src/components/atoms/Button/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "Button" }],
+      },
+      {
+        from: "src/modules/checkout/index.js",
+        target: { kind: "node", path: "src/components/atoms/Button/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "Button" }],
+      },
+      {
+        from: "src/modules/checkout/index.js",
+        target: { kind: "node", path: "src/helpers/format/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "format" }],
+      },
+      {
+        from: "src/modules/checkout/index.js",
+        target: {
+          kind: "node",
+          path: "src/components/atoms/Button/Button.spec.js",
+        },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "named", name: "renderButton" }],
+      },
+      {
+        from: "src/modules/checkout/index.js",
+        target: { kind: "external", name: "react" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [{ kind: "default", name: "React" }],
+      },
+      {
+        from: "src/index.js",
+        target: { kind: "node", path: "src/modules/checkout/index.js" },
+        syntax: "import",
+        importKind: "value",
+        specifiers: [],
+      },
+    ],
   },
 };

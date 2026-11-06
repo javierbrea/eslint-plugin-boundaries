@@ -977,7 +977,7 @@ describe("Shell", () => {
       // Assert
       expect(getTabs(shell)).toEqual(["Sketch1*"]);
       expect(getStatus(shell)).toBe("6 files · 1 problem");
-      expect(getProblemItem(shell, "Project text:9").text).toContain(
+      expect(getProblemItem(shell, "Project text:18").text).toContain(
         "The path cannot have `.` or `..` segments."
       );
     });
@@ -992,7 +992,7 @@ describe("Shell", () => {
       shell.project.text.blur();
 
       // Assert
-      const unreadable = getProblemItem(shell, "Project text:9");
+      const unreadable = getProblemItem(shell, "Project text:18");
 
       expect(unreadable.opens).toBe(false);
       expect(unreadable.tagName).toBe("LI");
@@ -1010,7 +1010,7 @@ describe("Shell", () => {
       shell.project.text.blur();
 
       // Act
-      getProblemItem(shell, "Project text:9").press();
+      getProblemItem(shell, "Project text:18").press();
 
       // Assert
       expect(shell.node.shown).toBe("empty");
@@ -1041,18 +1041,26 @@ describe("Shell", () => {
       const { text } = shell.project;
 
       // Act
+      const lines = text.value.split("\n");
+      const fileLine = lines.indexOf(FILE);
+      // The file goes with its dependencies, the indented lines below it
+      const dependencyLines = lines
+        .slice(fileLine + 1)
+        .findIndex((line) => !line.startsWith("  "));
+
       text.type(
-        text.value
-          .split("\n")
-          .filter((line) => line !== FILE)
-          .join("\n")
+        [
+          ...lines.slice(0, fileLine),
+          ...lines.slice(fileLine + 1 + dependencyLines),
+        ].join("\n")
       );
       text.blur();
 
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
+      // The import of src/index.js that pointed to the file resolves to nothing now
+      expect(getTabs(shell)).toEqual(["Sketch1*"]);
     });
 
     it("should keep the file in focus when the text still has it", () => {

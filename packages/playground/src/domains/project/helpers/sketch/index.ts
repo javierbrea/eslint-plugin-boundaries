@@ -1,8 +1,11 @@
 export { CONFIG_PATH } from "./sketch.constants";
 export type {
+  DependencyRef,
   EditResult,
   NormalizedPath,
+  ParsedStatement,
   RenameResult,
+  StatementToken,
   TextProblem,
   TextResult,
   TreeItem,
@@ -24,5 +27,20 @@ export {
   renameNode,
   setConfig,
 } from "./edit";
+export {
+  addDependency,
+  getDependency,
+  getDependencyError,
+  getFileDependencies,
+  removeDependency,
+  replaceDependency,
+} from "./dependencies";
+export {
+  getDependencySource,
+  parseStatement,
+  resolveSource,
+  toStatement,
+  toStatementTokens,
+} from "./statements";
 export { isSameProject } from "./compare";
 export { fromText, readTextProblems, toText } from "./textMode";

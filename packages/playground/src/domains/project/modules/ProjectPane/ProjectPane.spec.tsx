@@ -1589,7 +1589,9 @@ describe("ProjectPane", () => {
           "src/components/Button.js",
           "src/components/Price.js",
           "src/index.js",
+          '  import "./components/Button";',
           "index.js",
+          '  import "react";',
           "",
         ].join("\n")
       );
