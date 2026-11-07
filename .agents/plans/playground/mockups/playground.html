@@ -1300,6 +1300,8 @@
         background: var(--jsb-code);
         color: var(--jsb-code-fg);
         font: 12.5px var(--jsb-font-mono);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
 
       .preview .kw {
@@ -1950,14 +1952,14 @@ src/pages/<span class="caret"></span>
           <div class="row">
             <label class="lab">Imported</label>
             <div class="chips">
-              <span class="chip"><span class="kind">default</span> format <span class="x"><svg class="icon"><use href="#i-cross" /></svg></span></span>
+              <span class="chip"><span class="kind">default</span> formatDefault <span class="x"><svg class="icon"><use href="#i-cross" /></svg></span></span>
               <span class="chip"><span class="kind">named</span> round <span class="x"><svg class="icon"><use href="#i-cross" /></svg></span></span>
               <span class="chip add"><svg class="icon"><use href="#i-plus" /></svg>Name</span>
             </div>
           </div>
           <div class="row">
             <label class="lab">Preview</label>
-            <pre class="preview"><span class="kw">import</span> format, { round } <span class="kw">from</span> <span class="str">"../../helpers/format/index.js"</span>;</pre>
+            <pre class="preview"><span class="kw">import</span> formatDefault, { round } <span class="kw">from</span> <span class="str">"../../helpers/format/index.js"</span>;</pre>
           </div>
         </div>
         <footer>
