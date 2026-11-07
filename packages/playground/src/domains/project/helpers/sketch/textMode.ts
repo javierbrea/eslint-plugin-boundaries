@@ -7,8 +7,14 @@ import type {
 
 import { getDependencyError } from "./dependencies";
 import { normalizePath } from "./paths";
-import { CONFIG_PATH } from "./sketch.constants";
-import type { TextProblem, TextReadOptions, TextResult } from "./sketch.types";
+import { CONFIG_PATH, TEXT_LINE_BREAK } from "./sketch.constants";
+import type {
+  DependencyRef,
+  TextDependencyLine,
+  TextProblem,
+  TextReadOptions,
+  TextResult,
+} from "./sketch.types";
 import {
   findSourceFiles,
   getDependencySource,
@@ -38,6 +44,12 @@ type PendingDependency = {
   readonly text: string;
   /** The node of the last line above that is not indented, if it was read as a node */
   readonly owner: SketchNode | undefined;
+};
+
+/** An indented line under a file, once it was read */
+type IndentedLine = TextDependencyLine & {
+  /** Number of the line, from 1 */
+  readonly line: number;
 };
 
 /**
@@ -173,7 +185,7 @@ function readIndented(
  * Reads the indented lines once every file of the text is known, so that a dependency can point to a file written below it. Each line is checked against the dependencies of the lines read before it, so that the later line of a name that two statements of a file repeat is the one reported.
  * @param pending The indented lines, in order.
  * @param nodes The nodes that the text declares.
- * @returns The dependencies that were read, in order, and the problems of the lines that were left out.
+ * @returns The dependencies that were read, in order, the problems of the lines that were left out, and what each line under a file was read as, in order.
  */
 function readPending(
   pending: readonly PendingDependency[],
@@ -181,28 +193,43 @@ function readPending(
 ): {
   readonly dependencies: readonly SketchDependency[];
   readonly problems: readonly TextProblem[];
+  readonly lines: readonly IndentedLine[];
 } {
   const files = new Set(getFiles({ tree: nodes }));
   const dependencies: SketchDependency[] = [];
   const problems: TextProblem[] = [];
+  const lines: IndentedLine[] = [];
+  const counts = new Map<string, number>();
 
   for (const item of pending) {
     const result = readIndented(item, { tree: nodes, dependencies }, files);
 
     if (typeof result === "string") {
       problems.push({ line: item.line, text: item.text, reason: result });
+      if (item.owner?.kind === "file") {
+        lines.push({
+          line: item.line,
+          path: item.owner.path,
+          index: undefined,
+        });
+      }
     } else {
+      // The position among the dependencies of its file, as `Sketch.dependencies` lists them
+      const index = counts.get(result.from) ?? 0;
+
+      counts.set(result.from, index + 1);
       dependencies.push(result);
+      lines.push({ line: item.line, path: result.from, index });
     }
   }
-  return { dependencies, problems };
+  return { dependencies, problems, lines };
 }
 
 /**
  * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. A line that is not indented is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. An indented line is a dependency of the file line above it, or nothing when the dependencies are not read. A line that cannot be read is a problem and is left out: an invalid path, a duplicate, a path under a file, a file where a folder is, a dependency under a folder or under no file (the config line and a line that was left out own nothing), or a dependency that cannot be read as {@link readDependency} says.
  * @param text The text to read.
  * @param readDependencies Whether an indented line is read as a dependency. When it is not, it is skipped as a blank line is: it is neither read nor reported.
- * @returns The nodes of the valid lines, the dependencies of the valid lines in the order of the text, and the problems of the lines that were left out, in order.
+ * @returns The nodes of the valid lines, the dependencies of the valid lines in the order of the text, the problems of the lines that were left out, in order, and what each indented line under a file was read as, in order.
  */
 function readLines(
   text: string,
@@ -211,6 +238,7 @@ function readLines(
   readonly nodes: readonly SketchNode[];
   readonly dependencies: readonly SketchDependency[];
   readonly problems: readonly TextProblem[];
+  readonly indented: readonly IndentedLine[];
 } {
   const nodes: SketchNode[] = [];
   const problems: TextProblem[] = [];
@@ -218,7 +246,7 @@ function readLines(
   // What the indented lines below belong to: the last line that is not indented, if it was read as a node
   let owner: SketchNode | undefined;
 
-  for (const [index, line] of text.split(/\r?\n/).entries()) {
+  for (const [index, line] of text.split(TEXT_LINE_BREAK).entries()) {
     if (line.trim() === "") {
       continue;
     }
@@ -250,6 +278,7 @@ function readLines(
     problems: [...problems, ...read.problems].sort(
       (first, second) => first.line - second.line
     ),
+    indented: read.lines,
   };
 }
 
@@ -265,6 +294,40 @@ export function readTextProblems(
   { dependencies = true }: TextReadOptions = {}
 ): readonly TextProblem[] {
   return readLines(text, dependencies).problems;
+}
+
+/**
+ * Tells what an indented line of text mode is, as {@link fromText} reads the text with the dependencies. A blank line, a line that is not indented, and an indented line under a folder, under the config line or under a line that was left out are none.
+ * @param text The text to read.
+ * @param line Number of the line, from 1.
+ * @returns The file the line is under and the position of the dependency it was read as, or `undefined` as the position when it cannot be read; `undefined` when the line is not an indented line under a file, or is not in the text.
+ */
+export function getDependencyAtLine(
+  text: string,
+  line: number
+): TextDependencyLine | undefined {
+  const found = readLines(text, true).indented.find(
+    (candidate) => candidate.line === line
+  );
+
+  return found === undefined
+    ? undefined
+    : { path: found.path, index: found.index };
+}
+
+/**
+ * Finds where a dependency is written in the text, as {@link fromText} reads the text with the dependencies: the line that was read as the dependency at that position of that file.
+ * @param text The text to read.
+ * @param ref The file and the position of the dependency among the ones read for the file.
+ * @returns Number of the line, from 1, or `undefined` when the text has no such dependency.
+ */
+export function getDependencyLine(
+  text: string,
+  ref: DependencyRef
+): number | undefined {
+  return readLines(text, true).indented.find(
+    ({ path, index }) => path === ref.path && index === ref.index
+  )?.line;
 }
 
 /**

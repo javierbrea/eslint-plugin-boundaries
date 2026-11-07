@@ -9,6 +9,7 @@ export type {
   SpecifierKind,
   StatementToken,
   SyntaxFacts,
+  TextDependencyLine,
   TextProblem,
   TextReadOptions,
   TextResult,
@@ -48,4 +49,11 @@ export {
   toStatementTokens,
 } from "./statements";
 export { isSameDependency, isSameProject } from "./compare";
-export { fromText, readTextProblems, toText } from "./textMode";
+export {
+  fromText,
+  getDependencyAtLine,
+  getDependencyLine,
+  readTextProblems,
+  toText,
+} from "./textMode";
+export { moveTextLine } from "./textLines";

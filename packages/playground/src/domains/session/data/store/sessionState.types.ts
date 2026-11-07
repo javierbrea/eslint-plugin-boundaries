@@ -1,5 +1,6 @@
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 import type {
   ConfigReveal,
   Focus,
@@ -7,6 +8,38 @@ import type {
   ProblemsTabId,
   ProjectView,
 } from "@/domains/session/helpers/focus";
+
+/** A focus that has a file: the file itself, or one of its dependencies. */
+export type FileFocus = Extract<
+  Focus,
+  { readonly kind: "file" | "dependency" }
+>;
+
+/** The line of the text draft where the dependency in focus is written, kept for as long as that focus is the one in the state. */
+export type FocusAnchor = {
+  /** The focus that the line was found for: a dependency, or the file of a dependency whose line cannot be read. The anchor says nothing once the focus in the state is another object. */
+  readonly focus: FileFocus;
+  /** Number of the line in the draft, from 1, or `undefined` when an edit of the text deleted the line. */
+  readonly line: number | undefined;
+};
+
+/** The line of the text draft where the dependency of the highlight is written, kept for as long as that dependency is the one in the highlight. */
+export type HighlightAnchor = {
+  /** The dependency that the line was found for. The anchor says nothing once the highlight in the state has another dependency object. */
+  readonly dependency: DependencyRef;
+  /** Number of the line in the draft, from 1, or `undefined` when an edit of the text deleted the line. */
+  readonly line: number | undefined;
+};
+
+/** Where the dependency in focus and the dependency of the highlight are written in the text draft. Each keystroke moves the lines through the edit it made, and each read of the draft puts the focus and the highlight on the dependencies of those lines, so that they follow what the user edits while a line cannot be read, and when lines are repeated, added or deleted around them. */
+export type TextAnchors = {
+  /** The draft that the lines are of: the anchors say nothing about any other text. */
+  readonly draft: string;
+  /** The line of the focus, if the focus is a dependency or the file of one whose line cannot be read. */
+  readonly focus?: FocusAnchor;
+  /** The line of the dependency of the highlight, if there is a highlight. */
+  readonly highlight?: HighlightAnchor;
+};
 
 /** What a playground instance remembers: the sketch it edits, its evaluation, and everything about how they are shown. Every transition returns a new state and never changes one. */
 export type SessionState = {
@@ -32,6 +65,8 @@ export type SessionState = {
   readonly view: ProjectView;
   /** What the user typed in text mode since the text was last in sync with the sketch; `undefined` shows the text of the sketch. Leaving text mode drops it, and so does adding, replacing or removing a dependency, which the file pane can do in text mode: the next read of a stale draft would bring back the dependencies the edit changed, so the edit wins and the lines of the draft that could not be read are lost. */
   readonly textDraft: string | undefined;
+  /** Where the dependency in focus and the dependency of the highlight are written in the text draft, while there is one. An anchor counts only while the draft, the focus and the highlight are the ones it was made for: the transitions that mean another draft, focus or highlight make new values, so the anchors they leave behind are never read. They go when the draft settles. */
+  readonly textAnchors: TextAnchors | undefined;
   /** The folder the user selected in the tree: it does not take the focus, which stays on the open file, but it is where a new node goes. It can be gone or be a file after an edit. */
   readonly pickedFolder: string | undefined;
   /** The folders the user closed in the tree. The others are open. */

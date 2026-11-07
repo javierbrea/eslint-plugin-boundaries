@@ -543,6 +543,95 @@ describe("ProjectText", () => {
     });
   });
 
+  describe("the focus on a dependency while the user edits its line", () => {
+    const FOCUS_SKETCH: Sketch = {
+      config: "{ settings: {}, rules: {} }",
+      tree: [
+        { path: "src/components/Button.js", kind: "file" },
+        { path: "src/index.js", kind: "file" },
+      ],
+      dependencies: [
+        {
+          from: "src/index.js",
+          target: { kind: "external", name: "react" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [{ kind: "default", name: "x" }],
+        },
+        {
+          from: "src/index.js",
+          target: { kind: "node", path: "src/components/Button.js" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        },
+      ],
+    };
+
+    const TEXT = [
+      "eslint.config.js",
+      "src/components/Button.js",
+      "src/index.js",
+      '  import x from "react";',
+      '  import "./components/Button.js";',
+      "",
+    ].join("\n");
+
+    it("should put the file in focus while the source cannot be read, and the dependency back when it can", () => {
+      // Arrange
+      const { store, text } = renderText(FOCUS_SKETCH);
+      act(() =>
+        store.open({ kind: "dependency", path: "src/index.js", index: 1 })
+      );
+
+      // Act
+      text.type(
+        TEXT.replace("./components/Button.js", "./components/Missing.js")
+      );
+      wait(300);
+      const whileUnreadable = store.getState();
+      text.type(TEXT);
+      wait(300);
+
+      // Assert
+      expect(whileUnreadable.focus).toEqual({
+        kind: "file",
+        path: "src/index.js",
+      });
+      expect(whileUnreadable.tab).toBe("node");
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+      expect(store.getState().tab).toBe("dependency");
+    });
+
+    it("should keep the dependency in focus on its line when the same line is typed above it", () => {
+      // Arrange
+      const { store, text } = renderText(FOCUS_SKETCH);
+      act(() =>
+        store.open({ kind: "dependency", path: "src/index.js", index: 1 })
+      );
+
+      // Act
+      text.type(
+        TEXT.replace(
+          '  import x from "react";',
+          '  import "./components/Button.js";\n  import x from "react";'
+        )
+      );
+      wait(300);
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 2,
+      });
+    });
+  });
+
   describe("lines that cannot be read", () => {
     it("should be listed with their line, their text and why", () => {
       // Arrange

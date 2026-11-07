@@ -3680,6 +3680,991 @@ describe("Transitions", () => {
     });
   });
 
+  describe("the line of the focus and of the highlight while the text is edited", () => {
+    // The text of the sketch with dependencies: line 5 is dependency 0 of `src/index.js` (the format helper), line 6 is dependency 1 (`react`), line 7 is dependency 2 (`main.js`) and line 9 is dependency 0 of `main.js`
+    const TEXT = toText(DEPENDENCY_SKETCH);
+
+    const LINE_OF_REACT = 6;
+
+    const UNREADABLE = "  import x from";
+
+    const REACT = '  import x from "react";';
+
+    const FORMAT = '  import "./helpers/format.js";';
+
+    const LODASH = '  import y from "lodash";';
+
+    const PREACT = '  import z from "preact";';
+
+    /**
+     * Replaces a line of a text.
+     * @param text The text.
+     * @param line Number of the line, from 1.
+     * @param content What the line says now.
+     * @returns The new text.
+     */
+    function replaceLine(text: string, line: number, content: string): string {
+      return text
+        .split("\n")
+        .map((current, index) => (index === line - 1 ? content : current))
+        .join("\n");
+    }
+
+    /**
+     * Inserts a line in a text, above a line.
+     * @param text The text.
+     * @param line Number of the line, from 1, that the new line goes above.
+     * @param content What the new line says.
+     * @returns The new text.
+     */
+    function insertLine(text: string, line: number, content: string): string {
+      const lines = text.split("\n");
+
+      return [
+        ...lines.slice(0, line - 1),
+        content,
+        ...lines.slice(line - 1),
+      ].join("\n");
+    }
+
+    /**
+     * Deletes a line of a text.
+     * @param text The text.
+     * @param line Number of the line, from 1.
+     * @returns The new text.
+     */
+    function deleteLine(text: string, line: number): string {
+      return text
+        .split("\n")
+        .filter((_current, index) => index !== line - 1)
+        .join("\n");
+    }
+
+    /**
+     * Types texts one after the other, as keystrokes do: nothing is read in between.
+     * @param state The state before.
+     * @param texts The whole text after each keystroke.
+     * @returns The state after the last one.
+     */
+    function typeTexts(state: SessionState, ...texts: string[]): SessionState {
+      return texts.reduce(
+        (current, text) => setTextDraft(current, text),
+        state
+      );
+    }
+
+    /**
+     * Creates a text mode state with the dependency in focus.
+     * @param index Its position among the dependencies of `src/index.js`.
+     * @param overrides What differs from it.
+     * @returns The state, with no draft.
+     */
+    function createFocusedState(
+      index: number,
+      overrides: Partial<SessionState> = {}
+    ): SessionState {
+      return createDependencyState({
+        view: "text",
+        focus: onDependency("src/index.js", index),
+        tab: "dependency",
+        ...overrides,
+      });
+    }
+
+    /**
+     * Creates a text mode state for a file with the dependencies given, with the dependency in focus.
+     * @param dependencies The dependencies of `src/index.js`.
+     * @param index The position of the one in focus.
+     * @returns The state, with no draft.
+     */
+    function createLinesState(
+      dependencies: readonly SketchDependency[],
+      index: number
+    ): SessionState {
+      const sketch: Sketch = { ...SKETCH, dependencies };
+
+      return {
+        ...createSessionState(
+          sketch,
+          createEngine().evaluate(sketch),
+          ALL_CAPABILITIES
+        ),
+        view: "text",
+        focus: onDependency("src/index.js", index),
+        tab: "dependency",
+      };
+    }
+
+    /**
+     * Creates a text mode state with a highlight that came from a dependency, with the config in focus.
+     * @param index The position of the dependency among the ones of `src/index.js`.
+     * @returns The state, with no draft.
+     */
+    function createHighlightedState(index: number): SessionState {
+      return createDependencyState({
+        view: "text",
+        focus: { kind: "config" },
+        tab: "node",
+        highlight: {
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index },
+        },
+      });
+    }
+
+    describe.each([
+      ["readText", readText],
+      ["settleText", settleText],
+    ])("%s", (_name, read) => {
+      describe("when the line of the dependency in focus cannot be read for a while", () => {
+        it("should put the file in focus while the source is empty and the dependency back once it reads again", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const emptied = read(
+            typeTexts(
+              before,
+              replaceLine(TEXT, LINE_OF_REACT, '  import x from "";')
+            )
+          );
+
+          // Act
+          const fixed = read(
+            typeTexts(
+              emptied,
+              replaceLine(TEXT, LINE_OF_REACT, '  import x from "lodash";')
+            )
+          );
+
+          // Assert
+          expect(emptied.focus).toEqual(INDEX_FOCUS);
+          expect(emptied.tab).toBe("node");
+          expect(fixed.focus).toEqual(onDependency("src/index.js", 1));
+          expect(fixed.tab).toBe("dependency");
+          expect(getEdges(fixed)).toContain("src/index.js -> lodash");
+        });
+
+        it("should follow a relative source that is typed in steps, which names no file until it is complete", () => {
+          // Arrange
+          const before = createFocusedState(2);
+          const partial = read(
+            typeTexts(
+              before,
+              replaceLine(TEXT, 7, '  import "../m";'),
+              replaceLine(TEXT, 7, '  import "../ma";')
+            )
+          );
+
+          // Act
+          const typed = read(
+            typeTexts(
+              partial,
+              replaceLine(TEXT, 7, '  import "../mai";'),
+              replaceLine(TEXT, 7, '  import "../main.js";')
+            )
+          );
+
+          // Assert
+          expect(partial.focus).toEqual(INDEX_FOCUS);
+          expect(partial.tab).toBe("node");
+          expect(typed.focus).toEqual(onDependency("src/index.js", 2));
+          expect(typed.tab).toBe("dependency");
+        });
+
+        it("should keep the tab the user selected through the cycle, because only the node's tab goes back", () => {
+          // Arrange
+          const before = createFocusedState(1, { tab: "sketch" });
+          const emptied = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, UNREADABLE))
+          );
+
+          // Act
+          const fixed = read(typeTexts(emptied, TEXT));
+
+          // Assert
+          expect(emptied.focus).toEqual(INDEX_FOCUS);
+          expect(emptied.tab).toBe("sketch");
+          expect(fixed.focus).toEqual(onDependency("src/index.js", 1));
+          expect(fixed.tab).toBe("sketch");
+        });
+
+        it("should find the line again after a line was inserted above it", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const emptied = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, UNREADABLE))
+          );
+          const inserted = insertLine(
+            replaceLine(TEXT, LINE_OF_REACT, UNREADABLE),
+            5,
+            LODASH
+          );
+          const above = read(typeTexts(emptied, inserted));
+
+          // Act
+          const fixed = read(
+            typeTexts(above, replaceLine(inserted, LINE_OF_REACT + 1, REACT))
+          );
+
+          // Assert
+          expect(above.focus).toEqual(INDEX_FOCUS);
+          expect(fixed.focus).toEqual(onDependency("src/index.js", 2));
+          expect(fixed.tab).toBe("dependency");
+        });
+
+        it("should find the line again after a line was inserted above it before the read that put the file in focus", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const broken = replaceLine(TEXT, LINE_OF_REACT, UNREADABLE);
+          const inserted = insertLine(broken, 5, LODASH);
+          const typed = typeTexts(before, broken, inserted);
+
+          // Act
+          const fixed = read(
+            typeTexts(
+              read(typed),
+              replaceLine(inserted, LINE_OF_REACT + 1, REACT)
+            )
+          );
+
+          // Assert
+          expect(fixed.focus).toEqual(onDependency("src/index.js", 2));
+        });
+
+        it("should keep reading the line after the dependency came back, as the next keystroke moves it", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const emptied = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, UNREADABLE))
+          );
+          const back = read(typeTexts(emptied, TEXT));
+
+          // Act
+          const inserted = read(typeTexts(back, insertLine(TEXT, 5, LODASH)));
+
+          // Assert
+          expect(back.focus).toEqual(onDependency("src/index.js", 1));
+          expect(inserted.focus).toEqual(onDependency("src/index.js", 2));
+        });
+      });
+
+      describe("when the user types a line above or below the dependency in focus", () => {
+        it("should keep the dependency in focus on its line when a line is inserted above it", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(typeTexts(before, insertLine(TEXT, 5, LODASH)));
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/index.js", 2));
+          expect(state.tab).toBe("dependency");
+        });
+
+        it("should keep the dependency in focus on its line when a line is inserted below it", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(typeTexts(before, insertLine(TEXT, 7, LODASH)));
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/index.js", 1));
+        });
+
+        it("should keep the dependency in focus on its line when Enter is pressed at its start and at its end", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const atStart = read(typeTexts(before, insertLine(TEXT, 6, "")));
+          const atEnd = read(typeTexts(before, insertLine(TEXT, 7, "")));
+
+          // Assert
+          expect(atStart.focus).toEqual(onDependency("src/index.js", 1));
+          expect(atEnd.focus).toEqual(onDependency("src/index.js", 1));
+        });
+
+        it("should keep the dependency in focus on its line when the line is edited into another statement", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(
+            typeTexts(
+              before,
+              replaceLine(TEXT, LINE_OF_REACT, '  import y from "lodash";')
+            )
+          );
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/index.js", 1));
+          expect(getEdges(state)).toContain("src/index.js -> lodash");
+        });
+
+        it("should follow the line to the file that it is under now", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act: the line of `src/index.js` is deleted, so that its dependencies are the ones of the file above
+          const state = read(typeTexts(before, deleteLine(TEXT, 4)));
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/helpers/format.js", 0));
+        });
+      });
+
+      describe("when lines of the file say the same", () => {
+        const C = importModule("src/index.js", "react");
+        const B = importOf("src/index.js", "src/helpers/format.js");
+
+        it("should keep the dependency in focus on its own line when the line that says the same is typed above it", () => {
+          // Arrange
+          const before = createLinesState([C, B], 1);
+
+          // Act
+          const state = read(
+            typeTexts(before, insertLine(toText(before.sketch), 5, FORMAT))
+          );
+
+          // Assert
+          expect(getEdges(state)).toHaveLength(3);
+          expect(state.focus).toEqual(onDependency("src/index.js", 2));
+        });
+
+        it("should move the dependency in focus to the line before it when a line above it is deleted", () => {
+          // Arrange
+          const before = createLinesState([B, C, B], 2);
+
+          // Act
+          const state = read(
+            typeTexts(before, deleteLine(toText(before.sketch), 5))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/index.js", 1));
+          expect(state.tab).toBe("dependency");
+        });
+
+        it("should put the file in focus when the first of the lines that say the same is deleted and it is the one in focus", () => {
+          // Arrange
+          const before = createLinesState([B, C, B], 0);
+
+          // Act
+          const state = read(
+            typeTexts(before, deleteLine(toText(before.sketch), 5))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(INDEX_FOCUS);
+          expect(state.tab).toBe("node");
+        });
+
+        it("should keep the dependency in focus when the first of the lines that say the same is deleted and the one in focus is another", () => {
+          // Arrange
+          const before = createLinesState([B, C, B], 1);
+
+          // Act
+          const state = read(
+            typeTexts(before, deleteLine(toText(before.sketch), 5))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(onDependency("src/index.js", 0));
+        });
+      });
+
+      describe("when the line of the dependency in focus is gone", () => {
+        it("should put its file in focus when the line is deleted", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(
+            typeTexts(before, deleteLine(TEXT, LINE_OF_REACT))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(INDEX_FOCUS);
+          expect(state.tab).toBe("node");
+          expect(state.textAnchors).toBeUndefined();
+        });
+
+        it("should put its file in focus when the line was deleted and written again, although the text is the project it was", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(
+            typeTexts(before, deleteLine(TEXT, LINE_OF_REACT), TEXT)
+          );
+
+          // Assert
+          expect(state.sketch).toBe(before.sketch);
+          expect(state.focus).toEqual(INDEX_FOCUS);
+          expect(state.tab).toBe("node");
+        });
+
+        it("should put its file in focus when the line is no dependency line any more", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, "src/other.js"))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(INDEX_FOCUS);
+          expect(state.tab).toBe("node");
+          expect(state.textAnchors).toBeUndefined();
+        });
+
+        it("should put its file in focus when the line is blank", () => {
+          // Arrange
+          const before = createFocusedState(1);
+
+          // Act
+          const state = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, "   "))
+          );
+
+          // Assert
+          expect(state.focus).toEqual(INDEX_FOCUS);
+        });
+
+        it("should leave nothing in focus when the file is gone too", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const withoutFile = TEXT.replace(
+            /^src\/index\.js\n(?: {2}.*\n)*/mu,
+            ""
+          );
+
+          // Act
+          const state = read(typeTexts(before, withoutFile));
+
+          // Assert
+          expect(state.focus).toEqual({ kind: "none" });
+          expect(state.tab).toBe("sketch");
+        });
+
+        it("should leave the focus on the file when it was already there and its line was deleted", () => {
+          // Arrange
+          const before = createFocusedState(1);
+          const emptied = read(
+            typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, UNREADABLE))
+          );
+
+          // Act
+          const state = read(
+            typeTexts(emptied, deleteLine(TEXT, LINE_OF_REACT))
+          );
+
+          // Assert
+          expect(state.focus).toBe(emptied.focus);
+          expect(state.textAnchors).toBeUndefined();
+        });
+      });
+    });
+
+    describe("a line that is cut and pasted somewhere else", () => {
+      // A known limit: the pasted line is a new line, which nothing links to the one that was cut
+      it("should leave the focus on the file when the keystrokes are read together", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const cut = deleteLine(TEXT, LINE_OF_REACT);
+
+        // Act
+        const state = readText(
+          typeTexts(before, cut, insertLine(cut, 8, REACT))
+        );
+
+        // Assert
+        expect(state.focus).toEqual(INDEX_FOCUS);
+        expect(state.tab).toBe("node");
+      });
+
+      it("should leave the focus on the file when the cut was read before the paste", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const cut = deleteLine(TEXT, LINE_OF_REACT);
+        const read = readText(typeTexts(before, cut));
+
+        // Act
+        const state = readText(typeTexts(read, insertLine(cut, 8, REACT)));
+
+        // Assert
+        expect(state.focus).toEqual(INDEX_FOCUS);
+        expect(state.tab).toBe("node");
+      });
+    });
+
+    describe("the focus changed after the last keystroke", () => {
+      const OPEN_MAIN = {
+        kind: "dependency",
+        path: "src/index.js",
+        index: 2,
+      } as const;
+
+      it("should anchor the dependency opened, and not the line of the one that was in focus, with the next keystroke", () => {
+        // Arrange
+        const typed = typeTexts(createFocusedState(1), `${TEXT}\n`);
+        const opened = openTarget(typed, OPEN_MAIN);
+
+        // Act
+        const state = readText(
+          typeTexts(opened, insertLine(`${TEXT}\n`, 5, LODASH))
+        );
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("src/index.js", 3));
+      });
+
+      it("should follow the sketch by the data of the dependencies when it is read without a keystroke since", () => {
+        // Arrange
+        const typed = typeTexts(
+          createFocusedState(1),
+          insertLine(TEXT, 5, LODASH)
+        );
+        const opened = openTarget(typed, OPEN_MAIN);
+
+        // Act
+        const state = readText(opened);
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("src/index.js", 3));
+        expect(state.textAnchors).toBeUndefined();
+      });
+
+      it("should anchor nothing for a file opened, because no line of it cannot be read", () => {
+        // Arrange
+        const typed = typeTexts(createFocusedState(1), `${TEXT}\n`);
+        const opened = openTarget(typed, {
+          kind: "file",
+          path: "src/index.js",
+        });
+
+        // Act
+        const state = typeTexts(opened, insertLine(`${TEXT}\n`, 5, LODASH));
+
+        // Assert
+        expect(state.textAnchors).toBeUndefined();
+      });
+    });
+
+    describe("a new draft", () => {
+      it("should be anchored from the text of the sketch after a draft was dropped by an edit of the picker", () => {
+        // Arrange
+        const typed = typeTexts(
+          createFocusedState(1),
+          insertLine(TEXT, 5, LODASH)
+        );
+        const edited = replaceDependency(
+          typed,
+          { path: "src/index.js", index: 1 },
+          importModule("src/index.js", "preact")
+        );
+
+        // Act
+        const state = readText(
+          typeTexts(edited, insertLine(toText(edited.sketch), 5, LODASH))
+        );
+
+        // Assert
+        expect(edited.textDraft).toBeUndefined();
+        expect(state.focus).toEqual(onDependency("src/index.js", 2));
+        expect(getEdges(state)).toContain("src/index.js -> preact");
+      });
+
+      it("should be anchored from the text of the sketch after a draft was dropped by leaving text mode", () => {
+        // Arrange
+        const typed = typeTexts(
+          createFocusedState(1),
+          insertLine(TEXT, 5, LODASH)
+        );
+        const tree = setView(typed, "tree");
+        const text = setView(tree, "text");
+
+        // Act
+        const state = readText(typeTexts(text, deleteLine(TEXT, 5)));
+
+        // Assert
+        expect(text.textDraft).toBeUndefined();
+        expect(state.focus).toEqual(onDependency("src/index.js", 0));
+      });
+
+      it("should not be anchored by the lines of another draft", () => {
+        // Arrange
+        const openNode = {
+          kind: "dependency",
+          path: "src/index.js",
+          index: 1,
+        } as const;
+        const stale = createFocusedState(1, {
+          focus: openNode,
+          textDraft: TEXT,
+          textAnchors: {
+            draft: "another text",
+            focus: { focus: openNode, line: 7 },
+          },
+        });
+
+        // Act
+        const state = readText(typeTexts(stale, insertLine(TEXT, 5, LODASH)));
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("src/index.js", 2));
+      });
+    });
+
+    describe("the anchors", () => {
+      it("should be none while the focus is nothing, the config or a file", () => {
+        // Arrange
+        const focuses: Focus[] = [
+          { kind: "none" },
+          { kind: "config" },
+          INDEX_FOCUS,
+        ];
+
+        // Act
+        const states = focuses.map((openNode) =>
+          setTextDraft(
+            createDependencyState({ view: "text", focus: openNode }),
+            TEXT
+          )
+        );
+
+        // Assert
+        expect(states.map(({ textAnchors }) => textAnchors)).toEqual([
+          undefined,
+          undefined,
+          undefined,
+        ]);
+      });
+
+      it("should say where the dependency in focus is written in the draft", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const inserted = insertLine(TEXT, 5, LODASH);
+
+        // Act
+        const state = setTextDraft(before, inserted);
+
+        // Assert
+        expect(state.textAnchors).toEqual({
+          draft: inserted,
+          focus: { focus: before.focus, line: 7 },
+          highlight: undefined,
+        });
+      });
+
+      it("should say that the line is gone when the keystroke deleted it, and keep saying so", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const deleted = deleteLine(TEXT, LINE_OF_REACT);
+
+        // Act
+        const state = typeTexts(before, deleted, `${deleted}\n`);
+
+        // Assert
+        expect(state.textAnchors?.focus).toEqual({
+          focus: before.focus,
+          line: undefined,
+        });
+      });
+
+      it("should go with the draft when it settles", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const typed = typeTexts(before, insertLine(TEXT, 5, `${LODASH}`));
+
+        // Act
+        const state = settleText(typed);
+
+        // Assert
+        expect(typed.textAnchors).toBeDefined();
+        expect(state.textDraft).toBeUndefined();
+        expect(state.textAnchors).toBeUndefined();
+      });
+
+      it("should stay while the draft has a line to fix after it settles", () => {
+        // Arrange
+        const before = createFocusedState(1);
+        const typed = typeTexts(
+          before,
+          replaceLine(TEXT, LINE_OF_REACT, UNREADABLE)
+        );
+
+        // Act
+        const state = settleText(typed);
+
+        // Assert
+        expect(state.textDraft).toBe(typed.textDraft);
+        expect(state.textAnchors).toEqual({
+          draft: typed.textDraft,
+          focus: { focus: state.focus, line: LINE_OF_REACT },
+          highlight: undefined,
+        });
+      });
+
+      it("should keep the same state when a read changes nothing", () => {
+        // Arrange
+        const typed = typeTexts(createFocusedState(1), TEXT);
+
+        // Act
+        const state = readText(typed);
+
+        // Assert
+        expect(state).toBe(typed);
+      });
+
+      it("should not exist without editDependencies, whose dependency lines are not read", () => {
+        // Arrange
+        const before = createFocusedState(1, {
+          capabilities: { ...ALL_CAPABILITIES, editDependencies: false },
+        });
+
+        // Act
+        const state = typeTexts(before, insertLine(TEXT, 5, LODASH));
+
+        // Assert
+        expect(state.textAnchors).toBeUndefined();
+      });
+
+      it("should be replaced by the new draft of a state that holds the anchors of another one", () => {
+        // Arrange
+        const first = typeTexts(
+          createFocusedState(1),
+          insertLine(TEXT, 5, LODASH)
+        );
+
+        // Act
+        const state = setTextDraft(first, TEXT);
+
+        // Assert
+        expect(state.textAnchors?.draft).toBe(TEXT);
+        expect(state.textAnchors?.focus?.line).toBe(LINE_OF_REACT);
+      });
+
+      it("should drop the anchors that a read leaves without meaning", () => {
+        // Arrange
+        const typed = typeTexts(createFocusedState(1), TEXT);
+        const stale = openTarget(typed, { kind: "file", path: "src/index.js" });
+
+        // Act
+        const state = readText(stale);
+
+        // Assert
+        expect(state.textAnchors).toBeUndefined();
+      });
+    });
+
+    describe("the highlight", () => {
+      it("should follow its dependency when a line is inserted above it", () => {
+        // Arrange
+        const before = createHighlightedState(2);
+
+        // Act
+        const state = readText(typeTexts(before, insertLine(TEXT, 5, LODASH)));
+
+        // Assert
+        expect(state.highlight).toEqual({
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 3 },
+        });
+        expect(state.focus).toEqual({ kind: "config" });
+      });
+
+      it("should keep the same highlight when its dependency is where it was", () => {
+        // Arrange
+        const before = createHighlightedState(2);
+
+        // Act
+        const state = readText(typeTexts(before, insertLine(TEXT, 8, LODASH)));
+
+        // Assert
+        expect(state.highlight).toBe(before.highlight);
+      });
+
+      it("should say where its dependency is written, besides the focus", () => {
+        // Arrange
+        const before = createHighlightedState(2);
+
+        // Act
+        const state = typeTexts(before, insertLine(TEXT, 5, LODASH));
+
+        // Assert
+        expect(state.textAnchors).toEqual({
+          draft: insertLine(TEXT, 5, LODASH),
+          focus: undefined,
+          highlight: { dependency: before.highlight?.dependency, line: 8 },
+        });
+      });
+
+      it("should stay while its line cannot be read, and take the dependency of the line when it reads again", () => {
+        // Arrange
+        const before = createHighlightedState(1);
+        const broken = replaceLine(TEXT, LINE_OF_REACT, UNREADABLE);
+        const unread = readText(typeTexts(before, broken));
+        const inserted = insertLine(broken, 5, LODASH);
+        const above = readText(typeTexts(unread, inserted));
+
+        // Act
+        const state = readText(
+          typeTexts(above, replaceLine(inserted, LINE_OF_REACT + 1, REACT))
+        );
+
+        // Assert
+        expect(unread.highlight).toBe(before.highlight);
+        expect(above.highlight).toBe(before.highlight);
+        expect(state.highlight).toEqual({
+          range: RANGE,
+          policy: 2,
+          dependency: { path: "src/index.js", index: 2 },
+        });
+      });
+
+      it("should keep its anchor for the dependency that its line gave it, so that the next keystroke moves the line without finding it again", () => {
+        // Arrange
+        const before = createHighlightedState(2);
+
+        // Act
+        const state = readText(typeTexts(before, insertLine(TEXT, 5, LODASH)));
+
+        // Assert
+        expect(state.highlight?.dependency).toEqual({
+          path: "src/index.js",
+          index: 3,
+        });
+        expect(state.textAnchors?.highlight).toEqual({
+          dependency: state.highlight?.dependency,
+          line: 8,
+        });
+        expect(state.textAnchors?.highlight?.dependency).toBe(
+          state.highlight?.dependency
+        );
+      });
+
+      it("should go when its line is deleted", () => {
+        // Arrange
+        const before = createHighlightedState(1);
+
+        // Act
+        const state = readText(
+          typeTexts(before, deleteLine(TEXT, LINE_OF_REACT))
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+        expect(state.textAnchors).toBeUndefined();
+      });
+
+      it("should go when its line is no dependency line any more", () => {
+        // Arrange
+        const before = createHighlightedState(1);
+
+        // Act
+        const state = readText(
+          typeTexts(before, replaceLine(TEXT, LINE_OF_REACT, "src/other.js"))
+        );
+
+        // Assert
+        expect(state.highlight).toBeUndefined();
+      });
+
+      it("should follow the sketch by the data of the dependencies when another policy was opened after the last keystroke and the text is read", () => {
+        // Arrange
+        const typed = typeTexts(
+          createHighlightedState(1),
+          insertLine(TEXT, 5, LODASH)
+        );
+        const opened = openTarget(typed, {
+          kind: "config",
+          range: OTHER_RANGE,
+          policy: 1,
+          dependency: { path: "src/index.js", index: 2 },
+        });
+
+        // Act
+        const state = readText(opened);
+
+        // Assert
+        expect(state.highlight?.dependency).toEqual({
+          path: "src/index.js",
+          index: 3,
+        });
+      });
+
+      it("should anchor the dependency of another policy that was opened, and not the line of the one before, with the next keystroke", () => {
+        // Arrange
+        const typed = typeTexts(createHighlightedState(1), `${TEXT}\n`);
+        const opened = openTarget(typed, {
+          kind: "config",
+          range: OTHER_RANGE,
+          policy: 1,
+          dependency: { path: "src/index.js", index: 2 },
+        });
+
+        // Act
+        const state = readText(
+          typeTexts(opened, insertLine(`${TEXT}\n`, 5, LODASH))
+        );
+
+        // Assert
+        expect(state.highlight?.dependency).toEqual({
+          path: "src/index.js",
+          index: 3,
+        });
+      });
+
+      it("should keep its anchor when the editor moves its range", () => {
+        // Arrange
+        const inserted = insertLine(TEXT, 5, LODASH);
+        const typed = typeTexts(createHighlightedState(2), inserted);
+        const moved = changeConfig(
+          typed,
+          "{ settings: {}, rules: { a: 1 } }",
+          OTHER_RANGE
+        );
+
+        // Act
+        const state = readText(
+          typeTexts(moved, insertLine(inserted, 5, PREACT))
+        );
+
+        // Assert
+        expect(state.highlight?.dependency).toEqual({
+          path: "src/index.js",
+          index: 4,
+        });
+        expect(state.highlight?.range).toEqual(OTHER_RANGE);
+      });
+
+      it("should follow its dependency and the focus follows another one", () => {
+        // Arrange
+        const focused = createFocusedState(1, {
+          highlight: {
+            range: RANGE,
+            policy: 2,
+            dependency: { path: "src/index.js", index: 2 },
+          },
+        });
+
+        // Act
+        const state = readText(typeTexts(focused, insertLine(TEXT, 5, LODASH)));
+
+        // Assert
+        expect(state.focus).toEqual(onDependency("src/index.js", 2));
+        expect(state.highlight?.dependency).toEqual({
+          path: "src/index.js",
+          index: 3,
+        });
+      });
+    });
+  });
+
   describe("selectTab", () => {
     it("should select the tab", () => {
       // Arrange

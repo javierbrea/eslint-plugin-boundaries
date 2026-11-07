@@ -8,7 +8,13 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
 import { addDependency, replaceDependency } from "./dependencies";
 import type { EditResult } from "./sketch.types";
-import { fromText, readTextProblems, toText } from "./textMode";
+import {
+  fromText,
+  getDependencyAtLine,
+  getDependencyLine,
+  readTextProblems,
+  toText,
+} from "./textMode";
 
 /**
  * Creates a dependency of a file on a node of the sketch, with the fields given.
@@ -90,6 +96,14 @@ function specifiers(
       ? { kind, name: local }
       : { kind, name: local, alias };
   });
+}
+
+/**
+ * Writes a text from its lines.
+ * @param items The lines, in order.
+ */
+function write(...items: string[]): string {
+  return items.join("\n");
 }
 
 /** The text of the `text` state of the mockup of the playground, without its last line (`src/pages/`), which the mockup adds as typing in progress, and with the sources in full, which the mockup writes shorter */
@@ -1879,6 +1893,328 @@ describe("TextMode", () => {
       // Assert
       expect(problems.map(({ line }) => line)).toEqual([2]);
     });
+  });
+
+  describe("getDependencyAtLine", () => {
+    it("should give the file and the position of the dependency that a line was read as", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        '  import "./a.js";',
+        '  import x from "react";',
+        "a.js",
+        '  import "./main.js";',
+        ""
+      );
+
+      // Act
+      const lines = [2, 3, 5].map((line) => getDependencyAtLine(text, line));
+
+      // Assert
+      expect(lines).toEqual([
+        { path: "main.js", index: 0 },
+        { path: "main.js", index: 1 },
+        { path: "a.js", index: 0 },
+      ]);
+    });
+
+    it("should count the dependencies of a file, not the ones of the text", () => {
+      // Arrange
+      const text = write(
+        "a.js",
+        '  import "./b.js";',
+        "b.js",
+        '  import "./a.js";',
+        '  import "./c.js";',
+        "c.js"
+      );
+
+      // Act
+      const line = getDependencyAtLine(text, 5);
+
+      // Assert
+      expect(line).toEqual({ path: "b.js", index: 1 });
+    });
+
+    it("should read a repeated statement as a dependency of its own", () => {
+      // Arrange
+      const text = write(
+        "a.js",
+        '  import "./b.js";',
+        '  import "./b.js";',
+        "b.js"
+      );
+
+      // Act
+      const lines = [2, 3].map((line) => getDependencyAtLine(text, line));
+
+      // Assert
+      expect(lines).toEqual([
+        { path: "a.js", index: 0 },
+        { path: "a.js", index: 1 },
+      ]);
+    });
+
+    it("should read a source that names a file below it, which is known once the whole text is read", () => {
+      // Arrange
+      const text = write("a.js", '  import "./b.js";', "b.js");
+
+      // Act
+      const line = getDependencyAtLine(text, 2);
+
+      // Assert
+      expect(line).toEqual({ path: "a.js", index: 0 });
+    });
+
+    it("should give the file of an indented line that cannot be read, without a position", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        "  import bad",
+        '  import "./missing.js";',
+        '  import "./a.js";',
+        "a.js"
+      );
+
+      // Act
+      const lines = [2, 3].map((line) => getDependencyAtLine(text, line));
+
+      // Assert
+      expect(lines).toEqual([
+        { path: "main.js", index: undefined },
+        { path: "main.js", index: undefined },
+      ]);
+    });
+
+    it("should not count the lines that cannot be read in the position of the ones after them", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        "  import bad",
+        '  import "./a.js";',
+        "a.js"
+      );
+
+      // Act
+      const line = getDependencyAtLine(text, 3);
+
+      // Assert
+      expect(line).toEqual({ path: "main.js", index: 0 });
+    });
+
+    it("should give the file of a line that repeats a name of the file, which cannot be read", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        '  import x from "react";',
+        '  import x from "lodash";'
+      );
+
+      // Act
+      const lines = [2, 3].map((line) => getDependencyAtLine(text, line));
+
+      // Assert
+      expect(lines).toEqual([
+        { path: "main.js", index: 0 },
+        { path: "main.js", index: undefined },
+      ]);
+    });
+
+    it.each([
+      ["a file", 2],
+      ["a folder", 3],
+      ["the config", 1],
+      ["a blank line", 5],
+      ["an indented blank line", 6],
+      ["a line that is not in the text", 99],
+      ["the line before the first", 0],
+    ])("should give nothing for %s", (_name, line) => {
+      // Arrange
+      const text = write(
+        "eslint.config.js",
+        "main.js",
+        "docs/",
+        '  import "./main.js";',
+        "",
+        "  ",
+        ""
+      );
+
+      // Act
+      const found = getDependencyAtLine(text, line);
+
+      // Assert
+      expect(found).toBeUndefined();
+    });
+
+    it("should give nothing for a line under a folder", () => {
+      // Arrange
+      const text = write("docs/", '  import "./a.js";', "a.js");
+
+      // Act
+      const line = getDependencyAtLine(text, 2);
+
+      // Assert
+      expect(line).toBeUndefined();
+    });
+
+    it("should give nothing for a line under no file, such as the first line or the config line", () => {
+      // Arrange
+      const text = write(
+        '  import "./a.js";',
+        "eslint.config.js",
+        '  import "./a.js";',
+        "a.js"
+      );
+
+      // Act
+      const lines = [1, 3].map((line) => getDependencyAtLine(text, line));
+
+      // Assert
+      expect(lines).toEqual([undefined, undefined]);
+    });
+
+    it("should give nothing for a line under a line that was left out", () => {
+      // Arrange
+      const text = write("a.js", "a.js", '  import "./a.js";', "b.js");
+
+      // Act
+      const line = getDependencyAtLine(text, 3);
+
+      // Assert
+      expect(line).toBeUndefined();
+    });
+
+    it.each([
+      [4, "src/components/atoms/Button/Button.spec.js", 0],
+      [6, "src/components/atoms/Button/index.js", 0],
+      [7, "src/components/atoms/Button/index.js", 1],
+      [9, "src/helpers/format/index.js", 0],
+      [14, "src/modules/checkout/index.js", 3],
+      [16, "src/index.js", 0],
+    ])(
+      "should read line %i of a text with the sources in full as dependency %i of %s",
+      (line, path, index) => {
+        // Act
+        const found = getDependencyAtLine(QUICK_START_TEXT, line);
+
+        // Assert
+        expect(found).toEqual({ path, index });
+      }
+    );
+
+    it("should find as many dependency lines as fromText reads dependencies", () => {
+      // Arrange
+      const { sketch } = fromText(QUICK_START_TEXT, createSketch([]));
+      const lines = QUICK_START_TEXT.split("\n");
+
+      // Act
+      const found = lines
+        .map((_text, position) =>
+          getDependencyAtLine(QUICK_START_TEXT, position + 1)
+        )
+        .filter((line) => line !== undefined);
+
+      // Assert
+      expect(found).toHaveLength(sketch.dependencies.length);
+      expect(found.map(({ path }) => path)).toEqual(
+        sketch.dependencies.map(({ from }) => from)
+      );
+    });
+  });
+
+  describe("getDependencyLine", () => {
+    it("should give the line where the dependency of a file is written", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        '  import "./a.js";',
+        '  import x from "react";',
+        "a.js",
+        '  import "./main.js";',
+        ""
+      );
+
+      // Act
+      const lines = [
+        { path: "main.js", index: 0 },
+        { path: "main.js", index: 1 },
+        { path: "a.js", index: 0 },
+      ].map((ref) => getDependencyLine(text, ref));
+
+      // Assert
+      expect(lines).toEqual([2, 3, 5]);
+    });
+
+    it("should give the line of a dependency that is written above its target", () => {
+      // Arrange
+      const text = write("a.js", '  import "./b.js";', "b.js");
+
+      // Act
+      const line = getDependencyLine(text, { path: "a.js", index: 0 });
+
+      // Assert
+      expect(line).toBe(2);
+    });
+
+    it("should count only the lines that were read", () => {
+      // Arrange
+      const text = write(
+        "main.js",
+        "  import bad",
+        '  import "./a.js";',
+        '  import "./a.js";',
+        "a.js"
+      );
+
+      // Act
+      const lines = [0, 1, 2].map((index) =>
+        getDependencyLine(text, { path: "main.js", index })
+      );
+
+      // Assert
+      expect(lines).toEqual([3, 4, undefined]);
+    });
+
+    it("should give nothing for a position the file has no dependency at", () => {
+      // Arrange
+      const text = write("main.js", '  import "./a.js";', "a.js");
+
+      // Act
+      const line = getDependencyLine(text, { path: "main.js", index: 1 });
+
+      // Assert
+      expect(line).toBeUndefined();
+    });
+
+    it("should give nothing for a file that is not in the text, or a file whose lines are not read", () => {
+      // Arrange
+      const text = write("docs/", '  import "./a.js";', "a.js", "  ");
+
+      // Act
+      const gone = getDependencyLine(text, { path: "other.js", index: 0 });
+      const folder = getDependencyLine(text, { path: "docs", index: 0 });
+
+      // Assert
+      expect(gone).toBeUndefined();
+      expect(folder).toBeUndefined();
+    });
+
+    it.each([
+      [4, "src/components/atoms/Button/Button.spec.js", 0],
+      [7, "src/components/atoms/Button/index.js", 1],
+      [13, "src/modules/checkout/index.js", 2],
+      [16, "src/index.js", 0],
+    ])(
+      "should give line %i for dependency %i of %s in a text with the sources in full",
+      (line, path, index) => {
+        // Act
+        const found = getDependencyLine(QUICK_START_TEXT, { path, index });
+
+        // Assert
+        expect(found).toBe(line);
+      }
+    );
   });
 
   describe("round trip", () => {

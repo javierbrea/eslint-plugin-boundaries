@@ -26,7 +26,7 @@ export function getFocusedPath(openNode: Focus): string | undefined {
 }
 
 /**
- * Finds a dependency among the ones of its file after the text of text mode built all of them again, which leaves no object to tell them apart: by their data. With as many lines as before, the line stays where it is when it still says the same or says something that no line said before, so that editing a line in place, or turning another line into what it says, does not move the focus; otherwise several lines can say the same, and the dependency in focus is the one that has as many equal lines before it as it had, which is how lines that were swapped are followed.
+ * Finds a dependency among the ones of its file after the text of text mode built all of them again, which leaves no object to tell them apart: by their data. Only a read of the text that has no line to follow gets here, such as when the focus changed after the last keystroke; a read that knows the line of the dependency decides by the line, which tells equal lines apart. With as many lines as before, the line stays where it is when it still says the same or says something that no line said before, so that editing a line in place, or turning another line into what it says, does not move the focus; otherwise several lines can say the same, and the dependency in focus is the one that has as many equal lines before it as it had, which is how lines that were swapped are followed.
  * @param openNode The dependency in focus before the edit.
  * @param dependency The dependency in focus, as the sketch before holds it.
  * @param before The dependencies of its file before the edit.
@@ -67,7 +67,7 @@ function followRewrittenDependency(
 }
 
 /**
- * Moves a dependency in focus with an edit of the sketch that changed its dependencies, so that the focus keeps pointing at the dependency the user had open. The edits keep a dependency they do not touch as the same object, and the text of text mode builds all of them again, which tells the two apart.
+ * Moves a dependency in focus with an edit of the sketch that changed its dependencies, so that the focus keeps pointing at the dependency the user had open. The edits keep a dependency they do not touch as the same object, and the text of text mode builds all of them again, which tells the two apart; a read of the text follows the line of the dependency instead when the session knows it, and only gets here when it does not.
  * @param openNode The dependency in focus before the edit.
  * @param before The sketch before the edit.
  * @param after The sketch after the edit.
@@ -115,7 +115,7 @@ function moveDependencyFocus(
 }
 
 /**
- * Moves the focus with an edit of the sketch that removed nodes or changed dependencies: a file that is gone leaves nothing in focus, and a dependency follows {@link moveDependencyFocus}. The config and nothing stay as they are. A rename is not here: it moves the path of the focus before anything else.
+ * Moves the focus with an edit of the sketch that removed nodes or changed dependencies: a file that is gone leaves nothing in focus, and a dependency follows {@link moveDependencyFocus}. The config and nothing stay as they are. A rename is not here: it moves the path of the focus before anything else. Nor is a read of text mode that knows the line where the dependency is written, which decides the focus by that line: it comes here only for a read that has no line to follow.
  * @param openNode What is in focus before the edit.
  * @param before The sketch before the edit.
  * @param after The sketch after the edit.
@@ -135,7 +135,7 @@ export function moveFocus(
 }
 
 /**
- * Moves the dependency that a highlight came from with an edit of the sketch, as {@link moveFocus} moves the focus.
+ * Moves the dependency that a highlight came from with an edit of the sketch, as {@link moveFocus} moves the focus. A read of text mode that knows the line of the dependency decides by that line instead, and only a read without one comes here.
  * @param highlight The highlight, if there is one.
  * @param before The sketch before the edit.
  * @param after The sketch after the edit.

@@ -27,6 +27,9 @@ export const SYNTAX_FACTS: Readonly<
   },
 };
 
+/** Splits the text of text mode into its lines, which are numbered from 1 in the order they come: a line ends with `\n` or `\r\n`, and the text of a sketch ends with a line break, which leaves an empty line last */
+export const TEXT_LINE_BREAK = /\r?\n/;
+
 /** The extensions that text mode adds to a source that names no file of the sketch, in the order it tries them: `./b` can be `b.js`, `b.jsx` and so on, or the `index` of the folder `b/` with each of them. They are the playground's own and do not depend on the config */
 export const CODE_EXTENSIONS: readonly string[] = [
   ".js",

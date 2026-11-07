@@ -33,6 +33,14 @@ export type TextReadOptions = {
   readonly dependencies?: boolean;
 };
 
+/** An indented line of text mode, as {@link fromText} reads it: the file it is under and, when the line was read as a dependency, which one */
+export type TextDependencyLine = {
+  /** Path of the file that the line is under */
+  readonly path: string;
+  /** Position of the dependency among the ones read for the file, from 0: with `path` it is the {@link DependencyRef} that the sketch of {@link fromText} gives the line. It is `undefined` when the line cannot be read, such as a statement that is not one or a source that does not resolve */
+  readonly index: number | undefined;
+};
+
 /** The result of an edit: the new sketch, or why the edit is refused */
 export type EditResult =
   | { readonly sketch: Sketch }
