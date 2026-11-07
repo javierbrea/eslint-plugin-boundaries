@@ -1593,19 +1593,19 @@
           <pre class="text-mode" data-show="text" aria-label="Project as text">eslint.config.js
 src/components/atoms/Button/Button.css
 src/components/atoms/Button/Button.spec.js
-  import { Button } from "./index";
+  import { Button } from "./index.js";
 src/components/atoms/Button/index.js
-  import { format } from "../../../helpers/format";
+  import { format } from "../../../helpers/format/index.js";
   import "./Button.css";
 src/helpers/format/index.js
-  import { Button } from "../../components/atoms/Button";
+  import { Button } from "../../components/atoms/Button/index.js";
 src/modules/checkout/index.js
-  import { Button } from "../../components/atoms/Button";
-  import { format } from "../../helpers/format";
-  import { renderButton } from "../../components/atoms/Button/Button.spec";
+  import { Button } from "../../components/atoms/Button/index.js";
+  import { format } from "../../helpers/format/index.js";
+  import { renderButton } from "../../components/atoms/Button/Button.spec.js";
   import React from "react";
 src/index.js
-  import "./modules/checkout";
+  import "./modules/checkout/index.js";
 src/pages/<span class="caret"></span>
 </pre>
 
@@ -1630,19 +1630,19 @@ src/pages/<span class="caret"></span>
             <ol class="lines">
               <li class="line">
                 <span class="ln">1</span>
-                <span class="stmt"><span class="kw">import</span> { Button } <span class="kw">from</span> <span class="str">"../../components/atoms/Button"</span>;</span>
+                <span class="stmt"><span class="kw">import</span> { Button } <span class="kw">from</span> <span class="str">"../../components/atoms/Button/index.js"</span>;</span>
                 <span class="actions"></span>
                 <span class="verdict v-ok"><svg class="icon"><use href="#i-check" /></svg>policy 1</span>
               </li>
               <li class="line">
                 <span class="ln">2</span>
-                <span class="stmt"><span class="kw">import</span> { format } <span class="kw">from</span> <span class="str">"../../helpers/format"</span>;</span>
+                <span class="stmt"><span class="kw">import</span> { format } <span class="kw">from</span> <span class="str">"../../helpers/format/index.js"</span>;</span>
                 <span class="actions"></span>
                 <span class="verdict v-ok"><svg class="icon"><use href="#i-check" /></svg>policy 1</span>
               </li>
               <li class="line" data-focus-in="dependency">
                 <span class="ln">3</span>
-                <span class="stmt"><span class="kw">import</span> { renderButton } <span class="kw">from</span> <span class="str">"../../components/atoms/Button/Button.spec"</span>;</span>
+                <span class="stmt"><span class="kw">import</span> { renderButton } <span class="kw">from</span> <span class="str">"../../components/atoms/Button/Button.spec.js"</span>;</span>
                 <span class="actions">
                   <button class="icon-btn" type="button" aria-label="Edit"><svg class="icon"><use href="#i-edit" /></svg></button>
                   <button class="icon-btn" type="button" aria-label="Delete"><svg class="icon"><use href="#i-trash" /></svg></button>
@@ -1822,13 +1822,13 @@ src/pages/<span class="caret"></span>
           <div class="problems-body" data-show="empty">
             <div class="problem">
               <svg class="icon bad"><use href="#i-cross" /></svg>
-              <span class="where">src/helpers/format/index.js<span class="line-no">:1</span> → ../../components/atoms/Button</span>
+              <span class="where">src/helpers/format/index.js<span class="line-no">:1</span> → ../../components/atoms/Button/index.js</span>
               <span class="msg">There is no policy allowing dependencies from elements of type "helper" to elements of type "component"</span>
               <span class="meta">disallowed · default</span>
             </div>
             <div class="problem">
               <svg class="icon bad"><use href="#i-cross" /></svg>
-              <span class="where">src/modules/checkout/index.js<span class="line-no">:3</span> → ../../components/atoms/Button/Button.spec</span>
+              <span class="where">src/modules/checkout/index.js<span class="line-no">:3</span> → ../../components/atoms/Button/Button.spec.js</span>
               <span class="msg">Dependencies to file of category "test" are not allowed. Denied by policy at index 2</span>
               <span class="meta">disallowed · policy 2</span>
             </div>
@@ -1838,7 +1838,7 @@ src/pages/<span class="caret"></span>
           <div class="problems-body" data-show="file picker text">
             <div class="problem">
               <svg class="icon bad"><use href="#i-cross" /></svg>
-              <span class="where"><span class="line-no">:3</span> ../../components/atoms/Button/Button.spec</span>
+              <span class="where"><span class="line-no">:3</span> ../../components/atoms/Button/Button.spec.js</span>
               <span class="msg">Dependencies to file of category "test" are not allowed. Denied by policy at index 2</span>
               <span class="meta">disallowed · policy 2</span>
             </div>
@@ -1957,7 +1957,7 @@ src/pages/<span class="caret"></span>
           </div>
           <div class="row">
             <label class="lab">Preview</label>
-            <pre class="preview"><span class="kw">import</span> format, { round } <span class="kw">from</span> <span class="str">"../../helpers/format"</span>;</pre>
+            <pre class="preview"><span class="kw">import</span> format, { round } <span class="kw">from</span> <span class="str">"../../helpers/format/index.js"</span>;</pre>
           </div>
         </div>
         <footer>
