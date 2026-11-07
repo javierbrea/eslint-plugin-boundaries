@@ -364,7 +364,7 @@ describe("dependencyDetail", () => {
         ["require", "require()"],
         ["dynamic-import", "import()"],
       ])(
-        "should label the syntax %s as %s, as the picker does",
+        "should label the syntax %s as %s, with the name of the table of the syntaxes",
         (syntax, label) => {
           // Act
           const { facts } = toDependencyDetail(

@@ -1,4 +1,3 @@
-import type { SketchDependency } from "@/contract";
 import {
   getPolicyName,
   getSkipReasonSentence,
@@ -7,8 +6,8 @@ import {
   getVerdictMeta,
   getVerdictTone,
 } from "@/domains/evaluation/ui/helpers/verdictText";
-import { SYNTAX_OPTIONS } from "@/domains/files/ui/helpers/dependencyLabels";
 import type { DependencyDetailFacts } from "@/domains/problems/helpers/problemSelectors";
+import { getSyntaxFacts } from "@/domains/project/helpers/sketch";
 
 import type {
   DependencyDetailContent,
@@ -16,11 +15,6 @@ import type {
   PolicyCardContent,
   VerdictLineContent,
 } from "./dependencyDetail.types";
-
-/** How each syntax is called, as the picker calls it. */
-const SYNTAX_LABELS = Object.fromEntries(
-  SYNTAX_OPTIONS.map(({ value, label }) => [value, label])
-) as Record<SketchDependency["syntax"], string>;
 
 /**
  * Writes the verdict line: what the engine says about the dependency, with the policy that decided it.
@@ -96,7 +90,7 @@ function getFacts({
     { label: "element", value: joinNames(description?.element.types) },
     { label: "file", value: joinNames(description?.file.categories) },
     { label: "kind", value: importKind },
-    { label: "syntax", value: SYNTAX_LABELS[syntax] },
+    { label: "syntax", value: getSyntaxFacts(syntax).name },
   ];
 }
 
