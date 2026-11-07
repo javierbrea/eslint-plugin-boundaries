@@ -9,6 +9,8 @@ export type DependencyPickerProps = {
   readonly from: string;
   /** The tree of the sketch: the files the target is picked from, and what the draft is checked against */
   readonly tree: Sketch["tree"];
+  /** The other dependencies of the file, which the draft is checked against: the names it imports or exports must not be the ones of another statement. When a dependency is being edited, it is not among them, so that it can keep its own names */
+  readonly dependencies: readonly SketchDependency[];
   /** The description of each file, by path, for the element types the options show */
   readonly descriptions: ReadonlyMap<string, FileDescription>;
   /** The dependency being edited, or `undefined` to add one */

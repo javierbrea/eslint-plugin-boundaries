@@ -1,9 +1,12 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 
 import type { SketchDependency } from "@/contract";
 import { DependencyPicker } from "@/domains/files/ui/molecules/DependencyPicker";
-import { getDependency } from "@/domains/project/helpers/sketch";
+import {
+  getDependency,
+  getFileDependencies,
+} from "@/domains/project/helpers/sketch";
 import {
   useAddDependency,
   useReplaceDependency,
@@ -15,7 +18,7 @@ import { DEPENDENCY_PICKER_DIALOG_TEST_ID } from "./DependencyPickerDialog.const
 import type { DependencyPickerDialogProps } from "./DependencyPickerDialog.types";
 
 /**
- * The dialog that adds a dependency to a file or edits one, connected to the store: it reads the tree and the descriptions of the files for the options, and the dependency being edited, and it adds or replaces the dependency the user confirms. It is its own element so that the file pane does not read the tree or the descriptions, which change with edits that leave the lines as they were.
+ * The dialog that adds a dependency to a file or edits one, connected to the store: it reads the tree and the descriptions of the files for the options, the dependency being edited and the other dependencies of the file, whose names a draft must not repeat, and it adds or replaces the dependency the user confirms. It is its own element so that the file pane does not read the tree or the descriptions, which change with edits that leave the lines as they were.
  * @param props DependencyPickerDialog props.
  * @param props.open Whether the dialog is open.
  * @param props.from Path of the file the dependency belongs to.
@@ -35,6 +38,17 @@ export function DependencyPickerDialog({
     index === undefined
       ? undefined
       : getDependency(state.sketch, { path: from, index })
+  );
+  const allDependencies = useSessionSelector(
+    (state) => state.sketch.dependencies
+  );
+  // The dependency being edited is left out, so that it can keep its own names
+  const dependencies = useMemo(
+    () =>
+      getFileDependencies({ dependencies: allDependencies }, from).filter(
+        (_dependency, position) => position !== index
+      ),
+    [allDependencies, from, index]
   );
   const addDependency = useAddDependency();
   const replaceDependency = useReplaceDependency();
@@ -56,6 +70,7 @@ export function DependencyPickerDialog({
       open={isOpen}
       from={from}
       tree={tree}
+      dependencies={dependencies}
       descriptions={descriptions}
       initial={initial}
       onCancel={onClose}

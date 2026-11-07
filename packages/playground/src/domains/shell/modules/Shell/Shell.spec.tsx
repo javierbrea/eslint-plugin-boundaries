@@ -1163,22 +1163,22 @@ describe("Shell", () => {
       // Arrange
       useFakeTimeouts();
       const shell = renderExample();
-      shell.project.click(FILE);
+      shell.project.click(BUTTON);
       shell.node.file.lines.line(1).click();
       shell.project.foot.pressView("Text");
       const { text } = shell.project;
-      const buttonLine =
-        '  import { Button } from "../../components/atoms/Button/index.js";';
       const formatLine =
-        '  import { format } from "../../helpers/format/index.js";';
+        '  import { format } from "../../../helpers/format/index.js";';
+      // A side-effect import names nothing, so a file can have the same one twice
+      const styleLine = '  import "./Button.css";';
       const lines = text.value.split("\n");
       // The first dependency of the open file is its first line below it
-      const firstLine = lines.indexOf(FILE) + 1;
+      const firstLine = lines.indexOf(BUTTON) + 1;
 
       // Act
-      expect(lines[firstLine]).toBe(buttonLine);
+      expect(lines[firstLine]).toBe(formatLine);
 
-      lines[firstLine] = formatLine;
+      lines[firstLine] = styleLine;
       text.type(lines.join("\n"));
       wait(TEXT_READ_WAIT);
 
@@ -1497,11 +1497,11 @@ describe("Shell", () => {
         shell.project.click(FILE);
 
         // Act
-        await addDependencyOf(shell, BUTTON_SPEC, "Button");
+        await addDependencyOf(shell, BUTTON_SPEC, "ButtonSpec");
 
         // Assert
         expect(shell.node.file.lines.lineTexts[4]).toBe(
-          '5import { Button } from "../../components/atoms/Button/Button.spec.js";policy 2'
+          '5import { ButtonSpec } from "../../components/atoms/Button/Button.spec.js";policy 2'
         );
         expect(getStatus(shell)).toBe("6 files · 10 dependencies · 3 problems");
         expect(getTabs(shell)).toEqual([

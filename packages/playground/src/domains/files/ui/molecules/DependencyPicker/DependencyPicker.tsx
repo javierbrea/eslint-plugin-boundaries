@@ -221,6 +221,7 @@ function FormRow({
  * @param props.open Whether the dialog is open.
  * @param props.from Path of the file the dependency belongs to.
  * @param props.tree The tree of the sketch.
+ * @param props.dependencies The other dependencies of the file, which the draft is checked against.
  * @param props.descriptions The description of each file, by path.
  * @param props.initial The dependency being edited, or `undefined` to add one.
  * @param props.onCancel Called when the user gives up.
@@ -232,6 +233,7 @@ export function DependencyPicker({
   open: isOpen,
   from,
   tree,
+  dependencies,
   descriptions,
   initial,
   onCancel,
@@ -272,7 +274,7 @@ export function DependencyPicker({
   const refusal =
     dependency === undefined
       ? undefined
-      : getDependencyError({ tree }, dependency);
+      : getDependencyError({ tree, dependencies }, dependency);
   // Only a draft that has a target and that the sketch can hold is submitted
   const submittable = refusal === undefined ? dependency : undefined;
   const titleId = `${baseId}-title`;

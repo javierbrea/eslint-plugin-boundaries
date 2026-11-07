@@ -52,6 +52,24 @@ const MOCKUP_DEPENDENCY: SketchDependency = {
   ],
 };
 
+/** Another statement of the file, that imports `round`: `import { round } from "../../components/atoms/Button/index.js";`. */
+const OTHER_IMPORT: SketchDependency = {
+  from: FROM,
+  target: { kind: "node", path: BUTTON },
+  syntax: "import",
+  importKind: "value",
+  specifiers: [{ kind: "named", name: "round" }],
+};
+
+/** Another statement of the file, that exports `round`: `export { round } from "../../components/atoms/Button/index.js";`. */
+const OTHER_EXPORT: SketchDependency = {
+  from: FROM,
+  target: { kind: "node", path: BUTTON },
+  syntax: "export-from",
+  importKind: "value",
+  specifiers: [{ kind: "named", name: "round" }],
+};
+
 /** What a spec gets from the picker it renders. */
 type Page = {
   /** The page object of the picker. */
@@ -64,7 +82,7 @@ type Page = {
 
 /**
  * Renders the picker inside the root element of the playground, where its theme applies.
- * @param changes What differs from an open picker that adds a dependency to `src/modules/checkout/index.js` in the sketch of the quick start.
+ * @param changes What differs from an open picker that adds a dependency to `src/modules/checkout/index.js` in the sketch of the quick start, where the file has no other dependency.
  * @returns The page object of the picker, its props and the function that updates it.
  */
 function renderPicker(changes: Partial<DependencyPickerProps> = {}): Page {
@@ -72,6 +90,7 @@ function renderPicker(changes: Partial<DependencyPickerProps> = {}): Page {
     open: true,
     from: FROM,
     tree: TREE,
+    dependencies: [],
     descriptions: DESCRIPTIONS,
     onCancel: jest.fn(),
     onSubmit: jest.fn(),
@@ -824,6 +843,78 @@ describe("DependencyPicker", () => {
       );
       expect(picker.isConfirmEnabled).toBe(false);
     });
+
+    it("should refuse a name that another statement of the file already imports, and not let it be added", () => {
+      // Arrange
+      const { picker } = renderPicker({ dependencies: [OTHER_IMPORT] });
+      pickFile(picker, FORMAT);
+
+      // Act
+      addName(picker, "named", "round");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "round" is already imported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+    });
+
+    it("should refuse a name that another statement of the file already exports, and not let it be added", () => {
+      // Arrange
+      const { picker } = renderPicker({ dependencies: [OTHER_EXPORT] });
+      pickFile(picker, FORMAT);
+      picker.syntax.select("export … from");
+
+      // Act
+      addName(picker, "named", "round");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "round" is already exported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+    });
+
+    it("should refuse the alias of a name when another statement of the file already imports it", () => {
+      // Arrange
+      const { picker } = renderPicker({ dependencies: [OTHER_IMPORT] });
+      pickFile(picker, FORMAT);
+
+      // Act
+      addName(picker, "named", "floor", "round");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "round" is already imported by another statement of the file.'
+      );
+    });
+
+    it("should not refuse a name that another statement of the file exports when the draft imports it", () => {
+      // Arrange
+      const { picker } = renderPicker({ dependencies: [OTHER_EXPORT] });
+      pickFile(picker, FORMAT);
+
+      // Act
+      addName(picker, "named", "round");
+
+      // Assert
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
+    });
+
+    it("should stop refusing the name once the other statements of the file no longer hold it", () => {
+      // Arrange
+      const { picker, update } = renderPicker({ dependencies: [OTHER_IMPORT] });
+      pickFile(picker, FORMAT);
+      addName(picker, "named", "round");
+
+      // Act
+      update({ dependencies: [] });
+
+      // Assert
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
+    });
   });
 
   describe("confirm", () => {
@@ -1094,6 +1185,23 @@ describe("DependencyPicker", () => {
       // Assert
       expect(picker.refusal).toBeNull();
       expect(picker.isConfirmEnabled).toBe(true);
+    });
+
+    it("should be checked against the other statements of the file", () => {
+      // Arrange
+      const { picker } = renderPicker({ dependencies: [OTHER_IMPORT] });
+      pickFile(picker, FORMAT);
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+
+      // Act
+      picker.names.typeName("round");
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "round" is already imported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
     });
 
     it("should be checked together with the names that are confirmed", () => {

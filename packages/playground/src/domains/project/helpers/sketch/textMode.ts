@@ -86,14 +86,14 @@ function getAmbiguityReason(
  * Reads an indented line as a dependency of a file. A relative source is read with the rule of {@link findSourceFiles}: it must match exactly one file.
  * @param text The line as it was written.
  * @param from The path of the file above the line.
- * @param nodes The nodes that the text declares.
- * @param files The paths of the files among them.
+ * @param read What the text declares so far: its nodes, and the dependencies of the lines read before this one, which a name of this line must not repeat.
+ * @param files The paths of the files among the nodes.
  * @returns The dependency, or why the line cannot be read, as a sentence for the user.
  */
 function readDependency(
   text: string,
   from: string,
-  nodes: readonly SketchNode[],
+  read: Pick<Sketch, "tree" | "dependencies">,
   files: ReadonlySet<string>
 ): SketchDependency | string {
   const parsed = parseStatement(text);
@@ -123,7 +123,7 @@ function readDependency(
 
   const dependency = { from, target, ...statement };
 
-  return getDependencyError({ tree: nodes }, dependency) ?? dependency;
+  return getDependencyError(read, dependency) ?? dependency;
 }
 
 /**
@@ -150,13 +150,13 @@ function readNodeLine(
 /**
  * Reads an indented line as a dependency of the node above it.
  * @param pending The indented line.
- * @param nodes The nodes that the text declares.
- * @param files The paths of the files among them.
+ * @param read What the text declares so far: its nodes, and the dependencies of the lines read before this one.
+ * @param files The paths of the files among the nodes.
  * @returns The dependency, or why the line cannot be read, as a sentence for the user.
  */
 function readIndented(
   pending: PendingDependency,
-  nodes: readonly SketchNode[],
+  read: Pick<Sketch, "tree" | "dependencies">,
   files: ReadonlySet<string>
 ): SketchDependency | string {
   const { text, owner } = pending;
@@ -165,12 +165,12 @@ function readIndented(
     return NO_FILE_REASON;
   }
   return owner.kind === "file"
-    ? readDependency(text, owner.path, nodes, files)
+    ? readDependency(text, owner.path, read, files)
     : FOLDER_REASON;
 }
 
 /**
- * Reads the indented lines once every file of the text is known, so that a dependency can point to a file written below it.
+ * Reads the indented lines once every file of the text is known, so that a dependency can point to a file written below it. Each line is checked against the dependencies of the lines read before it, so that the later line of a name that two statements of a file repeat is the one reported.
  * @param pending The indented lines, in order.
  * @param nodes The nodes that the text declares.
  * @returns The dependencies that were read, in order, and the problems of the lines that were left out.
@@ -187,7 +187,7 @@ function readPending(
   const problems: TextProblem[] = [];
 
   for (const item of pending) {
-    const result = readIndented(item, nodes, files);
+    const result = readIndented(item, { tree: nodes, dependencies }, files);
 
     if (typeof result === "string") {
       problems.push({ line: item.line, text: item.text, reason: result });

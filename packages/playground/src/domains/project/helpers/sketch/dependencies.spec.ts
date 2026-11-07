@@ -895,12 +895,515 @@ describe("Dependencies", () => {
     it("should read the files of the tree it is given, whatever else the sketch has", () => {
       // Act
       const error = getDependencyError(
-        { tree: [{ path: A, kind: "file" }] },
+        { tree: [{ path: A, kind: "file" }], dependencies: [] },
         toNode(A, B)
       );
 
       // Assert
       expect(error).toBe('"src/b.js" is not a file of the sketch.');
+    });
+
+    describe("a name that another statement of the file declares", () => {
+      /**
+       * Says why the sketch cannot hold a dependency next to the ones it has.
+       * @param existing The dependencies the sketch has.
+       * @param added The dependency to check.
+       */
+      function check(
+        existing: readonly SketchDependency[],
+        added: SketchDependency
+      ): string | undefined {
+        return getDependencyError(createSketch(TREE, existing), added);
+      }
+
+      /**
+       * Writes the reason for a name that another statement imports.
+       * @param declared The name.
+       */
+      function imported(declared: string): string {
+        return `The name "${declared}" is already imported by another statement of the file.`;
+      }
+
+      /**
+       * Writes the reason for a name that another statement exports.
+       * @param declared The name.
+       */
+      function exported(declared: string): string {
+        return `The name "${declared}" is already exported by another statement of the file.`;
+      }
+
+      it.each([
+        [
+          "a default name and a default name",
+          toNode(A, B, { specifiers: specifiers("default", "x") }),
+          toNode(A, C, { specifiers: specifiers("default", "x") }),
+        ],
+        [
+          "a default name and the alias of a named name",
+          toNode(A, B, { specifiers: specifiers("default", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "y as x") }),
+        ],
+        [
+          "the alias of a named name and a default name",
+          toNode(A, B, { specifiers: specifiers("named", "y as x") }),
+          toNode(A, C, { specifiers: specifiers("default", "x") }),
+        ],
+        [
+          "a namespace and a default name",
+          toNode(A, B, { specifiers: specifiers("namespace", "x") }),
+          toNode(A, C, { specifiers: specifiers("default", "x") }),
+        ],
+        [
+          "a namespace and a namespace",
+          toNode(A, B, { specifiers: specifiers("namespace", "x") }),
+          toNode(A, C, { specifiers: specifiers("namespace", "x") }),
+        ],
+        [
+          "a namespace and a named name",
+          toNode(A, B, { specifiers: specifiers("namespace", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "a named name and a named name",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "a named name and the alias of another",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "y as x") }),
+        ],
+        [
+          "an alias and an alias",
+          toNode(A, B, { specifiers: specifiers("named", "w as x") }),
+          toNode(A, C, { specifiers: specifiers("named", "y as x") }),
+        ],
+        [
+          "a value import and a type import",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, {
+            importKind: "type",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "a type import and a value import",
+          toNode(A, B, {
+            importKind: "type",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "a type import and a type import",
+          toNode(A, B, {
+            importKind: "type",
+            specifiers: specifiers("default", "x"),
+          }),
+          toNode(A, C, {
+            importKind: "type",
+            specifiers: specifiers("default", "x"),
+          }),
+        ],
+        [
+          "an import of a file and an import of an external module",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toExternal(A, "react", { specifiers: specifiers("default", "x") }),
+        ],
+        [
+          "the same statement twice",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+        ],
+      ])(
+        "should refuse an import of %s that another statement of the file binds",
+        (_description, existing, added) => {
+          // Act
+          const error = check([existing], added);
+
+          // Assert
+          expect(error).toBe(imported("x"));
+        }
+      );
+
+      it.each([
+        [
+          "a named name and a named name",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "an alias and a named name",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "w as x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "a named name and an alias",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "w as x"),
+          }),
+        ],
+        [
+          "an alias and an alias",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "v as x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "w as x"),
+          }),
+        ],
+        [
+          "a namespace and a namespace",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "x"),
+          }),
+        ],
+        [
+          "a namespace and a named name",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "w as x"),
+          }),
+        ],
+        [
+          "a value export and a type export",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            importKind: "type",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "a type export and a value export",
+          toNode(A, B, {
+            syntax: "export-from",
+            importKind: "type",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "an export from a file and an export from an external module",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toExternal(A, "react", {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+      ])(
+        "should refuse an export of %s that another statement of the file exports",
+        (_description, existing, added) => {
+          // Act
+          const error = check([existing], added);
+
+          // Assert
+          expect(error).toBe(exported("x"));
+        }
+      );
+
+      it.each([
+        [
+          "default and default",
+          specifiers("named", "default"),
+          specifiers("named", "default"),
+        ],
+        [
+          "default and an alias of default",
+          specifiers("named", "default"),
+          specifiers("named", "w as default"),
+        ],
+        [
+          "an alias of default and an alias of default",
+          specifiers("named", "v as default"),
+          specifiers("named", "w as default"),
+        ],
+      ])(
+        "should refuse an export of %s, since a file exports default once",
+        (_description, first, second) => {
+          // Arrange
+          const existing = toNode(A, B, {
+            syntax: "export-from",
+            specifiers: first,
+          });
+          const added = toNode(A, C, {
+            syntax: "export-from",
+            specifiers: second,
+          });
+
+          // Act
+          const error = check([existing], added);
+
+          // Assert
+          expect(error).toBe(exported("default"));
+        }
+      );
+
+      it.each([
+        [
+          "an import of a name that another statement only renames",
+          toNode(A, B, { specifiers: specifiers("named", "x as y") }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "an import of a name that a statement of another file imports",
+          toNode(B, C, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "an import of a name that another statement of the file exports",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+        [
+          "an export of a name that another statement of the file imports",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "an export of a namespace that another statement of the file imports",
+          toNode(A, B, { specifiers: specifiers("namespace", "x") }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "x"),
+          }),
+        ],
+        [
+          "an export of a name that another statement only renames",
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x as y"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        [
+          "an export of a name that a statement of another file exports",
+          toNode(B, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+          toNode(A, C, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ],
+        ["a side-effect import twice", toNode(A, B), toNode(A, B)],
+        [
+          "an export of everything twice",
+          toNode(A, B, { syntax: "export-from" }),
+          toNode(A, B, { syntax: "export-from" }),
+        ],
+        [
+          "an export of the types of two files",
+          toNode(A, B, { syntax: "export-from", importKind: "type" }),
+          toNode(A, C, { syntax: "export-from", importKind: "type" }),
+        ],
+        [
+          "a require() next to an import of a name",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, { syntax: "require" }),
+        ],
+        [
+          "a require() twice",
+          toNode(A, B, { syntax: "require" }),
+          toNode(A, B, { syntax: "require" }),
+        ],
+        [
+          "an import() twice",
+          toNode(A, B, { syntax: "dynamic-import" }),
+          toNode(A, B, { syntax: "dynamic-import" }),
+        ],
+        [
+          "an import() next to an import of a name",
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, B, { syntax: "dynamic-import" }),
+        ],
+        [
+          "an import of a name next to a require()",
+          toNode(A, B, { syntax: "require" }),
+          toNode(A, C, { specifiers: specifiers("named", "x") }),
+        ],
+      ])("should not refuse %s", (_description, existing, added) => {
+        // Act
+        const error = check([existing], added);
+
+        // Assert
+        expect(error).toBeUndefined();
+      });
+
+      it("should name the first of the names of the dependency that another statement declares", () => {
+        // Arrange
+        const existing = [
+          toNode(A, B, { specifiers: specifiers("named", "a", "b") }),
+        ];
+        const added = toNode(A, C, {
+          specifiers: specifiers("named", "c", "b", "a"),
+        });
+
+        // Act
+        const error = check(existing, added);
+
+        // Assert
+        expect(error).toBe(imported("b"));
+      });
+
+      it("should name the first of the names that the dependency exports and another statement exports", () => {
+        // Arrange
+        const existing = [
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "a", "b"),
+          }),
+        ];
+        const added = toNode(A, C, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "c", "b", "a"),
+        });
+
+        // Act
+        const error = check(existing, added);
+
+        // Assert
+        expect(error).toBe(exported("b"));
+      });
+
+      it("should find the name in any of the other statements of the file", () => {
+        // Arrange
+        const existing = [
+          toNode(A, B, { specifiers: specifiers("named", "a") }),
+          toNode(B, C, { specifiers: specifiers("named", "x") }),
+          toNode(A, C, { specifiers: specifiers("named", "b") }),
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "x"),
+          }),
+        ];
+        const added = toExternal(A, "react", {
+          specifiers: specifiers("named", "b"),
+        });
+
+        // Act
+        const error = check(existing, added);
+
+        // Assert
+        expect(error).toBe(imported("b"));
+      });
+
+      it("should say that a name is imported in an import and exported in an export", () => {
+        // Arrange
+        const existing = [
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+          toNode(A, B, {
+            syntax: "export-from",
+            specifiers: specifiers("named", "y"),
+          }),
+        ];
+
+        // Act
+        const errors = [
+          check(
+            existing,
+            toNode(A, C, { specifiers: specifiers("named", "x") })
+          ),
+          check(
+            existing,
+            toNode(A, C, {
+              syntax: "export-from",
+              specifiers: specifiers("named", "y"),
+            })
+          ),
+        ];
+
+        // Assert
+        expect(errors).toEqual([imported("x"), exported("y")]);
+      });
+
+      it("should report the problems of the dependency before the names of the other statements", () => {
+        // Arrange
+        const existing = [
+          toNode(A, B, { specifiers: specifiers("named", "x") }),
+        ];
+        const twice = toNode(A, C, {
+          specifiers: specifiers("named", "x", "x"),
+        });
+        const invalid = toNode(A, C, {
+          specifiers: specifiers("named", "1x", "x"),
+        });
+        const missing = toNode(A, "src/gone.js", {
+          specifiers: specifiers("named", "x"),
+        });
+
+        // Act
+        const errors = [
+          check(existing, twice),
+          check(existing, invalid),
+          check(existing, missing),
+        ];
+
+        // Assert
+        expect(errors).toEqual([
+          'The name "x" is used twice in the statement.',
+          '"1x" is not a valid name.',
+          '"src/gone.js" is not a file of the sketch.',
+        ]);
+      });
+
+      it("should not count the dependencies that the sketch does not have", () => {
+        // Arrange
+        const added = toNode(A, C, { specifiers: specifiers("named", "x") });
+
+        // Act
+        const error = getDependencyError(createSketch(TREE), added);
+
+        // Assert
+        expect(error).toBeUndefined();
+      });
     });
   });
 
@@ -1011,6 +1514,64 @@ describe("Dependencies", () => {
 
       // Assert
       expect(getError(result)).toBe("A file cannot depend on itself.");
+    });
+
+    it("should refuse a name that another statement of the file already imports, and keep the sketch as it is", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, { specifiers: specifiers("named", "x") }),
+      ]);
+      const before = JSON.stringify(sketch);
+
+      // Act
+      const result = addDependency(
+        sketch,
+        toNode(A, C, { specifiers: specifiers("default", "x") })
+      );
+
+      // Assert
+      expect(getError(result)).toBe(
+        'The name "x" is already imported by another statement of the file.'
+      );
+      expect(JSON.stringify(sketch)).toBe(before);
+    });
+
+    it("should refuse a name that another statement of the file already exports", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "x"),
+        }),
+      ]);
+
+      // Act
+      const result = addDependency(
+        sketch,
+        toNode(A, C, {
+          syntax: "export-from",
+          specifiers: specifiers("namespace", "x"),
+        })
+      );
+
+      // Assert
+      expect(getError(result)).toBe(
+        'The name "x" is already exported by another statement of the file.'
+      );
+    });
+
+    it("should add a name that another file imports", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(B, C, { specifiers: specifiers("named", "x") }),
+      ]);
+      const added = toNode(A, C, { specifiers: specifiers("named", "x") });
+
+      // Act
+      const result = getSketch(addDependency(sketch, added));
+
+      // Assert
+      expect(getFileDependencies(result, A)).toEqual([added]);
     });
   });
 
@@ -1140,6 +1701,122 @@ describe("Dependencies", () => {
 
       // Assert
       expect(getError(result)).toBe("The module name is empty.");
+    });
+
+    it("should replace a dependency by one that keeps its own names", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, { specifiers: specifiers("named", "x", "y as z") }),
+        toNode(A, C, { specifiers: specifiers("named", "w") }),
+      ]);
+      const replacement = toNode(A, C, {
+        specifiers: specifiers("named", "x", "y as z", "v"),
+      });
+
+      // Act
+      const result = getSketch(
+        replaceDependency(sketch, { path: A, index: 0 }, replacement)
+      );
+
+      // Assert
+      expect(getFileDependencies(result, A)[0]).toEqual(replacement);
+    });
+
+    it("should replace an export by one that keeps its own names", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, {
+          syntax: "export-from",
+          specifiers: specifiers("namespace", "x"),
+        }),
+      ]);
+      const replacement = toNode(A, C, {
+        syntax: "export-from",
+        specifiers: specifiers("namespace", "x"),
+      });
+
+      // Act
+      const result = getSketch(
+        replaceDependency(sketch, { path: A, index: 0 }, replacement)
+      );
+
+      // Assert
+      expect(getFileDependencies(result, A)).toEqual([replacement]);
+    });
+
+    it("should leave out the dependency of its file at the position, and not the one of another file that is in the same position of the sketch", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(B, C, { specifiers: specifiers("named", "y") }),
+        toNode(A, B, { specifiers: specifiers("named", "x") }),
+        toNode(A, C, { specifiers: specifiers("named", "w") }),
+      ]);
+      const replacement = toNode(A, C, {
+        specifiers: specifiers("named", "x"),
+      });
+
+      // Act
+      const result = getSketch(
+        replaceDependency(sketch, { path: A, index: 0 }, replacement)
+      );
+
+      // Assert
+      expect(result.dependencies).toEqual([
+        toNode(B, C, { specifiers: specifiers("named", "y") }),
+        replacement,
+        toNode(A, C, { specifiers: specifiers("named", "w") }),
+      ]);
+    });
+
+    it("should refuse a dependency that takes a name another statement of the file imports, and keep the sketch as it is", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, { specifiers: specifiers("named", "x") }),
+        toNode(A, C, { specifiers: specifiers("named", "w") }),
+      ]);
+      const before = JSON.stringify(sketch);
+
+      // Act
+      const result = replaceDependency(
+        sketch,
+        { path: A, index: 0 },
+        toNode(A, B, { specifiers: specifiers("named", "x", "w") })
+      );
+
+      // Assert
+      expect(getError(result)).toBe(
+        'The name "w" is already imported by another statement of the file.'
+      );
+      expect(JSON.stringify(sketch)).toBe(before);
+    });
+
+    it("should refuse a dependency that takes a name another statement of the file exports", () => {
+      // Arrange
+      const sketch = createSketch(TREE, [
+        toNode(A, B, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "x"),
+        }),
+        toNode(A, C, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "w"),
+        }),
+      ]);
+
+      // Act
+      const result = replaceDependency(
+        sketch,
+        { path: A, index: 1 },
+        toNode(A, C, {
+          syntax: "export-from",
+          specifiers: specifiers("named", "v as x"),
+        })
+      );
+
+      // Assert
+      expect(getError(result)).toBe(
+        'The name "x" is already exported by another statement of the file.'
+      );
     });
   });
 

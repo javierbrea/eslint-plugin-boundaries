@@ -190,7 +190,7 @@ describe("DependencyPickerDialog", () => {
       picker.file.choose(FORMAT);
       picker.names.openEditor();
       picker.names.chooseKind("default");
-      picker.names.typeName("format");
+      picker.names.typeName("formatDefault");
       picker.names.confirm();
 
       // Act
@@ -203,7 +203,7 @@ describe("DependencyPickerDialog", () => {
         target: { kind: "node", path: FORMAT },
         syntax: "import",
         importKind: "value",
-        specifiers: [{ kind: "default", name: "format" }],
+        specifiers: [{ kind: "default", name: "formatDefault" }],
       });
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -223,6 +223,47 @@ describe("DependencyPickerDialog", () => {
         path: CHECKOUT,
         index: 4,
       });
+    });
+
+    it("should refuse a name that another statement of the file already imports, and not add it", () => {
+      // Arrange
+      const session = renderDialog();
+      const { picker, onClose } = session;
+      const before = getCheckoutDependencies(session);
+      picker.target.select("An external module");
+      picker.typeModule("lodash");
+
+      // Act
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("Button");
+      picker.names.confirm();
+      picker.confirm();
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "Button" is already imported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+      expect(getCheckoutDependencies(session)).toEqual(before);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("should not count the names that the statements of other files import", () => {
+      // Arrange
+      const { picker } = renderDialog({ from: "src/index.js" });
+      picker.target.select("An external module");
+      picker.typeModule("lodash");
+
+      // Act
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("Button");
+      picker.names.confirm();
+
+      // Assert
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
     });
 
     it("should change nothing and close when the user gives up", () => {
@@ -278,6 +319,41 @@ describe("DependencyPickerDialog", () => {
       expect(first).toBe(before[0]);
       expect(third).toBe(before[2]);
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("should keep the names of the dependency being edited, which no other statement of the file holds", () => {
+      // Arrange
+      const { picker } = renderDialog({ index: 0 });
+
+      // Act
+      const { refusal, isConfirmEnabled } = picker;
+
+      // Assert
+      expect(picker.names.chipTexts).toEqual(["named Button"]);
+      expect(refusal).toBeNull();
+      expect(isConfirmEnabled).toBe(true);
+    });
+
+    it("should refuse a name that another statement of the file imports, and not replace the dependency", () => {
+      // Arrange
+      const session = renderDialog({ index: 1 });
+      const { picker, onClose } = session;
+      const before = getCheckoutDependencies(session);
+
+      // Act
+      picker.names.openEditor();
+      picker.names.chooseKind("named");
+      picker.names.typeName("Button");
+      picker.names.confirm();
+      picker.confirm();
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "Button" is already imported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+      expect(getCheckoutDependencies(session)).toEqual(before);
+      expect(onClose).not.toHaveBeenCalled();
     });
 
     it("should start from an empty draft when there is no dependency at the position", () => {

@@ -71,6 +71,12 @@ const RESERVED_WORDS = new Set([
   "yield",
 ]);
 
+/** How the reason says that a name is taken, by the syntax that declares names: an `import` binds local names and an `export … from` exports names. The other syntaxes declare none */
+const NAME_VERBS: Partial<Record<SketchDependencySyntax, string>> = {
+  import: "imported",
+  "export-from": "exported",
+};
+
 /** The order of the names in a statement: the default name, then the namespace, then the named names */
 const SPECIFIER_ORDER: readonly SpecifierKind[] = [
   "default",
@@ -302,13 +308,47 @@ function getSpecifiersError(dependency: SketchDependency): string | undefined {
 }
 
 /**
+ * Tells why a name that a statement declares is already declared by another statement of its file. A name is declared in one of two namespaces, and a name can be declared once in each: the local names that the `import` statements of the file bind, whether they import values or types, and the names that its `export … from` statements export, `default` included. A name that one statement imports and another exports is not repeated, and neither is one that another file declares. `require()` and `import()` declare no name, and neither does `export * from`.
+ * @param sketch The sketch that would hold the dependency: only its dependencies count, which are the other statements of the file and of the other files.
+ * @param dependency The dependency to check, whose specifiers are valid.
+ * @returns The reason as a sentence for the user, naming the first repeated name in the order of the specifiers, or `undefined` when no other statement of the file declares a name of the dependency in the same namespace.
+ */
+function getRepeatedNameError(
+  sketch: Pick<Sketch, "dependencies">,
+  dependency: SketchDependency
+): string | undefined {
+  const { syntax, specifiers } = dependency;
+  const verb = NAME_VERBS[syntax];
+
+  if (verb === undefined) {
+    return undefined;
+  }
+
+  // A syntax declares its names in one namespace, so the statements of the same syntax are the ones that share it
+  const taken = new Set(
+    getFileDependencies(sketch, dependency.from)
+      .filter((other) => other.syntax === syntax)
+      .flatMap((other) =>
+        other.specifiers.map((specifier) => specifier.alias ?? specifier.name)
+      )
+  );
+  const repeated = specifiers
+    .map((specifier) => specifier.alias ?? specifier.name)
+    .find((declared) => taken.has(declared));
+
+  return repeated === undefined
+    ? undefined
+    : `The name "${repeated}" is already ${verb} by another statement of the file.`;
+}
+
+/**
  * Tells why a sketch cannot hold a dependency, so that the edits refuse it and a sketch never has one that cannot be written as a statement. A node path that has quotes or backslashes is not here: no path of the tree can have them, as `getPathError` refuses them wherever a path enters.
- * @param sketch The sketch that would hold it: only its tree counts.
+ * @param sketch The sketch that would hold it: only its tree and its dependencies count. The dependencies are the ones the file would have besides this one, so a caller that replaces a dependency leaves it out.
  * @param dependency The dependency to check.
- * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external module name that is empty, has spaces or quotes, or starts with `.` or `/`, a kind of statement or a kind of name that its syntax does not hold as the table of the syntaxes says (a type import with a default name together with named names or a namespace included), an alias on a default or namespace name, a name that cannot play its role (a local name of an `import` is an identifier that is not a reserved word, nor `eval` or `arguments`; the name of a named specifier that has an alias, and every name of an `export … from`, may be any word that looks like an identifier, keywords and `default` included), a named import of a name that cannot be a local name and has no alias, or two names of the statement that are the same locally.
+ * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it. The first reason found: its file is not a file of the tree, its target is not a file of the tree or is its own file, an external module name that is empty, has spaces or quotes, or starts with `.` or `/`, a kind of statement or a kind of name that its syntax does not hold as the table of the syntaxes says (a type import with a default name together with named names or a namespace included), an alias on a default or namespace name, a name that cannot play its role (a local name of an `import` is an identifier that is not a reserved word, nor `eval` or `arguments`; the name of a named specifier that has an alias, and every name of an `export … from`, may be any word that looks like an identifier, keywords and `default` included), a named import of a name that cannot be a local name and has no alias, two names of the statement that are the same locally, or a name that another statement of the same file already imports (an `import`) or already exports (an `export … from`).
  */
 export function getDependencyError(
-  sketch: Pick<Sketch, "tree">,
+  sketch: Pick<Sketch, "tree" | "dependencies">,
   dependency: SketchDependency
 ): string | undefined {
   if (getNodeKind(sketch.tree, dependency.from) !== "file") {
@@ -317,7 +357,8 @@ export function getDependencyError(
   return (
     getTargetError(sketch, dependency) ??
     getSyntaxError(dependency) ??
-    getSpecifiersError(dependency)
+    getSpecifiersError(dependency) ??
+    getRepeatedNameError(sketch, dependency)
   );
 }
 
@@ -362,7 +403,7 @@ function sortSpecifiers(dependency: SketchDependency): SketchDependency {
  * Adds a dependency at the end of the list of the sketch, so that it is the last line of its file. The sketch keeps its names in the order a statement writes them, so that reading its text gives the same names back.
  * @param sketch The sketch to edit. It is not changed.
  * @param dependency The dependency to add.
- * @returns The new sketch, or the reason why the sketch cannot hold the dependency, as {@link getDependencyError} gives it.
+ * @returns The new sketch, or the reason why the sketch cannot hold the dependency, as {@link getDependencyError} gives it, against the dependencies the sketch already has.
  */
 export function addDependency(
   sketch: Sketch,
@@ -385,7 +426,7 @@ export function addDependency(
  * @param sketch The sketch to edit. It is not changed.
  * @param ref The dependency to replace.
  * @param dependency The dependency that takes its place. It has to be of the same file.
- * @returns The new sketch, or the reason why the dependency is not replaced: there is none at `ref`, the new one is of another file, or the sketch cannot hold it, as {@link getDependencyError} gives it.
+ * @returns The new sketch, or the reason why the dependency is not replaced: there is none at `ref`, the new one is of another file, or the sketch cannot hold it, as {@link getDependencyError} gives it, against the other dependencies of the sketch.
  */
 export function replaceDependency(
   sketch: Sketch,
@@ -401,7 +442,16 @@ export function replaceDependency(
     return { error: "A dependency cannot move to another file." };
   }
 
-  const error = getDependencyError(sketch, dependency);
+  // The dependency that is replaced does not count: the new one may keep its names
+  const error = getDependencyError(
+    {
+      ...sketch,
+      dependencies: sketch.dependencies.filter(
+        (_existing, index) => index !== position
+      ),
+    },
+    dependency
+  );
 
   return error === undefined
     ? {

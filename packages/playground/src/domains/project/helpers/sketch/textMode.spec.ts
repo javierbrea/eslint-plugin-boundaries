@@ -1433,6 +1433,188 @@ describe("TextMode", () => {
       expect(JSON.stringify(SKETCH)).toBe(before);
     });
 
+    describe("a name that another line of the file declares", () => {
+      it("should leave out the later of two lines that import the same name, and read the earlier one", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import x from "./b.js";',
+          '  import { y as x } from "./c.js";',
+          "src/b.js",
+          "src/c.js",
+          "",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([
+          toNode("src/a.js", "src/b.js", {
+            specifiers: specifiers("default", "x"),
+          }),
+        ]);
+        expect(problems).toEqual([
+          {
+            line: 3,
+            text: '  import { y as x } from "./c.js";',
+            reason:
+              'The name "x" is already imported by another statement of the file.',
+          },
+        ]);
+      });
+
+      it("should leave out the later of two lines that export the same name, and read the earlier one", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  export { a } from "./b.js";',
+          '  export * as ns from "./b.js";',
+          '  export { a } from "./c.js";',
+          '  export { x as ns } from "./c.js";',
+          "src/b.js",
+          "src/c.js",
+          "",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([
+          toNode("src/a.js", "src/b.js", {
+            syntax: "export-from",
+            specifiers: specifiers("named", "a"),
+          }),
+          toNode("src/a.js", "src/b.js", {
+            syntax: "export-from",
+            specifiers: specifiers("namespace", "ns"),
+          }),
+        ]);
+        expect(problems).toEqual([
+          {
+            line: 4,
+            text: '  export { a } from "./c.js";',
+            reason:
+              'The name "a" is already exported by another statement of the file.',
+          },
+          {
+            line: 5,
+            text: '  export { x as ns } from "./c.js";',
+            reason:
+              'The name "ns" is already exported by another statement of the file.',
+          },
+        ]);
+      });
+
+      it("should leave out an import of a name that an earlier line imports as a type", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import type { A } from "./b.js";',
+          '  import { A } from "./c.js";',
+          "src/b.js",
+          "src/c.js",
+        ].join("\n");
+
+        // Act
+        const { problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems.map(({ line }) => line)).toEqual([3]);
+      });
+
+      it("should not count a line that was left out for another reason", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import { x } from "./missing.js";',
+          '  import { x } from "./b.js";',
+          '  import { x } from "./c.js";',
+          "src/b.js",
+          "src/c.js",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([
+          toNode("src/a.js", "src/b.js", {
+            specifiers: specifiers("named", "x"),
+          }),
+        ]);
+        expect(problems.map(({ line }) => line)).toEqual([2, 4]);
+        expect(problems[0].reason).toBe(
+          '"./missing.js" does not resolve to a file of the sketch.'
+        );
+      });
+
+      it("should count the lines of a file that is written after the one that points to it", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import { x } from "./b.js";',
+          "src/b.js",
+          '  import { x } from "./c.js";',
+          '  import { x } from "./a.js";',
+          "src/c.js",
+        ].join("\n");
+
+        // Act
+        const { problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems.map(({ line }) => line)).toEqual([5]);
+      });
+
+      it("should read the same name in two files, a name that is imported and exported, and statements that name nothing", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import { a } from "./b.js";',
+          '  export { a } from "./c.js";',
+          '  export * from "./b.js";',
+          '  export * from "./c.js";',
+          '  import "./b.js";',
+          '  import "./b.js";',
+          '  require("./b.js");',
+          '  import("./b.js");',
+          "src/b.js",
+          '  import { a } from "./c.js";',
+          "src/c.js",
+          "",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies).toHaveLength(9);
+      });
+
+      it("should report the same lines as readTextProblems", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import x from "./b.js";',
+          '  import { y as x } from "./c.js";',
+          '  export { x } from "./b.js";',
+          '  export { z as x } from "./c.js";',
+          "src/b.js",
+          "src/c.js",
+        ].join("\n");
+
+        // Act
+        const problems = readTextProblems(text);
+
+        // Assert
+        expect(problems.map(({ line }) => line)).toEqual([3, 5]);
+        expect(problems).toEqual(fromText(text, SKETCH).problems);
+      });
+    });
+
     describe("without reading the dependencies", () => {
       const NO_DEPENDENCIES = { dependencies: false };
       const WITH_DEPENDENCIES = createSketch(
@@ -1760,6 +1942,29 @@ describe("TextMode", () => {
       );
     });
 
+    it("should return the text of a file that imports and exports the same name from its own text", () => {
+      // Arrange
+      const text = [
+        "src/a.js",
+        '  import { a } from "./b.js";',
+        '  export { a } from "./c.js";',
+        '  export * from "./b.js";',
+        '  export * from "./c.js";',
+        "src/b.js",
+        '  import { a } from "./c.js";',
+        "src/c.js",
+        "",
+      ].join("\n");
+      const withConfig = ["eslint.config.js", text].join("\n");
+
+      // Act
+      const { sketch, problems } = fromText(withConfig, createSketch([]));
+
+      // Assert
+      expect(problems).toEqual([]);
+      expect(toText(sketch)).toBe(withConfig);
+    });
+
     it("should return a sketch with every syntax, kind and kind of name from its own text", () => {
       // Arrange
       const original = createSketch(
@@ -1795,10 +2000,6 @@ describe("TextMode", () => {
             specifiers: specifiers("namespace", "util"),
           }),
           toNode("src/app.tsx", "src/lib/util.ts", {
-            syntax: "export-from",
-            specifiers: specifiers("named", "c as default"),
-          }),
-          toNode("src/app.tsx", "src/lib/util.ts", {
             syntax: "dynamic-import",
           }),
           toExternal("src/app.tsx", "@scope/pkg/sub", {
@@ -1813,6 +2014,11 @@ describe("TextMode", () => {
               ...specifiers("default", "Button"),
               ...specifiers("named", "default as Default", "x as y"),
             ],
+          }),
+          // `app.tsx` exports `default` already, and a file exports it once
+          toNode("src/Button.js", "src/lib/util.ts", {
+            syntax: "export-from",
+            specifiers: specifiers("named", "c as default"),
           }),
           toNode("index.js", "src/app.tsx"),
         ]

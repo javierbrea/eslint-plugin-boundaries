@@ -127,8 +127,16 @@ describe("QUICK_START_EXAMPLE", () => {
     const { sketch } = QUICK_START_EXAMPLE;
 
     // Act
-    const errors = sketch.dependencies.map((dependency) =>
-      getDependencyError(sketch, dependency)
+    const errors = sketch.dependencies.map((dependency, position) =>
+      getDependencyError(
+        {
+          ...sketch,
+          dependencies: sketch.dependencies.filter(
+            (_other, index) => index !== position
+          ),
+        },
+        dependency
+      )
     );
 
     // Assert

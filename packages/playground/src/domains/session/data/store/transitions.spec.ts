@@ -117,15 +117,20 @@ function importOf(from: string, to: string): SketchDependency {
  * Builds a value import of an external module.
  * @param from The file that has the dependency.
  * @param moduleName The name of the module.
+ * @param localName The default name it imports, which another import of the same file does not repeat.
  * @returns The dependency, a new object each time.
  */
-function importModule(from: string, moduleName: string): SketchDependency {
+function importModule(
+  from: string,
+  moduleName: string,
+  localName = "x"
+): SketchDependency {
   return {
     from,
     target: { kind: "external", name: moduleName },
     syntax: "import",
     importKind: "value",
-    specifiers: [{ kind: "default", name: "x" }],
+    specifiers: [{ kind: "default", name: localName }],
   };
 }
 
@@ -3453,7 +3458,7 @@ describe("Transitions", () => {
         tab: "dependency",
         textDraft: writeText([
           importOf("src/index.js", "src/helpers/format.js"),
-          importModule("src/index.js", "lodash"),
+          importModule("src/index.js", "lodash", "y"),
           ...DEPENDENCIES,
         ]),
       });

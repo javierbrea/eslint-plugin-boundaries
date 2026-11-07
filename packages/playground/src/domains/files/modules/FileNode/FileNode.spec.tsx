@@ -72,7 +72,7 @@ function renderNode({
 }
 
 /**
- * Adds `import format, { round } from "../../helpers/format/index.js";` to the open file with the picker, as the user does, and waits for the picker to be gone: while it fades out, the pane behind it is hidden from assistive technology.
+ * Adds `import formatDefault, { round } from "../../helpers/format/index.js";` to the open file with the picker, as the user does, and waits for the picker to be gone: while it fades out, the pane behind it is hidden from assistive technology.
  * @param node The page object of the node.
  * @returns A promise that settles when the picker is gone.
  */
@@ -84,7 +84,7 @@ async function addMockupDependency(node: FileNodePom): Promise<void> {
   picker.file.choose(FORMAT);
   picker.names.openEditor();
   picker.names.chooseKind("default");
-  picker.names.typeName("format");
+  picker.names.typeName("formatDefault");
   picker.names.confirm();
   picker.names.openEditor();
   picker.names.chooseKind("named");
@@ -329,7 +329,7 @@ describe("FileNode", () => {
       // Assert
       expect(node.lines.lineTexts).toEqual([
         ...CHECKOUT_LINES,
-        '5import format, { round } from "../../helpers/format/index.js";policy 1',
+        '5import formatDefault, { round } from "../../helpers/format/index.js";policy 1',
       ]);
     });
 
