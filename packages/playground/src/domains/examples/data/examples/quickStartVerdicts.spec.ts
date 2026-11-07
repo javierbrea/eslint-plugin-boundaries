@@ -4,13 +4,13 @@ import type {
   DependencyVerdict,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import {
-  QUICK_START_MESSAGES,
-  QUICK_START_STATEMENTS,
-} from "@/domains/evaluation/helpers/engine/quickStartVerdicts.mock";
 import { toStatement } from "@/domains/project/helpers/sketch";
 
 import { QUICK_START_EXAMPLE } from "./quickStart";
+import {
+  QUICK_START_MESSAGES,
+  QUICK_START_STATEMENTS,
+} from "./quickStartVerdicts.mock";
 
 /** The level of a dependency that is disallowed, by the severity ESLint reports it with */
 const LEVELS = { 1: "warning", 2: "error" } as const;
