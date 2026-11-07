@@ -145,7 +145,7 @@ describe("DependencyPickerDialog", () => {
       );
     });
 
-    it("should preview the source as the resolvers of the config find the file back", () => {
+    it("should preview the source in full, whatever the config says in import/resolver", () => {
       // Arrange
       const from = "src/modules/checkout/index.ts";
       const file = "src/helpers/format/index.ts";
@@ -176,7 +176,7 @@ describe("DependencyPickerDialog", () => {
       node.picker.file.choose(file);
 
       // Assert
-      expect(withTypescript).toBe('import "../../helpers/format";');
+      expect(withTypescript).toBe('import "../../helpers/format/index.ts";');
       expect(node.picker.preview.text).toBe(
         'import "../../helpers/format/index.ts";'
       );

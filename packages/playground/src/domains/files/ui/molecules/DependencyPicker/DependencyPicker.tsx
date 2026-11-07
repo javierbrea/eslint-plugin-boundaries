@@ -222,7 +222,6 @@ function FormRow({
  * @param props.from Path of the file the dependency belongs to.
  * @param props.tree The tree of the sketch.
  * @param props.descriptions The description of each file, by path.
- * @param props.resolvers The resolvers of the config, which the source in the preview is written for.
  * @param props.initial The dependency being edited, or `undefined` to add one.
  * @param props.onCancel Called when the user gives up.
  * @param props.onSubmit Called with the dependency of the draft when the user confirms it, with the name being typed if there is one.
@@ -234,7 +233,6 @@ export function DependencyPicker({
   from,
   tree,
   descriptions,
-  resolvers,
   initial,
   onCancel,
   onSubmit,
@@ -384,9 +382,7 @@ export function DependencyPicker({
           ) : null}
           <FormRow label={PREVIEW_ROW_LABEL} labelId={`${baseId}-preview`}>
             <Preview>
-              <Statement
-                tokens={getPreviewTokens(withPending, from, files, resolvers)}
-              />
+              <Statement tokens={getPreviewTokens(withPending, from)} />
             </Preview>
             {refusal === undefined ? null : (
               <Refusal role="alert">{refusal}</Refusal>

@@ -2,8 +2,6 @@ import { render } from "@testing-library/react";
 
 import type { Sketch, SketchDependency } from "@/contract";
 import type { FileDescription } from "@/domains/evaluation/helpers/engine";
-import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
-import type { SourceResolver } from "@/domains/project/helpers/sketch";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { DependencyPicker } from "./DependencyPicker";
@@ -42,7 +40,7 @@ const DESCRIPTIONS: ReadonlyMap<string, FileDescription> = new Map([
   [INDEX, describeWithTypes(null)],
 ]);
 
-/** The dependency of the mockup, in the form that the sketch holds it: `import format, { round } from "../../helpers/format";`. */
+/** The dependency of the mockup, in the form that the sketch holds it: `import format, { round } from "../../helpers/format/index.js";`. */
 const MOCKUP_DEPENDENCY: SketchDependency = {
   from: FROM,
   target: { kind: "node", path: FORMAT },
@@ -75,7 +73,6 @@ function renderPicker(changes: Partial<DependencyPickerProps> = {}): Page {
     from: FROM,
     tree: TREE,
     descriptions: DESCRIPTIONS,
-    resolvers: DEFAULT_RESOLVERS,
     onCancel: jest.fn(),
     onSubmit: jest.fn(),
     ...changes,
@@ -575,34 +572,26 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import format, { round } from "../../helpers/format";'
+        'import format, { round } from "../../helpers/format/index.js";'
       );
     });
 
-    it("should write the source as the resolvers it is given find the file back", () => {
+    it("should write the source in full, with its extension and its index", () => {
       // Arrange
       const from = "src/modules/checkout/index.ts";
       const file = "src/helpers/format/index.ts";
-      const typescript: SourceResolver = {
-        name: "typescript",
-        extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-      };
-      const { picker, update } = renderPicker({
+      const { picker } = renderPicker({
         from,
         tree: [
           { path: from, kind: "file" },
           { path: file, kind: "file" },
         ],
-        resolvers: [typescript],
       });
-      pickFile(picker, file);
-      const withTypescript = picker.preview.text;
 
       // Act
-      update({ resolvers: DEFAULT_RESOLVERS });
+      pickFile(picker, file);
 
       // Assert
-      expect(withTypescript).toBe('import "../../helpers/format";');
       expect(picker.preview.text).toBe(
         'import "../../helpers/format/index.ts";'
       );
@@ -622,7 +611,10 @@ describe("DependencyPicker", () => {
         { text: " format, { round } ", color: "var(--jsb-code-fg)" },
         { text: "from", color: "var(--jsb-code-keyword)" },
         { text: " ", color: "var(--jsb-code-fg)" },
-        { text: '"../../helpers/format"', color: "var(--jsb-code-string)" },
+        {
+          text: '"../../helpers/format/index.js"',
+          color: "var(--jsb-code-string)",
+        },
         { text: ";", color: "var(--jsb-code-fg)" },
       ]);
     });
@@ -675,9 +667,9 @@ describe("DependencyPicker", () => {
     });
 
     it.each([
-      ["export … from", 'export * from "../../helpers/format";'],
-      ["require()", 'require("../../helpers/format");'],
-      ["import()", 'import("../../helpers/format");'],
+      ["export … from", 'export * from "../../helpers/format/index.js";'],
+      ["require()", 'require("../../helpers/format/index.js");'],
+      ["import()", 'import("../../helpers/format/index.js");'],
     ])("should write the statement of %s", (syntax, statement) => {
       // Arrange
       const { picker } = renderPicker();
@@ -701,7 +693,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import type { Rounding } from "../../helpers/format";'
+        'import type { Rounding } from "../../helpers/format/index.js";'
       );
     });
   });
@@ -976,7 +968,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import format, { round as r } from "../../helpers/format";'
+        'import format, { round as r } from "../../helpers/format/index.js";'
       );
       expect(picker.names.chipTexts).toEqual(["default format"]);
     });
@@ -1063,7 +1055,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import format from "../../helpers/format";'
+        'import format from "../../helpers/format/index.js";'
       );
       expect(picker.names.chipTexts).toEqual(["default format"]);
       expect(props.onSubmit).toHaveBeenCalledWith(
@@ -1133,7 +1125,9 @@ describe("DependencyPicker", () => {
       picker.confirm();
 
       // Assert
-      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(picker.preview.text).toBe(
+        'import "../../helpers/format/index.js";'
+      );
       expect(props.onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({ specifiers: [] })
       );
@@ -1161,7 +1155,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import format, { round } from "../../helpers/format";'
+        'import format, { round } from "../../helpers/format/index.js";'
       );
       expect(props.onSubmit).toHaveBeenCalledWith(MOCKUP_DEPENDENCY);
     });
@@ -1180,7 +1174,7 @@ describe("DependencyPicker", () => {
       // Assert
       expect(picker.names.selectedKind).toBe("named");
       expect(picker.preview.text).toBe(
-        'export { format } from "../../helpers/format";'
+        'export { format } from "../../helpers/format/index.js";'
       );
       expect(props.onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1204,9 +1198,11 @@ describe("DependencyPicker", () => {
       picker.confirm();
 
       // Assert
-      expect(withRequire).toBe('require("../../helpers/format");');
+      expect(withRequire).toBe('require("../../helpers/format/index.js");');
       expect(picker.names.isEditorOpen).toBe(false);
-      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(picker.preview.text).toBe(
+        'import "../../helpers/format/index.js";'
+      );
       expect(props.onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({ specifiers: [] })
       );
@@ -1227,7 +1223,9 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.names.isEditorOpen).toBe(false);
-      expect(picker.preview.text).toBe('import "../../helpers/format";');
+      expect(picker.preview.text).toBe(
+        'import "../../helpers/format/index.js";'
+      );
       expect(props.onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({ specifiers: [] })
       );
@@ -1271,7 +1269,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'export type { Props as ButtonProps } from "../../components/atoms/Button";'
+        'export type { Props as ButtonProps } from "../../components/atoms/Button/index.js";'
       );
     });
 
@@ -1433,7 +1431,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.preview.text).toBe(
-        'import format, { round } from "../../helpers/format";'
+        'import format, { round } from "../../helpers/format/index.js";'
       );
     });
   });

@@ -1168,8 +1168,9 @@ describe("Shell", () => {
       shell.project.foot.pressView("Text");
       const { text } = shell.project;
       const buttonLine =
-        '  import { Button } from "../../components/atoms/Button";';
-      const formatLine = '  import { format } from "../../helpers/format";';
+        '  import { Button } from "../../components/atoms/Button/index.js";';
+      const formatLine =
+        '  import { format } from "../../helpers/format/index.js";';
       const lines = text.value.split("\n");
       // The first dependency of the open file is its first line below it
       const firstLine = lines.indexOf(FILE) + 1;
@@ -1353,9 +1354,9 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.lines.lineTexts).toEqual([
-        '1import { Button } from "../../components/atoms/Button";policy 1',
-        '2import { format } from "../../helpers/format";policy 1',
-        '3import { renderButton } from "../../components/atoms/Button/Button.spec";policy 2',
+        '1import { Button } from "../../components/atoms/Button/index.js";policy 1',
+        '2import { format } from "../../helpers/format/index.js";policy 1',
+        '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
         '4import React from "react";not checked · external',
       ]);
     });
@@ -1453,7 +1454,7 @@ describe("Shell", () => {
 
         // Assert
         expect(shell.node.file.lines.lineTexts[4]).toBe(
-          '5import { round } from "../../helpers/format";policy 1'
+          '5import { round } from "../../helpers/format/index.js";policy 1'
         );
       });
 
@@ -1469,7 +1470,7 @@ describe("Shell", () => {
 
         // Assert
         expect(shell.node.file.lines.lineTexts[4]).toBe(
-          '5import { round } from "../../helpers/format";policy 1'
+          '5import { round } from "../../helpers/format/index.js";policy 1'
         );
       });
 
@@ -1500,7 +1501,7 @@ describe("Shell", () => {
 
         // Assert
         expect(shell.node.file.lines.lineTexts[4]).toBe(
-          '5import { Button } from "../../components/atoms/Button/Button.spec";policy 2'
+          '5import { Button } from "../../components/atoms/Button/Button.spec.js";policy 2'
         );
         expect(getStatus(shell)).toBe("6 files · 10 dependencies · 3 problems");
         expect(getTabs(shell)).toEqual([
@@ -1571,8 +1572,8 @@ describe("Shell", () => {
 
         // Assert
         expect(shell.node.file.lines.lineTexts).toEqual([
-          '1import { Button } from "../../components/atoms/Button";policy 1',
-          '2import { format } from "../../helpers/format";policy 1',
+          '1import { Button } from "../../components/atoms/Button/index.js";policy 1',
+          '2import { format } from "../../helpers/format/index.js";policy 1',
           '3import React from "react";not checked · external',
         ]);
         expect(
@@ -1798,7 +1799,8 @@ describe("Shell", () => {
           verdict: line.verdict.text,
           color: line.verdict.color,
         }).toEqual({
-          statement: 'import { Button } from "../../components/atoms/Button";',
+          statement:
+            'import { Button } from "../../components/atoms/Button/index.js";',
           verdict: "default",
           color: "var(--jsb-code-error)",
         });

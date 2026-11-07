@@ -26,9 +26,9 @@ const FRAME_LABEL = "Pane under test";
 
 /** The four lines of the file of the quick start, as the mockup draws them: a number, the statement and the verdict. */
 const CHECKOUT_LINES = [
-  '1import { Button } from "../../components/atoms/Button";policy 1',
-  '2import { format } from "../../helpers/format";policy 1',
-  '3import { renderButton } from "../../components/atoms/Button/Button.spec";policy 2',
+  '1import { Button } from "../../components/atoms/Button/index.js";policy 1',
+  '2import { format } from "../../helpers/format/index.js";policy 1',
+  '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
   '4import React from "react";not checked · external',
 ];
 
@@ -72,7 +72,7 @@ function renderNode({
 }
 
 /**
- * Adds `import format, { round } from "../../helpers/format";` to the open file with the picker, as the user does, and waits for the picker to be gone: while it fades out, the pane behind it is hidden from assistive technology.
+ * Adds `import format, { round } from "../../helpers/format/index.js";` to the open file with the picker, as the user does, and waits for the picker to be gone: while it fades out, the pane behind it is hidden from assistive technology.
  * @param node The page object of the node.
  * @returns A promise that settles when the picker is gone.
  */
@@ -213,7 +213,7 @@ describe("FileNode", () => {
 
       // Assert
       expect(node.lines.lineTexts[0]).toBe(
-        '1import { Button } from "../../components/atoms/Button";default'
+        '1import { Button } from "../../components/atoms/Button/index.js";default'
       );
     });
   });
@@ -329,7 +329,7 @@ describe("FileNode", () => {
       // Assert
       expect(node.lines.lineTexts).toEqual([
         ...CHECKOUT_LINES,
-        '5import format, { round } from "../../helpers/format";policy 1',
+        '5import format, { round } from "../../helpers/format/index.js";policy 1',
       ]);
     });
 

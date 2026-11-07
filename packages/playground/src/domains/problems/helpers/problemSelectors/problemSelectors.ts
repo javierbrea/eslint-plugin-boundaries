@@ -12,7 +12,6 @@ import {
 } from "@/domains/project/helpers/sketch";
 import type {
   DependencyRef,
-  SourceResolver,
   TextProblem,
 } from "@/domains/project/helpers/sketch";
 import type {
@@ -102,17 +101,15 @@ function findResult(
  * Gets the lines of text mode that cannot be read. It reads the draft as the session does, so that the lines it reports are the ones that keep the draft from settling.
  * @param draft What the user typed in text mode, if anything.
  * @param readsDependencies Whether text mode reads the dependency lines, which is when the host lets the user edit dependencies. When it does not, those lines are never problems.
- * @param resolvers The resolvers of the evaluation, which the sources are read with.
  * @returns The lines that cannot be read, in order; the same empty array when there is no draft.
  */
 export function getTextProblems(
   draft: string | undefined,
-  readsDependencies: boolean,
-  resolvers: readonly SourceResolver[]
+  readsDependencies: boolean
 ): readonly TextProblem[] {
   return draft === undefined
     ? NO_TEXT_PROBLEMS
-    : readTextProblems(draft, { dependencies: readsDependencies, resolvers });
+    : readTextProblems(draft, { dependencies: readsDependencies });
 }
 
 /**

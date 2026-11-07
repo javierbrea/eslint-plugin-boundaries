@@ -616,7 +616,7 @@ export function setTextDraft(state: SessionState, text: string): SessionState {
 }
 
 /**
- * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. The sources are read with the resolvers of the evaluation of the state. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
+ * Reads the text the user typed into the sketch. Lines that cannot be read are left out of the sketch, and the draft keeps them so that the user can fix them. A source that names no file exactly is read with the rule of the playground, which adds an extension or `/index` to it. The dependency lines of the text are read only when the host lets the user edit dependencies; otherwise they are ignored, and the dependencies of the sketch stay as they were, as far as their files remain.
  * @param state The state before.
  * @param settle Whether the user is done with the text: when every line was read, the draft goes, and the text is the sketch's again, in the order of the tree.
  * @returns The state after. A dependency in focus follows its file and, when the text rewrote the dependencies, stays on its line when the line still says the same or says something that no line said before (as long as the file has as many lines), and otherwise follows the line that says the same; its file is in focus when the line is gone.
@@ -631,7 +631,6 @@ function readDraft(state: SessionState, settle: boolean): SessionState {
   // Without `editDependencies` the dependency lines are neither read nor reported, as `getTextProblems` reads them, so a draft whose nodes were all read settles
   const { sketch, problems } = fromText(textDraft, state.sketch, {
     dependencies: state.capabilities.editDependencies,
-    resolvers: state.evaluation.resolvers,
   });
   const read = isSameProject(state.sketch, sketch)
     ? state

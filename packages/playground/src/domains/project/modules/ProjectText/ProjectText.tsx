@@ -16,13 +16,12 @@ import {
 import { PROJECT_TEXT_TEST_ID, READ_DELAY } from "./ProjectText.constants";
 
 /**
- * The project as text, one path per line: a textarea that edits the same sketch as the tree. The sources of the dependencies are written for the resolvers of the config. What the user types is the draft of the store, which shows instead of the sketch's text and whose lines that cannot be read are listed as problems. The draft is read into the sketch 300 ms after the last keystroke, and on blur, which also goes back to the sketch's text when every line was read. Without `editTree` the text is read only.
+ * The project as text, one path per line: a textarea that edits the same sketch as the tree. The sources of the dependencies are written in full, with their extension. What the user types is the draft of the store, which shows instead of the sketch's text and whose lines that cannot be read are listed as problems. The draft is read into the sketch 300 ms after the last keystroke, and on blur, which also goes back to the sketch's text, with every source in full, when every line was read. Without `editTree` the text is read only.
  * @returns The textarea, as tall as its container.
  */
 export function ProjectText(): ReactNode {
   const tree = useTree();
   const dependencies = useSessionSelector((state) => state.sketch.dependencies);
-  const resolvers = useSessionSelector((state) => state.evaluation.resolvers);
   const draft = useTextDraft();
   const { editTree } = useCapabilities();
   const setTextDraft = useSetTextDraft();
@@ -30,8 +29,8 @@ export function ProjectText(): ReactNode {
   const settleText = useSettleText();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const text = useMemo(
-    () => toText({ tree, dependencies }, resolvers),
-    [tree, dependencies, resolvers]
+    () => toText({ tree, dependencies }),
+    [tree, dependencies]
   );
 
   // Going back to the tree drops the draft in the store; the read that was waiting goes with it

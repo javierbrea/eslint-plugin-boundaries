@@ -20,7 +20,9 @@ const QUICK_START: Sketch = { ...FULL_QUICK_START, dependencies: [] };
 
 const FORMAT = "src/helpers/format/index.js";
 
-const BUTTON_SOURCE = "../../components/atoms/Button";
+const BUTTON_SOURCE = "../../components/atoms/Button/index.js";
+
+const BUTTON_SPEC_SOURCE = "../../components/atoms/Button/Button.spec.js";
 
 const TEST_MESSAGE =
   'Dependencies to file of category "test" are not allowed. Denied by policy at index 2';
@@ -254,7 +256,7 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(pane.list.row("Project text:2").message).toContain(
-        '"./y" does not resolve to a file of the sketch: the "node" resolver finds none.'
+        '"./y" does not resolve to a file of the sketch.'
       );
       expect(pane.list.row("Project text:2").meta).toContain(
         "  import x from './y';"
@@ -482,7 +484,7 @@ describe("ProblemsPane", () => {
         expect(getTabs(pane)).toEqual(["Sketch2*"]);
         expect(pane.list.rows.map((row) => row.locationWithPosition)).toEqual([
           `${FORMAT}:1 → ${BUTTON_SOURCE}`,
-          `${FILE}:3 → ${BUTTON_SOURCE}/Button.spec`,
+          `${FILE}:3 → ${BUTTON_SPEC_SOURCE}`,
         ]);
       });
 
@@ -582,10 +584,10 @@ describe("ProblemsPane", () => {
         // Assert
         expect(getTabs(pane)).toEqual(["Sketch2", "checkout/index.js1*"]);
         expect(pane.list.rows.map((row) => row.text)).toEqual([
-          `:3 ${BUTTON_SOURCE}/Button.spec${TEST_MESSAGE}disallowed · policy 2`,
+          `:3 ${BUTTON_SPEC_SOURCE}${TEST_MESSAGE}disallowed · policy 2`,
         ]);
         expect(pane.list.row(":3").location).toBe("");
-        expect(pane.list.row(":3").source).toBe(`${BUTTON_SOURCE}/Button.spec`);
+        expect(pane.list.row(":3").source).toBe(`${BUTTON_SPEC_SOURCE}`);
       });
 
       it("should not list the failing dependencies of other files", () => {

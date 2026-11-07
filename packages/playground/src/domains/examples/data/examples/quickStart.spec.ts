@@ -1,7 +1,6 @@
 import { evaluate, parse } from "@humanwhocodes/momoa";
 
 import {
-  DEFAULT_RESOLVERS,
   buildTree,
   fromText,
   getDependencyError,
@@ -98,11 +97,7 @@ describe("QUICK_START_EXAMPLE", () => {
     const { sketch } = QUICK_START_EXAMPLE;
 
     // Act
-    const { sketch: sorted } = fromText(
-      toText(sketch, DEFAULT_RESOLVERS),
-      sketch,
-      { resolvers: DEFAULT_RESOLVERS }
-    );
+    const { sketch: sorted } = fromText(toText(sketch), sketch);
 
     // Assert
     expect(sketch.tree).toEqual(sorted.tree);
@@ -140,30 +135,30 @@ describe("QUICK_START_EXAMPLE", () => {
     expect(errors).toEqual(sketch.dependencies.map(() => undefined));
   });
 
-  it("should write its dependencies in text mode as the mockup lists them under their files", () => {
+  it("should write its dependencies in text mode under their files, in the order of the mockup and with their sources in full", () => {
     // Act
-    const text = toText(QUICK_START_EXAMPLE.sketch, DEFAULT_RESOLVERS);
+    const text = toText(QUICK_START_EXAMPLE.sketch);
 
     // Assert
-    // The text of the `text` state of the mockup, without its last line (`src/pages/`), which the mockup adds as typing in progress
+    // The text of the `text` state of the mockup, without its last line (`src/pages/`), which the mockup adds as typing in progress, and with the sources in full, which the mockup writes shorter
     expect(text).toBe(
       [
         "eslint.config.js",
         "src/components/atoms/Button/Button.css",
         "src/components/atoms/Button/Button.spec.js",
-        '  import { Button } from "./index";',
+        '  import { Button } from "./index.js";',
         "src/components/atoms/Button/index.js",
-        '  import { format } from "../../../helpers/format";',
+        '  import { format } from "../../../helpers/format/index.js";',
         '  import "./Button.css";',
         "src/helpers/format/index.js",
-        '  import { Button } from "../../components/atoms/Button";',
+        '  import { Button } from "../../components/atoms/Button/index.js";',
         "src/modules/checkout/index.js",
-        '  import { Button } from "../../components/atoms/Button";',
-        '  import { format } from "../../helpers/format";',
-        '  import { renderButton } from "../../components/atoms/Button/Button.spec";',
+        '  import { Button } from "../../components/atoms/Button/index.js";',
+        '  import { format } from "../../helpers/format/index.js";',
+        '  import { renderButton } from "../../components/atoms/Button/Button.spec.js";',
         '  import React from "react";',
         "src/index.js",
-        '  import "./modules/checkout";',
+        '  import "./modules/checkout/index.js";',
         "",
       ].join("\n")
     );

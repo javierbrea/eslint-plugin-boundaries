@@ -8,10 +8,7 @@ import {
   getSyntaxFacts,
   toStatementTokens,
 } from "@/domains/project/helpers/sketch";
-import type {
-  SourceResolver,
-  StatementToken,
-} from "@/domains/project/helpers/sketch";
+import type { StatementToken } from "@/domains/project/helpers/sketch";
 
 import { PREVIEW_PLACEHOLDER } from "./dependencyDraft.constants";
 import type { DependencyDraft } from "./dependencyDraft.types";
@@ -97,25 +94,18 @@ export function toDependency(
 }
 
 /**
- * Writes the statement of a draft, as the pieces that the preview colors. A draft with no target yet has `…` as its source.
+ * Writes the statement of a draft, as the pieces that the preview colors, with the source in full. A draft with no target yet has `…` as its source.
  * @param draft The draft.
  * @param from The path of the file the dependency belongs to.
- * @param files The paths of the files of the sketch, which the source of a file is written among.
- * @param resolvers The resolvers of the config, which the source of a file is written for.
  * @returns The pieces of the statement, in order.
  */
 export function getPreviewTokens(
   draft: DependencyDraft,
-  from: string,
-  files: readonly string[],
-  resolvers: readonly SourceResolver[]
+  from: string
 ): readonly StatementToken[] {
   const dependency =
     toDependency(draft, from) ??
     withTarget(draft, from, { kind: "external", name: PREVIEW_PLACEHOLDER });
 
-  return toStatementTokens(
-    dependency,
-    getDependencySource(files, dependency, resolvers)
-  );
+  return toStatementTokens(dependency, getDependencySource(dependency));
 }

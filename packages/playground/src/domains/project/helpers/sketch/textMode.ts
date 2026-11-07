@@ -8,17 +8,13 @@ import type {
 import { getDependencyError } from "./dependencies";
 import { normalizePath } from "./paths";
 import { CONFIG_PATH } from "./sketch.constants";
-import type {
-  SourceResolver,
-  TextProblem,
-  TextReadOptions,
-  TextResult,
-} from "./sketch.types";
+import type { TextProblem, TextReadOptions, TextResult } from "./sketch.types";
 import {
-  getSourceAmong,
+  findSourceFiles,
+  getDependencySource,
   isRelativeSource,
   parseStatement,
-  resolveAmong,
+  toRelativePath,
   toStatement,
 } from "./statements";
 import { canonicalizeNodes, getAddError, getFiles } from "./tree";
@@ -45,23 +41,16 @@ type PendingDependency = {
 };
 
 /**
- * Writes a sketch as text mode shows it: `eslint.config.js` first, then one line per file and per empty folder, in the order of the tree, with a `/` after the name of a folder. The dependencies of a file follow its line, in order, indented two spaces and written as import statements with the sources that {@link getSourceAmong} gives against the files of the tree, as the resolvers of the config find them back. The dependencies of something that is not a file of the tree are not written.
+ * Writes a sketch as text mode shows it: `eslint.config.js` first, then one line per file and per empty folder, in the order of the tree, with a `/` after the name of a folder. The dependencies of a file follow its line, in order, indented two spaces and written as import statements with the sources that {@link getDependencySource} gives, in full. The dependencies of something that is not a file of the tree are not written.
  * @param sketch The sketch to write: only its tree and dependencies count, so that a caller can keep the text while the config changes.
- * @param resolvers The resolvers of the `import/resolver` setting that the sources are written for, in the order they are tried, as `Evaluation.resolvers` has them.
  * @returns The text, which ends with a newline.
  */
-export function toText(
-  sketch: Pick<Sketch, "tree" | "dependencies">,
-  resolvers: readonly SourceResolver[]
-): string {
+export function toText(sketch: Pick<Sketch, "tree" | "dependencies">): string {
   const nodes = canonicalizeNodes(sketch.tree);
-  const files = new Set(
-    nodes.filter(({ kind }) => kind === "file").map(({ path }) => path)
-  );
   const statements = new Map<string, string[]>();
 
   for (const dependency of sketch.dependencies) {
-    const source = getSourceAmong(files, dependency, resolvers);
+    const source = getDependencySource(dependency);
     const written = statements.get(dependency.from) ?? [];
 
     written.push(`  ${toStatement(dependency, source)}`);
@@ -76,36 +65,36 @@ export function toText(
 }
 
 /**
- * Names the resolvers that tried a source, so that the reason of a source that resolves to nothing says which ones: with the default `node` resolver, `./b` finds no `b.ts`.
- * @param resolvers The resolvers that the source was read with.
- * @returns `the "node" resolver finds`, or `the "typescript" and "node" resolvers find` for several, each name once.
+ * Tells why a source that matches several files is not read: it never picks one silently.
+ * @param source The source, without quotes.
+ * @param from The path of the file that has the source.
+ * @param candidates The paths of the files it can be, at least two, in the order of {@link findSourceFiles}.
+ * @returns A sentence for the user that lists the full source of each candidate, as the statement of the file would write it, such as `"./b" can be "./b.js", "./b.ts" or "./b/index.js". Write the one you mean, with its extension.`
  */
-function describeResolvers(resolvers: readonly SourceResolver[]): string {
-  const names = Array.from(
-    new Set(resolvers.map((resolver) => `"${resolver.name}"`))
-  );
-  const last = names.at(-1);
+function getAmbiguityReason(
+  source: string,
+  from: string,
+  candidates: readonly string[]
+): string {
+  const sources = candidates.map((path) => `"${toRelativePath(from, path)}"`);
+  const last = sources[sources.length - 1];
 
-  return names.length === 1
-    ? `the ${last} resolver finds`
-    : `the ${names.slice(0, -1).join(", ")} and ${last} resolvers find`;
+  return `"${source}" can be ${sources.slice(0, -1).join(", ")} or ${last}. Write the one you mean, with its extension.`;
 }
 
 /**
- * Reads an indented line as a dependency of a file.
+ * Reads an indented line as a dependency of a file. A relative source is read with the rule of {@link findSourceFiles}: it must match exactly one file.
  * @param text The line as it was written.
  * @param from The path of the file above the line.
  * @param nodes The nodes that the text declares.
  * @param files The paths of the files among them.
- * @param resolvers The resolvers that the source is read with.
  * @returns The dependency, or why the line cannot be read, as a sentence for the user.
  */
 function readDependency(
   text: string,
   from: string,
   nodes: readonly SketchNode[],
-  files: ReadonlySet<string>,
-  resolvers: readonly SourceResolver[]
+  files: ReadonlySet<string>
 ): SketchDependency | string {
   const parsed = parseStatement(text);
 
@@ -117,12 +106,15 @@ function readDependency(
   let target: SketchDependencyTarget;
 
   if (isRelativeSource(source)) {
-    const path = resolveAmong(files, from, source, resolvers);
+    const candidates = findSourceFiles(files, from, source);
 
-    if (path === undefined) {
-      return `"${source}" does not resolve to a file of the sketch: ${describeResolvers(resolvers)} none.`;
+    if (candidates.length === 0) {
+      return `"${source}" does not resolve to a file of the sketch.`;
     }
-    target = { kind: "node", path };
+    if (candidates.length > 1) {
+      return getAmbiguityReason(source, from, candidates);
+    }
+    target = { kind: "node", path: candidates[0] };
   } else if (source.startsWith("/")) {
     return `"${source}" is an absolute path: write the source relative to the file, starting with ./ or ../.`;
   } else {
@@ -160,14 +152,12 @@ function readNodeLine(
  * @param pending The indented line.
  * @param nodes The nodes that the text declares.
  * @param files The paths of the files among them.
- * @param resolvers The resolvers that the source is read with.
  * @returns The dependency, or why the line cannot be read, as a sentence for the user.
  */
 function readIndented(
   pending: PendingDependency,
   nodes: readonly SketchNode[],
-  files: ReadonlySet<string>,
-  resolvers: readonly SourceResolver[]
+  files: ReadonlySet<string>
 ): SketchDependency | string {
   const { text, owner } = pending;
 
@@ -175,7 +165,7 @@ function readIndented(
     return NO_FILE_REASON;
   }
   return owner.kind === "file"
-    ? readDependency(text, owner.path, nodes, files, resolvers)
+    ? readDependency(text, owner.path, nodes, files)
     : FOLDER_REASON;
 }
 
@@ -183,13 +173,11 @@ function readIndented(
  * Reads the indented lines once every file of the text is known, so that a dependency can point to a file written below it.
  * @param pending The indented lines, in order.
  * @param nodes The nodes that the text declares.
- * @param resolvers The resolvers that the sources are read with.
  * @returns The dependencies that were read, in order, and the problems of the lines that were left out.
  */
 function readPending(
   pending: readonly PendingDependency[],
-  nodes: readonly SketchNode[],
-  resolvers: readonly SourceResolver[]
+  nodes: readonly SketchNode[]
 ): {
   readonly dependencies: readonly SketchDependency[];
   readonly problems: readonly TextProblem[];
@@ -199,7 +187,7 @@ function readPending(
   const problems: TextProblem[] = [];
 
   for (const item of pending) {
-    const result = readIndented(item, nodes, files, resolvers);
+    const result = readIndented(item, nodes, files);
 
     if (typeof result === "string") {
       problems.push({ line: item.line, text: item.text, reason: result });
@@ -214,13 +202,11 @@ function readPending(
  * Reads the lines of text mode. Blank lines and the `eslint.config.js` line are skipped. A line that is not indented is a path, cleaned up with {@link normalizePath}, that ends with `/` for a folder. An indented line is a dependency of the file line above it, or nothing when the dependencies are not read. A line that cannot be read is a problem and is left out: an invalid path, a duplicate, a path under a file, a file where a folder is, a dependency under a folder or under no file (the config line and a line that was left out own nothing), or a dependency that cannot be read as {@link readDependency} says.
  * @param text The text to read.
  * @param readDependencies Whether an indented line is read as a dependency. When it is not, it is skipped as a blank line is: it is neither read nor reported.
- * @param resolvers The resolvers that the sources of the dependencies are read with.
  * @returns The nodes of the valid lines, the dependencies of the valid lines in the order of the text, and the problems of the lines that were left out, in order.
  */
 function readLines(
   text: string,
-  readDependencies: boolean,
-  resolvers: readonly SourceResolver[]
+  readDependencies: boolean
 ): {
   readonly nodes: readonly SketchNode[];
   readonly dependencies: readonly SketchDependency[];
@@ -256,7 +242,7 @@ function readLines(
     }
   }
 
-  const read = readPending(pending, nodes, resolvers);
+  const read = readPending(pending, nodes);
 
   return {
     nodes,
@@ -272,14 +258,13 @@ function readLines(
  * @param text The text to read.
  * @param options What text mode reads: the lines of the dependencies are never reported when it does not read them.
  * @param options.dependencies Whether the indented lines are read as dependencies; `true` when it is not given.
- * @param options.resolvers The resolvers of the `import/resolver` setting that the sources are read with, in the order they are tried, as `Evaluation.resolvers` has them: a source that none of them resolves to a file of the text is a problem.
  * @returns The problems of the lines that would be left out, in order.
  */
 export function readTextProblems(
   text: string,
-  { dependencies = true, resolvers }: TextReadOptions
+  { dependencies = true }: TextReadOptions = {}
 ): readonly TextProblem[] {
-  return readLines(text, dependencies, resolvers).problems;
+  return readLines(text, dependencies).problems;
 }
 
 /**
@@ -306,19 +291,14 @@ function keepDependencies(
  * @param sketch The sketch that the text edits. It is not changed.
  * @param options What text mode reads: the dependencies of the text, unless it says otherwise.
  * @param options.dependencies Whether the indented lines are read as dependencies; `true` when it is not given.
- * @param options.resolvers The resolvers of the `import/resolver` setting that the sources are read with, in the order they are tried, as `Evaluation.resolvers` has them.
  * @returns The new sketch and the problems of the lines that were left out, in order.
  */
 export function fromText(
   text: string,
   sketch: Sketch,
-  { dependencies: readDependencies = true, resolvers }: TextReadOptions
+  { dependencies: readDependencies = true }: TextReadOptions = {}
 ): TextResult {
-  const { nodes, dependencies, problems } = readLines(
-    text,
-    readDependencies,
-    resolvers
-  );
+  const { nodes, dependencies, problems } = readLines(text, readDependencies);
   const tree = canonicalizeNodes(nodes);
 
   return {

@@ -1,10 +1,4 @@
-export {
-  CONFIG_PATH,
-  DEFAULT_RESOLVER_EXTENSIONS,
-  DEFAULT_RESOLVERS,
-  SOURCE_RESOLVER_NAMES,
-  SYNTAX_FACTS,
-} from "./sketch.constants";
+export { CONFIG_PATH, SYNTAX_FACTS } from "./sketch.constants";
 export type {
   DependencyRef,
   EditResult,
@@ -12,8 +6,6 @@ export type {
   NormalizedPath,
   ParsedStatement,
   RenameResult,
-  SourceResolver,
-  SourceResolverName,
   SpecifierKind,
   StatementToken,
   SyntaxFacts,

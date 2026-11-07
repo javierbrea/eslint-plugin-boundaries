@@ -1166,18 +1166,7 @@ describe("Evaluate", () => {
       });
     });
 
-    describe("with the resolvers of the config", () => {
-      const NODE_RESOLVERS = [
-        { name: "node", extensions: [".mjs", ".js", ".json", ".node"] },
-      ];
-
-      const TYPESCRIPT_RESOLVERS = [
-        {
-          name: "typescript",
-          extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-        },
-      ];
-
+    describe("with the sources of the dependencies", () => {
       const TYPESCRIPT_FILES = [
         "src/a.ts",
         "src/b.ts",
@@ -1207,7 +1196,7 @@ describe("Evaluate", () => {
         );
       }
 
-      it("should use the node resolver while the config does not set them, and write the sources of the quick start as it does", () => {
+      it("should give each dependency the full source of its target, as the statement of the quick start writes it", () => {
         // Arrange
         const sketch = createSketch(
           QUICK_START_CONFIG,
@@ -1216,40 +1205,30 @@ describe("Evaluate", () => {
         );
 
         // Act
-        const { resolvers, dependencies } = evaluate(sketch);
+        const { dependencies } = evaluate(sketch);
 
         // Assert
-        expect(resolvers).toEqual(NODE_RESOLVERS);
         expect(dependencies.map(({ source }) => source)).toEqual([
-          "./index",
-          "../../../helpers/format",
+          "./index.js",
+          "../../../helpers/format/index.js",
           "./Button.css",
-          "../../components/atoms/Button",
-          "../../components/atoms/Button",
-          "../../helpers/format",
-          "../../components/atoms/Button/Button.spec",
+          "../../components/atoms/Button/index.js",
+          "../../components/atoms/Button/index.js",
+          "../../helpers/format/index.js",
+          "../../components/atoms/Button/Button.spec.js",
           "react",
-          "./modules/checkout",
+          "./modules/checkout/index.js",
         ]);
       });
 
-      it("should use the node resolver when the config cannot be read", () => {
-        // Act
-        const { resolvers } = evaluate(
-          createSketch("{ settings: ", QUICK_START_FILES)
-        );
-
-        // Assert
-        expect(resolvers).toEqual(NODE_RESOLVERS);
-      });
-
-      it("should write the sources for the resolvers of import/resolver", () => {
+      it("should write the same full sources and warn about nothing, whatever the config says in import/resolver", () => {
         // Arrange
-        const sources = [
+        const sketches = [
           {},
           { "import/resolver": "typescript" },
           { "import/resolver": ["typescript", "node"] },
           { "import/resolver": { node: { extensions: [".ts"] } } },
+          { "import/resolver": { webpack: {} } },
           { "import/resolve": { extensions: [".ts", ".tsx"] } },
         ].map((settings) =>
           createSketch(
@@ -1260,155 +1239,17 @@ describe("Evaluate", () => {
         );
 
         // Act
-        const written = sources.map((sketch) =>
-          evaluate(sketch).dependencies.map(({ source }) => source)
-        );
+        const evaluations = sketches.map((sketch) => evaluate(sketch));
 
         // Assert
-        expect(written).toEqual([
-          ["./b.ts", "./c", "./d/index.tsx"],
-          ["./b", "./c.mjs", "./d"],
-          ["./b", "./c", "./d"],
-          ["./b", "./c.mjs", "./d/index.tsx"],
-          ["./b", "./c.mjs", "./d"],
-        ]);
-      });
-
-      it("should say which resolvers it ran", () => {
-        // Act
-        const { resolvers } = evaluate(
-          createSketch(
-            configWithSettings({
-              "import/resolver": {
-                typescript: { extensions: [".ts"] },
-                node: true,
-              },
-            }),
-            TYPESCRIPT_FILES
+        expect(
+          evaluations.map(({ dependencies }) =>
+            dependencies.map(({ source }) => source)
           )
+        ).toEqual(sketches.map(() => ["./b.ts", "./c.mjs", "./d/index.tsx"]));
+        expect(evaluations.map(({ problems }) => problems)).toEqual(
+          sketches.map(() => [])
         );
-
-        // Assert
-        expect(resolvers).toEqual([
-          { name: "typescript", extensions: [".ts"] },
-          { name: "node", extensions: [".mjs", ".js", ".json", ".node"] },
-        ]);
-      });
-
-      it("should warn about a resolver it does not run, after the warning about the additional dependency nodes, and still write the sources", () => {
-        // Arrange
-        const config = `{
-  settings: {
-    "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }],
-    "import/resolver": ["alias", "typescript"],
-    "boundaries/additional-dependency-nodes": [
-      { selector: "ImportDeclaration > Literal", kind: "value", name: "custom" },
-    ],
-    "boundaries/cache": "yes",
-  },
-}`;
-        const sketch = createSketch(
-          config,
-          TYPESCRIPT_FILES,
-          TYPESCRIPT_DEPENDENCIES
-        );
-
-        // Act
-        const { problems, resolvers, dependencies } = evaluate(sketch);
-
-        // Assert
-        expect(problems.map(({ path }) => path)).toEqual([
-          ["settings", "boundaries/cache"],
-          ["settings", "boundaries/additional-dependency-nodes"],
-          ["settings", "import/resolver", 0],
-        ]);
-        expect(problems[2]).toEqual({
-          level: "warning",
-          title: 'The playground does not run the "alias" resolver.',
-          detail:
-            'The playground finds the files of the sources with the "node" and "typescript" resolvers only, so ESLint can resolve a source to another file.',
-          links: [],
-          path: ["settings", "import/resolver", 0],
-          range: expect.objectContaining({ line: 4, column: 25 }),
-          source: "config",
-        });
-        expect(slice(config, problems[2].range)).toBe('"alias"');
-        expect(resolvers).toEqual(TYPESCRIPT_RESOLVERS);
-        expect(dependencies.map(({ source }) => source)).toEqual([
-          "./b",
-          "./c.mjs",
-          "./d",
-        ]);
-      });
-
-      it("should warn and use the node resolver when the config sets only resolvers it does not run", () => {
-        // Arrange
-        const sketch = createSketch(
-          configWithSettings({ "import/resolver": { webpack: {} } }),
-          TYPESCRIPT_FILES,
-          TYPESCRIPT_DEPENDENCIES
-        );
-
-        // Act
-        const { problems, resolvers, dependencies } = evaluate(sketch);
-
-        // Assert
-        expect(problems.map(({ title }) => title)).toEqual([
-          'The playground does not run the "webpack" resolver.',
-        ]);
-        expect(problems[0].detail).toContain(
-          'None of the resolvers of the setting is one it runs, so it uses "node" with its default extensions.'
-        );
-        expect(resolvers).toEqual(NODE_RESOLVERS);
-        expect(dependencies.map(({ source }) => source)).toEqual([
-          "./b.ts",
-          "./c",
-          "./d/index.tsx",
-        ]);
-      });
-
-      it("should warn about a value that is not a resolver config", () => {
-        // Arrange
-        const sketch = createSketch(
-          configWithSettings({ "import/resolver": ["typescript", 5] }),
-          TYPESCRIPT_FILES
-        );
-
-        // Act
-        const { problems, resolvers } = evaluate(sketch);
-
-        // Assert
-        expect(problems.map(({ title, path }) => ({ title, path }))).toEqual([
-          {
-            title:
-              'The playground does not run a value of "import/resolver" that is not a resolver.',
-            path: ["settings", "import/resolver", 1],
-          },
-        ]);
-        expect(resolvers).toEqual(TYPESCRIPT_RESOLVERS);
-      });
-
-      it("should give the same resolvers to sketches with the same config text, and others when the text changes", () => {
-        // Arrange
-        const config = configWithSettings({ "import/resolver": "typescript" });
-        const first = createSketch(config, TYPESCRIPT_FILES);
-        const second = createSketch(config, [...TYPESCRIPT_FILES, "src/e.ts"]);
-        const third = createSketch(
-          configWithSettings({ "import/resolver": "node" }),
-          TYPESCRIPT_FILES
-        );
-
-        // Act
-        const [firstResolvers, secondResolvers, thirdResolvers] = [
-          first,
-          second,
-          third,
-        ].map((sketch) => evaluate(sketch).resolvers);
-
-        // Assert
-        expect(secondResolvers).toBe(firstResolvers);
-        expect(thirdResolvers).not.toBe(firstResolvers);
-        expect(thirdResolvers).toEqual(NODE_RESOLVERS);
       });
     });
 
@@ -1495,19 +1336,19 @@ describe("Evaluate", () => {
           [
             "src/modules/checkout/index.js",
             0,
-            "../../components/atoms/Button",
+            "../../components/atoms/Button/index.js",
             "not-evaluated",
           ],
           [
             "src/modules/checkout/index.js",
             1,
-            "../../components/atoms/Button/Button.spec",
+            "../../components/atoms/Button/Button.spec.js",
             "not-evaluated",
           ],
           [
             "src/helpers/format/index.js",
             0,
-            "../../components/atoms/Button",
+            "../../components/atoms/Button/index.js",
             "not-evaluated",
           ],
         ]);
@@ -2093,13 +1934,13 @@ describe("Evaluate", () => {
             {
               dependency: CHECKOUT_DEPENDENCIES[0],
               ref: { path: "src/modules/checkout/index.js", index: 0 },
-              source: "../../components/atoms/Button",
+              source: "../../components/atoms/Button/index.js",
               verdict: { status: "not-evaluated" },
             },
             {
               dependency: CHECKOUT_DEPENDENCIES[2],
               ref: { path: "src/helpers/format/index.js", index: 0 },
-              source: "../../components/atoms/Button",
+              source: "../../components/atoms/Button/index.js",
               verdict: { status: "not-evaluated" },
             },
           ]);

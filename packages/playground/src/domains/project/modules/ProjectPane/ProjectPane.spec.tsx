@@ -1759,7 +1759,7 @@ describe("ProjectPane", () => {
           "src/components/Button.js",
           "src/components/Price.js",
           "src/index.js",
-          '  import "./components/Button";',
+          '  import "./components/Button.js";',
           "index.js",
           '  import "react";',
           "",

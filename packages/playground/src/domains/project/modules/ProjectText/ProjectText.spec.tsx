@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import type { Sketch } from "@/contract";
 import { useTextProblems } from "@/domains/problems/modules/hooks/useTextProblems";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
-import { EVALUATION_DELAY } from "@/domains/session/data/store/store.constants";
 import {
   NO_CAPABILITIES,
   renderInSession,
@@ -130,7 +129,7 @@ describe("ProjectText", () => {
         "docs/",
         "src/components/Button.js",
         "src/index.js",
-        '  import "./components/Button";',
+        '  import "./components/Button.js";',
         "",
       ].join("\n")
     );
@@ -198,12 +197,9 @@ describe("ProjectText", () => {
     expect(isReadOnly).toBe(false);
   });
 
-  describe("with the resolvers of the config", () => {
-    const TYPESCRIPT_SETTINGS =
-      '{ settings: { "import/resolver": "typescript" }, rules: {} }';
-
+  describe("with the sources of the dependencies", () => {
     const TYPESCRIPT_SKETCH: Sketch = {
-      config: "{ settings: {}, rules: {} }",
+      config: '{ settings: { "import/resolver": "typescript" }, rules: {} }',
       tree: [
         { path: "src/a.ts", kind: "file" },
         { path: "src/b.ts", kind: "file" },
@@ -219,76 +215,65 @@ describe("ProjectText", () => {
       ],
     };
 
-    it("should write the sources as the node resolver finds them back while the config sets no resolver", () => {
+    it("should write the sources in full, whatever the config says in import/resolver", () => {
       // Arrange
-      const { text } = renderText(TYPESCRIPT_SKETCH);
-
-      // Act
-      const { value } = text;
-
-      // Assert
-      expect(value).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\nsrc/b.ts\n'
-      );
-    });
-
-    it("should write the sources as the resolvers of the config find them back", () => {
-      // Arrange
-      const { text } = renderText({
-        ...TYPESCRIPT_SKETCH,
-        config: TYPESCRIPT_SETTINGS,
-      });
-
-      // Act
-      const { value } = text;
-
-      // Assert
-      expect(value).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b";\nsrc/b.ts\n'
-      );
-    });
-
-    it("should write the sources again when the config changes the resolvers", () => {
-      // Arrange
-      const { store, text } = renderText(TYPESCRIPT_SKETCH);
-
-      // Act
-      act(() => store.changeConfig(TYPESCRIPT_SETTINGS));
-      wait(EVALUATION_DELAY);
-
-      // Assert
-      expect(text.value).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b";\nsrc/b.ts\n'
-      );
-    });
-
-    it("should read the sources of the text with the resolvers of the config", () => {
-      // Arrange
-      const typed = 'src/a.ts\n  import "./b";\nsrc/b.ts\n';
-      const withTypescript = renderText({
-        ...TYPESCRIPT_SKETCH,
-        config: TYPESCRIPT_SETTINGS,
-        dependencies: [],
-      });
-      withTypescript.text.type(typed);
-      wait(300);
-      const typescriptDependencies =
-        withTypescript.store.getState().sketch.dependencies;
-      const typescriptProblems = withTypescript.getTextProblems();
+      const withTypescript = renderText(TYPESCRIPT_SKETCH);
+      const written = withTypescript.text.value;
       withTypescript.unmount();
 
       // Act
-      const withNode = renderText({ ...TYPESCRIPT_SKETCH, dependencies: [] });
-      withNode.text.type(typed);
-      wait(300);
+      const { text } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        config: "{ settings: {}, rules: {} }",
+      });
 
       // Assert
-      expect(typescriptDependencies).toEqual(TYPESCRIPT_SKETCH.dependencies);
-      expect(typescriptProblems).toEqual([]);
-      expect(withNode.store.getState().sketch.dependencies).toEqual([]);
-      expect(withNode.getTextProblems()).toEqual([
-        '2|  import "./b";|"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
+      expect(written).toBe(
+        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\nsrc/b.ts\n'
+      );
+      expect(text.value).toBe(written);
+    });
+
+    it("should read a source that names no file exactly, and write it in full when the text settles", () => {
+      // Arrange
+      const { store, text, getTextProblems } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        dependencies: [],
+      });
+      text.type('src/a.ts\n  import "./b";\nsrc/b.ts\n');
+
+      // Act
+      text.blur();
+
+      // Assert
+      expect(store.getState().sketch.dependencies).toEqual(
+        TYPESCRIPT_SKETCH.dependencies
+      );
+      expect(getTextProblems()).toEqual([]);
+      expect(text.value).toBe(
+        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\nsrc/b.ts\n'
+      );
+      expect(store.getState().textDraft).toBeUndefined();
+    });
+
+    it("should report a source that can be several files, and keep what the user typed", () => {
+      // Arrange
+      const typed = 'src/a.ts\n  import "./b";\nsrc/b.js\nsrc/b.ts\n';
+      const { store, text, getTextProblems } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        dependencies: [],
+      });
+      text.type(typed);
+
+      // Act
+      text.blur();
+
+      // Assert
+      expect(getTextProblems()).toEqual([
+        '2|  import "./b";|"./b" can be "./b.js" or "./b.ts". Write the one you mean, with its extension.',
       ]);
+      expect(store.getState().sketch.dependencies).toEqual([]);
+      expect(text.value).toBe(typed);
     });
   });
 

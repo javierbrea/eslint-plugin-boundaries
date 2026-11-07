@@ -46,9 +46,9 @@ describe("dependencyLines", () => {
 
       // Assert
       expect(lines.map(readStatement)).toEqual([
-        'import { Button } from "../../components/atoms/Button";',
-        'import { format } from "../../helpers/format";',
-        'import { renderButton } from "../../components/atoms/Button/Button.spec";',
+        'import { Button } from "../../components/atoms/Button/index.js";',
+        'import { format } from "../../helpers/format/index.js";',
+        'import { renderButton } from "../../components/atoms/Button/Button.spec.js";',
         'import React from "react";',
       ]);
     });

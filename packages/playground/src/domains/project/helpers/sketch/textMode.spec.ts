@@ -7,17 +7,8 @@ import type {
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
 import { addDependency, replaceDependency } from "./dependencies";
-import { DEFAULT_RESOLVERS } from "./sketch.constants";
-import type { EditResult, SourceResolver } from "./sketch.types";
+import type { EditResult } from "./sketch.types";
 import { fromText, readTextProblems, toText } from "./textMode";
-
-/** The `typescript` resolver with its default extensions, written out so that the specs say what it tries */
-const TYPESCRIPT_RESOLVERS: readonly SourceResolver[] = [
-  {
-    name: "typescript",
-    extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-  },
-];
 
 /**
  * Creates a dependency of a file on a node of the sketch, with the fields given.
@@ -101,24 +92,24 @@ function specifiers(
   });
 }
 
-/** The text of the `text` state of the mockup of the playground, without its last line (`src/pages/`), which the mockup adds as typing in progress */
+/** The text of the `text` state of the mockup of the playground, without its last line (`src/pages/`), which the mockup adds as typing in progress, and with the sources in full, which the mockup writes shorter */
 const QUICK_START_TEXT = [
   "eslint.config.js",
   "src/components/atoms/Button/Button.css",
   "src/components/atoms/Button/Button.spec.js",
-  '  import { Button } from "./index";',
+  '  import { Button } from "./index.js";',
   "src/components/atoms/Button/index.js",
-  '  import { format } from "../../../helpers/format";',
+  '  import { format } from "../../../helpers/format/index.js";',
   '  import "./Button.css";',
   "src/helpers/format/index.js",
-  '  import { Button } from "../../components/atoms/Button";',
+  '  import { Button } from "../../components/atoms/Button/index.js";',
   "src/modules/checkout/index.js",
-  '  import { Button } from "../../components/atoms/Button";',
-  '  import { format } from "../../helpers/format";',
-  '  import { renderButton } from "../../components/atoms/Button/Button.spec";',
+  '  import { Button } from "../../components/atoms/Button/index.js";',
+  '  import { format } from "../../helpers/format/index.js";',
+  '  import { renderButton } from "../../components/atoms/Button/Button.spec.js";',
   '  import React from "react";',
   "src/index.js",
-  '  import "./modules/checkout";',
+  '  import "./modules/checkout/index.js";',
   "",
 ].join("\n");
 
@@ -161,7 +152,7 @@ describe("TextMode", () => {
   describe("toText", () => {
     it("should write the config first, then a line per file and per empty folder", () => {
       // Act
-      const text = toText(SKETCH, DEFAULT_RESOLVERS);
+      const text = toText(SKETCH);
 
       // Assert
       expect(text).toBe(
@@ -179,7 +170,7 @@ describe("TextMode", () => {
 
     it("should write the quick start example as the text of the mockup, with its dependencies under their files", () => {
       // Act
-      const text = toText(QUICK_START_EXAMPLE.sketch, DEFAULT_RESOLVERS);
+      const text = toText(QUICK_START_EXAMPLE.sketch);
 
       // Assert
       expect(text).toBe(QUICK_START_TEXT);
@@ -187,39 +178,48 @@ describe("TextMode", () => {
 
     it("should write only the config line for an empty sketch", () => {
       // Act
-      const text = toText(createSketch([]), DEFAULT_RESOLVERS);
+      const text = toText(createSketch([]));
 
       // Assert
       expect(text).toBe("eslint.config.js\n");
     });
 
-    it("should write the sources that the resolvers of the config find back", () => {
+    it("should write the sources in full, with their extension", () => {
       // Arrange
       const sketch = createSketch(
         [
           { path: "src/a.ts", kind: "file" },
           { path: "src/b.ts", kind: "file" },
           { path: "src/c.mjs", kind: "file" },
+          { path: "src/d/index.d.ts", kind: "file" },
+          { path: "lib/e.css", kind: "file" },
         ],
-        [toNode("src/a.ts", "src/b.ts"), toNode("src/a.ts", "src/c.mjs")]
+        [
+          toNode("src/a.ts", "src/b.ts"),
+          toNode("src/a.ts", "src/c.mjs"),
+          toNode("src/a.ts", "src/d/index.d.ts"),
+          toNode("src/a.ts", "lib/e.css"),
+        ]
       );
 
       // Act
-      const [typescript, node, both] = [
-        TYPESCRIPT_RESOLVERS,
-        DEFAULT_RESOLVERS,
-        [...TYPESCRIPT_RESOLVERS, ...DEFAULT_RESOLVERS],
-      ].map((resolvers) => toText(sketch, resolvers));
+      const text = toText(sketch);
 
       // Assert
-      expect(typescript).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b";\n  import "./c.mjs";\nsrc/b.ts\nsrc/c.mjs\n'
-      );
-      expect(node).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\n  import "./c";\nsrc/b.ts\nsrc/c.mjs\n'
-      );
-      expect(both).toBe(
-        'eslint.config.js\nsrc/a.ts\n  import "./b";\n  import "./c";\nsrc/b.ts\nsrc/c.mjs\n'
+      expect(text).toBe(
+        [
+          "eslint.config.js",
+          "lib/e.css",
+          "src/d/index.d.ts",
+          "src/a.ts",
+          '  import "./b.ts";',
+          '  import "./c.mjs";',
+          '  import "./d/index.d.ts";',
+          '  import "../lib/e.css";',
+          "src/b.ts",
+          "src/c.mjs",
+          "",
+        ].join("\n")
       );
     });
 
@@ -231,7 +231,7 @@ describe("TextMode", () => {
       ]);
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
       expect(text).toBe(
@@ -242,7 +242,7 @@ describe("TextMode", () => {
           "src/helpers/format.js",
           "src/pages/",
           "src/index.js",
-          '  import "./helpers/format";',
+          '  import "./helpers/format.js";',
           '  import "react";',
           "",
         ].join("\n")
@@ -259,7 +259,7 @@ describe("TextMode", () => {
       ]);
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
       expect(text).toBe(
@@ -298,7 +298,7 @@ describe("TextMode", () => {
       ]);
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
       expect(text).toBe(
@@ -309,16 +309,16 @@ describe("TextMode", () => {
           "src/helpers/format.js",
           "src/pages/",
           "src/index.js",
-          '  import format, { round as r } from "./helpers/format";',
-          '  export type * from "./helpers/format";',
-          '  require("./helpers/format");',
-          '  import("./helpers/format");',
+          '  import format, { round as r } from "./helpers/format.js";',
+          '  export type * from "./helpers/format.js";',
+          '  require("./helpers/format.js");',
+          '  import("./helpers/format.js");',
           "",
         ].join("\n")
       );
     });
 
-    it("should write the source that resolves back to the file when another file would resolve first", () => {
+    it("should write the file beside a folder with the same name, and the index of that folder, apart", () => {
       // Arrange
       const sketch = createSketch(
         [
@@ -333,7 +333,7 @@ describe("TextMode", () => {
       );
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
       expect(text).toBe(
@@ -342,8 +342,8 @@ describe("TextMode", () => {
           "src/Button/index.js",
           "src/Button.js",
           "src/index.js",
-          '  import "./Button";',
-          '  import "./Button/index";',
+          '  import "./Button.js";',
+          '  import "./Button/index.js";',
           "",
         ].join("\n")
       );
@@ -357,10 +357,10 @@ describe("TextMode", () => {
       ]);
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
-      expect(text).toBe(toText(SKETCH, DEFAULT_RESOLVERS));
+      expect(text).toBe(toText(SKETCH));
     });
 
     it("should not list a folder that the nodes under it imply", () => {
@@ -371,7 +371,7 @@ describe("TextMode", () => {
       ]);
 
       // Act
-      const text = toText(sketch, DEFAULT_RESOLVERS);
+      const text = toText(sketch);
 
       // Assert
       expect(text).toBe("eslint.config.js\nsrc/index.js\n");
@@ -385,9 +385,7 @@ describe("TextMode", () => {
         "eslint.config.js\nsrc/index.js\nsrc/helpers/format.js\ndocs/\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual([
@@ -404,9 +402,7 @@ describe("TextMode", () => {
         "\n   \n./eslint.config.js\n\t\nsrc/index.js\n\\eslint.config.js\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/index.js"]);
@@ -418,9 +414,7 @@ describe("TextMode", () => {
       const text = "./src\\index.js \t\n/src//helpers/\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/helpers/", "src/index.js"]);
@@ -432,9 +426,7 @@ describe("TextMode", () => {
       const text = "eslint.config.js\r\nsrc/index.js\r\nsrc/pages/\r\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/pages/", "src/index.js"]);
@@ -443,9 +435,7 @@ describe("TextMode", () => {
 
     it("should read text without a final newline", () => {
       // Act
-      const { sketch } = fromText("src/index.js", createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch } = fromText("src/index.js", createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/index.js"]);
@@ -462,9 +452,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -492,9 +480,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -519,9 +505,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([
@@ -544,9 +528,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: TYPESCRIPT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -569,32 +551,363 @@ describe("TextMode", () => {
       ]);
     });
 
-    it("should read a source with the resolvers it is given, and leave out the one that none of them resolves", () => {
-      // Arrange
-      const text = 'src/a.js\n  import "./b";\nsrc/b.tsx\n';
+    describe("a relative source", () => {
+      it("should be read as the file it names exactly, whatever the extension of the file", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b.js";',
+          '  import "./Button.css";',
+          '  import "./LICENSE";',
+          '  import "./x/index";',
+          "src/b.js",
+          "src/Button.css",
+          "src/LICENSE",
+          "src/x/index",
+        ].join("\n");
 
-      // Act
-      const withTypescript = fromText(text, createSketch([]), {
-        resolvers: TYPESCRIPT_RESOLVERS,
-      });
-      const withNode = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+          { kind: "node", path: "src/b.js" },
+          { kind: "node", path: "src/Button.css" },
+          { kind: "node", path: "src/LICENSE" },
+          { kind: "node", path: "src/x/index" },
+        ]);
       });
 
-      // Assert
-      expect(withTypescript.problems).toEqual([]);
-      expect(withTypescript.sketch.dependencies).toEqual([
-        toNode("src/a.js", "src/b.tsx"),
-      ]);
-      expect(withNode.problems).toEqual([
-        {
-          line: 2,
-          text: '  import "./b";',
-          reason:
-            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
-        },
-      ]);
-      expect(withNode.sketch.dependencies).toEqual([]);
+      it("should be read as the file it names exactly, though other files add an extension to it", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b";',
+          '  import "./c.js";',
+          "src/b",
+          "src/b.js",
+          "src/b.ts",
+          "src/c.js",
+          "src/c.js.ts",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+          { kind: "node", path: "src/b" },
+          { kind: "node", path: "src/c.js" },
+        ]);
+      });
+
+      it.each([
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs",
+        ".mts",
+        ".cts",
+        ".d.ts",
+      ])(
+        "should be read without extension as the only file that adds the extension %s",
+        (extension) => {
+          // Arrange
+          const text = `src/a.js\n  import "./b";\nsrc/b${extension}\n`;
+
+          // Act
+          const { sketch, problems } = fromText(text, createSketch([]));
+
+          // Assert
+          expect(problems).toEqual([]);
+          expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+            { kind: "node", path: `src/b${extension}` },
+          ]);
+        }
+      );
+
+      it.each([
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs",
+        ".mts",
+        ".cts",
+        ".d.ts",
+      ])(
+        "should be read without extension as the index of a folder with the extension %s",
+        (extension) => {
+          // Arrange
+          const text = `src/a.js\n  import "./b";\nsrc/b/index${extension}\n`;
+
+          // Act
+          const { sketch, problems } = fromText(text, createSketch([]));
+
+          // Assert
+          expect(problems).toEqual([]);
+          expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+            { kind: "node", path: `src/b/index${extension}` },
+          ]);
+        }
+      );
+
+      it("should not be read as a file with another extension than the ones it names", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b.js";',
+          '  import "./b.jsx";',
+          "src/b.ts",
+          "src/b.tsx",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+          {
+            line: 2,
+            reason: '"./b.js" does not resolve to a file of the sketch.',
+          },
+          {
+            line: 3,
+            reason: '"./b.jsx" does not resolve to a file of the sketch.',
+          },
+        ]);
+      });
+
+      it.each([
+        ["./", "src/x/index.js"],
+        [".", "src/x/index.js"],
+        ["..", "src/index.js"],
+        ["../", "src/index.js"],
+        ["./..", "src/index.js"],
+        ["../..", "index.js"],
+        ["../../", "index.js"],
+      ])(
+        "should be read as the index of the folder when it is %s, from src/x/a.js",
+        (source, expected) => {
+          // Arrange
+          const text = [
+            "index.js",
+            "src/index.js",
+            "src/x/index.js",
+            "src/x/a.js",
+            `  import "${source}";`,
+          ].join("\n");
+
+          // Act
+          const { sketch, problems } = fromText(text, createSketch([]));
+
+          // Assert
+          expect(problems).toEqual([]);
+          expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+            { kind: "node", path: expected },
+          ]);
+        }
+      );
+
+      it("should be read as the index of the root when it names the root, from a file at the root", () => {
+        // Arrange
+        const text = 'a.js\n  import "./";\n  import ".";\nindex.js\n';
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+          { kind: "node", path: "index.js" },
+          { kind: "node", path: "index.js" },
+        ]);
+      });
+
+      it("should be read as the index of the folder, and not as the file with the name of the folder, when it ends with /", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b/";',
+          "src/b.js",
+          "src/b/index.js",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+          { kind: "node", path: "src/b/index.js" },
+        ]);
+      });
+
+      it("should not be read as a file when it names a folder, though a file has the name of the folder", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b/";',
+          '  import "../src";',
+          '  import ".";',
+          "src/b",
+          "src.js",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+          {
+            line: 2,
+            reason: '"./b/" does not resolve to a file of the sketch.',
+          },
+          { line: 4, reason: '"." does not resolve to a file of the sketch.' },
+        ]);
+        expect(sketch.dependencies.map(({ target }) => target)).toEqual([
+          { kind: "node", path: "src.js" },
+        ]);
+      });
+
+      it("should be left out as a problem of its line when it goes above the root of the sketch", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "../../b";',
+          '  import "../..";',
+          "b.js",
+          "index.js",
+          "root.js",
+          '  import "..";',
+          '  import "../b";',
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+          {
+            line: 2,
+            reason: '"../../b" does not resolve to a file of the sketch.',
+          },
+          {
+            line: 3,
+            reason: '"../.." does not resolve to a file of the sketch.',
+          },
+          { line: 7, reason: '".." does not resolve to a file of the sketch.' },
+          {
+            line: 8,
+            reason: '"../b" does not resolve to a file of the sketch.',
+          },
+        ]);
+      });
+
+      it("should be left out, with the sources it can be in full, when it matches two files", () => {
+        // Arrange
+        const text = 'src/a.js\n  import "./b";\nsrc/b.js\nsrc/b.ts\n';
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems).toEqual([
+          {
+            line: 2,
+            text: '  import "./b";',
+            reason:
+              '"./b" can be "./b.js" or "./b.ts". Write the one you mean, with its extension.',
+          },
+        ]);
+      });
+
+      it("should be left out, with the sources it can be in the order of the rule, when it matches three files", () => {
+        // Arrange
+        const text = [
+          "src/a.js",
+          '  import "./b";',
+          "src/b/index.js",
+          "src/b.ts",
+          "src/b.js",
+        ].join("\n");
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems.map(({ reason }) => reason)).toEqual([
+          '"./b" can be "./b.js", "./b.ts" or "./b/index.js". Write the one you mean, with its extension.',
+        ]);
+      });
+
+      it("should be left out when it matches a file and the index of a folder with the same name", () => {
+        // Arrange
+        const text = 'src/a.js\n  import "./b";\nsrc/b.js\nsrc/b/index.js\n';
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems.map(({ reason }) => reason)).toEqual([
+          '"./b" can be "./b.js" or "./b/index.js". Write the one you mean, with its extension.',
+        ]);
+      });
+
+      it("should be left out when it matches two indexes of a folder", () => {
+        // Arrange
+        const text =
+          'src/a.js\n  import "./b";\nsrc/b/index.ts\nsrc/b/index.js\n';
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(sketch.dependencies).toEqual([]);
+        expect(problems.map(({ reason }) => reason)).toEqual([
+          '"./b" can be "./b/index.js" or "./b/index.ts". Write the one you mean, with its extension.',
+        ]);
+      });
+
+      it("should be left out with the candidates written as the file that has the source would write them", () => {
+        // Arrange
+        const text = [
+          "src/x/a.js",
+          '  import "../b";',
+          "src/b/index.cts",
+          "src/b.mts",
+        ].join("\n");
+
+        // Act
+        const { problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems.map(({ reason }) => reason)).toEqual([
+          '"../b" can be "../b.mts" or "../b/index.cts". Write the one you mean, with its extension.',
+        ]);
+      });
+
+      it("should be read once the user writes the one they mean", () => {
+        // Arrange
+        const text = 'src/a.js\n  import "./b.ts";\nsrc/b.js\nsrc/b.ts\n';
+
+        // Act
+        const { sketch, problems } = fromText(text, createSketch([]));
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(sketch.dependencies).toEqual([toNode("src/a.js", "src/b.ts")]);
+      });
     });
 
     it("should read a source that ends with / as the index of the folder", () => {
@@ -602,9 +915,7 @@ describe("TextMode", () => {
       const text = 'src/a.js\n  import "./b/";\nsrc/b.js\nsrc/b/index.js\n';
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -623,9 +934,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -640,7 +949,7 @@ describe("TextMode", () => {
       ]);
     });
 
-    it("should read a relative source as the file a resolver finds", () => {
+    it("should read a relative source as the file the rule of the playground finds", () => {
       // Arrange
       const text = [
         "src/a/spec.js",
@@ -655,9 +964,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: [...TYPESCRIPT_RESOLVERS, ...DEFAULT_RESOLVERS],
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -680,9 +987,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -699,9 +1004,7 @@ describe("TextMode", () => {
       const text = 'src/a.js\r\n\r\n  \r\n  import "react";\r\nsrc/b.js\r\n';
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems).toEqual([]);
@@ -720,9 +1023,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
@@ -750,9 +1051,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/a.js"]);
@@ -785,9 +1084,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([toExternal("src/a.js", "react")]);
@@ -811,9 +1108,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
@@ -842,27 +1137,22 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
       expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
         {
           line: 2,
-          reason:
-            '"./missing" does not resolve to a file of the sketch: the "node" resolver finds none.',
+          reason: '"./missing" does not resolve to a file of the sketch.',
         },
         {
           line: 3,
-          reason:
-            '"../../above" does not resolve to a file of the sketch: the "node" resolver finds none.',
+          reason: '"../../above" does not resolve to a file of the sketch.',
         },
         {
           line: 4,
-          reason:
-            '"./pages" does not resolve to a file of the sketch: the "node" resolver finds none.',
+          reason: '"./pages" does not resolve to a file of the sketch.',
         },
       ]);
     });
@@ -872,9 +1162,7 @@ describe("TextMode", () => {
       const text = ["src/a.js", '  import "/src/b";', "src/b.js"].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
@@ -894,7 +1182,7 @@ describe("TextMode", () => {
         "src/a.js",
         '  import "./a";',
         '  import "";',
-        '  import "..";',
+        '  import ".react";',
         '  import { default } from "react";',
         '  import { a, a as a } from "react";',
         '  import { a b-c } from "react";',
@@ -907,9 +1195,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
@@ -919,7 +1205,7 @@ describe("TextMode", () => {
         {
           line: 4,
           reason:
-            '".." is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+            '".react" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
         },
         { line: 5, reason: 'An import of "default" needs an alias.' },
         { line: 6, reason: 'The name "a" is used twice in the statement.' },
@@ -957,9 +1243,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const { problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(problems.map(({ line }) => line)).toEqual([2, 3, 5, 6]);
@@ -974,9 +1258,7 @@ describe("TextMode", () => {
       const text = "src/index.js\nsrc/helpers/format.js\n";
 
       // Act
-      const { sketch } = fromText(text, original, {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch } = fromText(text, original);
 
       // Assert
       expect(sketch.dependencies).toEqual([]);
@@ -987,9 +1269,7 @@ describe("TextMode", () => {
       const text = "src/index.js\nsrc/helpers/\nsrc/index.js\n./src/helpers/\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/helpers/", "src/index.js"]);
@@ -1009,9 +1289,7 @@ describe("TextMode", () => {
         "src/../index.js\neslint.config.js/\nsrc/a\u0001b.js\n/\neslint.config.js/index.js\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.tree).toEqual([]);
@@ -1047,9 +1325,7 @@ describe("TextMode", () => {
       const text = 'src/it\'s.js\nsrc/say"hi".js\nsrc/index.js\n';
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/index.js"]);
@@ -1072,9 +1348,7 @@ describe("TextMode", () => {
       const text = "src/a.js\n/ c.js\n./ d/\nsrc/b.js\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/a.js", "src/b.js"]);
@@ -1097,9 +1371,7 @@ describe("TextMode", () => {
       const text = "src/index.js\nsrc/index.js/other.js\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/index.js"]);
@@ -1117,9 +1389,7 @@ describe("TextMode", () => {
       const text = "src/a.js\nsrc/a.js/\nsrc/b/c.js\nsrc/b\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(paths(sketch)).toEqual(["src/b/c.js", "src/a.js"]);
@@ -1134,9 +1404,7 @@ describe("TextMode", () => {
       const text = "src/\nsrc/index.js\n";
 
       // Act
-      const { sketch, problems } = fromText(text, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch, problems } = fromText(text, createSketch([]));
 
       // Assert
       expect(sketch.tree).toEqual([{ path: "src/index.js", kind: "file" }]);
@@ -1148,9 +1416,7 @@ describe("TextMode", () => {
       const original = createSketch([]);
 
       // Act
-      const { sketch } = fromText("src/index.js\n", original, {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch } = fromText("src/index.js\n", original);
 
       // Assert
       expect(sketch.config).toBe(original.config);
@@ -1161,17 +1427,14 @@ describe("TextMode", () => {
       const before = JSON.stringify(SKETCH);
 
       // Act
-      fromText("src/other.js\n", SKETCH, { resolvers: DEFAULT_RESOLVERS });
+      fromText("src/other.js\n", SKETCH);
 
       // Assert
       expect(JSON.stringify(SKETCH)).toBe(before);
     });
 
     describe("without reading the dependencies", () => {
-      const NO_DEPENDENCIES = {
-        dependencies: false,
-        resolvers: DEFAULT_RESOLVERS,
-      };
+      const NO_DEPENDENCIES = { dependencies: false };
       const WITH_DEPENDENCIES = createSketch(
         [
           { path: "src/a.js", kind: "file" },
@@ -1307,7 +1570,6 @@ describe("TextMode", () => {
 
         // Act
         const { sketch } = fromText(text, WITH_DEPENDENCIES, {
-          resolvers: DEFAULT_RESOLVERS,
           dependencies: true,
         });
 
@@ -1323,12 +1585,10 @@ describe("TextMode", () => {
       const text = "src/a.js\n  import x\nsrc/a.js\n../b.js\n";
 
       // Act
-      const problems = readTextProblems(text, { resolvers: DEFAULT_RESOLVERS });
+      const problems = readTextProblems(text);
 
       // Assert
-      expect(problems).toEqual(
-        fromText(text, SKETCH, { resolvers: DEFAULT_RESOLVERS }).problems
-      );
+      expect(problems).toEqual(fromText(text, SKETCH).problems);
     });
 
     it("should report the lines of dependencies that fromText leaves out", () => {
@@ -1342,74 +1602,48 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const problems = readTextProblems(text, { resolvers: DEFAULT_RESOLVERS });
+      const problems = readTextProblems(text);
 
       // Assert
-      expect(problems).toEqual(
-        fromText(text, SKETCH, { resolvers: DEFAULT_RESOLVERS }).problems
-      );
+      expect(problems).toEqual(fromText(text, SKETCH).problems);
       expect(problems.map(({ line }) => line)).toEqual([2, 5]);
     });
 
-    it("should report the sources that none of the resolvers resolves to a file", () => {
+    it("should report the sources that match no file or several files, with the reason of fromText", () => {
       // Arrange
-      const text = 'src/a.js\n  import "./b";\nsrc/b.tsx\n';
+      const text = [
+        "src/a.js",
+        '  import "./b";',
+        '  import "./c";',
+        '  import "./d";',
+        "src/b.js",
+        "src/b.ts",
+        "src/c.tsx",
+      ].join("\n");
 
       // Act
-      const withTypescript = readTextProblems(text, {
-        resolvers: TYPESCRIPT_RESOLVERS,
-      });
-      const withNode = readTextProblems(text, { resolvers: DEFAULT_RESOLVERS });
+      const problems = readTextProblems(text);
 
       // Assert
-      expect(withTypescript).toEqual([]);
-      expect(withNode).toEqual([
+      expect(problems).toEqual([
         {
           line: 2,
           text: '  import "./b";',
           reason:
-            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
+            '"./b" can be "./b.js" or "./b.ts". Write the one you mean, with its extension.',
         },
-      ]);
-    });
-
-    it("should name every resolver that tried the source, each name once", () => {
-      // Arrange
-      const text = 'src/a.js\n  import "./b";\nsrc/b.cjs\n';
-
-      // Act
-      const withTwo = readTextProblems(text, {
-        resolvers: [...TYPESCRIPT_RESOLVERS, ...DEFAULT_RESOLVERS],
-      });
-      // `node` and `eslint-import-resolver-node` are two entries of the setting for the same resolver
-      const withSameName = readTextProblems(text, {
-        resolvers: [...DEFAULT_RESOLVERS, ...DEFAULT_RESOLVERS],
-      });
-
-      // Assert
-      expect(withTwo).toEqual([
         {
-          line: 2,
-          text: '  import "./b";',
-          reason:
-            '"./b" does not resolve to a file of the sketch: the "typescript" and "node" resolvers find none.',
+          line: 4,
+          text: '  import "./d";',
+          reason: '"./d" does not resolve to a file of the sketch.',
         },
       ]);
-      expect(withSameName).toEqual([
-        {
-          line: 2,
-          text: '  import "./b";',
-          reason:
-            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
-        },
-      ]);
+      expect(problems).toEqual(fromText(text, SKETCH).problems);
     });
 
     it("should report nothing for the text of the quick start example, dependencies included", () => {
       // Act
-      const problems = readTextProblems(QUICK_START_TEXT, {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const problems = readTextProblems(QUICK_START_TEXT);
 
       // Assert
       expect(problems).toEqual([]);
@@ -1420,20 +1654,15 @@ describe("TextMode", () => {
       const text = "src/a.js/\nsrc/a.js\n";
 
       // Act
-      const problems = readTextProblems(text, { resolvers: DEFAULT_RESOLVERS });
+      const problems = readTextProblems(text);
 
       // Assert
-      expect(problems).toEqual(
-        fromText(text, createSketch([]), { resolvers: DEFAULT_RESOLVERS })
-          .problems
-      );
+      expect(problems).toEqual(fromText(text, createSketch([])).problems);
     });
 
     it("should report nothing for a text whose lines can all be read", () => {
       // Act
-      const problems = readTextProblems(toText(SKETCH, DEFAULT_RESOLVERS), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const problems = readTextProblems(toText(SKETCH));
 
       // Assert
       expect(problems).toEqual([]);
@@ -1450,10 +1679,7 @@ describe("TextMode", () => {
       ].join("\n");
 
       // Act
-      const problems = readTextProblems(text, {
-        resolvers: DEFAULT_RESOLVERS,
-        dependencies: false,
-      });
+      const problems = readTextProblems(text, { dependencies: false });
 
       // Assert
       expect(problems).toEqual([
@@ -1466,10 +1692,7 @@ describe("TextMode", () => {
       const text = 'src/a.js\n  import "./missing";\n';
 
       // Act
-      const problems = readTextProblems(text, {
-        resolvers: DEFAULT_RESOLVERS,
-        dependencies: true,
-      });
+      const problems = readTextProblems(text, { dependencies: true });
 
       // Assert
       expect(problems.map(({ line }) => line)).toEqual([2]);
@@ -1480,9 +1703,8 @@ describe("TextMode", () => {
     it("should return the quick start example from its own text", () => {
       // Act
       const { sketch, problems } = fromText(
-        toText(QUICK_START_EXAMPLE.sketch, DEFAULT_RESOLVERS),
-        QUICK_START_EXAMPLE.sketch,
-        { resolvers: DEFAULT_RESOLVERS }
+        toText(QUICK_START_EXAMPLE.sketch),
+        QUICK_START_EXAMPLE.sketch
       );
 
       // Assert
@@ -1509,11 +1731,7 @@ describe("TextMode", () => {
       );
 
       // Act
-      const { sketch, problems } = fromText(
-        toText(original, DEFAULT_RESOLVERS),
-        original,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch, problems } = fromText(toText(original), original);
 
       // Assert
       expect(sketch).toEqual({
@@ -1532,12 +1750,10 @@ describe("TextMode", () => {
 
     it("should return the text of the quick start example from the sketch it reads", () => {
       // Act
-      const { sketch } = fromText(QUICK_START_TEXT, createSketch([]), {
-        resolvers: DEFAULT_RESOLVERS,
-      });
+      const { sketch } = fromText(QUICK_START_TEXT, createSketch([]));
 
       // Assert
-      expect(toText(sketch, DEFAULT_RESOLVERS)).toBe(QUICK_START_TEXT);
+      expect(toText(sketch)).toBe(QUICK_START_TEXT);
       expect(sketch.tree).toEqual(QUICK_START_EXAMPLE.sketch.tree);
       expect(sketch.dependencies).toEqual(
         QUICK_START_EXAMPLE.sketch.dependencies
@@ -1603,11 +1819,7 @@ describe("TextMode", () => {
       );
 
       // Act
-      const { sketch, problems } = fromText(
-        toText(original, DEFAULT_RESOLVERS),
-        original,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch, problems } = fromText(toText(original), original);
 
       // Assert
       expect(problems).toEqual([]);
@@ -1622,11 +1834,7 @@ describe("TextMode", () => {
       );
 
       // Act
-      const { sketch, problems } = fromText(
-        toText(stored, DEFAULT_RESOLVERS),
-        stored,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch, problems } = fromText(toText(stored), stored);
 
       // Assert
       expect(problems).toEqual([]);
@@ -1645,11 +1853,7 @@ describe("TextMode", () => {
       );
 
       // Act
-      const { sketch, problems } = fromText(
-        toText(stored, DEFAULT_RESOLVERS),
-        stored,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch, problems } = fromText(toText(stored), stored);
 
       // Assert
       expect(problems).toEqual([]);
@@ -1662,11 +1866,7 @@ describe("TextMode", () => {
       const original = createSketch([...SKETCH.tree].reverse());
 
       // Act
-      const { sketch } = fromText(
-        toText(original, DEFAULT_RESOLVERS),
-        original,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch } = fromText(toText(original), original);
 
       // Assert
       expect(
@@ -1676,38 +1876,34 @@ describe("TextMode", () => {
       );
     });
 
-    it("should return a sketch from its own text for each of the resolvers that wrote it", () => {
+    it("should return a sketch from its own text when files of several extensions share a name", () => {
       // Arrange
       const original = createSketch(
         [
           { path: "src/a.ts", kind: "file" },
+          { path: "src/b.js", kind: "file" },
           { path: "src/b.ts", kind: "file" },
-          { path: "src/c.mjs", kind: "file" },
-          { path: "src/d/index.tsx", kind: "file" },
+          { path: "src/b/index.js", kind: "file" },
+          { path: "src/b/index.ts", kind: "file" },
+          { path: "src/c.d.ts", kind: "file" },
+          { path: "src/c.css", kind: "file" },
         ],
         [
+          toNode("src/a.ts", "src/b.js"),
           toNode("src/a.ts", "src/b.ts"),
-          toNode("src/a.ts", "src/c.mjs"),
-          toNode("src/a.ts", "src/d/index.tsx"),
+          toNode("src/a.ts", "src/b/index.js"),
+          toNode("src/a.ts", "src/b/index.ts"),
+          toNode("src/a.ts", "src/c.d.ts"),
+          toNode("src/a.ts", "src/c.css"),
         ]
       );
 
       // Act
-      const results = [
-        TYPESCRIPT_RESOLVERS,
-        DEFAULT_RESOLVERS,
-        [...TYPESCRIPT_RESOLVERS, ...DEFAULT_RESOLVERS],
-      ].map((resolvers) =>
-        fromText(toText(original, resolvers), createSketch([]), { resolvers })
-      );
+      const { sketch, problems } = fromText(toText(original), createSketch([]));
 
       // Assert
-      expect(results.map(({ sketch }) => sketch.dependencies)).toEqual([
-        original.dependencies,
-        original.dependencies,
-        original.dependencies,
-      ]);
-      expect(results.map(({ problems }) => problems)).toEqual([[], [], []]);
+      expect(sketch.dependencies).toEqual(original.dependencies);
+      expect(problems).toEqual([]);
     });
 
     it("should return an empty sketch from its own text", () => {
@@ -1715,11 +1911,7 @@ describe("TextMode", () => {
       const original = createSketch([]);
 
       // Act
-      const { sketch, problems } = fromText(
-        toText(original, DEFAULT_RESOLVERS),
-        original,
-        { resolvers: DEFAULT_RESOLVERS }
-      );
+      const { sketch, problems } = fromText(toText(original), original);
 
       // Assert
       expect(sketch).toEqual(original);

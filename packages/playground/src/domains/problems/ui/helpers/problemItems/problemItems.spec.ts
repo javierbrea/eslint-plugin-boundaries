@@ -64,7 +64,7 @@ function failing(
       specifiers: [],
     },
     ref: { path, index },
-    source: "../../components/atoms/Button",
+    source: "../../components/atoms/Button/index.js",
     verdict: {
       status: "disallowed",
       policy: { index: 2, range: POLICY_RANGE },
@@ -326,7 +326,7 @@ describe("problemItems", () => {
           level: "error",
           location: CHECKOUT,
           position: ":3",
-          source: "../../components/atoms/Button",
+          source: "../../components/atoms/Button/index.js",
           message: 'Dependencies to file of category "test" are not allowed.',
           meta: "disallowed · policy 2",
           target: { kind: "dependency", path: CHECKOUT, index: 2 },
@@ -341,7 +341,7 @@ describe("problemItems", () => {
       // Assert
       expect(item).not.toHaveProperty("location");
       expect(item.position).toBe(":3");
-      expect(item.source).toBe("../../components/atoms/Button");
+      expect(item.source).toBe("../../components/atoms/Button/index.js");
     });
 
     it("should number the lines from 1, whatever the index", () => {

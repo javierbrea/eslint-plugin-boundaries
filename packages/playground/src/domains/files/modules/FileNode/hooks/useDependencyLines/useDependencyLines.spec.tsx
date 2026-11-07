@@ -88,9 +88,9 @@ describe("useDependencyLines", () => {
 
     // Assert
     expect(readLines(result.current)).toEqual([
-      'import { Button } from "../../components/atoms/Button"; policy 1',
-      'import { format } from "../../helpers/format"; policy 1',
-      'import { renderButton } from "../../components/atoms/Button/Button.spec"; policy 2',
+      'import { Button } from "../../components/atoms/Button/index.js"; policy 1',
+      'import { format } from "../../helpers/format/index.js"; policy 1',
+      'import { renderButton } from "../../components/atoms/Button/Button.spec.js"; policy 2',
       'import React from "react"; not checked · external',
     ]);
   });
@@ -118,8 +118,8 @@ describe("useDependencyLines", () => {
 
     // Assert
     expect(readLines(result.current)).toEqual([
-      'import { Button } from "../../components/atoms/Button"; policy 1',
-      'import { format } from "../../helpers/format"; policy 1',
+      'import { Button } from "../../components/atoms/Button/index.js"; policy 1',
+      'import { format } from "../../helpers/format/index.js"; policy 1',
       'import React from "react"; not checked · external',
     ]);
   });
@@ -200,9 +200,9 @@ describe("useDependencyLines", () => {
     expect(results).toHaveLength(2);
     expect(result.current).not.toBe(before);
     expect(readLines(result.current)).toEqual([
-      'import { Button } from "../../components/atoms/Button"; default',
-      'import { format } from "../../helpers/format"; policy 1',
-      'import { renderButton } from "../../components/atoms/Button/Button.spec"; policy 2',
+      'import { Button } from "../../components/atoms/Button/index.js"; default',
+      'import { format } from "../../helpers/format/index.js"; policy 1',
+      'import { renderButton } from "../../components/atoms/Button/Button.spec.js"; policy 2',
       'import React from "react"; not checked · external',
     ]);
   });
@@ -223,7 +223,7 @@ describe("useDependencyLines", () => {
     // Assert
     expect(results[0].lines).toEqual([]);
     expect(readLines(format)).toEqual([
-      'import { Button } from "../../components/atoms/Button"; default',
+      'import { Button } from "../../components/atoms/Button/index.js"; default',
     ]);
     expect(readLines(result.current.lines)).toHaveLength(4);
   });

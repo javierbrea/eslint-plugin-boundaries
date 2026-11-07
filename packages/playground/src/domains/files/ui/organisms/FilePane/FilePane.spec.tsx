@@ -113,9 +113,9 @@ describe("FilePane", () => {
 
       // Assert
       expect(lineTexts).toEqual([
-        '1import { Button } from "../../components/atoms/Button";policy 1',
-        '2import { format } from "../../helpers/format";policy 1',
-        '3import { renderButton } from "../../components/atoms/Button/Button.spec";policy 2',
+        '1import { Button } from "../../components/atoms/Button/index.js";policy 1',
+        '2import { format } from "../../helpers/format/index.js";policy 1',
+        '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
         '4import React from "react";not checked · external',
       ]);
     });

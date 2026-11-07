@@ -81,7 +81,7 @@ function createFacts(
     result: {
       dependency,
       ref: { path: CHECKOUT, index: 2 },
-      source: "../../components/atoms/Button/Button.spec",
+      source: "../../components/atoms/Button/Button.spec.js",
       verdict,
     },
     description: DESCRIPTION,

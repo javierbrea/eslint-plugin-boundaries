@@ -1,7 +1,7 @@
 import { normalizeConfig } from "@boundaries/config";
 
 import type { Sketch } from "@/contract";
-import { DEFAULT_RESOLVERS, getFiles } from "@/domains/project/helpers/sketch";
+import { getFiles } from "@/domains/project/helpers/sketch";
 
 import { evaluateDependencies } from "./dependencies";
 import { getAdditionalNodesProblems } from "./dependencyNodes";
@@ -13,7 +13,6 @@ import { selectRule } from "./evaluatedRule";
 import { normalizeConfigSafely } from "./normalizeConfigSafely";
 import { parseConfig } from "./parseConfig";
 import { summarizePolicies } from "./policies";
-import { readResolvers } from "./resolvers";
 import { resolveRootPath } from "./rootPath";
 import {
   summarizeElementTypes,
@@ -35,7 +34,6 @@ function analyzeConfig(text: string): ConfigAnalysis {
       parsed,
       normalized: normalizeConfig({ settings: {}, rules: {} }),
       problems: parsed.problems,
-      resolvers: DEFAULT_RESOLVERS,
       rulesValid: true,
       selection: { ruleName: undefined, notEvaluated: "config-unparsed" },
     };
@@ -49,7 +47,6 @@ function analyzeConfig(text: string): ConfigAnalysis {
     { rootPath: resolveRootPath(parsed.value.settings) }
   );
   const rulesValid = areRulesValid(normalized.diagnostics);
-  const { resolvers, problems: resolverProblems } = readResolvers(parsed);
   return {
     text,
     parsed,
@@ -58,9 +55,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
       ...parsed.problems,
       ...toConfigProblems(normalized.diagnostics, parsed.ast),
       ...getAdditionalNodesProblems(parsed, normalized.value.settings),
-      ...resolverProblems,
     ],
-    resolvers,
     rulesValid,
     selection: selectRule({
       config: parsed,
@@ -77,8 +72,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
  * @returns What the engine says about it.
  */
 function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
-  const { parsed, normalized, problems, resolvers, rulesValid, selection } =
-    analysis;
+  const { parsed, normalized, problems, rulesValid, selection } = analysis;
   const { settings } = normalized.value;
 
   // Sketch paths are relative to its root, and so is the root path of the settings. Every file is local, so there are no sources to describe. The files are the ones that the sketch says, so a node with nodes under it is a folder here as it is in the tree
@@ -88,10 +82,8 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
 
   const dependencies = evaluateDependencies({
     sketch,
-    paths,
     settings,
     rule: selection.rule,
-    resolvers,
   });
   const verdicts = {
     dependencies,
@@ -106,7 +98,6 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
       sketch,
       configParsed: false,
       problems,
-      resolvers,
       rulesValid,
       files,
       elementTypes: [],
@@ -128,7 +119,6 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
     sketch,
     configParsed: true,
     problems,
-    resolvers,
     rulesValid,
     files,
     elementTypes: summarizeElementTypes(input),

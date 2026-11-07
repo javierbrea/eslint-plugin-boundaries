@@ -6,11 +6,7 @@ import type {
   FileDescription,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
-import type {
-  SourceResolver,
-  TextProblem,
-} from "@/domains/project/helpers/sketch";
+import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Focus, ProblemsTabId } from "@/domains/session/helpers/focus";
 
 import {
@@ -60,8 +56,7 @@ const UNREADABLE_LINE = "  import { a } from './b'";
 const TEXT_PROBLEM: TextProblem = {
   line: 2,
   text: UNREADABLE_LINE,
-  reason:
-    '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
+  reason: '"./b" does not resolve to a file of the sketch.',
 };
 
 const NO_FOCUS: Focus = { kind: "none" };
@@ -200,7 +195,7 @@ describe("problemSelectors", () => {
   describe("getTextProblems", () => {
     it("should give no lines when there is no draft", () => {
       // Act
-      const problems = getTextProblems(undefined, true, DEFAULT_RESOLVERS);
+      const problems = getTextProblems(undefined, true);
 
       // Assert
       expect(problems).toEqual([]);
@@ -208,8 +203,8 @@ describe("problemSelectors", () => {
 
     it("should give the same array each time there is no draft", () => {
       // Act
-      const first = getTextProblems(undefined, true, DEFAULT_RESOLVERS);
-      const second = getTextProblems(undefined, true, DEFAULT_RESOLVERS);
+      const first = getTextProblems(undefined, true);
+      const second = getTextProblems(undefined, true);
 
       // Assert
       expect(second).toBe(first);
@@ -217,11 +212,7 @@ describe("problemSelectors", () => {
 
     it("should give the lines of the draft that cannot be read", () => {
       // Act
-      const problems = getTextProblems(
-        `main.js\n${UNREADABLE_LINE}\n`,
-        true,
-        DEFAULT_RESOLVERS
-      );
+      const problems = getTextProblems(`main.js\n${UNREADABLE_LINE}\n`, true);
 
       // Assert
       expect(problems).toEqual([TEXT_PROBLEM]);
@@ -229,11 +220,7 @@ describe("problemSelectors", () => {
 
     it("should give no lines for a draft that can be read", () => {
       // Act
-      const problems = getTextProblems(
-        "main.js\nsrc/index.js\n",
-        true,
-        DEFAULT_RESOLVERS
-      );
+      const problems = getTextProblems("main.js\nsrc/index.js\n", true);
 
       // Assert
       expect(problems).toEqual([]);
@@ -243,8 +230,7 @@ describe("problemSelectors", () => {
       // Act
       const problems = getTextProblems(
         `main.js\n${UNREADABLE_LINE}\n  import { b } from 'lodash'\n  import bad\n`,
-        false,
-        DEFAULT_RESOLVERS
+        false
       );
 
       // Assert
@@ -255,8 +241,7 @@ describe("problemSelectors", () => {
       // Act
       const problems = getTextProblems(
         `main.js\n${UNREADABLE_LINE}\nmain.js\n  import bad\n`,
-        false,
-        DEFAULT_RESOLVERS
+        false
       );
 
       // Assert
@@ -269,36 +254,11 @@ describe("problemSelectors", () => {
       ]);
     });
 
-    it("should read the sources of the dependency lines with the resolvers it is given", () => {
-      // Arrange
-      const draft = 'a.ts\n  import "./b";\nb.ts\n';
-      const typescript: SourceResolver = {
-        name: "typescript",
-        extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-      };
-
-      // Act
-      const withTypescript = getTextProblems(draft, true, [typescript]);
-      const withNode = getTextProblems(draft, true, DEFAULT_RESOLVERS);
-
-      // Assert
-      expect(withTypescript).toEqual([]);
-      expect(withNode).toEqual([
-        {
-          line: 2,
-          text: '  import "./b";',
-          reason:
-            '"./b" does not resolve to a file of the sketch: the "node" resolver finds none.',
-        },
-      ]);
-    });
-
     it("should give the dependency lines that cannot be read when the dependencies are read", () => {
       // Act
       const problems = getTextProblems(
         `main.js\n${UNREADABLE_LINE}\n  import bad\n`,
-        true,
-        DEFAULT_RESOLVERS
+        true
       );
 
       // Assert

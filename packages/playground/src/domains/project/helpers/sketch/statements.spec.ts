@@ -1,13 +1,11 @@
 import type { SketchDependency, SketchSpecifier } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
-import type {
-  ParsedStatement,
-  SourceResolver,
-  StatementToken,
-} from "./sketch.types";
+import type { ParsedStatement, StatementToken } from "./sketch.types";
 import {
+  findSourceFiles,
   getDependencySource,
+  isRelativeSource,
   parseStatement,
   resolveSource,
   toStatement,
@@ -178,281 +176,17 @@ const FORMS: readonly [string, ParsedStatement, string][] = [
   ],
 ];
 
-/** The `node` resolver with its default extensions, written out so that the specs say what it tries */
-const NODE: SourceResolver = {
-  name: "node",
-  extensions: [".mjs", ".js", ".json", ".node"],
-};
-
-/** The `typescript` resolver with its default extensions, written out so that the specs say what it tries */
-const TYPESCRIPT: SourceResolver = {
-  name: "typescript",
-  extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-};
-
-const NODE_RESOLVERS: readonly SourceResolver[] = [NODE];
-
-const TYPESCRIPT_RESOLVERS: readonly SourceResolver[] = [TYPESCRIPT];
-
-/** The file of a source of `src/main.js` among some files, for each resolver alone, as `eslint-import-resolver-node` 0.3.9 and `eslint-import-resolver-typescript` 4.4.5 find it on real files. `undefined` is a source that the resolver does not find */
-const RESOLUTIONS: readonly {
-  readonly source: string;
-  readonly files: readonly string[];
-  readonly node: string | undefined;
-  readonly typescript: string | undefined;
-}[] = [
-  {
-    source: "./x/f-js",
-    files: ["src/x/f-js.js"],
-    node: "src/x/f-js.js",
-    typescript: "src/x/f-js.js",
-  },
-  {
-    source: "./x/f-jsx",
-    files: ["src/x/f-jsx.jsx"],
-    node: undefined,
-    typescript: "src/x/f-jsx.jsx",
-  },
-  {
-    source: "./x/f-mjs",
-    files: ["src/x/f-mjs.mjs"],
-    node: "src/x/f-mjs.mjs",
-    typescript: undefined,
-  },
-  {
-    source: "./x/f-cjs",
-    files: ["src/x/f-cjs.cjs"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./x/f-mts",
-    files: ["src/x/f-mts.mts"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./x/f-cts",
-    files: ["src/x/f-cts.cts"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./x/f-ts",
-    files: ["src/x/f-ts.ts"],
-    node: undefined,
-    typescript: "src/x/f-ts.ts",
-  },
-  {
-    source: "./x/f-tsx",
-    files: ["src/x/f-tsx.tsx"],
-    node: undefined,
-    typescript: "src/x/f-tsx.tsx",
-  },
-  {
-    source: "./x/f-json",
-    files: ["src/x/f-json.json"],
-    node: "src/x/f-json.json",
-    typescript: "src/x/f-json.json",
-  },
-  {
-    source: "./price",
-    files: ["src/price.json", "src/price/index.js"],
-    node: "src/price.json",
-    typescript: "src/price.json",
-  },
-  {
-    source: "./a",
-    files: ["src/a.mjs", "src/a.js"],
-    node: "src/a.mjs",
-    typescript: "src/a.js",
-  },
-  {
-    source: "./b",
-    files: ["src/b.ts", "src/b.js"],
-    node: "src/b.js",
-    typescript: "src/b.ts",
-  },
-  {
-    source: "./c",
-    files: ["src/c.ts", "src/c.tsx"],
-    node: undefined,
-    typescript: "src/c.ts",
-  },
-  {
-    source: "./q",
-    files: ["src/q/index.json"],
-    node: "src/q/index.json",
-    typescript: "src/q/index.json",
-  },
-  {
-    source: "./p",
-    files: ["src/p/index.ts", "src/p/index.tsx", "src/p/index.js"],
-    node: "src/p/index.js",
-    typescript: "src/p/index.ts",
-  },
-  {
-    source: "./r",
-    files: ["src/r/index.mjs", "src/r/index.jsx"],
-    node: "src/r/index.mjs",
-    typescript: "src/r/index.jsx",
-  },
-  {
-    source: "./s",
-    files: ["src/s.js", "src/s/index.js"],
-    node: "src/s.js",
-    typescript: "src/s.js",
-  },
-  {
-    source: "./s/",
-    files: ["src/s.js", "src/s/index.js"],
-    node: "src/s/index.js",
-    typescript: "src/s/index.js",
-  },
-  {
-    source: "./price/",
-    files: ["src/price.json", "src/price/index.js"],
-    node: "src/price/index.js",
-    typescript: "src/price/index.js",
-  },
-  {
-    source: "./b.js",
-    files: ["src/b.ts", "src/b.js"],
-    node: "src/b.js",
-    typescript: "src/b.ts",
-  },
-  {
-    source: "./only.js",
-    files: ["src/only.ts"],
-    node: undefined,
-    typescript: "src/only.ts",
-  },
-  {
-    source: "./m.mjs",
-    files: ["src/m.mts", "src/m.mjs"],
-    node: "src/m.mjs",
-    typescript: "src/m.mts",
-  },
-  {
-    source: "./m",
-    files: ["src/m.mts", "src/m.mjs"],
-    node: "src/m.mjs",
-    typescript: undefined,
-  },
-  {
-    source: "./d",
-    files: ["src/d.d.ts"],
-    node: undefined,
-    typescript: "src/d.d.ts",
-  },
-  {
-    source: "./folder",
-    files: ["src/folder/index.d.ts"],
-    node: undefined,
-    typescript: "src/folder/index.d.ts",
-  },
-  {
-    source: "./x/f-jsx.js",
-    files: ["src/x/f-jsx.jsx"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./x/f-tsx.js",
-    files: ["src/x/f-tsx.tsx"],
-    node: undefined,
-    typescript: "src/x/f-tsx.tsx",
-  },
-  {
-    source: "./a.jsx",
-    files: ["src/a.js"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./c.ts",
-    files: ["src/c.js"],
-    node: undefined,
-    typescript: "src/c.js",
-  },
-  {
-    source: "./d.tsx",
-    files: ["src/d.jsx"],
-    node: undefined,
-    typescript: "src/d.jsx",
-  },
-  {
-    source: "./e.cjs",
-    files: ["src/e.cts"],
-    node: undefined,
-    typescript: "src/e.cts",
-  },
-  {
-    source: "./f.mts",
-    files: ["src/f.mjs"],
-    node: undefined,
-    typescript: "src/f.mjs",
-  },
-  {
-    source: "./g.cts",
-    files: ["src/g.cjs"],
-    node: undefined,
-    typescript: "src/g.cjs",
-  },
-  {
-    source: "./h.js",
-    files: ["src/h.d.ts"],
-    node: undefined,
-    typescript: "src/h.d.ts",
-  },
-  {
-    source: "./u",
-    files: ["src/u/index"],
-    node: "src/u/index",
-    typescript: "src/u/index",
-  },
-  {
-    source: "./y.tsx",
-    files: ["src/y.mjs"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./z.ts",
-    files: ["src/z.tsx"],
-    node: undefined,
-    typescript: undefined,
-  },
-  {
-    source: "./price.json",
-    files: ["src/price.json"],
-    node: "src/price.json",
-    typescript: "src/price.json",
-  },
-  {
-    source: "./b.ts",
-    files: ["src/b.ts"],
-    node: "src/b.ts",
-    typescript: "src/b.ts",
-  },
-  {
-    source: "./c.tsx",
-    files: ["src/c.tsx"],
-    node: "src/c.tsx",
-    typescript: "src/c.tsx",
-  },
-  {
-    source: "./x/f-jsx.jsx",
-    files: ["src/x/f-jsx.jsx"],
-    node: "src/x/f-jsx.jsx",
-    typescript: "src/x/f-jsx.jsx",
-  },
-  {
-    source: "./a.mjs",
-    files: ["src/a.mjs"],
-    node: "src/a.mjs",
-    typescript: "src/a.mjs",
-  },
+/** The extensions that a source without one can add, in the order the rule tries them, written out so that the specs say it */
+const CODE_EXTENSIONS = [
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+  ".d.ts",
 ];
 
 /**
@@ -464,41 +198,65 @@ function toPairs(tokens: readonly StatementToken[]): [string, string][] {
 }
 
 describe("Statements", () => {
+  describe("isRelativeSource", () => {
+    it.each(["./a", "../a", "./", "../", ".", "..", "../..", "./.."])(
+      "should tell that %s is relative",
+      (source) => {
+        // Act
+        const isRelative = isRelativeSource(source);
+
+        // Assert
+        expect(isRelative).toBe(true);
+      }
+    );
+
+    it.each([
+      "react",
+      "@scope/pkg",
+      "/src/a",
+      "src/a",
+      ".react",
+      "..react",
+      "...",
+    ])("should tell that %s is not relative", (source) => {
+      // Act
+      const isRelative = isRelativeSource(source);
+
+      // Assert
+      expect(isRelative).toBe(false);
+    });
+  });
+
   describe("getDependencySource", () => {
-    it("should write the sources of the dependencies of the quick start example", () => {
+    it("should write the sources of the dependencies of the quick start example in full", () => {
       // Arrange
       const { sketch } = QUICK_START_EXAMPLE;
-      const files = sketch.tree.map(({ path }) => path);
 
       // Act
       const sources = sketch.dependencies.map((dependency) =>
-        getDependencySource(files, dependency, NODE_RESOLVERS)
+        getDependencySource(dependency)
       );
 
       // Assert
       expect(sources).toEqual([
-        "./index",
-        "../../../helpers/format",
+        "./index.js",
+        "../../../helpers/format/index.js",
         "./Button.css",
-        "../../components/atoms/Button",
-        "../../components/atoms/Button",
-        "../../helpers/format",
-        "../../components/atoms/Button/Button.spec",
+        "../../components/atoms/Button/index.js",
+        "../../components/atoms/Button/index.js",
+        "../../helpers/format/index.js",
+        "../../components/atoms/Button/Button.spec.js",
         "react",
-        "./modules/checkout",
+        "./modules/checkout/index.js",
       ]);
     });
 
     it("should write the name of an external target as it is", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a.js"],
-        {
-          ...toNode("src/a.js", "x"),
-          target: { kind: "external", name: "@scope/pkg/sub" },
-        },
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource({
+        ...toNode("src/a.js", "x"),
+        target: { kind: "external", name: "@scope/pkg/sub" },
+      });
 
       // Assert
       expect(source).toBe("@scope/pkg/sub");
@@ -506,276 +264,141 @@ describe("Statements", () => {
 
     it("should start the source of a file in the same folder with ./", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a.js", "src/b.js"],
-        toNode("src/a.js", "src/b.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a.js", "src/b.js"));
 
       // Assert
-      expect(source).toBe("./b");
+      expect(source).toBe("./b.js");
     });
 
     it("should start the source of a file at the root with ./", () => {
       // Act
-      const source = getDependencySource(
-        ["a.js", "b.js"],
-        toNode("a.js", "b.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("a.js", "b.js"));
 
       // Assert
-      expect(source).toBe("./b");
+      expect(source).toBe("./b.js");
     });
 
     it("should go up with ../ for a file in a parent folder", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a/b/c.js", "src/util.js"],
-        toNode("src/a/b/c.js", "src/util.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a/b/c.js", "src/util.js"));
 
       // Assert
-      expect(source).toBe("../../util");
+      expect(source).toBe("../../util.js");
+    });
+
+    it("should go up to the root with ../ for a file at the root", () => {
+      // Act
+      const source = getDependencySource(toNode("src/a/b/c.js", "root.js"));
+
+      // Assert
+      expect(source).toBe("../../../root.js");
     });
 
     it("should go up and down for a file of a sibling tree", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a/b/c.js", "lib/x/y.js"],
-        toNode("src/a/b/c.js", "lib/x/y.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a/b/c.js", "lib/x/y.js"));
 
       // Assert
-      expect(source).toBe("../../../lib/x/y");
+      expect(source).toBe("../../../lib/x/y.js");
     });
 
     it("should go down from the folder of the file for a file below it", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a.js", "src/b/c/d.js"],
-        toNode("src/a.js", "src/b/c/d.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a.js", "src/b/c/d.js"));
 
       // Assert
-      expect(source).toBe("./b/c/d");
+      expect(source).toBe("./b/c/d.js");
+    });
+
+    it("should go down from the root for a file below the root", () => {
+      // Act
+      const source = getDependencySource(toNode("a.js", "src/b.js"));
+
+      // Assert
+      expect(source).toBe("./src/b.js");
     });
 
     it("should not count the name of the target as a folder in common", () => {
       // Act: a node target that is a folder, which the sketch refuses but a caller can pass
-      const source = getDependencySource(
-        ["src/b/x.js"],
-        toNode("src/b/x.js", "src/b"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/b/x.js", "src/b"));
 
       // Assert
       expect(source).toBe("../b");
     });
 
-    it("should drop the /index of a file that is the index of its folder", () => {
+    it("should write the /index of a file that is the index of its folder", () => {
       // Act
       const source = getDependencySource(
-        ["src/a.js", "src/helpers/format/index.js"],
-        toNode("src/a.js", "src/helpers/format/index.js"),
-        NODE_RESOLVERS
+        toNode("src/a.js", "src/helpers/format/index.js")
       );
 
       // Assert
-      expect(source).toBe("./helpers/format");
+      expect(source).toBe("./helpers/format/index.js");
     });
 
-    it("should keep ./index for the index of the same folder", () => {
+    it("should write ./index.js for the index of the same folder", () => {
       // Act
       const source = getDependencySource(
-        ["src/a/spec.js", "src/a/index.js"],
-        toNode("src/a/spec.js", "src/a/index.js"),
-        NODE_RESOLVERS
+        toNode("src/a/spec.js", "src/a/index.js")
       );
 
       // Assert
-      expect(source).toBe("./index");
+      expect(source).toBe("./index.js");
     });
 
-    it("should keep ../index for the index of the parent folder", () => {
+    it("should write ../index.js for the index of the parent folder", () => {
       // Act
-      const source = getDependencySource(
-        ["src/a/b.js", "src/index.js"],
-        toNode("src/a/b.js", "src/index.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a/b.js", "src/index.js"));
 
       // Assert
-      expect(source).toBe("../index");
+      expect(source).toBe("../index.js");
     });
 
-    it("should keep ../../index for the index of a folder two levels up", () => {
+    it("should write ../../index.js for the index of a folder two levels up", () => {
       // Act
-      const source = getDependencySource(
-        ["a/b/c.js", "index.js"],
-        toNode("a/b/c.js", "index.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("a/b/c.js", "index.js"));
 
       // Assert
-      expect(source).toBe("../../index");
+      expect(source).toBe("../../index.js");
     });
 
-    it("should drop the /index of a folder two levels up and then down", () => {
+    it("should write the index of a folder two levels up and then down", () => {
       // Act
-      const source = getDependencySource(
-        ["a/b/c.js", "d/index.js"],
-        toNode("a/b/c.js", "d/index.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("a/b/c.js", "d/index.js"));
 
       // Assert
-      expect(source).toBe("../../d");
+      expect(source).toBe("../../d/index.js");
     });
 
-    it.each([
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".js",
-        source: "./b",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".mjs",
-        source: "./b",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".jsx",
-        source: "./b.jsx",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".cjs",
-        source: "./b.cjs",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".ts",
-        source: "./b.ts",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".tsx",
-        source: "./b.tsx",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".mts",
-        source: "./b.mts",
-      },
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        extension: ".cts",
-        source: "./b.cts",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".js",
-        source: "./b",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".jsx",
-        source: "./b",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".ts",
-        source: "./b",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".tsx",
-        source: "./b",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".mjs",
-        source: "./b.mjs",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".cjs",
-        source: "./b.cjs",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".mts",
-        source: "./b.mts",
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        extension: ".cts",
-        source: "./b.cts",
-      },
-    ])(
-      "should write a module of extension $extension as $source for the $resolver resolver",
-      ({ resolvers, extension, source }) => {
-        // Arrange
-        const files = ["src/a.js", `src/b${extension}`];
+    it("should write the index of a file that has no extension in full", () => {
+      // Act
+      const source = getDependencySource(toNode("src/main.js", "src/u/index"));
 
+      // Assert
+      expect(source).toBe("./u/index");
+    });
+
+    it.each(CODE_EXTENSIONS)(
+      "should keep the extension %s of the file",
+      (extension) => {
         // Act
-        const written = getDependencySource(
-          files,
-          toNode("src/a.js", `src/b${extension}`),
-          resolvers
+        const source = getDependencySource(
+          toNode("src/a.js", `src/b${extension}`)
         );
 
         // Assert
-        expect(written).toBe(source);
-        expect(resolveSource(files, "src/a.js", written, resolvers)).toBe(
-          `src/b${extension}`
-        );
+        expect(source).toBe(`./b${extension}`);
       }
     );
 
-    it("should write the source of a TypeScript file without its extension when the typescript resolver is run", () => {
+    it("should keep the extension of a declaration file", () => {
       // Act
       const source = getDependencySource(
-        ["src/a.ts", "src/helpers/index.ts"],
-        toNode("src/a.ts", "src/helpers/index.ts"),
-        TYPESCRIPT_RESOLVERS
+        toNode("src/a.ts", "src/types/index.d.ts")
       );
 
       // Assert
-      expect(source).toBe("./helpers");
-    });
-
-    it("should write the source of a TypeScript file with its extension when only the node resolver is run", () => {
-      // Act
-      const source = getDependencySource(
-        ["src/a.ts", "src/helpers/index.ts"],
-        toNode("src/a.ts", "src/helpers/index.ts"),
-        NODE_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./helpers/index.ts");
+      expect(source).toBe("./types/index.d.ts");
     });
 
     it("should keep the extension of a file that is not a module", () => {
@@ -783,20 +406,16 @@ describe("Statements", () => {
       const sources = [
         "src/styles.css",
         "src/data.json",
+        "src/addon.node",
         "src/README.md",
         "src/Makefile",
-      ].map((path) =>
-        getDependencySource(
-          [path, "src/a.js"],
-          toNode("src/a.js", path),
-          NODE_RESOLVERS
-        )
-      );
+      ].map((path) => getDependencySource(toNode("src/a.js", path)));
 
       // Assert
       expect(sources).toEqual([
         "./styles.css",
         "./data.json",
+        "./addon.node",
         "./README.md",
         "./Makefile",
       ]);
@@ -804,171 +423,32 @@ describe("Statements", () => {
 
     it("should keep a name that is only an extension", () => {
       // Act
-      const source = getDependencySource(
-        ["src/.js", "src/a.js"],
-        toNode("src/a.js", "src/.js"),
-        NODE_RESOLVERS
-      );
+      const source = getDependencySource(toNode("src/a.js", "src/.js"));
 
       // Assert
       expect(source).toBe("./.js");
     });
 
-    it("should drop the whole extension of a declaration file when the typescript resolver is run", () => {
-      // Arrange
-      const files = ["src/a.ts", "src/types.d.ts"];
-
+    it("should write the file beside a folder that has the same name, and the index of that folder, apart", () => {
       // Act
-      const source = getDependencySource(
-        files,
-        toNode("src/a.ts", "src/types.d.ts"),
-        TYPESCRIPT_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./types");
-      expect(
-        resolveSource(files, "src/a.ts", source, TYPESCRIPT_RESOLVERS)
-      ).toBe("src/types.d.ts");
-    });
-
-    it("should keep the extension of a declaration file when only the node resolver is run", () => {
-      // Act
-      const source = getDependencySource(
-        ["src/a.ts", "src/types.d.ts"],
-        toNode("src/a.ts", "src/types.d.ts"),
-        NODE_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./types.d.ts");
-    });
-
-    it("should write the full path of a declaration file that another file of the same stem resolves before", () => {
-      // Arrange
-      const files = ["src/a.ts", "src/types.ts", "src/types.d.ts"];
-
-      // Act
-      const source = getDependencySource(
-        files,
-        toNode("src/a.ts", "src/types.d.ts"),
-        TYPESCRIPT_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./types.d.ts");
-      expect(
-        resolveSource(files, "src/a.ts", source, TYPESCRIPT_RESOLVERS)
-      ).toBe("src/types.d.ts");
-    });
-
-    it("should write the source of the file beside a folder that has the same name, and of the index of that folder", () => {
-      // Arrange
-      const files = ["src/x.js", "src/Button.js", "src/Button/index.js"];
-
-      // Act
-      const file = getDependencySource(
-        files,
-        toNode("src/x.js", "src/Button.js"),
-        NODE_RESOLVERS
-      );
+      const file = getDependencySource(toNode("src/x.js", "src/Button.js"));
       const index = getDependencySource(
-        files,
-        toNode("src/x.js", "src/Button/index.js"),
-        NODE_RESOLVERS
+        toNode("src/x.js", "src/Button/index.js")
       );
 
       // Assert
-      expect(file).toBe("./Button");
-      expect(index).toBe("./Button/index");
-      expect(resolveSource(files, "src/x.js", file, NODE_RESOLVERS)).toBe(
-        "src/Button.js"
-      );
-      expect(resolveSource(files, "src/x.js", index, NODE_RESOLVERS)).toBe(
-        "src/Button/index.js"
-      );
+      expect(file).toBe("./Button.js");
+      expect(index).toBe("./Button/index.js");
     });
 
-    it("should write the extension when another extension resolves first", () => {
-      // Arrange
-      const files = ["src/x.js", "src/a.js", "src/a.ts"];
-
+    it("should write the full path of a target whatever the other files of the sketch are", () => {
       // Act
-      const first = getDependencySource(
-        files,
-        toNode("src/x.js", "src/a.js"),
-        NODE_RESOLVERS
-      );
-      const second = getDependencySource(
-        files,
-        toNode("src/x.js", "src/a.ts"),
-        NODE_RESOLVERS
+      const sources = ["src/b.js", "src/b.ts", "src/b/index.js"].map((path) =>
+        getDependencySource(toNode("src/a.js", path))
       );
 
       // Assert
-      expect(first).toBe("./a");
-      expect(second).toBe("./a.ts");
-    });
-
-    it("should write the index with its extension when another index resolves first", () => {
-      // Arrange
-      const files = [
-        "src/x/spec.js",
-        "src/x/index.js",
-        "src/x/index.ts",
-        "src/y/z.js",
-        "src/y/index.js",
-        "src/y/index.tsx",
-      ];
-
-      // Act
-      const sibling = getDependencySource(
-        files,
-        toNode("src/x/spec.js", "src/x/index.ts"),
-        NODE_RESOLVERS
-      );
-      const above = getDependencySource(
-        files,
-        toNode("src/y/z.js", "src/y/index.tsx"),
-        NODE_RESOLVERS
-      );
-      const other = getDependencySource(
-        files,
-        toNode("src/x/spec.js", "src/y/index.tsx"),
-        NODE_RESOLVERS
-      );
-
-      // Assert
-      expect(sibling).toBe("./index.ts");
-      expect(above).toBe("./index.tsx");
-      expect(other).toBe("../y/index.tsx");
-    });
-
-    it("should write the path without the index when only the extension is ambiguous", () => {
-      // Arrange
-      const files = ["src/x.js", "src/Button/index.js", "src/Button/index.ts"];
-
-      // Act
-      const source = getDependencySource(
-        files,
-        toNode("src/x.js", "src/Button/index.ts"),
-        NODE_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./Button/index.ts");
-    });
-
-    it("should write the full path of a target that is not among the files", () => {
-      // Act
-      const source = getDependencySource(
-        ["src/a.js"],
-        toNode("src/a.js", "src/missing/index.js"),
-        NODE_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("./missing/index.js");
+      expect(sources).toEqual(["./b.js", "./b.ts", "./b/index.js"]);
     });
 
     it("should write a source that resolves back to the target for every file dependency of the quick start example", () => {
@@ -981,12 +461,7 @@ describe("Statements", () => {
 
       // Act
       const resolved = fileDependencies.map((dependency) =>
-        resolveSource(
-          files,
-          dependency.from,
-          getDependencySource(files, dependency, NODE_RESOLVERS),
-          NODE_RESOLVERS
-        )
+        resolveSource(files, dependency.from, getDependencySource(dependency))
       );
 
       // Assert
@@ -1002,508 +477,324 @@ describe("Statements", () => {
       ]);
     });
 
-    it("should drop the /index of an index file that has no extension, which a resolver reads for the folder", () => {
-      // Arrange
-      const files = ["src/main.js", "src/u/index"];
-
-      // Act
-      const sources = [NODE_RESOLVERS, TYPESCRIPT_RESOLVERS].map((resolvers) =>
-        getDependencySource(
-          files,
-          toNode("src/main.js", "src/u/index"),
-          resolvers
-        )
-      );
-
-      // Assert
-      expect(sources).toEqual(["./u", "./u"]);
-    });
-
-    it("should never drop .json or .node, which people write", () => {
-      // Arrange
-      const files = ["src/a.js", "src/data.json", "src/addon.node"];
-
-      // Act
-      const sources = [NODE_RESOLVERS, TYPESCRIPT_RESOLVERS].flatMap(
-        (resolvers) =>
-          ["src/data.json", "src/addon.node"].map((path) => {
-            const source = getDependencySource(
-              files,
-              toNode("src/a.js", path),
-              resolvers
-            );
-
-            return [
-              source,
-              resolveSource(files, "src/a.js", source, resolvers),
-            ];
-          })
-      );
-
-      // Assert
-      expect(sources).toEqual([
-        ["./data.json", "src/data.json"],
-        ["./addon.node", "src/addon.node"],
-        ["./data.json", "src/data.json"],
-        ["./addon.node", "src/addon.node"],
-      ]);
-    });
-
-    it.each([
-      {
-        label: "a.mjs before a.js for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/a.mjs", "src/a.js"],
-        target: "src/a.mjs",
-        source: "./a",
-        reads: "src/a.mjs",
-      },
-      {
-        label: "a.js after a.mjs for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/a.mjs", "src/a.js"],
-        target: "src/a.js",
-        source: "./a.js",
-        reads: "src/a.js",
-      },
-      {
-        label: "a.js beside a.mjs for the typescript resolver",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        files: ["src/main.js", "src/a.mjs", "src/a.js"],
-        target: "src/a.js",
-        source: "./a",
-        reads: "src/a.js",
-      },
-      {
-        label: "a.mjs beside a.js for the typescript resolver",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        files: ["src/main.js", "src/a.mjs", "src/a.js"],
-        target: "src/a.mjs",
-        source: "./a.mjs",
-        reads: "src/a.mjs",
-      },
-      {
-        label: "price.json before price/index.js for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/price.json", "src/price/index.js"],
-        target: "src/price.json",
-        source: "./price.json",
-        reads: "src/price.json",
-      },
-      {
-        label: "price/index.js after price.json for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/price.json", "src/price/index.js"],
-        target: "src/price/index.js",
-        source: "./price/index",
-        reads: "src/price/index.js",
-      },
-      {
-        label: "price/index.js after price.json for the typescript resolver",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        files: ["src/main.js", "src/price.json", "src/price/index.js"],
-        target: "src/price/index.js",
-        source: "./price/index",
-        reads: "src/price/index.js",
-      },
-      {
-        label: "b.js beside b.ts for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/b.ts", "src/b.js"],
-        target: "src/b.js",
-        source: "./b",
-        reads: "src/b.js",
-      },
-      {
-        label: "b.ts beside b.js for the node resolver",
-        resolvers: NODE_RESOLVERS,
-        files: ["src/main.js", "src/b.ts", "src/b.js"],
-        target: "src/b.ts",
-        source: "./b.ts",
-        reads: "src/b.ts",
-      },
-      {
-        label: "b.ts beside b.js for the typescript resolver",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        files: ["src/main.js", "src/b.ts", "src/b.js"],
-        target: "src/b.ts",
-        source: "./b",
-        reads: "src/b.ts",
-      },
-      {
-        label:
-          "b.js beside its TypeScript twin b.ts, which no source of the typescript resolver reaches",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        files: ["src/main.js", "src/b.ts", "src/b.js"],
-        target: "src/b.js",
-        source: "./b.js",
-        reads: "src/b.ts",
-      },
-    ])("should write $label", ({ resolvers, files, target, source, reads }) => {
-      // Act
-      const written = getDependencySource(
-        files,
-        toNode("src/main.js", target),
-        resolvers
-      );
-
-      // Assert
-      expect(written).toBe(source);
-      expect(resolveSource(files, "src/main.js", written, resolvers)).toBe(
-        reads
-      );
-    });
-
-    it("should write the source that the first resolver of a chain finds, and a shorter one that a later resolver finds", () => {
+    it("should write a source that resolves back to the target even when other files could be read from a shorter one", () => {
       // Arrange
       const files = [
-        "src/main.js",
-        "src/util.mjs",
-        "src/view.tsx",
-        "src/b.ts",
+        "src/a.js",
         "src/b.js",
+        "src/b.ts",
+        "src/b/index.js",
+        "src/b/index.mjs",
       ];
-      const chain = [TYPESCRIPT, NODE];
 
       // Act
-      const sources = [
-        "src/util.mjs",
-        "src/view.tsx",
-        "src/b.ts",
-        "src/b.js",
-      ].map((target) =>
-        getDependencySource(files, toNode("src/main.js", target), chain)
-      );
+      const resolved = files.slice(1).map((path) => {
+        const source = getDependencySource(toNode("src/a.js", path));
+
+        return [source, resolveSource(files, "src/a.js", source)];
+      });
 
       // Assert
-      expect(sources).toEqual(["./util", "./view", "./b", "./b.js"]);
-      expect(
-        sources.map((source) =>
-          resolveSource(files, "src/main.js", source, chain)
-        )
-      ).toEqual(["src/util.mjs", "src/view.tsx", "src/b.ts", "src/b.ts"]);
+      expect(resolved).toEqual([
+        ["./b.js", "src/b.js"],
+        ["./b.ts", "src/b.ts"],
+        ["./b/index.js", "src/b/index.js"],
+        ["./b/index.mjs", "src/b/index.mjs"],
+      ]);
+    });
+  });
+
+  describe("findSourceFiles", () => {
+    it("should give the file that the source names exactly, alone, though longer names could be added to it", () => {
+      // Arrange
+      const files = new Set(["src/a.js", "src/b.js", "src/b.js.ts"]);
+
+      // Act
+      const found = findSourceFiles(files, "src/a.js", "./b.js");
+
+      // Assert
+      expect(found).toEqual(["src/b.js"]);
     });
 
-    it("should write the extensions that the extensions option sets as droppable, and no others", () => {
+    it("should give the files that add a code extension, in the order of the extensions, and then the indexes in the same order", () => {
       // Arrange
-      const files = ["src/main.js", "src/b.ts", "src/c.mjs", "src/d/index.tsx"];
-      const nodeWithTs: SourceResolver = { name: "node", extensions: [".ts"] };
-      const typescriptWithTsx: SourceResolver = {
-        name: "typescript",
-        extensions: [".tsx"],
-      };
+      const files = new Set([
+        "src/a.js",
+        "src/b/index.d.ts",
+        "src/b.d.ts",
+        "src/b/index.js",
+        "src/b.cts",
+        "src/b.js",
+        "src/b/index.mjs",
+        "src/b.ts",
+      ]);
 
       // Act
-      const sources = ["src/b.ts", "src/c.mjs", "src/d/index.tsx"].flatMap(
-        (target) => [
-          getDependencySource(files, toNode("src/main.js", target), [
-            nodeWithTs,
-          ]),
-          getDependencySource(files, toNode("src/main.js", target), [
-            typescriptWithTsx,
-          ]),
-        ]
-      );
+      const found = findSourceFiles(files, "src/a.js", "./b");
 
       // Assert
-      expect(sources).toEqual([
-        "./b",
-        "./b.ts",
-        "./c.mjs",
-        "./c.mjs",
-        "./d/index.tsx",
-        "./d",
+      expect(found).toEqual([
+        "src/b.js",
+        "src/b.ts",
+        "src/b.cts",
+        "src/b.d.ts",
+        "src/b/index.js",
+        "src/b/index.mjs",
+        "src/b/index.d.ts",
       ]);
     });
 
-    it("should write the full path of a target that no resolver is run to find", () => {
+    it("should try every code extension in its order, for the files and for the indexes", () => {
+      // Arrange
+      const files = new Set([
+        "src/a.js",
+        ...[...CODE_EXTENSIONS]
+          .reverse()
+          .map((extension) => `src/b${extension}`),
+        ...[...CODE_EXTENSIONS]
+          .reverse()
+          .map((extension) => `src/b/index${extension}`),
+      ]);
+
       // Act
-      const source = getDependencySource(
-        ["src/main.js", "src/b.js"],
-        toNode("src/main.js", "src/b.js"),
-        []
+      const found = findSourceFiles(files, "src/a.js", "./b");
+
+      // Assert
+      expect(found).toEqual([
+        "src/b.js",
+        "src/b.jsx",
+        "src/b.ts",
+        "src/b.tsx",
+        "src/b.mjs",
+        "src/b.cjs",
+        "src/b.mts",
+        "src/b.cts",
+        "src/b.d.ts",
+        "src/b/index.js",
+        "src/b/index.jsx",
+        "src/b/index.ts",
+        "src/b/index.tsx",
+        "src/b/index.mjs",
+        "src/b/index.cjs",
+        "src/b/index.mts",
+        "src/b/index.cts",
+        "src/b/index.d.ts",
+      ]);
+    });
+
+    it("should give only the indexes of the folder for a source that names a folder", () => {
+      // Arrange
+      const files = new Set([
+        "src/a.js",
+        "src/b.js",
+        "src/b/index.ts",
+        "src/b/index.js",
+        "src/b/other.js",
+      ]);
+
+      // Act
+      const found = [".", "./b/", "../src/b/"].map((source) =>
+        findSourceFiles(files, "src/a.js", source)
       );
 
       // Assert
-      expect(source).toBe("./b.js");
+      expect(found).toEqual([
+        [],
+        ["src/b/index.js", "src/b/index.ts"],
+        ["src/b/index.js", "src/b/index.ts"],
+      ]);
+    });
+
+    it("should give nothing for a source that is not relative, that goes above the root or that matches no file", () => {
+      // Arrange
+      const files = new Set(["src/a.js", "src/react.js", "b.js"]);
+
+      // Act
+      const found = ["react", "./missing", "../../b", "../.."].map((source) =>
+        findSourceFiles(files, "src/a.js", source)
+      );
+
+      // Assert
+      expect(found).toEqual([[], [], [], []]);
     });
   });
 
   describe("resolveSource", () => {
-    it("should resolve the path as written first", () => {
+    it("should resolve a source that names a file exactly to that file", () => {
+      // Act
+      const source = resolveSource(
+        ["src/a.js", "src/b.js"],
+        "src/a.js",
+        "./b.js"
+      );
+
+      // Assert
+      expect(source).toBe("src/b.js");
+    });
+
+    it("should resolve the path as written before a longer name that adds an extension to it", () => {
       // Arrange
       const files = ["src/a.js", "src/b.css", "src/b.css.js"];
 
       // Act
-      const source = resolveSource(
-        files,
-        "src/a.js",
-        "./b.css",
-        NODE_RESOLVERS
-      );
+      const source = resolveSource(files, "src/a.js", "./b.css");
 
       // Assert
       expect(source).toBe("src/b.css");
     });
 
-    it.each(RESOLUTIONS)(
-      "should resolve $source among $files with the node resolver",
-      ({ source, files, node }) => {
+    it("should resolve a file that is not a module exactly, as written", () => {
+      // Arrange
+      const files = [
+        "src/a.js",
+        "src/Button.css",
+        "src/data.json",
+        "src/LICENSE",
+      ];
+
+      // Act
+      const resolved = ["./Button.css", "./data.json", "./LICENSE"].map(
+        (source) => resolveSource(files, "src/a.js", source)
+      );
+
+      // Assert
+      expect(resolved).toEqual([
+        "src/Button.css",
+        "src/data.json",
+        "src/LICENSE",
+      ]);
+    });
+
+    it("should resolve a file named like an index, without extension, exactly", () => {
+      // Arrange
+      const files = ["src/a.js", "src/x/index"];
+
+      // Act
+      const source = resolveSource(files, "src/a.js", "./x/index");
+
+      // Assert
+      expect(source).toBe("src/x/index");
+    });
+
+    it.each(CODE_EXTENSIONS)(
+      "should resolve a source without extension to a file with the extension %s",
+      (extension) => {
         // Act
-        const resolved = resolveSource(files, "src/main.js", source, [NODE]);
-
-        // Assert
-        expect(resolved).toBe(node);
-      }
-    );
-
-    it.each(RESOLUTIONS)(
-      "should resolve $source among $files with the typescript resolver",
-      ({ source, files, typescript }) => {
-        // Act
-        const resolved = resolveSource(files, "src/main.js", source, [
-          TYPESCRIPT,
-        ]);
-
-        // Assert
-        expect(resolved).toBe(typescript);
-      }
-    );
-
-    it.each([
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        order: ["b.mjs", "b.js", "b.json"],
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        order: ["b.ts", "b.tsx", "b.d.ts", "b.js", "b.jsx", "b.json"],
-      },
-    ])(
-      "should try the extensions of the $resolver resolver in order",
-      ({ resolvers, order }) => {
-        // Act
-        const found = order.map((_file, position) =>
-          resolveSource(
-            ["src/a.js", ...order.slice(position).map((file) => `src/${file}`)],
-            "src/a.js",
-            "./b",
-            resolvers
-          )
+        const source = resolveSource(
+          ["src/a.js", `src/b${extension}`],
+          "src/a.js",
+          "./b"
         );
 
         // Assert
-        expect(found).toEqual(order.map((file) => `src/${file}`));
+        expect(source).toBe(`src/b${extension}`);
       }
     );
 
-    it.each([
-      {
-        resolver: "node",
-        resolvers: NODE_RESOLVERS,
-        order: ["b/index.mjs", "b/index.js", "b/index.json"],
-      },
-      {
-        resolver: "typescript",
-        resolvers: TYPESCRIPT_RESOLVERS,
-        order: [
-          "b/index.ts",
-          "b/index.tsx",
-          "b/index.d.ts",
-          "b/index.js",
-          "b/index.jsx",
-          "b/index.json",
-        ],
-      },
-    ])(
-      "should try the extensions of the $resolver resolver in order for the index of a folder",
-      ({ resolvers, order }) => {
+    it.each(CODE_EXTENSIONS)(
+      "should resolve a source to the index of a folder with the extension %s",
+      (extension) => {
         // Act
-        const found = order.map((_file, position) =>
-          resolveSource(
-            ["src/a.js", ...order.slice(position).map((file) => `src/${file}`)],
-            "src/a.js",
-            "./b",
-            resolvers
-          )
+        const source = resolveSource(
+          ["src/a.js", `src/b/index${extension}`],
+          "src/a.js",
+          "./b"
         );
 
         // Assert
-        expect(found).toEqual(order.map((file) => `src/${file}`));
+        expect(source).toBe(`src/b/index${extension}`);
       }
     );
 
-    it("should resolve a source that ends with / to the index of the folder, even beside a file with the same name", () => {
+    it("should resolve a declaration file from its name without .d.ts", () => {
+      // Act
+      const source = resolveSource(
+        ["src/a.ts", "src/types.d.ts"],
+        "src/a.ts",
+        "./types"
+      );
+
+      // Assert
+      expect(source).toBe("src/types.d.ts");
+    });
+
+    it("should not resolve a source that names an extension to a file with another one", () => {
+      // Act
+      const resolved = ["./b.js", "./b.jsx", "./b.ts"].map((source) =>
+        resolveSource(["src/a.js", "src/b.tsx"], "src/a.js", source)
+      );
+
+      // Assert
+      expect(resolved).toEqual([undefined, undefined, undefined]);
+    });
+
+    it("should give undefined for a source that can be several files, and pick none", () => {
+      // Arrange
+      const files = [
+        ["src/a.js", "src/b.ts", "src/b.js"],
+        ["src/a.js", "src/b.js", "src/b/index.js"],
+        ["src/a.js", "src/b/index.js", "src/b/index.ts"],
+        ["src/a.js", "src/b.mts", "src/b.d.ts"],
+      ];
+
+      // Act
+      const resolved = files.map((list) =>
+        resolveSource(list, "src/a.js", "./b")
+      );
+
+      // Assert
+      expect(resolved).toEqual([undefined, undefined, undefined, undefined]);
+    });
+
+    it("should resolve a source that ends with / to the index of the folder, beside a file with the same name", () => {
       // Arrange
       const files = ["src/a.js", "src/b.js", "src/b/index.js"];
 
       // Act
-      const sources = ["./b/", "./b", "../src/b/"].map((source) =>
-        resolveSource(files, "src/a.js", source, NODE_RESOLVERS)
+      const sources = ["./b/", "../src/b/"].map((source) =>
+        resolveSource(files, "src/a.js", source)
       );
 
       // Assert
-      expect(sources).toEqual(["src/b/index.js", "src/b.js", "src/b/index.js"]);
+      expect(sources).toEqual(["src/b/index.js", "src/b/index.js"]);
+    });
+
+    it("should give undefined for a source without / that names a file and a folder with the same name", () => {
+      // Arrange
+      const files = ["src/a.js", "src/b.js", "src/b/index.js"];
+
+      // Act
+      const source = resolveSource(files, "src/a.js", "./b");
+
+      // Assert
+      expect(source).toBeUndefined();
     });
 
     it("should not resolve a source that ends with / to a file with the same name", () => {
       // Act
-      const sources = [NODE_RESOLVERS, TYPESCRIPT_RESOLVERS].map((resolvers) =>
-        resolveSource(["src/a.js", "src/b.js"], "src/a.js", "./b/", resolvers)
-      );
-
-      // Assert
-      expect(sources).toEqual([undefined, undefined]);
-    });
-
-    it("should resolve with the first resolver that finds a file", () => {
-      // Arrange
-      const files = ["src/a.js", "src/b.ts", "src/b.js"];
-
-      // Act
-      const nodeFirst = resolveSource(files, "src/a.js", "./b", [
-        NODE,
-        TYPESCRIPT,
-      ]);
-      const typescriptFirst = resolveSource(files, "src/a.js", "./b", [
-        TYPESCRIPT,
-        NODE,
-      ]);
-
-      // Assert
-      expect(nodeFirst).toBe("src/b.js");
-      expect(typescriptFirst).toBe("src/b.ts");
-    });
-
-    it("should resolve with the next resolver when the first finds no file", () => {
-      // Arrange
-      const files = ["src/a.js", "src/util.mjs", "src/view.tsx"];
-
-      // Act
-      const typescriptThenNode = resolveSource(files, "src/a.js", "./util", [
-        TYPESCRIPT,
-        NODE,
-      ]);
-      const nodeThenTypescript = resolveSource(files, "src/a.js", "./view", [
-        NODE,
-        TYPESCRIPT,
-      ]);
-
-      // Assert
-      expect(typescriptThenNode).toBe("src/util.mjs");
-      expect(nodeThenTypescript).toBe("src/view.tsx");
-    });
-
-    it("should resolve to no file when no resolver is run", () => {
-      // Act
       const source = resolveSource(
         ["src/a.js", "src/b.js"],
         "src/a.js",
-        "./b",
-        []
+        "./b/"
       );
 
       // Assert
       expect(source).toBeUndefined();
     });
 
-    it("should try the extensions that the extensions option sets, and no others", () => {
-      // Arrange
-      const files = [
-        "src/a.js",
-        "src/b.ts",
-        "src/b.js",
-        "src/c.mjs",
-        "src/d/index.ts",
-      ];
-      const nodeWithTs: SourceResolver = {
-        name: "node",
-        extensions: [".ts", ".js"],
-      };
-      const typescriptWithJs: SourceResolver = {
-        name: "typescript",
-        extensions: [".js"],
-      };
+    it("should not add an extension to the name of a folder that a source names", () => {
+      // Arrange: `src.js` is what `src` plus an extension would be, but `.`, `./` and `../src/.` name the folder
+      const files = ["src.js", "src/a.js"];
 
       // Act
-      const sources = ["./b", "./c", "./d"].flatMap((source) => [
-        resolveSource(files, "src/a.js", source, [nodeWithTs]),
-        resolveSource(files, "src/a.js", source, [typescriptWithJs]),
-      ]);
-
-      // Assert
-      expect(sources).toEqual([
-        "src/b.ts",
-        "src/b.js",
-        undefined,
-        undefined,
-        "src/d/index.ts",
-        undefined,
-      ]);
-    });
-
-    it("should still apply the extension aliases of the typescript resolver when the extensions option sets other extensions", () => {
-      // Arrange
-      const typescriptWithJson: SourceResolver = {
-        name: "typescript",
-        extensions: [".json"],
-      };
-
-      // Act
-      const source = resolveSource(
-        ["src/a.js", "src/b.ts"],
-        "src/a.js",
-        "./b.js",
-        [typescriptWithJson]
+      const resolved = [".", "./", "../src/."].map((source) =>
+        resolveSource(files, "src/a.js", source)
       );
+      const asFile = resolveSource(files, "src/a.js", "../src");
 
       // Assert
-      expect(source).toBe("src/b.ts");
-    });
-
-    it("should find a file whose name continues past an extension that is written, as the typescript resolver does", () => {
-      // Arrange
-      const files = ["src/a.js", "src/weird.js.ts"];
-
-      // Act
-      const source = resolveSource(
-        files,
-        "src/a.js",
-        "./weird.js",
-        TYPESCRIPT_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("src/weird.js.ts");
-    });
-
-    it("should resolve a file before the index of a folder with the same name", () => {
-      // Arrange
-      const files = ["src/a.js", "src/b/index.js", "src/b.ts"];
-
-      // Act
-      const source = resolveSource(
-        files,
-        "src/a.js",
-        "./b",
-        TYPESCRIPT_RESOLVERS
-      );
-
-      // Assert
-      expect(source).toBe("src/b.ts");
-    });
-
-    it("should resolve the index of a folder, trying its extensions in order", () => {
-      // Arrange
-      const files = ["src/a.js", "src/b/index.ts", "src/b/index.mjs"];
-
-      // Act
-      const source = resolveSource(files, "src/a.js", "./b", NODE_RESOLVERS);
-
-      // Assert
-      expect(source).toBe("src/b/index.mjs");
+      expect(resolved).toEqual([undefined, undefined, undefined]);
+      expect(asFile).toBe("src.js");
     });
 
     it("should resolve a source that goes up", () => {
@@ -1514,8 +805,7 @@ describe("Statements", () => {
       const source = resolveSource(
         files,
         "src/a/b/c.js",
-        "../../helpers/format",
-        NODE_RESOLVERS
+        "../../helpers/format"
       );
 
       // Assert
@@ -1527,12 +817,7 @@ describe("Statements", () => {
       const files = ["src/a.js", "src/c/d.js"];
 
       // Act
-      const source = resolveSource(
-        files,
-        "src/a.js",
-        "./b/../c//./d",
-        NODE_RESOLVERS
-      );
+      const source = resolveSource(files, "src/a.js", "./b/../c//./d");
 
       // Assert
       expect(source).toBe("src/c/d.js");
@@ -1543,12 +828,12 @@ describe("Statements", () => {
       const files = ["a/b/c.js", "index.js"];
 
       // Act
-      const sources = ["../..", "../../", "../../index"].map((source) =>
-        resolveSource(files, "a/b/c.js", source, NODE_RESOLVERS)
+      const sources = ["../..", "../../", "../../index", "../.././.."].map(
+        (source) => resolveSource(files, "a/b/c.js", source)
       );
 
       // Assert
-      expect(sources).toEqual(["index.js", "index.js", "index.js"]);
+      expect(sources).toEqual(["index.js", "index.js", "index.js", undefined]);
     });
 
     it("should not add an extension to the root, which has no name", () => {
@@ -1556,47 +841,72 @@ describe("Statements", () => {
       const files = ["a/b/c.js", ".js", "x.js"];
 
       // Act
-      const source = resolveSource(files, "a/b/c.js", "../..", NODE_RESOLVERS);
+      const source = resolveSource(files, "a/b/c.js", "../..");
 
       // Assert
       expect(source).toBeUndefined();
     });
 
-    it("should resolve ./ to the index of the folder of the file", () => {
-      // Arrange
-      const files = ["src/a.js", "src/index.js"];
+    it.each([
+      ["./", "src/index.js"],
+      [".", "src/index.js"],
+      ["..", "index.js"],
+      ["../", "index.js"],
+      ["../..", undefined],
+      ["./..", "index.js"],
+      ["./b/..", "src/index.js"],
+      ["./b/.", "src/b/index.js"],
+    ])(
+      "should read the folder source %s of src/a.js as the index of that folder",
+      (source, expected) => {
+        // Arrange
+        const files = [
+          "src/a.js",
+          "src/index.js",
+          "src/b/index.js",
+          "index.js",
+        ];
 
-      // Act
-      const source = resolveSource(files, "src/a.js", "./", NODE_RESOLVERS);
+        // Act
+        const resolved = resolveSource(files, "src/a.js", source);
 
-      // Assert
-      expect(source).toBe("src/index.js");
-    });
+        // Assert
+        expect(resolved).toBe(expected);
+      }
+    );
 
     it("should resolve a source of a file at the root", () => {
       // Act
-      const source = resolveSource(
-        ["a.js", "b.js"],
-        "a.js",
-        "./b",
-        NODE_RESOLVERS
-      );
+      const source = resolveSource(["a.js", "b.js"], "a.js", "./b");
 
       // Assert
       expect(source).toBe("b.js");
     });
 
-    it("should give undefined for a source that goes above the root", () => {
+    it("should resolve the index of the root from a file at the root", () => {
       // Act
-      const source = resolveSource(
-        ["src/a.js", "b.js"],
-        "src/a.js",
-        "../../b",
-        NODE_RESOLVERS
+      const sources = [".", "./"].map((source) =>
+        resolveSource(["a.js", "index.js"], "a.js", source)
       );
 
       // Assert
-      expect(source).toBeUndefined();
+      expect(sources).toEqual(["index.js", "index.js"]);
+    });
+
+    it("should give undefined for a source that goes above the root", () => {
+      // Act
+      const sources = ["../../b", "..", "../b", "../.."].map((source) =>
+        resolveSource(["src/a.js", "b.js", "a.js", "index.js"], "a.js", source)
+      );
+      const fromFolder = resolveSource(
+        ["src/a.js", "b.js"],
+        "src/a.js",
+        "../../b"
+      );
+
+      // Assert
+      expect(sources).toEqual([undefined, undefined, undefined, undefined]);
+      expect(fromFolder).toBeUndefined();
     });
 
     it("should give undefined for a source that is not relative", () => {
@@ -1604,31 +914,17 @@ describe("Statements", () => {
       const files = ["src/a.js", "src/react.js", "src/index.js"];
 
       // Act
-      const sources = ["react", "/src/react", "src/react", ".", "..", ".react"];
+      const sources = ["react", "/src/react", "src/react", ".react", "..."];
 
       // Assert
       expect(
-        sources.map((source) =>
-          resolveSource(files, "src/a.js", source, NODE_RESOLVERS)
-        )
-      ).toEqual([
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      ]);
+        sources.map((source) => resolveSource(files, "src/a.js", source))
+      ).toEqual([undefined, undefined, undefined, undefined, undefined]);
     });
 
     it("should give undefined for a source that resolves to no file", () => {
       // Act
-      const source = resolveSource(
-        ["src/a.js"],
-        "src/a.js",
-        "./missing",
-        NODE_RESOLVERS
-      );
+      const source = resolveSource(["src/a.js"], "src/a.js", "./missing");
 
       // Assert
       expect(source).toBeUndefined();
@@ -1639,8 +935,7 @@ describe("Statements", () => {
       const source = resolveSource(
         ["src/a.js", "src/b/c.js"],
         "src/a.js",
-        "./b",
-        NODE_RESOLVERS
+        "./b"
       );
 
       // Assert

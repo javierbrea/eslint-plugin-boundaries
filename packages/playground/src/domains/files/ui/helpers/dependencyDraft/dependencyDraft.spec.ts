@@ -1,6 +1,4 @@
 import type { SketchDependency } from "@/contract";
-import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
-import type { SourceResolver } from "@/domains/project/helpers/sketch";
 
 import {
   changeSyntax,
@@ -12,14 +10,7 @@ import type { DependencyDraft } from "./dependencyDraft.types";
 
 const FROM = "src/modules/checkout/index.js";
 
-const FILES = [
-  "src/components/atoms/Button/index.js",
-  "src/helpers/format/index.js",
-  FROM,
-  "src/index.js",
-];
-
-/** The draft of the mockup: `import format, { round } from "../../helpers/format";`. */
+/** The draft of the mockup: `import format, { round } from "../../helpers/format/index.js";`. */
 const MOCKUP_DRAFT: DependencyDraft = {
   targetKind: "node",
   file: "src/helpers/format/index.js",
@@ -238,12 +229,7 @@ describe("dependencyDraft", () => {
   describe("getPreviewTokens", () => {
     it("should write the statement of the mockup, with the source from the folder of the file", () => {
       // Act
-      const tokens = getPreviewTokens(
-        MOCKUP_DRAFT,
-        FROM,
-        FILES,
-        DEFAULT_RESOLVERS
-      );
+      const tokens = getPreviewTokens(MOCKUP_DRAFT, FROM);
 
       // Assert
       expect(tokens).toEqual([
@@ -251,36 +237,26 @@ describe("dependencyDraft", () => {
         { kind: "text", text: " format, { round } " },
         { kind: "keyword", text: "from" },
         { kind: "text", text: " " },
-        { kind: "source", text: '"../../helpers/format"' },
+        { kind: "source", text: '"../../helpers/format/index.js"' },
         { kind: "text", text: ";" },
       ]);
     });
 
-    it("should write the source as the resolvers it is given find the file back", () => {
+    it("should write the source in full, with its extension and its index", () => {
       // Arrange
       const from = "src/modules/checkout/index.ts";
-      const file = "src/helpers/format/index.ts";
-      const files = [from, file];
-      const draft: DependencyDraft = { ...MOCKUP_DRAFT, file };
-      const typescript: SourceResolver = {
-        name: "typescript",
-        extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-      };
+      const files = ["src/helpers/format/index.ts", "src/helpers/types.d.ts"];
 
       // Act
-      const [withTypescript, withNode] = [[typescript], DEFAULT_RESOLVERS].map(
-        (resolvers) => getPreviewTokens(draft, from, files, resolvers).at(-2)
+      const sources = files.map((file) =>
+        getPreviewTokens({ ...MOCKUP_DRAFT, file }, from).at(-2)
       );
 
       // Assert
-      expect(withTypescript).toEqual({
-        kind: "source",
-        text: '"../../helpers/format"',
-      });
-      expect(withNode).toEqual({
-        kind: "source",
-        text: '"../../helpers/format/index.ts"',
-      });
+      expect(sources).toEqual([
+        { kind: "source", text: '"../../helpers/format/index.ts"' },
+        { kind: "source", text: '"../../helpers/types.d.ts"' },
+      ]);
     });
 
     it("should write the name of an external module as it is", () => {
@@ -293,7 +269,7 @@ describe("dependencyDraft", () => {
       };
 
       // Act
-      const tokens = getPreviewTokens(draft, FROM, FILES, DEFAULT_RESOLVERS);
+      const tokens = getPreviewTokens(draft, FROM);
 
       // Assert
       expect(tokens.at(-2)).toEqual({ kind: "source", text: '"react"' });
@@ -301,12 +277,7 @@ describe("dependencyDraft", () => {
 
     it("should read the source as … while there is no target yet", () => {
       // Act
-      const tokens = getPreviewTokens(
-        { ...MOCKUP_DRAFT, file: null },
-        FROM,
-        FILES,
-        DEFAULT_RESOLVERS
-      );
+      const tokens = getPreviewTokens({ ...MOCKUP_DRAFT, file: null }, FROM);
 
       // Assert
       expect(tokens.at(-2)).toEqual({ kind: "source", text: '"…"' });
@@ -321,12 +292,12 @@ describe("dependencyDraft", () => {
       };
 
       // Act
-      const text = getPreviewTokens(draft, FROM, FILES, DEFAULT_RESOLVERS)
+      const text = getPreviewTokens(draft, FROM)
         .map((token) => token.text)
         .join("");
 
       // Assert
-      expect(text).toBe('import("../../helpers/format");');
+      expect(text).toBe('import("../../helpers/format/index.js");');
     });
   });
 });

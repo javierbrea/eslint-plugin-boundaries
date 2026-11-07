@@ -69,7 +69,7 @@ const DEPENDENCY_IN_SKETCH: ProblemItem = {
   level: "error",
   location: "src/modules/checkout/index.js",
   position: ":3",
-  source: "../../components/atoms/Button/Button.spec",
+  source: "../../components/atoms/Button/Button.spec.js",
   message:
     'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
   meta: "disallowed · policy 2",
@@ -201,9 +201,9 @@ describe("ProblemList", () => {
       // Assert
       expect(row.location).toBe("src/modules/checkout/index.js");
       expect(position).toBe(":3");
-      expect(source).toBe("→ ../../components/atoms/Button/Button.spec");
+      expect(source).toBe("→ ../../components/atoms/Button/Button.spec.js");
       expect(locationWithPosition).toBe(
-        "src/modules/checkout/index.js:3 → ../../components/atoms/Button/Button.spec"
+        "src/modules/checkout/index.js:3 → ../../components/atoms/Button/Button.spec.js"
       );
     });
 
@@ -224,9 +224,9 @@ describe("ProblemList", () => {
       // Assert
       expect(row.location).toBe("");
       expect(position).toBe(":3");
-      expect(source).toBe("../../components/atoms/Button/Button.spec");
+      expect(source).toBe("../../components/atoms/Button/Button.spec.js");
       expect(locationWithPosition).toBe(
-        ":3 ../../components/atoms/Button/Button.spec"
+        ":3 ../../components/atoms/Button/Button.spec.js"
       );
     });
 

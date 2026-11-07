@@ -3,7 +3,6 @@ import type {
   SketchDependencySyntax,
   SketchSpecifier,
 } from "@/contract";
-import { DEFAULT_RESOLVERS } from "@/domains/project/helpers/sketch";
 
 import { evaluateDependencies } from "./dependencies";
 import type { DependenciesInput } from "./dependencies.types";
@@ -29,15 +28,6 @@ const SETTINGS = {
     { pattern: "**/*.css", category: "style" },
   ],
 };
-
-const FILES = [
-  "src/components/atoms/Button/Button.css",
-  "src/components/atoms/Button/Button.spec.js",
-  "src/components/atoms/Button/index.js",
-  "src/helpers/format/index.js",
-  "src/modules/checkout/index.js",
-  "src/index.js",
-];
 
 const BUTTON = "src/components/atoms/Button/index.js";
 const SPEC = "src/components/atoms/Button/Button.spec.js";
@@ -87,14 +77,12 @@ function createInput(
   );
   return {
     sketch: { config: text, tree: [], dependencies },
-    paths: FILES,
     settings: value.settings,
     rule: selectRule({
       config: parsed,
       rules: value.rules,
       rulesValid: areRulesValid(diagnostics),
     }).rule,
-    resolvers: DEFAULT_RESOLVERS,
   };
 }
 
@@ -245,7 +233,7 @@ describe("Dependencies", () => {
 
         // Assert
         expect(results.map(({ source }) => source)).toEqual([
-          "../../components/atoms/Button",
+          "../../components/atoms/Button/index.js",
           "./Button.css",
           "react",
         ]);
@@ -1043,7 +1031,8 @@ describe("Dependencies", () => {
       );
 
       it.each([
-        ["../../helpers/*", "disallowed"],
+        ["../../helpers/*/index.js", "disallowed"],
+        ["../../helpers/*", "allowed"],
         ["./format", "allowed"],
         ["src/helpers/**", "allowed"],
       ])(
@@ -1228,13 +1217,13 @@ describe("Dependencies", () => {
           {
             dependency: dependencies[0],
             ref: { path: CHECKOUT, index: 0 },
-            source: "../../helpers/format",
+            source: "../../helpers/format/index.js",
             verdict: { status: "not-evaluated" },
           },
           {
             dependency: dependencies[1],
             ref: { path: CHECKOUT, index: 1 },
-            source: "../../components/atoms/Button/Button.spec",
+            source: "../../components/atoms/Button/Button.spec.js",
             verdict: { status: "not-evaluated" },
           },
         ]);
