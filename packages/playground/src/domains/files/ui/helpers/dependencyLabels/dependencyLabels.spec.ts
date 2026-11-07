@@ -65,8 +65,11 @@ describe("dependencyLabels", () => {
 
   describe("specifier kind labels", () => {
     it("should name the three kinds of name", () => {
+      // Act
+      const labels = SPECIFIER_KIND_LABELS;
+
       // Assert
-      expect(SPECIFIER_KIND_LABELS).toEqual({
+      expect(labels).toEqual({
         default: "default",
         named: "named",
         namespace: "namespace",

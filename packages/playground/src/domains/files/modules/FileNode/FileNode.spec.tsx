@@ -144,6 +144,8 @@ describe("FileNode", () => {
     it("should show the verdict of a dependency that is disallowed in the color of an error, and not the others", () => {
       // Arrange
       const { node } = renderNode();
+
+      // Act
       const [allowed, , disallowed, skipped] = node.lines.lines.map(
         ({ verdict }) => verdict.color
       );

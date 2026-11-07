@@ -84,6 +84,8 @@ describe("VerdictCount", () => {
         2
       </VerdictCount>
     );
+
+    // Act
     const { iconName, text } = new VerdictCountPom();
 
     // Assert
@@ -98,6 +100,8 @@ describe("VerdictCount", () => {
         3 allowed
       </VerdictCount>
     );
+
+    // Act
     const { iconName } = new VerdictCountPom();
 
     // Assert

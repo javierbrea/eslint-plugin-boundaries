@@ -565,7 +565,7 @@ describe("Statements", () => {
     });
 
     it("should not count the name of the target as a folder in common", () => {
-      // Arrange: a node target that is a folder, which the sketch refuses but a caller can pass
+      // Act: a node target that is a folder, which the sketch refuses but a caller can pass
       const source = getDependencySource(
         ["src/b/x.js"],
         toNode("src/b/x.js", "src/b"),

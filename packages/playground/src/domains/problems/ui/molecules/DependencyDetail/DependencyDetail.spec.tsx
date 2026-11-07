@@ -292,6 +292,8 @@ describe("DependencyDetail", () => {
     it("should not call onOpen before it is pressed", () => {
       // Arrange
       const onOpen = jest.fn();
+
+      // Act
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={onOpen} />);
 
       // Assert

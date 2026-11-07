@@ -90,15 +90,21 @@ function summaryOf(summary: Partial<PolicySummary>): PolicySummary {
 describe("VerdictText", () => {
   describe("vERDICT_ICON_LABELS", () => {
     it("should name the icon of an allowed and of a disallowed verdict, and of one that only warns", () => {
+      // Act
+      const { check, cross, warn } = VERDICT_ICON_LABELS;
+
       // Assert
-      expect(VERDICT_ICON_LABELS.check).toBe("allowed");
-      expect(VERDICT_ICON_LABELS.cross).toBe("disallowed");
-      expect(VERDICT_ICON_LABELS.warn).toBe("disallowed, as a warning");
+      expect(check).toBe("allowed");
+      expect(cross).toBe("disallowed");
+      expect(warn).toBe("disallowed, as a warning");
     });
 
     it("should leave the skip icon with no name, since the text of the verdict says it", () => {
+      // Act
+      const labels = VERDICT_ICON_LABELS;
+
       // Assert
-      expect(VERDICT_ICON_LABELS).toHaveProperty("skip", undefined);
+      expect(labels).toHaveProperty("skip", undefined);
     });
   });
 

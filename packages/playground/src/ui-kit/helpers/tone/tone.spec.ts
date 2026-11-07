@@ -4,8 +4,11 @@ import { STATE_TEXT, TONE_COLORS } from "./tone.constants";
 describe("Tone", () => {
   describe("tONE_COLORS", () => {
     it("should take the color of each tone from the tokens of the host", () => {
+      // Act
+      const colors = TONE_COLORS;
+
       // Assert
-      expect(TONE_COLORS).toEqual({
+      expect(colors).toEqual({
         ok: "var(--jsb-ok)",
         bad: "var(--jsb-bad)",
         warn: "var(--jsb-warn)",
@@ -22,14 +25,20 @@ describe("Tone", () => {
     ])(
       "should mix 15%% of the ink into the token of the %s state, for contrast",
       (state, color) => {
+        // Act
+        const text = STATE_TEXT[state];
+
         // Assert
-        expect(STATE_TEXT[state]).toBe(color);
+        expect(text).toBe(color);
       }
     );
 
     it("should read not-checked text in the muted color, which already passes the contrast", () => {
+      // Act
+      const text = STATE_TEXT.faint;
+
       // Assert
-      expect(STATE_TEXT.faint).toBe("var(--jsb-muted)");
+      expect(text).toBe("var(--jsb-muted)");
     });
   });
 
