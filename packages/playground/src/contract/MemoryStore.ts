@@ -21,4 +21,9 @@ export class MemoryStore implements StateStore {
     this._sketch = sketch;
     return Promise.resolve();
   }
+
+  public clear(): Promise<void> {
+    this._sketch = undefined;
+    return Promise.resolve();
+  }
 }

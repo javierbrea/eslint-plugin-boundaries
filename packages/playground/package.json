@@ -21,6 +21,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./share": {
+      "types": "./dist/share.d.ts",
+      "import": "./dist/share.js"
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
@@ -50,6 +54,7 @@
     "@lezer/highlight": "1.2.5",
     "@mui/x-tree-view": "9.17.0",
     "codemirror-json5": "1.0.3",
+    "fflate": "0.8.3",
     "react-resizable-panels": "4.16.1"
   },
   "peerDependencies": {

@@ -390,7 +390,7 @@ function indexOfRef(
  * @param dependency The dependency to sort. It is not changed.
  * @returns The dependency with its names in the order of the statement.
  */
-function sortSpecifiers(dependency: SketchDependency): SketchDependency {
+export function sortSpecifiers(dependency: SketchDependency): SketchDependency {
   return {
     ...dependency,
     specifiers: SPECIFIER_ORDER.flatMap((kind) =>

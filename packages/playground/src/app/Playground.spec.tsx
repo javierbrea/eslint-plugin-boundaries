@@ -137,6 +137,7 @@ describe("Playground", () => {
             })
         ),
         save: jest.fn(),
+        clear: jest.fn(),
       };
       const source = new SketchSource(SOURCE_SKETCH);
       const { playground, rerender } = renderPlayground(
@@ -195,6 +196,7 @@ describe("Playground", () => {
       const store: jest.Mocked<StateStore> = {
         load: jest.fn(() => Promise.reject(new Error("disk read failed"))),
         save: jest.fn(),
+        clear: jest.fn(),
       };
 
       // Act
@@ -426,6 +428,7 @@ describe("Playground", () => {
       const pendingStore: jest.Mocked<StateStore> = {
         load: jest.fn(() => new Promise<Sketch | undefined>(() => undefined)),
         save: jest.fn(),
+        clear: jest.fn(),
       };
       const { playground, rerender } = renderPlayground(source, store);
       await playground.waitForStatus("2 files ·");
@@ -451,6 +454,7 @@ describe("Playground", () => {
         save: jest.fn((_sketch: Sketch) =>
           Promise.reject(new Error("quota exceeded"))
         ),
+        clear: jest.fn(),
       };
       const { playground } = renderPlayground(
         new SketchSource(SOURCE_SKETCH),

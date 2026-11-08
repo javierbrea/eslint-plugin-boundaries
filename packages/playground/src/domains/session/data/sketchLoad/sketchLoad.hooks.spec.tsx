@@ -92,6 +92,7 @@ describe("useSketchLoad", () => {
             })
         ),
         save: jest.fn(),
+        clear: jest.fn(),
       };
       const source = new SketchSource(SOURCE_SKETCH);
       const { result, rerender } = renderLoad(source, previousStore);
@@ -124,6 +125,7 @@ describe("useSketchLoad", () => {
             })
         ),
         save: jest.fn(),
+        clear: jest.fn(),
       };
       const source = new SketchSource(SOURCE_SKETCH);
       const { result, rerender } = renderLoad(source, previousStore);

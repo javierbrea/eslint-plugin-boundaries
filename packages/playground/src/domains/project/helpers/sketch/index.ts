@@ -6,6 +6,7 @@ export type {
   NormalizedPath,
   ParsedStatement,
   RenameResult,
+  SketchReadResult,
   SpecifierKind,
   StatementToken,
   SyntaxFacts,
@@ -49,6 +50,7 @@ export {
   toStatementTokens,
 } from "./statements";
 export { isSameDependency, isSameProject } from "./compare";
+export { readSketch } from "./read";
 export {
   fromText,
   getDependencyAtLine,
