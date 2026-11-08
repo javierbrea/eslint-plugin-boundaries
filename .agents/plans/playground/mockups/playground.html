@@ -1981,6 +1981,7 @@ src/pages/<span class="caret"></span>
           <li><div><b>Write the config</b><span>Open <code>eslint.config.js</code> and edit its <code>settings</code> and <code>rules</code>, the same ones the plugin takes. Problems are underlined as you type.</span></div></li>
           <li><div><b>Add dependencies</b><span>Select a file to see its element, then add its imports to see which ones the rules allow, and which policy decides.</span></div></li>
         </ol>
+        <p class="help-tip"><svg class="icon"><use href="#i-info" /></svg><span>Imports are written with the full relative path of their file, such as <code>../helpers/format/index.js</code>, and that is the path <code>dependency.source</code>, <code>customSourcePatterns</code> and <code>{{dependency.source}}</code> see. Text mode also reads shorter paths, by a rule of its own and not by the resolvers of your config: with <code>eslint-import-resolver-typescript</code>, ESLint takes <code>./b.js</code> to a <code>b.ts</code> beside it.</span></p>
         <p class="help-tip"><svg class="icon"><use href="#i-info" /></svg><span>The sketch starts with the example of the Quick start. Reset brings it back, and Share copies a link with the whole sketch.</span></p>
         <footer>
           <a href="#">Read the Quick start<svg class="icon"><use href="#i-arrow" /></svg></a>
