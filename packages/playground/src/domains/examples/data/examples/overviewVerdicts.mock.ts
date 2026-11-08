@@ -1,13 +1,14 @@
 import type { ExampleMessage } from "./exampleVerdicts.types";
 
 /**
- * The statements of the six dependencies of the overview project, by file and in the order of the example, one per line: the line of a message is the index of its dependency in the file plus one. A file that is not here has no dependencies. It is data only: `overviewVerdicts.spec.ts` checks that the dependencies of the example write these statements, and that their verdicts are the ones of `OVERVIEW_MESSAGES`.
+ * The statements of the seven dependencies of the overview project, by file and in the order of the example, one per line: the line of a message is the index of its dependency in the file plus one. A file that is not here has no dependencies. It is data only: `overviewVerdicts.spec.ts` checks that the dependencies of the example write these statements, and that their verdicts are the ones of `OVERVIEW_MESSAGES`.
  */
 export const OVERVIEW_STATEMENTS: Readonly<Record<string, readonly string[]>> =
   {
     "src/controllers/controller-a/index.js": [
       'import { ModelA } from "../../models/model-a/index.js";',
       'import { ViewA } from "../../views/view-a/index.js";',
+      'import axios from "axios";',
     ],
     "src/models/model-a/index.js": [
       'import View from "../../views/view-a/index.js";',
@@ -39,7 +40,7 @@ export const OVERVIEW_MESSAGES: readonly ExampleMessage[] = [
     ruleId: "boundaries/dependencies",
     severity: 2,
     message:
-      'Dependencies with module source "axios" to entities of module with origin "external" are not allowed in elements of type "model". Denied by policy at index 3',
+      'There is no policy allowing dependencies from elements of type "model" to entities of module with origin "external" and module source "axios"',
   },
   {
     path: "src/views/view-a/index.js",

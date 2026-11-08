@@ -8,7 +8,7 @@ import {
 
 import { POLICIES_EXAMPLE } from "./policies";
 
-// The expected values below are copied from the page `packages/website/docs/policies/policies.mdx`: the settings of the canonical demo setup and the policies of its "Complete Example".
+// The expected values below are copied from the page `packages/website/docs/policies/policies.mdx`: the settings of the canonical demo setup and the options of its "Complete Example", which are `checkAllOrigins`, `default` and the policies.
 
 /** The settings of the canonical demo setup of the page */
 const PAGE_SETTINGS = {
@@ -187,7 +187,7 @@ describe("POLICIES_EXAMPLE", () => {
     );
   });
 
-  it("should have a config whose value is the settings and the policies of the page, with the option that checks packages", () => {
+  it("should have a config whose value is the settings and the policies of the page, with `checkAllOrigins`, which the page sets", () => {
     // Act
     const value = evaluate(
       parse(POLICIES_EXAMPLE.sketch.config, { mode: "json5" })
@@ -209,12 +209,14 @@ describe("POLICIES_EXAMPLE", () => {
     });
   });
 
-  it("should keep the comments of the page in its config, and say which option is not on the page", () => {
+  it("should keep the comments of the page in its config, and say what the option that checks packages does", () => {
     // Arrange
     const { config } = POLICIES_EXAMPLE.sketch;
 
     // Assert
-    expect(config).toContain("// Disallow every dependency by default");
+    expect(config).toContain(
+      "// Disallow every dependency by default, packages included"
+    );
     expect(config).toContain(
       '// Components of family "atoms" cannot import "data" helpers'
     );
@@ -222,7 +224,9 @@ describe("POLICIES_EXAMPLE", () => {
     expect(config).toContain(
       "// Modules cannot import external state libraries directly"
     );
-    expect(config).toContain("// Not on the page: ");
+    expect(config).toContain(
+      "// Check the dependencies on packages too, such as `redux`, not only the ones on files of the project"
+    );
   });
 
   it("should write the keys that are identifiers without quotes", () => {

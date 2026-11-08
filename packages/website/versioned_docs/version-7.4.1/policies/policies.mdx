@@ -498,7 +498,9 @@ settings: {
 export default [{
   rules: {
     "boundaries/dependencies": [2, {
-      // Disallow every dependency by default
+      // Check the dependencies on packages too, such as `redux`, not only the ones on files of the project
+      checkAllOrigins: true,
+      // Disallow every dependency by default, packages included
       default: "disallow",
       policies: [
         {

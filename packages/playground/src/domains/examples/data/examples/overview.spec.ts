@@ -8,7 +8,7 @@ import {
 
 import { OVERVIEW_EXAMPLE } from "./overview";
 
-// The expected values below are copied from the page `packages/website/docs/overview.md`: `elementDescriptors` and `fileDescriptors` of its "Usage" section, which are the values of `boundaries/elements` and `boundaries/files`, and its `dependencyRulePolicies`.
+// The expected values below are copied from the page `packages/website/docs/overview.md`: `elementDescriptors` and `fileDescriptors` of its "Usage" section, which are the values of `boundaries/elements` and `boundaries/files`, its `dependencyRulePolicies`, and the `checkAllOrigins` option that its note on packages names.
 
 /** The descriptors of the page, as the settings hold them */
 const PAGE_SETTINGS = {
@@ -41,8 +41,8 @@ const PAGE_POLICIES = [
     },
   },
   {
-    from: { element: { type: "!controller" } },
-    disallow: {
+    from: { element: { type: "controller" } },
+    allow: {
       to: { module: { origin: "external", source: "axios" } },
     },
   },
@@ -71,12 +71,13 @@ describe("OVERVIEW_EXAMPLE", () => {
     ).toEqual(new Set(["file"]));
   });
 
-  it("should have the six dependencies that the policies explain, grouped by file in the order of the tree", () => {
+  it("should have the seven dependencies that the policies explain, grouped by file in the order of the tree", () => {
     // Act
     const { dependencies } = OVERVIEW_EXAMPLE.sketch;
 
     // Assert
     expect(dependencies.map(({ from }) => from)).toEqual([
+      "src/controllers/controller-a/index.js",
       "src/controllers/controller-a/index.js",
       "src/controllers/controller-a/index.js",
       "src/models/model-a/index.js",
@@ -118,6 +119,7 @@ describe("OVERVIEW_EXAMPLE", () => {
         "src/controllers/controller-a/index.js",
         '  import { ModelA } from "../../models/model-a/index.js";',
         '  import { ViewA } from "../../views/view-a/index.js";',
+        '  import axios from "axios";',
         "src/models/model-a/index.js",
         '  import View from "../../views/view-a/index.js";',
         '  import axios from "axios";',
@@ -130,7 +132,7 @@ describe("OVERVIEW_EXAMPLE", () => {
     );
   });
 
-  it("should have a config whose value is the descriptors and the policies of the page, with the option that checks packages", () => {
+  it("should have a config whose value is the descriptors and the policies of the page, with the option that its note on packages names", () => {
     // Act
     const value = evaluate(
       parse(OVERVIEW_EXAMPLE.sketch.config, { mode: "json5" })
@@ -148,7 +150,7 @@ describe("OVERVIEW_EXAMPLE", () => {
     });
   });
 
-  it("should keep the comments of the page in its config, and say which option is not on the page", () => {
+  it("should keep the comments of the page in its config, and say what the option that checks packages does", () => {
     // Arrange
     const { config } = OVERVIEW_EXAMPLE.sketch;
 
@@ -161,7 +163,9 @@ describe("OVERVIEW_EXAMPLE", () => {
       "// Disallow any element from importing a test file"
     );
     expect(config).toContain("// Only controllers may use the `axios` package");
-    expect(config).toContain("// Not on the page: ");
+    expect(config).toContain(
+      "// Check the dependencies on packages too, such as axios"
+    );
   });
 
   it("should write the keys that are identifiers without quotes", () => {

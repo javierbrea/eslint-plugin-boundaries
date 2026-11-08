@@ -50,20 +50,20 @@ describe("DEPENDENCIES_RULE_EXAMPLE", () => {
       // Assert
       // The first seven are the Incorrect examples of the page, in the order of the files; none of them is decided by a policy but the one for test files, so that the others fall to the default
       expect(listDecisions(dependencies)).toEqual([
-        ["components/atoms/atom-a/AtomA.js", 1, "disallowed", null],
-        ["components/atoms/atom-a/AtomA.js", 2, "disallowed", null],
-        ["components/atoms/atom-a/AtomA.js", 3, "disallowed", null],
-        ["components/atoms/atom-a/AtomA.js", 4, "disallowed", 4],
-        ["components/atoms/atom-a/AtomA.js", 5, "allowed", 1],
-        ["components/atoms/atom-a/AtomA.js", 6, "allowed", 1],
-        ["components/molecules/molecule-a/MoleculeA.js", 1, "allowed", 2],
-        ["helpers/data/sort.js", 1, "disallowed", null],
-        ["helpers/permissions/roles.js", 1, "disallowed", null],
-        ["helpers/permissions/roles.js", 2, "disallowed", null],
-        ["helpers/permissions/roles.js", 3, "allowed", 0],
-        ["modules/module-a/ModuleA.js", 1, "allowed", 3],
-        ["modules/module-a/ModuleA.js", 2, "allowed", 3],
-        ["modules/module-a/ModuleA.js", 3, "allowed", 3],
+        ["src/components/atoms/atom-a/AtomA.js", 1, "disallowed", null],
+        ["src/components/atoms/atom-a/AtomA.js", 2, "disallowed", null],
+        ["src/components/atoms/atom-a/AtomA.js", 3, "disallowed", null],
+        ["src/components/atoms/atom-a/AtomA.js", 4, "disallowed", 4],
+        ["src/components/atoms/atom-a/AtomA.js", 5, "allowed", 1],
+        ["src/components/atoms/atom-a/AtomA.js", 6, "allowed", 1],
+        ["src/components/molecules/molecule-a/MoleculeA.js", 1, "allowed", 2],
+        ["src/helpers/data/sort.js", 1, "disallowed", null],
+        ["src/helpers/permissions/roles.js", 1, "disallowed", null],
+        ["src/helpers/permissions/roles.js", 2, "disallowed", null],
+        ["src/helpers/permissions/roles.js", 3, "allowed", 0],
+        ["src/modules/module-a/ModuleA.js", 1, "allowed", 3],
+        ["src/modules/module-a/ModuleA.js", 2, "allowed", 3],
+        ["src/modules/module-a/ModuleA.js", 3, "allowed", 3],
       ]);
     });
 

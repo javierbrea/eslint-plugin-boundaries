@@ -1,7 +1,7 @@
 import type { Example } from "./examples.types";
 
 /**
- * The settings of the canonical demo setup and the "Complete Example" of the policies page of the docs (`packages/website/docs/policies/policies.mdx`), reduced to `{ settings, rules }` as the playground edits it: its comments are kept and the keys that are identifiers are not quoted. It adds `checkAllOrigins`, which the page does not set: without it the rule checks only the dependencies on files of the project, and the policy about `redux` would never see a dependency. The message of the last policy is a template literal of several lines on the page, which JSON5 does not have, so it is written as a string of one line.
+ * The settings of the canonical demo setup and the "Complete Example" of the policies page of the docs (`packages/website/docs/policies/policies.mdx`), reduced to `{ settings, rules }` as the playground edits it: its comments are kept and the keys that are identifiers are not quoted. The page sets `checkAllOrigins`, without which the rule checks only the dependencies on files of the project and the policy about `redux` would never see a dependency. The message of the last policy is a template literal of several lines on the page, which JSON5 does not have, so it is written as a string of one line.
  */
 const POLICIES_CONFIG = `{
   settings: {
@@ -17,9 +17,9 @@ const POLICIES_CONFIG = `{
   },
   rules: {
     "boundaries/dependencies": [2, {
-      // Not on the page: it makes the rule check the dependencies on packages too, such as redux
+      // Check the dependencies on packages too, such as \`redux\`, not only the ones on files of the project
       checkAllOrigins: true,
-      // Disallow every dependency by default
+      // Disallow every dependency by default, packages included
       default: "disallow",
       policies: [
         {

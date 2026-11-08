@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser. A link keeps the whole sketch, to share it or to open it from the docs.
 
+### Fixed
+
+- docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
+- docs: The Complete Example of the Policies page sets `checkAllOrigins`, without which the policy about `redux` never applied.
+- docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports, and its sample error messages say "policy", as the plugin does.
+
 ## [7.4.1] - 2026-11-02
 
 ### Added

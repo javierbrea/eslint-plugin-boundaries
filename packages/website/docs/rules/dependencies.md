@@ -242,10 +242,10 @@ src/
     "boundaries/files": [
       // any spec file is categorized as "test"
       { pattern: "**/*.spec.js", category: "test" },
-      // any file under helpers/ is categorized as "util"
-      { pattern: "helpers/**/*.js", category: "util" },
-      // files under helpers/permissions/ are additionally categorized as "internal"
-      { pattern: "helpers/permissions/**/*.js", category: "internal" }
+      // any file under src/helpers/ is categorized as "util"
+      { pattern: "src/helpers/**/*.js", category: "util" },
+      // files under src/helpers/permissions/ are additionally categorized as "internal"
+      { pattern: "src/helpers/permissions/**/*.js", category: "internal" }
     ],
     "import/resolver": {
       "babel-module": {}
@@ -254,9 +254,9 @@ src/
 }
 ```
 
-With these descriptors, each `helpers/<family>` folder is one helper element (so `helpers/data` captures `family: "data"`). The files inside, such as `sort.js` and `parse.js`, are distinguished by their `fileInternalPath`.
+With these descriptors, each `helpers/<family>` folder is one helper element (so `helpers/data` captures `family: "data"`). The files inside, such as `sort.js` and `parse.js`, are distinguished by their `fileInternalPath`. Element patterns only need the end of the path, but file patterns are matched against the full path from the project root, so the file patterns that name a folder include `src/`.
 
-File categories accumulate: `helpers/data/sort.js` matches only the `helpers/**/*.js` pattern, so its `categories` is `["util"]`, while `helpers/permissions/roles.js` matches both the `helpers/**/*.js` and `helpers/permissions/**/*.js` patterns, so its `categories` is `["util", "internal"]`. This is what the array query policy in the [Configuration Example](#configuration-example) uses to allow importing `"util"` helper files while excluding `"internal"` ones.
+File categories accumulate: `src/helpers/data/sort.js` matches only the `src/helpers/**/*.js` pattern, so its `categories` is `["util"]`, while `src/helpers/permissions/roles.js` matches both the `src/helpers/**/*.js` and `src/helpers/permissions/**/*.js` patterns, so its `categories` is `["util", "internal"]`. This is what the array query policy in the [Configuration Example](#configuration-example) uses to allow importing `"util"` helper files while excluding `"internal"` ones.
 
 :::note
 These examples use aliases for the `src/helpers`, `src/components`, and `src/modules` folders for simplicity. In a real project, you can use any folder structure and naming convention.
@@ -377,23 +377,23 @@ import ModuleB from 'modules/module-b'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-- **No matching rule message:** When no rule matches a dependency and the default behavior is `"disallow"`, the message starts with:
+- **No matching policy message:** When no policy matches a dependency and the default behavior is `"disallow"`, the message starts with:
 
-  `There is no rule allowing dependencies ...`
+  `There is no policy allowing dependencies ...`
 
-  Then it describes the elements involved in the dependency. Captured values are listed as `captured values: key="value"`.
+  Then it describes the elements involved in the dependency, and the categories of their files when they have any. Captured values are listed as `captured values: key="value"`.
 
-  Example:
+  Example, for a helper importing a component:
 
-  `There is no rule allowing dependencies from elements of type "helper" and captured values: family="permissions" to elements of type "component" and captured values: family="atoms", elementName="atom-a"`
+  `There is no policy allowing dependencies from file of categories "util", "internal" belonging to elements of type "helper" and captured values: family="permissions" to elements of type "component" and captured values: family="atoms", elementName="atom-a"`
 
-- **Denied by rule message:** When a rule matches and denies a dependency, the message describes the denied selector and ends with the rule index:
+- **Denied by policy message:** When a policy matches and denies a dependency, the message describes the denied selector and ends with the policy index:
 
-  `... . Denied by rule at index <n>`
+  `... . Denied by policy at index <n>`
 
-  Example:
+  Example, for a component importing a test file:
 
-  `Dependencies to elements of type "component" and captured values: family="atoms", elementName="atom-a" are not allowed in elements of type "helper" and captured values: family="permissions". Denied by rule at index 1`
+  `Dependencies to file of categories "test", "util" are not allowed in elements of type "component". Denied by policy at index 4`
 
   **The exact sentence varies depending on which [selector](../selectors/selectors.md) parts were used to match the dependency** (in any of `from`, `to`, `dependency`, `disallow`). For dependencies on external or core modules, messages describe the module instead of an element, for example `module with origin "external" and module source "react"`. This detailed information helps you understand exactly why a dependency is disallowed and how to adjust your rules or code.
 

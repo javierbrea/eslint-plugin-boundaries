@@ -51,8 +51,9 @@ describe("OVERVIEW_EXAMPLE", () => {
       expect(listDecisions(dependencies)).toEqual([
         ["src/controllers/controller-a/index.js", 1, "allowed", 0],
         ["src/controllers/controller-a/index.js", 2, "allowed", 0],
+        ["src/controllers/controller-a/index.js", 3, "allowed", 3],
         ["src/models/model-a/index.js", 1, "disallowed", null],
-        ["src/models/model-a/index.js", 2, "disallowed", 3],
+        ["src/models/model-a/index.js", 2, "disallowed", null],
         ["src/views/view-a/index.js", 1, "allowed", 1],
         ["src/views/view-a/index.js", 2, "disallowed", 2],
       ]);
@@ -109,24 +110,24 @@ describe("OVERVIEW_EXAMPLE", () => {
         },
         {
           index: 3,
-          action: "disallow",
-          from: ["!controller"],
+          action: "allow",
+          from: ["controller"],
           to: [],
           decided: 1,
-          disallowed: 1,
+          disallowed: 0,
         },
         {
           index: null,
           action: "disallow",
           from: [],
           to: [],
-          decided: 1,
-          disallowed: 1,
+          decided: 2,
+          disallowed: 2,
         },
       ]);
     });
 
-    it("should place the dependency that policy 3 disallowed, and the policy, at its text of the config", () => {
+    it("should place the dependency that policy 3 allowed, and the policy, at its text of the config", () => {
       // Act
       const { dependencies, policies } = evaluate(example);
 
@@ -136,20 +137,20 @@ describe("OVERVIEW_EXAMPLE", () => {
       expect(slice(example.config, policy.range)).toBe(
         [
           "{",
-          '          from: { element: { type: "!controller" } },',
-          "          disallow: {",
+          '          from: { element: { type: "controller" } },',
+          "          allow: {",
           '            to: { module: { origin: "external", source: "axios" } },',
           "          },",
           "        }",
         ].join("\n")
       );
       expect([policy.range.line, policy.range.column]).toEqual([39, 9]);
-      expect(dependencies[3].verdict).toMatchObject({
+      expect(dependencies[2].verdict).toMatchObject({
         policy: { index: 3, range: policy.range },
       });
     });
 
-    it("should place the dependency that the default disallowed at the options of the rule, because the config sets no default", () => {
+    it("should place the dependencies that the default disallowed at the options of the rule, because the config sets no default", () => {
       // Act
       const { dependencies, policies } = evaluate(example);
 
@@ -157,10 +158,13 @@ describe("OVERVIEW_EXAMPLE", () => {
       const fallback = policies[4];
 
       expect(slice(example.config, fallback.range)).toMatch(
-        /^\{\n {6}\/\/ Not on the page[\s\S]*\n {4}\}$/
+        /^\{\n {6}\/\/ Check the dependencies on packages[\s\S]*\n {4}\}$/
       );
       expect([fallback.range.line, fallback.range.column]).toEqual([14, 36]);
-      expect(dependencies[2].verdict).toMatchObject({
+      expect(dependencies[3].verdict).toMatchObject({
+        policy: { index: null, range: fallback.range },
+      });
+      expect(dependencies[4].verdict).toMatchObject({
         policy: { index: null, range: fallback.range },
       });
     });
