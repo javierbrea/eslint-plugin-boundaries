@@ -170,6 +170,51 @@ describe("TopBar", () => {
     });
   });
 
+  describe("slots", () => {
+    it("should place the start before the status and the end after it, in order", () => {
+      // Arrange
+      const { bar } = renderBar({
+        start: <button type="button">Pick</button>,
+        end: (
+          <>
+            <button type="button">Help</button>
+            <button type="button">Share</button>
+          </>
+        ),
+      });
+
+      // Act
+      const { startTexts, endTexts } = bar;
+
+      // Assert
+      expect(startTexts).toEqual(["Pick"]);
+      expect(endTexts).toEqual(["Help", "Share"]);
+    });
+
+    it("should place nothing around the status when it is given nothing", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      const { startTexts, endTexts } = bar;
+
+      // Assert
+      expect(startTexts).toEqual([]);
+      expect(endTexts).toEqual([]);
+    });
+
+    it("should take the room that is left between the status and the end, to push the end to the far side", () => {
+      // Arrange
+      const { bar } = renderBar({ end: <button type="button">Share</button> });
+
+      // Act
+      const { spacerGrow } = bar;
+
+      // Assert
+      expect(spacerGrow).toBe("1");
+    });
+  });
+
   describe("props", () => {
     it("should not pass the color or the failing state to the DOM", () => {
       // Arrange

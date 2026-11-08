@@ -56,6 +56,29 @@ export function isSameProject(first: Sketch, second: Sketch): boolean {
 }
 
 /**
+ * Tells whether two sketches are the same in everything the user can edit: they have the same config text, the same files and folders in the same order, and the same dependencies. It is what tells an edited sketch from the one it was opened from.
+ * @param first A sketch.
+ * @param second Another sketch.
+ * @returns `true` when the config text, the tree and the dependencies hold the same data, whether or not they are the same objects.
+ */
+export function isSameSketch(first: Sketch, second: Sketch): boolean {
+  return first.config === second.config && isSameProject(first, second);
+}
+
+/**
+ * Finds the first candidate that holds the same sketch as another one.
+ * @param candidates Values that carry a sketch, such as the examples of the playground.
+ * @param sketch The sketch to look for.
+ * @returns The first candidate whose sketch is the same as `sketch` (see {@link isSameSketch}), or `undefined` when none is.
+ */
+export function findSameSketch<Candidate extends { readonly sketch: Sketch }>(
+  candidates: readonly Candidate[],
+  sketch: Sketch
+): Candidate | undefined {
+  return candidates.find((candidate) => isSameSketch(candidate.sketch, sketch));
+}
+
+/**
  * Tells whether two dependencies hold the same data: the same file, target, syntax, kind and names, in the same order. It tells the lines of text mode apart from each other, which are built again each time the text is read.
  * @param first A dependency.
  * @param second Another dependency.

@@ -19,6 +19,8 @@ const Bar = styled("div")({
   borderBottom: "1px solid var(--jsb-line)",
 });
 
+const Spacer = styled("span")({ flex: 1 });
+
 const Status = styled("div")(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
@@ -44,13 +46,15 @@ const Count = styled("span", {
 })<{ color?: string }>(({ color }) => ({ color }));
 
 /**
- * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, or that the config has errors. The example picker, help, reset and share are for the next milestone.
+ * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, or that the config has errors. It places what the caller gives it around the status: something before it, such as the picker of examples, and something at the other end, such as the actions, after a spacer that pushes them to the end.
  * @param props TopBar props.
  * @param props.files How many files the sketch has.
  * @param props.dependencies How many dependencies the sketch has.
  * @param props.problems How many problems it has.
  * @param props.tone The color of the number of problems.
  * @param props.configHasErrors Whether the config has errors.
+ * @param props.start What goes before the status.
+ * @param props.end What goes at the end of the bar.
  * @param props.testId The test id of the root element, when the component that is the bar has one.
  * @returns The bar.
  */
@@ -60,10 +64,13 @@ export function TopBar({
   problems,
   tone,
   configHasErrors,
+  start,
+  end,
   testId,
 }: Readonly<TopBarProps>): ReactNode {
   return (
     <Bar data-testid={testId}>
+      {start}
       <Status>
         <Dot failing={configHasErrors} aria-hidden="true" />
         <span>
@@ -78,6 +85,8 @@ export function TopBar({
           )}
         </span>
       </Status>
+      <Spacer />
+      {end}
     </Bar>
   );
 }

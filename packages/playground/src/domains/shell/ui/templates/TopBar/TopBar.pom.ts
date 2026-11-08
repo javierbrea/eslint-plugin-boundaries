@@ -63,6 +63,43 @@ export class TopBarPom extends Pom {
   }
 
   /**
+   * The element that holds the dot and the text of the status.
+   * @returns The element.
+   */
+  private get status(): HTMLElement {
+    return this.label.parentElement as HTMLElement;
+  }
+
+  /**
+   * The text of what the bar places before the status, in order.
+   * @returns The text of each element before the status.
+   */
+  get startTexts(): string[] {
+    return Array.from(this.root.children)
+      .slice(0, Array.from(this.root.children).indexOf(this.status))
+      .map((element) => element.textContent);
+  }
+
+  /**
+   * The text of what the bar places at its end, in order.
+   * @returns The text of each element after the spacer that follows the status.
+   */
+  get endTexts(): string[] {
+    return Array.from(this.root.children)
+      .slice(Array.from(this.root.children).indexOf(this.status) + 2)
+      .map((element) => element.textContent);
+  }
+
+  /**
+   * How much of the room that is left the space between the status and the end takes, which is what pushes the end of the bar to the far side.
+   * @returns The computed `flex-grow` of the element after the status.
+   */
+  get spacerGrow(): string {
+    return getComputedStyle(this.status.nextElementSibling as HTMLElement)
+      .flexGrow;
+  }
+
+  /**
    * Everything the status says.
    * @returns The text of the status, such as `6 files · 2 problems`.
    */

@@ -190,6 +190,18 @@ describe("ConfirmDialog", () => {
       // Assert
       expect(props.onExited).toHaveBeenCalledTimes(1);
     });
+
+    it("should close and go from the page with no handler for it", async () => {
+      // Arrange
+      const { dialog, update } = renderDialog({ onExited: undefined });
+
+      // Act
+      update({ isOpen: false });
+      await dialog.waitUntilGone();
+
+      // Assert
+      expect(dialog.isRendered).toBe(false);
+    });
   });
 
   describe("testId", () => {

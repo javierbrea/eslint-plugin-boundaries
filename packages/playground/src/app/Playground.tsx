@@ -1,34 +1,48 @@
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { PlaygroundProps, Sketch } from "@/contract";
+import { EXAMPLES } from "@/domains/examples/data/examples";
+import type { Example } from "@/domains/examples/data/examples";
+import { findSameSketch, isSameSketch } from "@/domains/project/helpers/sketch";
 import { useSketchLoad } from "@/domains/session/data/sketchLoad";
+import { useSourceSketch } from "@/domains/session/data/sourceSketch";
 import { Shell } from "@/domains/shell/modules/Shell";
 import { LoadState } from "@/domains/shell/ui/atoms/LoadState";
+import { ReplaceSketchDialog } from "@/domains/shell/ui/atoms/ReplaceSketchDialog";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { PLAYGROUND_TEST_ID } from "./Playground.constants";
+import type { Replacement } from "./Playground.types";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.
  * @param props Playground props.
  * @param props.source Where the project comes from, and what the user can change in it.
  * @param props.store Where the state is kept.
+ * @param props.quickStartUrl The URL of the Quick start guide, which the help links to. The help draws no link without it.
  * @returns The playground.
  */
 export function Playground({
   source,
   store,
+  quickStartUrl,
 }: Readonly<PlaygroundProps>): ReactNode {
-  const sketchLoad = useSketchLoad(source, store);
+  const { load, generation, reset, show } = useSketchLoad(source, store);
+  const getSourceSketch = useSourceSketch(source);
+  // What the confirmation asks about, which stays while the dialog fades out, and the sketch it was asked about: a sketch that comes from outside makes a new generation, and the question about the old one goes with it
+  const [replacement, setReplacement] = useState<Replacement>({
+    kind: "reset",
+  });
+  const [askedAbout, setAskedAbout] = useState<number | undefined>(undefined);
 
-  // The shell reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing in M1: the memory store cannot fail, and what a store that can fail does is for the host that has one
+  // The shell reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing: the sketch stays on screen, and the next edit saves again
   const save = useCallback(
     async (sketch: Sketch) => {
       try {
         await store.save(sketch);
       } catch {
-        // Nothing to show: the sketch stays on screen, and the next edit saves again
+        // Nothing to show: the next edit saves again
       }
     },
     [store]
@@ -41,17 +55,84 @@ export function Playground({
     [save]
   );
 
+  // Share is offered only by a store that can make a link, which it makes with its own state: the method goes with the store it belongs to
+  const makeLink = useMemo(() => store.share?.bind(store), [store]);
+
+  // Puts the replacement on screen as a new sketch: the one of the source after the store forgets its own, or an example that the store keeps
+  const replace = useCallback(
+    (replacing: Replacement) => {
+      if (replacing.kind === "reset") {
+        reset();
+      } else {
+        void save(replacing.example.sketch);
+        show(replacing.example.sketch);
+      }
+    },
+    [reset, save, show]
+  );
+
+  // A replacement loses the edits of the user unless the sketch on screen is something that comes back: an example, or the sketch of the source. The examples are static, so they are compared at once. The sketch of the source is asked for only when it is needed and only once for the source (`useSourceSketch`), so a source that reads a project from disk is not read for a sketch that is an example, and a source that cannot be read leaves no way to tell, so the user is asked
+  const requestReplacement = useCallback(
+    (replacing: Replacement, current: Sketch) => {
+      if (findSameSketch(EXAMPLES, current) !== undefined) {
+        replace(replacing);
+        return;
+      }
+      void getSourceSketch().then((sourceSketch) => {
+        if (sourceSketch !== undefined && isSameSketch(current, sourceSketch)) {
+          replace(replacing);
+        } else {
+          setReplacement(replacing);
+          setAskedAbout(generation);
+        }
+      });
+    },
+    [replace, getSourceSketch, generation]
+  );
+
+  const handleReset = useCallback(
+    (current: Sketch) => requestReplacement({ kind: "reset" }, current),
+    [requestReplacement]
+  );
+  const handleSelectExample = useCallback(
+    (example: Example, current: Sketch) =>
+      requestReplacement({ kind: "example", example }, current),
+    [requestReplacement]
+  );
+
+  const cancelReplacement = useCallback(() => setAskedAbout(undefined), []);
+  const confirmReplacement = useCallback(() => {
+    setAskedAbout(undefined);
+    replace(replacement);
+  }, [replace, replacement]);
+
   return (
     <ThemeRoot testId={PLAYGROUND_TEST_ID}>
-      {sketchLoad.status === "loaded" ? (
+      {load.status === "loaded" ? (
+        // The generation makes a new shell for each sketch that comes from outside, even when it is equal to the one on screen
         <Shell
-          initialSketch={sketchLoad.sketch}
+          key={generation}
+          initialSketch={load.sketch}
           capabilities={source.capabilities}
           onSketchChange={handleSketchChange}
+          quickStartUrl={quickStartUrl}
+          onReset={handleReset}
+          onSelectExample={handleSelectExample}
+          makeLink={makeLink}
         />
       ) : (
-        <LoadState load={sketchLoad} />
+        <LoadState load={load} onReset={reset} />
       )}
+      <ReplaceSketchDialog
+        isOpen={askedAbout === generation}
+        replacement={
+          replacement.kind === "reset"
+            ? replacement
+            : { kind: "example", title: replacement.example.title }
+        }
+        onCancel={cancelReplacement}
+        onConfirm={confirmReplacement}
+      />
     </ThemeRoot>
   );
 }

@@ -29,9 +29,9 @@ src/
    ├─ evaluation/   what boundaries says about the sketch: helpers, ui
    ├─ problems/     the problems of the sketch: helpers, ui, modules
    ├─ session/      what the user has open and edits in one instance: helpers, data
-   ├─ share/        the sketch as a link: helpers, data
+   ├─ share/        the sketch as a link: helpers, data, modules, ui
    ├─ shell/        the frame that places the panes: ui, modules
-   └─ examples/     static content: data
+   └─ examples/     the examples and their picker: data, modules, ui
 ```
 
 An element is one folder of a layer, `<layer>/<Name>/`, under `shared/`, under `domains/<domain>/` or, for the `ui-kit-*` types, under `ui-kit/`. Its entry is the `index.ts` at its root; the hooks of a module under `modules/<Name>/hooks/` are private to that module. The layers and what each may import:
@@ -87,4 +87,4 @@ The state of a playground instance lives in its store (`src/domains/session/data
 
 ## Harness
 
-`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, the Quick start example, as on the website, and a button that toggles `data-theme` as the website does. It is not part of the build.
+`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, the Quick start example kept in the hash of the URL by a `HashStore`, as on the website, and a button that toggles `data-theme` as the website does. It passes no `quickStartUrl`, so its help draws no link. It is not part of the build.

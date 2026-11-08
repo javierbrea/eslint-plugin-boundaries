@@ -49,7 +49,12 @@ export {
   toStatement,
   toStatementTokens,
 } from "./statements";
-export { isSameDependency, isSameProject } from "./compare";
+export {
+  findSameSketch,
+  isSameDependency,
+  isSameProject,
+  isSameSketch,
+} from "./compare";
 export { readSketch } from "./read";
 export {
   fromText,

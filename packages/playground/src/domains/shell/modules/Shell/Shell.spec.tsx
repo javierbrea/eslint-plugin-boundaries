@@ -3,7 +3,10 @@ import { act, render } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
-import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
+import {
+  EXAMPLES,
+  QUICK_START_EXAMPLE,
+} from "@/domains/examples/data/examples";
 import type { ProblemRowPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
 import { FixturePom } from "@/shared/testing/pom";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
@@ -103,6 +106,8 @@ function propsOf(overrides: Partial<ShellProps> = {}): ShellProps {
     initialSketch: QUICK_START,
     capabilities: EDITABLE,
     onSketchChange: jest.fn(),
+    onReset: jest.fn(),
+    onSelectExample: jest.fn(),
     ...overrides,
   };
 }
@@ -2120,6 +2125,74 @@ describe("Shell", () => {
 
       // Assert
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
+    });
+  });
+
+  describe("the top bar and the host", () => {
+    it("should hand the host the sketch on screen when the user asks to reset it", () => {
+      // Arrange
+      const onReset = jest.fn();
+      const { shell } = renderShell({ onReset });
+
+      shell.project.item("src/index.js").deleteAction.press();
+
+      // Act
+      shell.topBar.actions.pressReset();
+
+      // Assert
+      expect(onReset).toHaveBeenCalledTimes(1);
+      expect(getPaths(onReset.mock.calls[0][0])).not.toContain("src/index.js");
+    });
+
+    it("should hand the host the example that the user picks, with the sketch on screen", async () => {
+      // Arrange
+      const onSelectExample = jest.fn();
+      const { shell } = renderShell({ onSelectExample });
+
+      shell.topBar.picker.open();
+
+      // Act
+      shell.topBar.picker.pick(EXAMPLES[1].title);
+      await shell.topBar.picker.waitUntilClosed();
+
+      // Assert
+      expect(onSelectExample).toHaveBeenCalledTimes(1);
+      expect(onSelectExample).toHaveBeenCalledWith(EXAMPLES[1], QUICK_START);
+    });
+
+    it("should offer Share when the host can make a link", () => {
+      // Arrange
+      const { shell } = renderShell({
+        makeLink: () => Promise.resolve("https://example.com/#v=1&s=abc"),
+      });
+
+      // Act
+      const { hasShare } = shell.topBar.actions;
+
+      // Assert
+      expect(hasShare).toBe(true);
+    });
+
+    it("should not offer Share when the host cannot make a link", () => {
+      // Arrange
+      const { shell } = renderShell();
+
+      // Act
+      const { hasShare } = shell.topBar.actions;
+
+      // Assert
+      expect(hasShare).toBe(false);
+    });
+
+    it("should link the help to the Quick start that the host gives", () => {
+      // Arrange
+      const { shell } = renderShell({ quickStartUrl: "/docs/quick-start" });
+
+      // Act
+      shell.topBar.actions.pressHelp();
+
+      // Assert
+      expect(shell.topBar.help.guideLinkHref).toBe("/docs/quick-start");
     });
   });
 });

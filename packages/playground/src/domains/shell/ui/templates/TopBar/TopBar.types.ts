@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 /** Props of {@link TopBar}. */
@@ -12,6 +14,10 @@ export type TopBarProps = {
   readonly tone: Tone;
   /** Whether the config has errors. The status says so instead of counting the problems, and its dot turns red. */
   readonly configHasErrors: boolean;
+  /** What goes before the status, such as the picker of examples. */
+  readonly start?: ReactNode;
+  /** What goes at the end of the bar, after the space that the status leaves, such as the actions. */
+  readonly end?: ReactNode;
   /** The test id of the root element. The bar renders none when it is unset: the component that is the bar sets its own. */
   readonly testId?: string;
 };

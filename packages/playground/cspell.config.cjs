@@ -6,9 +6,11 @@ module.exports = createConfig({
   words: [
     "describedby",
     "fflate",
+    "haspopup",
     "keymap",
     "keyshortcuts",
     "labelledby",
+    "menuitemradio",
     "momoa",
     "noreferrer",
   ],

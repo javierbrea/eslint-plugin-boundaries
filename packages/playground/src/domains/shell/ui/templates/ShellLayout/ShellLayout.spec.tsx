@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 
-import { TopBar } from "@/domains/shell/ui/atoms/TopBar";
 import { ShellRegions } from "@/domains/shell/ui/templates/ShellRegions";
+import { TopBar } from "@/domains/shell/ui/templates/TopBar";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
 import { ShellLayout } from "./ShellLayout";
