@@ -180,6 +180,11 @@ const config: Config = {
           label: "Policies",
         },
         {
+          to: "playground/",
+          position: "left",
+          label: "Playground",
+        },
+        {
           type: "custom-githubStarsButton",
           position: "right",
         },
