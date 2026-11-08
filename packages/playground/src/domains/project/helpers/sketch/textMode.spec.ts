@@ -1380,6 +1380,29 @@ describe("TextMode", () => {
       ]);
     });
 
+    it("should leave out a path that starts with another space after its slash as a problem, so that a dependency on it is never dropped by the next read", () => {
+      // Arrange
+      const text = 'src/a.js\n  import "../ c.js";\n/ c.js\n';
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(paths(sketch)).toEqual(["src/a.js"]);
+      expect(problems).toEqual([
+        {
+          line: 2,
+          text: '  import "../ c.js";',
+          reason: '"../ c.js" does not resolve to a file of the sketch.',
+        },
+        {
+          line: 3,
+          text: "/ c.js",
+          reason: "A path cannot start with a space.",
+        },
+      ]);
+    });
+
     it("should leave out a path under a file as a problem", () => {
       // Arrange
       const text = "src/index.js\nsrc/index.js/other.js\n";

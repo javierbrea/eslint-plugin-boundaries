@@ -197,16 +197,28 @@ describe("Paths", () => {
       }
     );
 
+    it.each([" c.js", " c.js", " c.js", "　c.js", "﻿c.js"])(
+      "should refuse the path %j that starts with a space other than U+0020, which text mode trims from the line of a node",
+      (path) => {
+        // Act
+        const error = getPathError(path);
+
+        // Assert
+        expect(error).toBe("A path cannot start with a space.");
+      }
+    );
+
     it("should accept a space inside a path or at the end of a segment", () => {
       // Act
       const errors = [
         getPathError("src/ c.js"),
         getPathError("src/c.js "),
         getPathError("src /c.js"),
+        getPathError("src/ c.js"),
       ];
 
       // Assert
-      expect(errors).toEqual([undefined, undefined, undefined]);
+      expect(errors).toEqual([undefined, undefined, undefined, undefined]);
     });
 
     it("should accept characters above the control range", () => {

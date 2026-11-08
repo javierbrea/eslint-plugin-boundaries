@@ -53,8 +53,8 @@ export function getPathError(path: string): string | undefined {
   if (/["'\\]/.test(path)) {
     return "A path cannot have quotes or backslashes.";
   }
-  // Text mode reads a line that starts with a space as a dependency of the file above it
-  if (path.startsWith(" ")) {
+  // Text mode reads a line that starts with a space as a dependency of the file above it, and trims the line of a node, so that a path that starts with any other space that `trim` removes, such as U+00A0, would lose it on the next read
+  if (path !== path.trimStart()) {
     return "A path cannot start with a space.";
   }
   // A path under it would make a folder with the path, and the id in the tree, of the config node
