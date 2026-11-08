@@ -377,6 +377,28 @@ describe("Edit", () => {
       expect(error).toBe("The path has an empty segment.");
     });
 
+    it("should refuse a new path with a quote, so that no dependency is left that a statement cannot write", () => {
+      // Arrange
+      const withDependencies = createSketch(SKETCH.tree, [
+        toNode("src/index.js", "src/helpers/format.js"),
+        toNode("src/components/Price/index.js", "src/helpers/format.js"),
+      ]);
+
+      // Act
+      const errors = [
+        getError(
+          renameNode(withDependencies, "src/helpers/format.js", "src/it's.js")
+        ),
+        getError(renameNode(withDependencies, "src/helpers", 'src/say"hi"')),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        "A path cannot have quotes or backslashes.",
+        "A path cannot have quotes or backslashes.",
+      ]);
+    });
+
     it("should refuse a new path under the config node", () => {
       // Act
       const error = getError(
@@ -532,6 +554,27 @@ describe("Edit", () => {
 
       // Assert
       expect(error).toBe("The path cannot have `.` or `..` segments.");
+    });
+
+    it.each(["/ x", " / x", "./ x"])(
+      "should refuse the name %j at the root, since its path would start with a space",
+      (typedName) => {
+        // Act
+        const error = getError(renameInFolder(SKETCH, "docs", typedName));
+
+        // Assert
+        expect(error).toBe("A path cannot start with a space.");
+      }
+    );
+
+    it("should accept a name with a space in a folder, as the path does not start with it", () => {
+      // Act
+      const { path } = getRenamed(
+        renameInFolder(SKETCH, "src/index.js", "/ x.js")
+      );
+
+      // Assert
+      expect(path).toBe("src/ x.js");
     });
 
     it("should refuse a path that already exists", () => {

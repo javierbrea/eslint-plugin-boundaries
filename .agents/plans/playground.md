@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-04): the extraction is done and released in v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1; phase 1 is RFC #559, accepted with Amendment 1. Phase 4 (#551) merged into this branch on 2026-11-03 (#599): `/playground/` renders the placeholder of `@boundaries/playground`, research notes 1, 3 and 4 are on #539, and the stack is decided (decisions 14 and 15); `release` was merged into this branch after it (0a033f7d). Phase 5 (#552) is done on `feat/552/playground-identify`, in draft PR #621 into this branch: the panes classify the files of a sketch (the project tree and its text mode, the config editor with its problems, the file pane, the inspector and the problems panel), and the review of the page updated the mockup (2026-11-04, decision 16). Phase 6 (#553) starts when it merges.
+Status (2026-11-07): the extraction is released (`config` and `policies` 1.0.1 in v7.4.2, 2026-11-05), and `release` was merged into this branch after it. Phases 4 (#599) and 5 (#621) are in this branch: the panes classify the files of a sketch, following the mockup (decision 16). Phase 6 (#553) is done on `feat/553/playground-verdicts`, in draft PR #630 into this branch: dependencies entered with the picker and evaluated with `@boundaries/policies`, with their verdicts in the file pane, the tree, the inspector and the problems panel; its review updated the mockup and the colors of state text (decision 18), and wrote the sources in full, which text mode reads back with one rule of the playground (decision 19). Phase 7 (#554) starts when it merges.
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives", "Starting a phase" and "Finishing a phase" sections of the `write-plan` skill; phase 9 removes it.
 
@@ -12,11 +12,10 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | File | Read it when |
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done, the interface. |
-| `playground/06-m2-verdicts.md` | Phase 6 (#553): M2. |
 | `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
 | `playground/08-docs.md` | Phase 8 (#555): the guide page and the docs buttons. |
 | `playground/09-cleanup.md` | Phase 9: remove the plan before merging into `release`. |
-| `playground/mockups/` | Phases 6 to 8: the approved HTML mockup of the interface and its renders, which `00-shared.md` section 6 describes. |
+| `playground/mockups/` | Phases 7 and 8: the approved HTML mockup of the interface and its renders, which `00-shared.md` section 6 describes. |
 
 ## Phases
 
@@ -31,7 +30,7 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | — Browser e2e | #558 | `chore/558/browser-e2e` | #510 and #557 merged | `release` | `chore: Test the browser builds in Chromium, Firefox and WebKit` | #583 |
 | 4 Scaffold | #551 | `feat/551/playground-scaffold` | #510 and 2 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): scaffold the package and the website shell` | #599 |
 | 5 M1 | #552 | `feat/552/playground-identify` | 4 merged | `feat/539/playground` | `feat(playground): identify the files of a sketched project` | #621 |
-| 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged | `feat/539/playground` | `feat(playground): verdicts of the dependencies` | |
+| 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged | `feat/539/playground` | `feat(playground): verdicts of the dependencies` | #630 |
 | 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | |
 | 8 Docs | #555 | `docs/555/playground-guide` | 7 merged | `feat/539/playground` | `docs(website): document the playground` | |
 | 9 Cleanup | — | `chore/539/playground-cleanup` | 8 merged | `feat/539/playground` | `chore(playground): remove the playground plan` | |
@@ -66,8 +65,10 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 13. A release follows phase 3, before the playground phases: `config` and `policies` at `1.0.0`, a patch of the plugin, and whatever else `release` holds, with the `release` skill (maintainer, 2026-10-29).
 14. The config node is parsed with `@humanwhocodes/momoa` in JSON5 mode and edited with CodeMirror 6, the JSON5 grammar of `codemirror-json5` and `@codemirror/lint` (research note 3, maintainer, 2026-11-02).
 15. The widgets are MUI (`@mui/material`, `@mui/x-tree-view`), chosen over React Aria Components because the later local app and its graph view build on it (research note 4, maintainer, 2026-11-02). The theme reads the `--jsb-*` tokens through `cssVariables: { nativeColor: true }`, scoped with `rootSelector` and `colorSchemeSelector` to the playground root and the host's `data-theme`; Emotion uses its own cache key; no `CssBaseline`; overlays render into the root; the `ThemeProvider` gets `colorSchemeNode={null}` and `storageManager={null}`, because MUI otherwise sets its own `data-theme` attribute on `<html>` and reads and follows the mode saved in `localStorage` (phase 4, 2026-11-02; corrected in the review of #599). The MUI variables have their own prefix, `jsb-play`, and overlays stay in the root, with the limits that `packages/playground/AGENTS.md` ("Stack") records (review of #599, maintainer, 2026-11-03). React, React DOM, `@mui/material`, `@emotion/react` and `@emotion/styled` are peer dependencies, so that each host has one instance of their context. Split panes are `react-resizable-panels`.
-16. The interface follows the mockup in `playground/mockups/`, approved by the maintainer on 2026-11-04, updated with the review of the phase 5 page the same day, and described in `00-shared.md` section 6: the page has no visible header and the playground fills it below the navbar, with a help dialog in the top bar in place of the lead.
+16. The interface follows the mockup in `playground/mockups/`, approved by the maintainer on 2026-11-04, updated with the reviews of the phase 5 page (2026-11-04) and of the phase 6 page (2026-11-06), and described in `00-shared.md` section 6: the page has no visible header and the playground fills it below the navbar, with a help dialog in the top bar in place of the lead.
 17. The state of a playground instance is a store per mount of the shell, written as pure transitions and read through hooks, and whatever opens something produces a typed `Target` that one transition opens; the store owns the engine of the instance. The data of a local app reaches it through other implementations of `ProjectSource` and `StateStore`, not through other hooks (review of #621, maintainer, 2026-11-04).
+18. Text in a state color outside code areas mixes 85% of the token with 15% of `--jsb-ink`, and not-checked text is `--jsb-muted`, so that the page passes Lighthouse Accessibility 100; icons, badges and outlines keep the tokens (`00-shared.md` section 6, "Color"; maintainer, 2026-11-06, review of the phase 6 page).
+19. A statement writes the relative path of its target in full, with its extension and its `index` (`../../helpers/format/index.js`), and the playground does not read `settings["import/resolver"]`. Text mode also reads short sources, with one rule of its own: a source that names a file exactly is that file; otherwise it is the file that adds a code extension to it (`.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`, `.mts`, `.cts`, `.d.ts`), or `/index` and one of them; a source that ends with `/`, or is `.` or `..`, names a folder and reads only its `index`; a source that matches several files is a problem of its line, never a silent choice; when the reading settles, the line shows the full path. The selectors of `boundaries/additional-dependency-nodes` are not run either, and the playground warns at that setting, in the config problems (maintainer, 2026-11-06, review of #630; it replaces a first version of this decision that modeled the `node` and `typescript` resolvers).
 
 ## Open questions
 

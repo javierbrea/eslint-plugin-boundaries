@@ -129,6 +129,7 @@ describe("ProjectText", () => {
         "docs/",
         "src/components/Button.js",
         "src/index.js",
+        '  import "./components/Button.js";',
         "",
       ].join("\n")
     );
@@ -194,6 +195,86 @@ describe("ProjectText", () => {
 
     // Assert
     expect(isReadOnly).toBe(false);
+  });
+
+  describe("with the sources of the dependencies", () => {
+    const TYPESCRIPT_SKETCH: Sketch = {
+      config: '{ settings: { "import/resolver": "typescript" }, rules: {} }',
+      tree: [
+        { path: "src/a.ts", kind: "file" },
+        { path: "src/b.ts", kind: "file" },
+      ],
+      dependencies: [
+        {
+          from: "src/a.ts",
+          target: { kind: "node", path: "src/b.ts" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        },
+      ],
+    };
+
+    it("should write the sources in full, whatever the config says in import/resolver", () => {
+      // Arrange
+      const withTypescript = renderText(TYPESCRIPT_SKETCH);
+      const written = withTypescript.text.value;
+      withTypescript.unmount();
+
+      // Act
+      const { text } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        config: "{ settings: {}, rules: {} }",
+      });
+
+      // Assert
+      expect(written).toBe(
+        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\nsrc/b.ts\n'
+      );
+      expect(text.value).toBe(written);
+    });
+
+    it("should read a source that names no file exactly, and write it in full when the text settles", () => {
+      // Arrange
+      const { store, text, getTextProblems } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        dependencies: [],
+      });
+      text.type('src/a.ts\n  import "./b";\nsrc/b.ts\n');
+
+      // Act
+      text.blur();
+
+      // Assert
+      expect(store.getState().sketch.dependencies).toEqual(
+        TYPESCRIPT_SKETCH.dependencies
+      );
+      expect(getTextProblems()).toEqual([]);
+      expect(text.value).toBe(
+        'eslint.config.js\nsrc/a.ts\n  import "./b.ts";\nsrc/b.ts\n'
+      );
+      expect(store.getState().textDraft).toBeUndefined();
+    });
+
+    it("should report a source that can be several files, and keep what the user typed", () => {
+      // Arrange
+      const typed = 'src/a.ts\n  import "./b";\nsrc/b.js\nsrc/b.ts\n';
+      const { store, text, getTextProblems } = renderText({
+        ...TYPESCRIPT_SKETCH,
+        dependencies: [],
+      });
+      text.type(typed);
+
+      // Act
+      text.blur();
+
+      // Assert
+      expect(getTextProblems()).toEqual([
+        '2|  import "./b";|"./b" can be "./b.js" or "./b.ts". Write the one you mean, with its extension.',
+      ]);
+      expect(store.getState().sketch.dependencies).toEqual([]);
+      expect(text.value).toBe(typed);
+    });
   });
 
   describe("reading what the user typed", () => {
@@ -349,7 +430,9 @@ describe("ProjectText", () => {
       const { onSketchChange, store, text, getTextProblems } = renderText();
 
       // Act
-      text.type("docs/\nsrc/components/Button.js\nsrc/index.js\n\n\n");
+      text.type(
+        'docs/\nsrc/components/Button.js\nsrc/index.js\n  import "./components/Button";\n\n\n'
+      );
       wait(300);
 
       // Assert
@@ -374,12 +457,14 @@ describe("ProjectText", () => {
       ]);
     });
 
-    it("should drop a dependency that has no file or target in the text, and keep the others", () => {
+    it("should keep the dependencies that the text declares, and drop the ones it does not", () => {
       // Arrange
       const { onSketchChange, text } = renderText();
 
       // Act
-      text.type("src/index.js\nsrc/components/Button.js\n");
+      text.type(
+        'src/index.js\n  import "./components/Button";\nsrc/components/Button.js\n'
+      );
       wait(300);
       text.type("src/index.js\n");
       wait(300);
@@ -409,7 +494,9 @@ describe("ProjectText", () => {
       const { onSketchChange, text } = renderText(dangling);
 
       // Act
-      text.type("docs/\nsrc/components/Button.js\nsrc/index.js\n");
+      text.type(
+        'docs/\nsrc/components/Button.js\nsrc/index.js\n  import "./components/Button";\n'
+      );
       wait(300);
 
       // Assert
@@ -456,18 +543,107 @@ describe("ProjectText", () => {
     });
   });
 
+  describe("the focus on a dependency while the user edits its line", () => {
+    const FOCUS_SKETCH: Sketch = {
+      config: "{ settings: {}, rules: {} }",
+      tree: [
+        { path: "src/components/Button.js", kind: "file" },
+        { path: "src/index.js", kind: "file" },
+      ],
+      dependencies: [
+        {
+          from: "src/index.js",
+          target: { kind: "external", name: "react" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [{ kind: "default", name: "x" }],
+        },
+        {
+          from: "src/index.js",
+          target: { kind: "node", path: "src/components/Button.js" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        },
+      ],
+    };
+
+    const TEXT = [
+      "eslint.config.js",
+      "src/components/Button.js",
+      "src/index.js",
+      '  import x from "react";',
+      '  import "./components/Button.js";',
+      "",
+    ].join("\n");
+
+    it("should put the file in focus while the source cannot be read, and the dependency back when it can", () => {
+      // Arrange
+      const { store, text } = renderText(FOCUS_SKETCH);
+      act(() =>
+        store.open({ kind: "dependency", path: "src/index.js", index: 1 })
+      );
+
+      // Act
+      text.type(
+        TEXT.replace("./components/Button.js", "./components/Missing.js")
+      );
+      wait(300);
+      const whileUnreadable = store.getState();
+      text.type(TEXT);
+      wait(300);
+
+      // Assert
+      expect(whileUnreadable.focus).toEqual({
+        kind: "file",
+        path: "src/index.js",
+      });
+      expect(whileUnreadable.tab).toBe("node");
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 1,
+      });
+      expect(store.getState().tab).toBe("dependency");
+    });
+
+    it("should keep the dependency in focus on its line when the same line is typed above it", () => {
+      // Arrange
+      const { store, text } = renderText(FOCUS_SKETCH);
+      act(() =>
+        store.open({ kind: "dependency", path: "src/index.js", index: 1 })
+      );
+
+      // Act
+      text.type(
+        TEXT.replace(
+          '  import x from "react";',
+          '  import "./components/Button.js";\n  import x from "react";'
+        )
+      );
+      wait(300);
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: "src/index.js",
+        index: 2,
+      });
+    });
+  });
+
   describe("lines that cannot be read", () => {
     it("should be listed with their line, their text and why", () => {
       // Arrange
       const { text, getTextProblems } = renderText();
 
       // Act
-      text.type("src/index.js\n  import x from 'y';\nsrc/../up.js\n");
+      text.type("src/index.js\n  import x = y;\nsrc/../up.js\n");
       wait(300);
 
       // Assert
       expect(getTextProblems()).toEqual([
-        "2|  import x from 'y';|Dependencies are not written in text mode yet.",
+        '2|  import x = y;|Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";',
         "3|src/../up.js|The path cannot have `.` or `..` segments.",
       ]);
     });

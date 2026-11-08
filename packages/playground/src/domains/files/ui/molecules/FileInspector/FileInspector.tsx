@@ -2,9 +2,15 @@ import { styled } from "@mui/material/styles";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 
+import type { DependencyResult } from "@/domains/evaluation/helpers/engine";
+import { countVerdicts } from "@/domains/evaluation/helpers/verdictCounts";
+import { VerdictCount } from "@/domains/evaluation/ui/atoms/VerdictCount";
+import { VERDICT_ICON_LABELS } from "@/domains/evaluation/ui/helpers/verdictText";
 import { formatValue } from "@/domains/files/ui/helpers/formatValue";
 import type { DescribedValue } from "@/domains/files/ui/helpers/formatValue";
+import { formatCount } from "@/shared/helpers/formatCount";
 import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
+import { getCountTone } from "@/ui-kit/helpers/tone";
 
 import { FILE_INSPECTOR_TEST_ID } from "./FileInspector.constants";
 import type { FileInspectorProps } from "./FileInspector.types";
@@ -44,6 +50,16 @@ const Value = styled("dd", {
   color: isNull ? "var(--jsb-faint)" : undefined,
 }));
 
+// The counts wrap onto another line when the inspector is narrow, instead of overflowing it
+const Summary = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "4px 12px",
+  paddingTop: 2,
+  color: "var(--jsb-muted)",
+  ...theme.typography.body2,
+}));
+
 /** A property of a facet, named as the engine returns it. */
 type FacetEntry = readonly [key: string, value: DescribedValue];
 
@@ -78,8 +94,69 @@ function Facet({ label, entries }: Readonly<FacetProps>): ReactNode {
   );
 }
 
+/** Props of {@link DependencySummary}. */
+type DependencySummaryProps = {
+  /** The dependencies of the file, with their verdicts. */
+  results: readonly DependencyResult[];
+  /** Whether the engine evaluated them. It does not while the config cannot be read, the rule options are invalid or the rule is off. */
+  isEvaluated: boolean;
+};
+
 /**
- * What the inspector shows for a file: its path and the three facets of its description, `element`, `file` and `module`, with the names and values that the plugin gives them. A file that the evaluation does not know, such as one that an edit just removed, has its path only.
+ * How many dependencies a file has and what the engine decided about them, such as `4 dependencies  ✓ 2  ✕ 1  – 1 not checked`. The disallowed ones are red with the cross when any is an error, and in the color of warnings with the triangle of their line when all of them are warnings. A count of 0 is left out, and so are all the counts while the dependencies are not evaluated. The allowed and disallowed counts are bare numbers, so their icons say `allowed`, `disallowed` or `disallowed, as a warning` to assistive technology, which reads `4 dependencies allowed 2 disallowed 1 1 not checked`.
+ * @param props DependencySummary props.
+ * @param props.results The dependencies of the file.
+ * @param props.isEvaluated Whether the engine evaluated them.
+ * @returns The summary line.
+ */
+function DependencySummary({
+  results,
+  isEvaluated,
+}: Readonly<DependencySummaryProps>): ReactNode {
+  const counts = countVerdicts(results);
+  const total = formatCount(counts.total, "dependency", "dependencies");
+  const hasErrors = counts.errors > 0;
+  const disallowedIcon = hasErrors ? "cross" : "warn";
+
+  if (!isEvaluated) {
+    return (
+      <Summary>
+        <span>{total} · not evaluated</span>
+      </Summary>
+    );
+  }
+  return (
+    <Summary>
+      <span>{total}</span>
+      {counts.allowed > 0 ? (
+        <VerdictCount
+          tone="ok"
+          icon="check"
+          iconLabel={VERDICT_ICON_LABELS.check}
+        >
+          {counts.allowed}
+        </VerdictCount>
+      ) : null}
+      {counts.disallowed > 0 ? (
+        <VerdictCount
+          tone={getCountTone(hasErrors)}
+          icon={disallowedIcon}
+          iconLabel={VERDICT_ICON_LABELS[disallowedIcon]}
+        >
+          {counts.disallowed}
+        </VerdictCount>
+      ) : null}
+      {counts.notChecked > 0 ? (
+        <VerdictCount tone="faint" icon="skip">
+          {counts.notChecked} not checked
+        </VerdictCount>
+      ) : null}
+    </Summary>
+  );
+}
+
+/**
+ * What the inspector shows for a file: its path, the three facets of its description, `element`, `file` and `module`, with the names and values that the plugin gives them, and how many dependencies it has and what the engine decided about them. A file that the evaluation does not know, such as one that an edit just removed, has its path only.
  * @param props FileInspector props.
  * @param props.path Path of the file in focus.
  * @param props.evaluation What the engine says about the sketch.
@@ -111,6 +188,12 @@ export function FileInspector({
           <Facet
             label="module"
             entries={[["origin", description.module.origin]]}
+          />
+          <DependencySummary
+            results={evaluation.dependencies.filter(
+              ({ ref }) => ref.path === path
+            )}
+            isEvaluated={evaluation.notEvaluated === undefined}
           />
         </>
       )}

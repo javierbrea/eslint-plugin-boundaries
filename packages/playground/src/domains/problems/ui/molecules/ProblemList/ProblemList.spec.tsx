@@ -63,6 +63,29 @@ const TEXT_ITEM: ProblemItem = {
   meta: "  import { format } from './format'",
 };
 
+/** A failing dependency in the list of the sketch: the file, the line and an arrow to the source */
+const DEPENDENCY_IN_SKETCH: ProblemItem = {
+  key: "dependency:src/modules/checkout/index.js:2",
+  level: "error",
+  location: "src/modules/checkout/index.js",
+  position: ":3",
+  source: "../../components/atoms/Button/Button.spec.js",
+  message:
+    'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
+  meta: "disallowed · policy 2",
+  target: {
+    kind: "dependency",
+    path: "src/modules/checkout/index.js",
+    index: 2,
+  },
+};
+
+/** A failing dependency in the list of its file: the line and the source */
+const DEPENDENCY_IN_FILE: ProblemItem = {
+  ...DEPENDENCY_IN_SKETCH,
+  location: undefined,
+};
+
 const EMPTY = "No problems.";
 
 /** The text of a row, from the mono variant of the theme with the line height of the mockup's rows */
@@ -157,6 +180,128 @@ describe("ProblemList", () => {
       // Assert
       expect(meta).toBe("  import { format } from './format'");
       expect(metaWhiteSpace).toBe("pre-wrap");
+    });
+  });
+
+  describe("a failing dependency", () => {
+    it("should draw the file, the line and the source after an arrow in the list of the sketch", () => {
+      // Arrange
+      render(
+        <ProblemList
+          items={[DEPENDENCY_IN_SKETCH]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      const { position, source, locationWithPosition } = row;
+
+      // Assert
+      expect(row.location).toBe("src/modules/checkout/index.js");
+      expect(position).toBe(":3");
+      expect(source).toBe("→ ../../components/atoms/Button/Button.spec.js");
+      expect(locationWithPosition).toBe(
+        "src/modules/checkout/index.js:3 → ../../components/atoms/Button/Button.spec.js"
+      );
+    });
+
+    it("should draw the line and the source, without the file or an arrow, in the list of a file", () => {
+      // Arrange
+      render(
+        <ProblemList
+          items={[DEPENDENCY_IN_FILE]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      const { position, source, locationWithPosition } = row;
+
+      // Assert
+      expect(row.location).toBe("");
+      expect(position).toBe(":3");
+      expect(source).toBe("../../components/atoms/Button/Button.spec.js");
+      expect(locationWithPosition).toBe(
+        ":3 ../../components/atoms/Button/Button.spec.js"
+      );
+    });
+
+    it("should draw the message and the meta of the verdict, and the position in the muted color", () => {
+      // Arrange
+      render(
+        <ProblemList
+          items={[DEPENDENCY_IN_SKETCH]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      const { message, meta, positionColor } = row;
+
+      // Assert
+      expect(message).toBe(DEPENDENCY_IN_SKETCH.message);
+      expect(meta).toBe("disallowed · policy 2");
+      expect(positionColor).toBe("var(--jsb-muted)");
+    });
+
+    it("should draw a warning for a dependency that the rule disallows as a warning", () => {
+      // Arrange
+      render(
+        <ProblemList
+          items={[{ ...DEPENDENCY_IN_SKETCH, level: "warning" }]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      const { icon } = row;
+
+      // Assert
+      expect(icon.pathData).toBe(ICON_PATHS.warn);
+      expect(icon.wrapperStyle.color).toBe("var(--jsb-warn)");
+    });
+
+    it("should be called with the dependency as the target when the row is pressed", () => {
+      // Arrange
+      const onOpen = jest.fn();
+      render(
+        <ProblemList
+          items={[DEPENDENCY_IN_SKETCH]}
+          onOpen={onOpen}
+          empty={EMPTY}
+        />
+      );
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      row.press();
+
+      // Assert
+      expect(onOpen).toHaveBeenCalledWith({
+        kind: "dependency",
+        path: "src/modules/checkout/index.js",
+        index: 2,
+      });
+    });
+
+    it("should leave the source out of a row that has none", () => {
+      // Arrange
+      render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
+
+      // Act
+      const { source } = row;
+
+      // Assert
+      expect(source).toBeNull();
     });
   });
 
@@ -417,6 +562,18 @@ describe("ProblemList", () => {
   });
 
   describe("empty", () => {
+    it("should draw nothing when there are no items and nothing to say, because a note says it", () => {
+      // Arrange
+      render(<ProblemList items={[]} onOpen={jest.fn()} />);
+      const list = new ProblemListPom();
+
+      // Act
+      const { isRendered } = list;
+
+      // Assert
+      expect(isRendered).toBe(false);
+    });
+
     it("should say it in the muted color when there are no items", () => {
       // Arrange
       render(<ProblemList items={[]} onOpen={jest.fn()} empty={EMPTY} />);

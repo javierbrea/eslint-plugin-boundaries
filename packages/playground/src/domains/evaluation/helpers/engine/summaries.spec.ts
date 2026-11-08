@@ -2,7 +2,9 @@
 import { normalizeConfig } from "@boundaries/config";
 
 import { describeFiles } from "./describeFiles";
+import { areRulesValid } from "./diagnostics";
 import type { TextRange } from "./engine.types";
+import { selectRule } from "./evaluatedRule";
 import { parseConfig } from "./parseConfig";
 import {
   summarizeElementTypes,
@@ -65,6 +67,11 @@ function createInput(text: string, files: string[] = []): SummariesInput {
     settings: value.settings,
     diagnostics,
     described: describeFiles(value.settings, files),
+    evaluatedRuleName: selectRule({
+      config,
+      rules: value.rules,
+      rulesValid: areRulesValid(diagnostics),
+    }).ruleName,
   };
 }
 
@@ -491,12 +498,136 @@ describe("Summaries", () => {
           name: "boundaries/dependencies",
           policies: 3,
           valid: true,
+          evaluated: true,
           range: expect.objectContaining({ line: 14, column: 32 }),
         },
       ]);
       expect(slice(QUICK_START_CONFIG, summaries[0].range)).toMatch(
         /^\[2, \{\n {6}default: "disallow",[\s\S]*\}\]$/
       );
+    });
+
+    it.each([
+      [
+        "both are written",
+        `{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": 2, "boundaries/no-private": 2 } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+          ["boundaries/no-private", false],
+        ],
+      ],
+      [
+        "only the deprecated one is written",
+        `{ rules: { "boundaries/no-private": 2, "boundaries/element-types": 2 } }`,
+        [
+          ["boundaries/no-private", false],
+          ["boundaries/element-types", true],
+        ],
+      ],
+      [
+        "neither is written",
+        `{ rules: { "boundaries/no-private": 2, "import/no-cycle": 2 } }`,
+        [["boundaries/no-private", false]],
+      ],
+      [
+        "the one that is written fails its schema, so that the normalized config leaves it out",
+        `{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": [2, { default: "maybe" }] } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+        ],
+      ],
+    ])(
+      "should mark as evaluated the dependencies rule before the deprecated one when %s",
+      (_title, text, expected) => {
+        // Arrange
+        const input = createInput(text);
+
+        // Act
+        const summaries = summarizeRules(input);
+
+        // Assert
+        expect(
+          summaries.map(({ name: ruleName, evaluated }) => [
+            ruleName,
+            evaluated,
+          ])
+        ).toEqual(expected);
+      }
+    );
+
+    it.each([
+      [
+        "the dependencies rule is off",
+        `{ rules: { "boundaries/dependencies": "off", "boundaries/element-types": [2, {}] } }`,
+        [
+          ["boundaries/dependencies", false],
+          ["boundaries/element-types", true],
+        ],
+      ],
+      [
+        "the dependencies rule has no options",
+        `{ rules: { "boundaries/element-types": [2, {}], "boundaries/dependencies": [2] } }`,
+        [
+          ["boundaries/element-types", true],
+          ["boundaries/dependencies", false],
+        ],
+      ],
+      [
+        "the deprecated rule is off",
+        `{ rules: { "boundaries/element-types": 0, "boundaries/dependencies": [2, {}] } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+        ],
+      ],
+      [
+        "neither of them runs",
+        `{ rules: { "boundaries/element-types": 2, "boundaries/dependencies": 0 } }`,
+        [
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+        ],
+      ],
+    ])(
+      "should mark as evaluated the first of the two rules that ESLint runs, and the dependencies rule when neither does: %s",
+      (_title, text, expected) => {
+        // Arrange
+        const input = createInput(text);
+
+        // Act
+        const summaries = summarizeRules(input);
+
+        // Assert
+        expect(
+          summaries.map(({ name: ruleName, evaluated }) => [
+            ruleName,
+            evaluated,
+          ])
+        ).toEqual(expected);
+      }
+    );
+
+    it("should mark as evaluated the rule that it is given, whatever the config says", () => {
+      // Arrange
+      const input: SummariesInput = {
+        ...createInput(
+          `{ rules: { "boundaries/dependencies": [2, {}], "boundaries/element-types": [2, {}] } }`
+        ),
+        evaluatedRuleName: "boundaries/element-types",
+      };
+
+      // Act
+      const summaries = summarizeRules(input);
+
+      // Assert
+      expect(
+        summaries.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+      ).toEqual([
+        ["boundaries/dependencies", false],
+        ["boundaries/element-types", true],
+      ]);
     });
 
     it("should count the policies of the options, or the deprecated rules", () => {

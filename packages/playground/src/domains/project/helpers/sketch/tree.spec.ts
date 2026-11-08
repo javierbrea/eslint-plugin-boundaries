@@ -420,6 +420,14 @@ describe("Tree", () => {
       expect(error).toBe("The path cannot have `.` or `..` segments.");
     });
 
+    it("should refuse a path with a quote", () => {
+      // Act
+      const error = getAddError(nodes, "src/it's.js", "file");
+
+      // Assert
+      expect(error).toBe("A path cannot have quotes or backslashes.");
+    });
+
     it("should refuse a file where there is a file", () => {
       // Act
       const error = getAddError(nodes, "src/index.js", "file");

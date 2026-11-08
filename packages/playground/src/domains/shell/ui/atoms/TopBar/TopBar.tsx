@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
 import type { TopBarProps } from "./TopBar.types";
 
@@ -44,9 +44,10 @@ const Count = styled("span", {
 })<{ color?: string }>(({ color }) => ({ color }));
 
 /**
- * The top bar: the status of the sketch, with how many files it has and how many problems, or that the config has errors. The dependencies count is for the next milestone, and the example picker, help, reset and share for the one after.
+ * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, or that the config has errors. The example picker, help, reset and share are for the next milestone.
  * @param props TopBar props.
  * @param props.files How many files the sketch has.
+ * @param props.dependencies How many dependencies the sketch has.
  * @param props.problems How many problems it has.
  * @param props.tone The color of the number of problems.
  * @param props.configHasErrors Whether the config has errors.
@@ -55,6 +56,7 @@ const Count = styled("span", {
  */
 export function TopBar({
   files,
+  dependencies,
   problems,
   tone,
   configHasErrors,
@@ -66,10 +68,11 @@ export function TopBar({
         <Dot failing={configHasErrors} aria-hidden="true" />
         <span>
           {formatCount(files, "file", "files")} ·{" "}
+          {formatCount(dependencies, "dependency", "dependencies")} ·{" "}
           {configHasErrors ? (
-            <Count color={TONE_COLORS.bad}>config has errors</Count>
+            <Count color={STATE_TEXT.bad}>config has errors</Count>
           ) : (
-            <Count color={problems > 0 ? TONE_COLORS[tone] : undefined}>
+            <Count color={problems > 0 ? STATE_TEXT[tone] : undefined}>
               {formatCount(problems, "problem", "problems")}
             </Count>
           )}

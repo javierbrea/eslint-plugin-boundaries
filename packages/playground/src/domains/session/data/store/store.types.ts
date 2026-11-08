@@ -1,3 +1,6 @@
+import type { SketchDependency } from "@/contract";
+import type { TextRange } from "@/domains/evaluation/helpers/engine";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 import type {
   ProblemsTabId,
   ProjectView,
@@ -25,8 +28,8 @@ export type SessionStore = {
   readonly selectItem: (id: string) => void;
   /** Remembers that a folder of the tree was opened or closed. */
   readonly toggleFolder: (path: string, isOpen: boolean) => void;
-  /** Replaces the config text. */
-  readonly changeConfig: (config: string) => void;
+  /** Replaces the config text. The editor passes where the highlighted policy is after its edit, so that the text and the range change together: `null` drops the highlight, and without it the highlight stays as it was. */
+  readonly changeConfig: (config: string, highlight?: TextRange | null) => void;
   /** Adds a file or a folder with a free name, and starts renaming it. */
   readonly addNode: (kind: "file" | "folder") => void;
   /** Starts renaming a node. */
@@ -37,6 +40,15 @@ export type SessionStore = {
   readonly cancelRename: () => void;
   /** Removes a node and everything under it. */
   readonly removeNode: (path: string) => void;
+  /** Adds a dependency at the end of the dependencies of its file, and puts it in focus. The sketch can refuse it: nothing changes then. */
+  readonly addDependency: (dependency: SketchDependency) => void;
+  /** Replaces a dependency with another one of the same file, in the same position; it stays in focus if it was. The sketch can refuse it: nothing changes then. */
+  readonly replaceDependency: (
+    ref: DependencyRef,
+    dependency: SketchDependency
+  ) => void;
+  /** Removes a dependency. A dependency in focus moves with the ones after it, and the file takes the focus when the one in focus is removed. */
+  readonly removeDependency: (ref: DependencyRef) => void;
   /** Shows the project as a tree or as text. */
   readonly setView: (view: ProjectView) => void;
   /** Keeps what the user typed in text mode. */

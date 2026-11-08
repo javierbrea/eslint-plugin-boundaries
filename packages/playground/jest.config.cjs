@@ -21,6 +21,9 @@ module.exports = {
   // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
 
+  // Empties the Emotion caches before each test, so that the CSS rules of earlier tests do not slow down the role queries of the later ones
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.cjs"],
+
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
     global: {

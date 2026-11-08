@@ -21,8 +21,8 @@ const EditorSlot = styled("div")({ flex: 1, minHeight: 0 });
  * @param props.readOnly Whether the text cannot be edited.
  * @param props.reveal The range to scroll to.
  * @param props.snapshot Where the editor leaves its snapshot and starts from.
- * @param props.highlight The lines to mark.
- * @param props.onChange Called with the text after each edit of the user.
+ * @param props.highlight The range to mark.
+ * @param props.onChange Called with the text and with where the highlight is after each edit of the user.
  * @param props.frameLabel The accessible name of the landmark of the pane.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The pane.

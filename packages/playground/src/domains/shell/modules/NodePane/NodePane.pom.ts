@@ -1,7 +1,7 @@
 import { CONFIG_NODE_TEST_ID } from "@/domains/config/modules/ConfigNode/ConfigNode.constants";
 import { ConfigNodePom } from "@/domains/config/modules/ConfigNode/ConfigNode.pom";
-import { FILE_PANE_TEST_ID } from "@/domains/files/ui/molecules/FilePane/FilePane.constants";
-import { FilePanePom } from "@/domains/files/ui/molecules/FilePane/FilePane.pom";
+import { FILE_NODE_TEST_ID } from "@/domains/files/modules/FileNode/FileNode.constants";
+import { FileNodePom } from "@/domains/files/modules/FileNode/FileNode.pom";
 import { EMPTY_NODE_PANE_TEST_ID } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.constants";
 import { EmptyNodePanePom } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.pom";
 import { Pom } from "@/shared/testing/pom";
@@ -12,7 +12,7 @@ import type { NodePaneShown } from "./NodePane.types";
 
 /** The test id of the root element of each pane the node pane can show. */
 const PANE_TEST_IDS: readonly (readonly [NodePaneShown, string])[] = [
-  ["file", FILE_PANE_TEST_ID],
+  ["file", FILE_NODE_TEST_ID],
   ["config", CONFIG_NODE_TEST_ID],
   ["empty", EMPTY_NODE_PANE_TEST_ID],
 ];
@@ -93,11 +93,11 @@ export class NodePanePom extends Pom {
 
   /**
    * The pane of the file in focus.
-   * @returns The page object of the file pane, which is the root element when a file is open.
+   * @returns The page object of the file node, which is the root element when a file is open.
    * @throws When a file is not open.
    */
-  get file(): FilePanePom {
-    return this.paneOf("file", FilePanePom);
+  get file(): FileNodePom {
+    return this.paneOf("file", FileNodePom);
   }
 
   /**

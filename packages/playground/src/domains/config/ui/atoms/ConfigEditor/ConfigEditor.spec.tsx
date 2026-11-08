@@ -1,7 +1,7 @@
 // cspell:ignore patern dissallow -- deliberate typos, the mistakes of the config that the tests report
 import { render } from "@testing-library/react";
-import { StrictMode } from "react";
-import type { RefObject } from "react";
+import { StrictMode, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import type { ConfigEditorSnapshot } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type {
@@ -85,6 +85,29 @@ function createProps(
  */
 function createSnapshot(): RefObject<ConfigEditorSnapshot | undefined> {
   return { current: undefined };
+}
+
+/**
+ * Mounts the editor under a parent that does what the store does: it keeps the text and the range that the editor reports with each edit, and gives them back as the `value` and the `highlight`.
+ * @param props The props of the editor, whose `onChange` also receives what the editor reports.
+ * @returns The editor.
+ */
+function EchoingEditor(props: Readonly<ConfigEditorProps>): ReactNode {
+  const [value, setValue] = useState(props.value);
+  const [highlight, setHighlight] = useState(props.highlight);
+
+  return (
+    <ConfigEditor
+      {...props}
+      value={value}
+      highlight={highlight}
+      onChange={(text, range) => {
+        props.onChange(text, range);
+        setValue(text);
+        setHighlight(range ?? undefined);
+      }}
+    />
+  );
 }
 
 describe("ConfigEditor", () => {
@@ -207,7 +230,113 @@ describe("ConfigEditor", () => {
 
       // Assert
       expect(props.onChange).toHaveBeenCalledTimes(1);
-      expect(props.onChange).toHaveBeenCalledWith(`${TEXT}\n// done`);
+      expect(props.onChange).toHaveBeenCalledWith(`${TEXT}\n// done`, null);
+    });
+
+    it("should call onChange with where the highlight is after the edit, moved by it", () => {
+      // Arrange
+      const policy = rangeOf('"boundaries/dependencies"');
+      const props = createProps({ highlight: policy });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(0, "// done\n");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledTimes(1);
+      expect(props.onChange).toHaveBeenCalledWith(`// done\n${TEXT}`, {
+        from: policy.from + 8,
+        to: policy.to + 8,
+        line: policy.line + 1,
+        column: policy.column,
+      });
+    });
+
+    it("should call onChange with the column of the highlight after an edit on its line", () => {
+      // Arrange
+      const policy = rangeOf('"boundaries/dependencies"');
+      const props = createProps({ highlight: policy });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(policy.from - policy.column + 1, "  ");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledWith(expect.any(String), {
+        ...policy,
+        from: policy.from + 2,
+        to: policy.to + 2,
+        column: policy.column + 2,
+      });
+    });
+
+    it("should call onChange with the highlight as it was when the edit is after it", () => {
+      // Arrange
+      const policy = rangeOf("settings");
+      const props = createProps({ highlight: policy });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(TEXT.length, "\n// done");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledWith(`${TEXT}\n// done`, policy);
+    });
+
+    it("should call onChange with no highlight when the edit deletes the text of the highlight", () => {
+      // Arrange
+      const policy = rangeOf('"boundaries/dependencies"');
+      const props = createProps({ highlight: policy });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.replaceText(policy.from, policy.to, "");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledWith(
+        TEXT.slice(0, policy.from) + TEXT.slice(policy.to),
+        null
+      );
+      expect(editor.highlightedLines).toEqual([]);
+    });
+
+    it("should call onChange with no highlight when none is set", () => {
+      // Arrange
+      const props = createProps();
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(0, " ");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledWith(` ${TEXT}`, null);
+    });
+
+    it("should call onChange with the highlight that the snapshot kept, moved by the edit", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const policy = rangeOf("settings");
+      const first = render(
+        <ConfigEditor {...createProps({ snapshot, highlight: policy })} />
+      );
+      first.unmount();
+      const props = createProps({ snapshot, highlight: policy });
+      render(<ConfigEditor {...props} />);
+
+      // Act
+      new ConfigEditorPom().typeAt(0, " ");
+
+      // Assert
+      expect(props.onChange).toHaveBeenCalledWith(` ${TEXT}`, {
+        ...policy,
+        from: policy.from + 1,
+        to: policy.to + 1,
+      });
     });
 
     it("should not call onChange when the selection moves", () => {
@@ -238,7 +367,7 @@ describe("ConfigEditor", () => {
 
       // Assert
       expect(first).not.toHaveBeenCalled();
-      expect(second).toHaveBeenCalledWith(` ${TEXT}`);
+      expect(second).toHaveBeenCalledWith(` ${TEXT}`, null);
     });
 
     it("should undo the edits of the user", () => {
@@ -540,6 +669,45 @@ describe("ConfigEditor", () => {
       expect(editor.highlightedLines).toEqual([5]);
     });
 
+    it("should mark the lines of the new range when only the end of the range changes", () => {
+      // Arrange
+      const settings = rangeOf("settings");
+      const props = createProps({ highlight: settings });
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      rerender(
+        <ConfigEditor
+          {...props}
+          highlight={{ ...settings, to: TEXT.indexOf("  rules") - 1 }}
+        />
+      );
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([2, 3, 4]);
+    });
+
+    it("should mark the lines of the new range when only the start of the range changes", () => {
+      // Arrange
+      const settings = rangeOf("settings");
+      const to = TEXT.indexOf("  rules") - 1;
+      const props = createProps({ highlight: { ...settings, to } });
+      const { rerender } = render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      rerender(
+        <ConfigEditor
+          {...props}
+          highlight={{ ...settings, from: TEXT.indexOf('    "boundaries'), to }}
+        />
+      );
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([3, 4]);
+    });
+
     it("should keep the lines where the edits of the user moved them when the parent builds the same range again", () => {
       // Arrange
       const props = createProps({ highlight: rangeOf("settings") });
@@ -554,6 +722,80 @@ describe("ConfigEditor", () => {
 
       // Assert
       expect(editor.highlightedLines).toEqual([3]);
+    });
+
+    it("should mark the lines that the user adds inside the range", () => {
+      // Arrange
+      const rules = TEXT.indexOf("  rules");
+      const props = createProps({
+        highlight: { from: rules, to: TEXT.length - 2, line: 5, column: 1 },
+      });
+      render(<ConfigEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(
+        TEXT.lastIndexOf("  },"),
+        "    other: 1,\n    another: 2,\n"
+      );
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([5, 6, 7, 8, 9]);
+    });
+
+    it("should not move the lines, nor dispatch to set them again, when the parent gives back the range that the editor reported", () => {
+      // Arrange
+      const props = createProps({ highlight: rangeOf("settings") });
+      render(<EchoingEditor {...props} />);
+      const editor = new ConfigEditorPom();
+      const recording = editor.recordDispatches();
+
+      // Act
+      editor.typeAt(0, "// config\n");
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([3]);
+      expect(recording.count).toBe(1);
+      expect(recording.hasEffects).toBe(false);
+    });
+
+    it("should keep following the edits of the user when the parent gives back the ranges that the editor reported", () => {
+      // Arrange
+      const props = createProps({ highlight: rangeOf("rules") });
+      render(<EchoingEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.typeAt(0, "// one\n");
+      editor.typeAt(0, "// two\n");
+      editor.typeAt(0, "// three\n");
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([8]);
+      expect(props.onChange).toHaveBeenLastCalledWith(
+        `// three\n// two\n// one\n${TEXT}`,
+        {
+          ...rangeOf("rules"),
+          from: rangeOf("rules").from + 23,
+          to: rangeOf("rules").to + 23,
+          line: 8,
+        }
+      );
+    });
+
+    it("should drop the lines when the parent gives back no range, as the editor reported when the text of the highlight was deleted", () => {
+      // Arrange
+      const policy = rangeOf("settings");
+      const props = createProps({ highlight: policy });
+      render(<EchoingEditor {...props} />);
+      const editor = new ConfigEditorPom();
+
+      // Act
+      editor.replaceText(policy.from, policy.to, "");
+
+      // Assert
+      expect(editor.highlightedLines).toEqual([]);
+      expect(editor.highlightMarkCount).toBe(0);
     });
 
     it("should drop the lines when the text is replaced from outside, as the offsets no longer point at the same lines", () => {
@@ -919,7 +1161,7 @@ describe("ConfigEditor", () => {
       // Assert
       expect(onChangeOfFirst).not.toHaveBeenCalled();
       expect(onChangeOfSecond).toHaveBeenCalledTimes(1);
-      expect(onChangeOfSecond).toHaveBeenCalledWith(` ${TEXT}`);
+      expect(onChangeOfSecond).toHaveBeenCalledWith(` ${TEXT}`, null);
     });
 
     it("should report an edit once after a double mount, as the development mode of React does", () => {

@@ -6,6 +6,8 @@ export type ProjectTreeContextValue = {
   readonly counts: ProblemCounts;
   /** Whether nodes can be renamed and removed */
   readonly editable: boolean;
+  /** The path of the node that the dependency in focus points to, if any. Its item is outlined and tagged */
+  readonly target: string | undefined;
   /** The path of the node whose name is being edited, if any */
   readonly renaming: string | undefined;
   /** The item that must take the keyboard focus once it is in the tree, if any */

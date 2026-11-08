@@ -1,4 +1,4 @@
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchDependency } from "@/contract";
 
 /**
  * Tells whether two values hold the same data: the same primitives, in arrays of the same items in the same order and objects of the same keys.
@@ -53,4 +53,17 @@ export function isSameProject(first: Sketch, second: Sketch): boolean {
     isSameData(first.tree, second.tree) &&
     isSameData(first.dependencies, second.dependencies)
   );
+}
+
+/**
+ * Tells whether two dependencies hold the same data: the same file, target, syntax, kind and names, in the same order. It tells the lines of text mode apart from each other, which are built again each time the text is read.
+ * @param first A dependency.
+ * @param second Another dependency.
+ * @returns `true` when both hold the same data, whether or not they are the same object.
+ */
+export function isSameDependency(
+  first: SketchDependency,
+  second: SketchDependency
+): boolean {
+  return isSameData(first, second);
 }

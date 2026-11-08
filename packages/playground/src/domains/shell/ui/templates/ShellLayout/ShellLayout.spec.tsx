@@ -92,6 +92,7 @@ describe("ShellLayout", () => {
           topBar={
             <TopBar
               files={6}
+              dependencies={9}
               problems={2}
               tone="warn"
               configHasErrors={false}
@@ -116,7 +117,7 @@ describe("ShellLayout", () => {
       const { topBar, regions } = layout;
 
       // Assert
-      expect(topBar.statusText).toBe("6 files · 2 problems");
+      expect(topBar.statusText).toBe("6 files · 9 dependencies · 2 problems");
       expect(regions.holds("The node")).toBe(true);
     });
   });

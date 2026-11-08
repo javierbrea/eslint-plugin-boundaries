@@ -3,12 +3,16 @@ import { normalizeConfig } from "@boundaries/config";
 import type { Sketch } from "@/contract";
 import { getFiles } from "@/domains/project/helpers/sketch";
 
+import { evaluateDependencies } from "./dependencies";
+import { getAdditionalNodesProblems } from "./dependencyNodes";
 import { describeFiles } from "./describeFiles";
 import { areRulesValid, toConfigProblems } from "./diagnostics";
 import type { Engine, Evaluation } from "./engine.types";
 import type { ConfigAnalysis } from "./evaluate.types";
+import { selectRule } from "./evaluatedRule";
 import { normalizeConfigSafely } from "./normalizeConfigSafely";
 import { parseConfig } from "./parseConfig";
+import { summarizePolicies } from "./policies";
 import { resolveRootPath } from "./rootPath";
 import {
   summarizeElementTypes,
@@ -30,6 +34,8 @@ function analyzeConfig(text: string): ConfigAnalysis {
       parsed,
       normalized: normalizeConfig({ settings: {}, rules: {} }),
       problems: parsed.problems,
+      rulesValid: true,
+      selection: { ruleName: undefined, notEvaluated: "config-unparsed" },
     };
   }
   // A policy half typed in the editor makes `normalizeConfig` throw, which would break the panes. The playground is the host that resolves the root path, as the plugin does for ESLint
@@ -40,6 +46,7 @@ function analyzeConfig(text: string): ConfigAnalysis {
     },
     { rootPath: resolveRootPath(parsed.value.settings) }
   );
+  const rulesValid = areRulesValid(normalized.diagnostics);
   return {
     text,
     parsed,
@@ -47,7 +54,14 @@ function analyzeConfig(text: string): ConfigAnalysis {
     problems: [
       ...parsed.problems,
       ...toConfigProblems(normalized.diagnostics, parsed.ast),
+      ...getAdditionalNodesProblems(parsed, normalized.value.settings),
     ],
+    rulesValid,
+    selection: selectRule({
+      config: parsed,
+      rules: normalized.value.rules,
+      rulesValid,
+    }),
   };
 }
 
@@ -58,23 +72,38 @@ function analyzeConfig(text: string): ConfigAnalysis {
  * @returns What the engine says about it.
  */
 function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
-  const { parsed, normalized, problems } = analysis;
+  const { parsed, normalized, problems, rulesValid, selection } = analysis;
   const { settings } = normalized.value;
 
   // Sketch paths are relative to its root, and so is the root path of the settings. Every file is local, so there are no sources to describe. The files are the ones that the sketch says, so a node with nodes under it is a folder here as it is in the tree
-  const described = describeFiles(settings, getFiles(sketch));
+  const paths = getFiles(sketch);
+  const described = describeFiles(settings, paths);
   const { files } = described;
+
+  const dependencies = evaluateDependencies({
+    sketch,
+    settings,
+    rule: selection.rule,
+  });
+  const verdicts = {
+    dependencies,
+    notEvaluated: selection.notEvaluated,
+    policies: selection.rule
+      ? summarizePolicies(selection.rule, dependencies)
+      : [],
+  };
 
   if (!parsed.parsed) {
     return {
       sketch,
       configParsed: false,
       problems,
-      rulesValid: true,
+      rulesValid,
       files,
       elementTypes: [],
       fileCategories: [],
       rules: [],
+      ...verdicts,
     };
   }
 
@@ -83,17 +112,19 @@ function evaluateSketch(sketch: Sketch, analysis: ConfigAnalysis): Evaluation {
     settings,
     diagnostics: normalized.diagnostics,
     described,
+    evaluatedRuleName: selection.ruleName,
   };
 
   return {
     sketch,
     configParsed: true,
     problems,
-    rulesValid: areRulesValid(normalized.diagnostics),
+    rulesValid,
     files,
     elementTypes: summarizeElementTypes(input),
     fileCategories: summarizeFileCategories(input),
     rules: summarizeRules(input),
+    ...verdicts,
   };
 }
 

@@ -3,6 +3,7 @@ import { evaluate, parse } from "@humanwhocodes/momoa";
 import {
   buildTree,
   fromText,
+  getDependencyError,
   getFiles,
   toText,
 } from "@/domains/project/helpers/sketch";
@@ -103,9 +104,72 @@ describe("QUICK_START_EXAMPLE", () => {
     expect(buildTree(sketch)).toHaveLength(1);
   });
 
-  it("should have no dependencies yet", () => {
+  it("should have the nine dependencies of the mockup, grouped by file in the order of the tree", () => {
+    // Act
+    const { dependencies } = QUICK_START_EXAMPLE.sketch;
+
     // Assert
-    expect(QUICK_START_EXAMPLE.sketch.dependencies).toEqual([]);
+    expect(dependencies.map(({ from }) => from)).toEqual([
+      "src/components/atoms/Button/Button.spec.js",
+      "src/components/atoms/Button/index.js",
+      "src/components/atoms/Button/index.js",
+      "src/helpers/format/index.js",
+      "src/modules/checkout/index.js",
+      "src/modules/checkout/index.js",
+      "src/modules/checkout/index.js",
+      "src/modules/checkout/index.js",
+      "src/index.js",
+    ]);
+  });
+
+  it("should have only dependencies that the sketch can hold", () => {
+    // Arrange
+    const { sketch } = QUICK_START_EXAMPLE;
+
+    // Act
+    const errors = sketch.dependencies.map((dependency, position) =>
+      getDependencyError(
+        {
+          ...sketch,
+          dependencies: sketch.dependencies.filter(
+            (_other, index) => index !== position
+          ),
+        },
+        dependency
+      )
+    );
+
+    // Assert
+    expect(errors).toEqual(sketch.dependencies.map(() => undefined));
+  });
+
+  it("should write its dependencies in text mode under their files, in the order of the mockup and with their sources in full", () => {
+    // Act
+    const text = toText(QUICK_START_EXAMPLE.sketch);
+
+    // Assert
+    // The text of the `text` state of the mockup, without its last line (`src/pages/`), which the mockup adds as typing in progress, and with the sources in full, which the mockup writes shorter
+    expect(text).toBe(
+      [
+        "eslint.config.js",
+        "src/components/atoms/Button/Button.css",
+        "src/components/atoms/Button/Button.spec.js",
+        '  import { Button } from "./index.js";',
+        "src/components/atoms/Button/index.js",
+        '  import { format } from "../../../helpers/format/index.js";',
+        '  import "./Button.css";',
+        "src/helpers/format/index.js",
+        '  import { Button } from "../../components/atoms/Button/index.js";',
+        "src/modules/checkout/index.js",
+        '  import { Button } from "../../components/atoms/Button/index.js";',
+        '  import { format } from "../../helpers/format/index.js";',
+        '  import { renderButton } from "../../components/atoms/Button/Button.spec.js";',
+        '  import React from "react";',
+        "src/index.js",
+        '  import "./modules/checkout/index.js";',
+        "",
+      ].join("\n")
+    );
   });
 
   it("should have a config whose value is the settings and the rules of the scenario", () => {

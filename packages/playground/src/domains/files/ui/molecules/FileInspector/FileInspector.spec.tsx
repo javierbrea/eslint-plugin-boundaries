@@ -4,6 +4,7 @@ import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { FileInspector } from "./FileInspector";
 import { FileInspectorPom } from "./FileInspector.pom";
@@ -153,5 +154,221 @@ describe("FileInspector", () => {
     // Assert
     expect(inspector.title("src/removed.js").tagName).toBe("DIV");
     expect(facetNames).toHaveLength(0);
+    expect(inspector.summary.isRendered).toBe(false);
+  });
+
+  describe("the dependencies", () => {
+    it("should say how many dependencies the file has and what the engine decided about them", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { total, countTexts, totalColor } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("4 dependencies");
+      expect(totalColor).toBe("var(--jsb-muted)");
+      expect(countTexts).toEqual([
+        { text: "2", color: "var(--jsb-ok)" },
+        { text: "1", color: "var(--jsb-bad)" },
+        { text: "1 not checked", color: "var(--jsb-faint)" },
+      ]);
+    });
+
+    it("should write the words of the counts in the text colors of their verdicts, which the icons do not take", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { countTextColors } = inspector.summary;
+
+      // Assert
+      expect(countTextColors).toEqual([
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+        "var(--jsb-muted)",
+      ]);
+    });
+
+    it("should mark the counts with the check, the cross and the skip", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const paths = inspector.summary.counts.map(({ icon }) => icon.pathData);
+
+      // Assert
+      expect(paths).toEqual([
+        ICON_PATHS.check,
+        ICON_PATHS.cross,
+        ICON_PATHS.skip,
+      ]);
+    });
+
+    it("should name each count by its verdict for assistive technology, with the icon of the verdict before its number", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { total, countReadings } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("4 dependencies");
+      expect(countReadings).toEqual([
+        { iconName: "allowed", text: "2" },
+        { iconName: "disallowed", text: "1" },
+        { iconName: undefined, text: "1 not checked" },
+      ]);
+    });
+
+    it("should place the summary after the three facets", () => {
+      // Arrange
+      const inspector = renderInspector(FILE);
+
+      // Act
+      const { isLast } = inspector.summary;
+
+      // Assert
+      expect(inspector.facetNames).toEqual(["element", "file", "module"]);
+      expect(isLast).toBe(true);
+    });
+
+    it("should leave out a count that is 0", () => {
+      // Arrange
+      const inspector = renderInspector("src/components/atoms/Button/index.js");
+
+      // Act
+      const { total, countTexts } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("2 dependencies");
+      expect(countTexts).toEqual([
+        { text: "1", color: "var(--jsb-ok)" },
+        { text: "1 not checked", color: "var(--jsb-faint)" },
+      ]);
+    });
+
+    it("should say 1 dependency in the singular", () => {
+      // Arrange
+      const inspector = renderInspector("src/helpers/format/index.js");
+
+      // Act
+      const { total, countTexts } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("1 dependency");
+      expect(countTexts).toEqual([{ text: "1", color: "var(--jsb-bad)" }]);
+    });
+
+    it("should say 0 dependencies, and count nothing, for a file with none", () => {
+      // Arrange
+      const inspector = renderInspector(
+        "src/components/atoms/Button/Button.css"
+      );
+
+      // Act
+      const { total, countTexts } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("0 dependencies");
+      expect(countTexts).toEqual([]);
+    });
+
+    it("should count only the dependencies of the file in focus", () => {
+      // Arrange
+      const inspector = renderInspector("src/index.js");
+
+      // Act
+      const { total, countTexts } = inspector.summary;
+
+      // Assert
+      expect(total).toBe("1 dependency");
+      expect(countTexts).toEqual([
+        { text: "1 not checked", color: "var(--jsb-faint)" },
+      ]);
+    });
+
+    it("should say that they are not evaluated, with no counts, while the rule is off", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["off",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { total, countTexts } = inspector.summary;
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(total).toBe("4 dependencies · not evaluated");
+      expect(countTexts).toEqual([]);
+    });
+
+    it("should count the dependencies that a warning disallows as disallowed", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { countTexts } = inspector.summary;
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(countTexts[1].text).toBe("1");
+    });
+
+    it("should draw the dependencies that a warning disallows in the color of warnings, with the triangle of the line", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { countTexts, counts } = inspector.summary;
+
+      // Assert
+      expect(countTexts[1]).toEqual({ text: "1", color: "var(--jsb-warn)" });
+      expect(counts[1].textColor).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
+      expect(counts[1].icon.pathData).toBe(ICON_PATHS.warn);
+    });
+
+    it("should name the dependencies that a warning disallows as disallowed, as a warning, for assistive technology", () => {
+      // Arrange
+      const config = QUICK_START.config.replace(
+        '"boundaries/dependencies": [2,',
+        '"boundaries/dependencies": ["warn",'
+      );
+      const inspector = renderInspector(
+        FILE,
+        evaluate({ ...QUICK_START, config })
+      );
+
+      // Act
+      const { countReadings } = inspector.summary;
+
+      // Assert
+      expect(config).not.toBe(QUICK_START.config);
+      expect(countReadings[1]).toEqual({
+        iconName: "disallowed, as a warning",
+        text: "1",
+      });
+    });
   });
 });

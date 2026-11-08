@@ -58,7 +58,7 @@ describe("ProjectPaneLayout", () => {
       const { hint } = layout.head;
 
       // Assert
-      expect(hint).toBe("One path per line");
+      expect(hint).toBe("One path per line · dependencies indented");
     });
 
     it("should add no hint to the head while the project is shown as a tree", () => {

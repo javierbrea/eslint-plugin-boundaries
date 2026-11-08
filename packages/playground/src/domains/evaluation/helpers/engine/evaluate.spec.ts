@@ -3,9 +3,15 @@ import { normalizeConfig } from "@boundaries/config";
 import type { EntityDescription } from "@boundaries/elements";
 import { describeEntity } from "@boundaries/policies";
 
-import type { Sketch, SketchNode } from "@/contract";
+import type { Sketch, SketchDependency, SketchNode } from "@/contract";
 
-import type { Engine, FileDescription } from "./engine.types";
+import type {
+  DependencyResult,
+  Engine,
+  FileDescription,
+  PolicyRef,
+  TextRange,
+} from "./engine.types";
 import { createEngine } from "./evaluate";
 import { QUICK_START_DESCRIPTIONS } from "./quickStartDescriptions.mock";
 
@@ -33,26 +39,25 @@ const QUICK_START_SETTINGS = {
   ],
 };
 
-const QUICK_START_RULES = {
-  "boundaries/dependencies": [
-    2,
+const QUICK_START_OPTIONS = {
+  default: "disallow",
+  policies: [
     {
-      default: "disallow",
-      policies: [
-        {
-          from: { element: { type: "component" } },
-          allow: { to: { element: { type: "helper" } } },
-        },
-        {
-          from: { element: { type: "module" } },
-          allow: { to: { element: { types: ["component", "helper"] } } },
-        },
-        {
-          disallow: { to: { file: { categories: "test" } } },
-        },
-      ],
+      from: { element: { type: "component" } },
+      allow: { to: { element: { type: "helper" } } },
+    },
+    {
+      from: { element: { type: "module" } },
+      allow: { to: { element: { types: ["component", "helper"] } } },
+    },
+    {
+      disallow: { to: { file: { categories: "test" } } },
     },
   ],
+};
+
+const QUICK_START_RULES = {
+  "boundaries/dependencies": [2, QUICK_START_OPTIONS],
 };
 
 const QUICK_START_FILES = [
@@ -136,12 +141,17 @@ const CAPTURE_CONFIG = QUICK_START_CONFIG.replace(
 );
 
 /**
- * Creates a sketch with the files that are given and no dependencies.
+ * Creates a sketch with the files that are given.
  * @param config The config text.
  * @param files The paths of the files, whose folders are added.
+ * @param dependencies The dependencies of the sketch, none by default.
  * @returns The sketch.
  */
-function createSketch(config: string, files: readonly string[] = []): Sketch {
+function createSketch(
+  config: string,
+  files: readonly string[] = [],
+  dependencies: readonly SketchDependency[] = []
+): Sketch {
   const folders = new Set(
     files.flatMap((file) =>
       file
@@ -156,7 +166,156 @@ function createSketch(config: string, files: readonly string[] = []): Sketch {
     ...[...folders].map((path): SketchNode => ({ path, kind: "folder" })),
     ...files.map((path): SketchNode => ({ path, kind: "file" })),
   ];
-  return { config, tree, dependencies: [] };
+  return { config, tree, dependencies };
+}
+
+/**
+ * Builds an import of a value with no names.
+ * @param from The path of the file that has it.
+ * @param to The path of the file it points to.
+ * @returns The dependency.
+ */
+function importOf(from: string, to: string): SketchDependency {
+  return {
+    from,
+    target: { kind: "node", path: to },
+    syntax: "import",
+    importKind: "value",
+    specifiers: [],
+  };
+}
+
+/**
+ * Reads the text a range covers.
+ * @param text The config text.
+ * @param range A range of the text.
+ * @param range.from
+ * @param range.to
+ * @returns The text in the range.
+ */
+function slice(text: string, { from, to }: TextRange): string {
+  return text.slice(from, to);
+}
+
+/**
+ * Writes the config of the quick start with the rule entry that is given.
+ * @param ruleName The key of the rule in `rules`.
+ * @param entry The entry of the rule.
+ * @returns The config text.
+ */
+function configWithRule(ruleName: string, entry: unknown): string {
+  return JSON.stringify(
+    { settings: QUICK_START_SETTINGS, rules: { [ruleName]: entry } },
+    null,
+    2
+  );
+}
+
+/** The files of the dependencies of the checkout module, a helper, a component and a test file */
+const CHECKOUT_FILES = [
+  "src/helpers/format/index.js",
+  "src/components/atoms/Button/index.js",
+  "src/components/atoms/Button/Button.spec.js",
+  "src/modules/checkout/index.js",
+];
+
+/** The module imports the component, the module imports the test file of the component, and the helper imports the component */
+const CHECKOUT_DEPENDENCIES = [
+  importOf(
+    "src/modules/checkout/index.js",
+    "src/components/atoms/Button/index.js"
+  ),
+  importOf(
+    "src/modules/checkout/index.js",
+    "src/components/atoms/Button/Button.spec.js"
+  ),
+  importOf(
+    "src/helpers/format/index.js",
+    "src/components/atoms/Button/index.js"
+  ),
+];
+
+/** The files of the quick-start project in the order of the statements of `QUICK_START_STATEMENTS`, which the dependencies below write */
+const BUTTON = "src/components/atoms/Button/index.js";
+const BUTTON_SPEC = "src/components/atoms/Button/Button.spec.js";
+const BUTTON_CSS = "src/components/atoms/Button/Button.css";
+const FORMAT = "src/helpers/format/index.js";
+const CHECKOUT = "src/modules/checkout/index.js";
+const INDEX = "src/index.js";
+
+/** The nine dependencies of the quick-start project, file by file and in the order of their statements, so that the line of each one is the one ESLint reports */
+const QUICK_START_DEPENDENCIES: readonly SketchDependency[] = [
+  importOf(BUTTON_SPEC, BUTTON),
+  importOf(BUTTON, FORMAT),
+  importOf(BUTTON, BUTTON_CSS),
+  importOf(FORMAT, BUTTON),
+  importOf(CHECKOUT, BUTTON),
+  importOf(CHECKOUT, FORMAT),
+  importOf(CHECKOUT, BUTTON_SPEC),
+  {
+    ...importOf(CHECKOUT, BUTTON),
+    target: { kind: "external", name: "react" },
+  },
+  importOf(INDEX, CHECKOUT),
+];
+
+/**
+ * What ESLint 9.39.5 reports for the six files of the quick start, with the statements of `QUICK_START_DEPENDENCIES`, when the options of the quick start are the ones of the rule `boundaries/element-types` and `boundaries/dependencies` is off or has no options, and when it is `boundaries/dependencies` that has them. Both rules print the same messages. It is data only, measured on 2026-11-06 with the workspace build of `@boundaries/eslint-plugin` 7.4.2 and the settings of the quick start, as `QUICK_START_MESSAGES` is.
+ */
+const ESLINT_REPORTS = [
+  {
+    path: FORMAT,
+    line: 1,
+    message:
+      'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"',
+    level: "error",
+  },
+  {
+    path: CHECKOUT,
+    line: 3,
+    message:
+      'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
+    level: "error",
+  },
+];
+
+/**
+ * Lists the dependencies that were disallowed.
+ * @param results The dependencies with their verdicts.
+ * @returns For each one that was disallowed, sorted by file and line, its file, its line, its message and its level.
+ */
+function listDisallowed(results: readonly DependencyResult[]): {
+  path: string;
+  line: number;
+  message: string;
+  level: "error" | "warning";
+}[] {
+  return results
+    .flatMap(({ ref, verdict }) =>
+      verdict.status === "disallowed"
+        ? [
+            {
+              path: ref.path,
+              line: ref.index + 1,
+              message: verdict.message,
+              level: verdict.level,
+            },
+          ]
+        : []
+    )
+    .sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
+}
+
+/**
+ * Gets the policy that decided a dependency.
+ * @param result The dependency with its verdict.
+ * @param result.verdict
+ * @returns The policy, or `undefined` when the dependency is not allowed or disallowed by one.
+ */
+function policyOf({ verdict }: DependencyResult): PolicyRef | undefined {
+  return verdict.status === "allowed" || verdict.status === "disallowed"
+    ? verdict.policy
+    : undefined;
 }
 
 /**
@@ -420,6 +579,7 @@ describe("Evaluate", () => {
             name: "boundaries/dependencies",
             policies: 3,
             valid: true,
+            evaluated: true,
             range: expect.objectContaining({ from: expect.any(Number) }),
           },
         ]);
@@ -836,6 +996,263 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("when boundaries/additional-dependency-nodes keeps a valid node", () => {
+      const NODES = `[{ selector: "ImportDeclaration > Literal", kind: "value", name: "custom" }]`;
+
+      const NODES_CONFIG = `{
+  settings: {
+    "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }],
+    "boundaries/additional-dependency-nodes": ${NODES},
+  },
+}`;
+
+      it("should warn that the playground does not run the selectors, at the setting", () => {
+        // Arrange
+        const sketch = createSketch(NODES_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(problems).toEqual([
+          {
+            level: "warning",
+            title:
+              'The playground does not run the selectors of "boundaries/additional-dependency-nodes".',
+            detail:
+              'A statement that only one of them reads is not checked as ESLint checks it: the playground reads a statement only through the built-in selectors of "boundaries/dependency-nodes".',
+            links: [],
+            path: ["settings", "boundaries/additional-dependency-nodes"],
+            range: expect.objectContaining({ line: 4, column: 47 }),
+            source: "config",
+          },
+        ]);
+        expect(slice(NODES_CONFIG, problems[0].range)).toBe(NODES);
+      });
+
+      it("should return the warning after the problems of the text and the diagnostics of the config", () => {
+        // Arrange
+        const config = `{
+  other: true,
+  settings: {
+    "boundaries/elements": [{ type: "helper", patern: "helpers/*" }],
+    "boundaries/additional-dependency-nodes": ${NODES},
+    "boundaries/cache": "yes",
+  },
+}`;
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ path }) => path)).toEqual([
+          ["other"],
+          ["settings", "boundaries/elements", 0],
+          ["settings"],
+          ["settings", "boundaries/cache"],
+          ["settings", "boundaries/additional-dependency-nodes"],
+        ]);
+      });
+
+      it("should warn once when several nodes are valid, and still evaluate the dependencies", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector: "ImportDeclaration > Literal",
+                  kind: "value",
+                  name: "custom",
+                },
+                {
+                  selector: "ExportAllDeclaration > Literal",
+                  kind: "type",
+                  name: "other",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(
+          config,
+          QUICK_START_FILES,
+          QUICK_START_DEPENDENCIES
+        );
+
+        // Act
+        const { problems, notEvaluated, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(problems).toHaveLength(1);
+        expect(notEvaluated).toBeUndefined();
+        expect(listDisallowed(dependencies)).toEqual(ESLINT_REPORTS);
+      });
+
+      it("should not warn when every node is invalid, and leave the diagnostics of the nodes to the config", () => {
+        // Arrange
+        const config = NODES_CONFIG.replace(NODES, '[{ kind: "value" }]');
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ path }) => path)).toEqual([
+          ["settings", "boundaries/additional-dependency-nodes", 0],
+          ["settings", "boundaries/additional-dependency-nodes", 0],
+        ]);
+        expect(problems.map(({ level }) => level)).toEqual([
+          "warning",
+          "warning",
+        ]);
+        expect(
+          problems.some(({ title }) => title.startsWith("The playground"))
+        ).toBe(false);
+      });
+
+      it("should not warn when the setting is not written", () => {
+        // Act
+        const { problems } = evaluate(
+          createSketch(QUICK_START_CONFIG, QUICK_START_FILES)
+        );
+
+        // Assert
+        expect(problems).toEqual([]);
+      });
+
+      it("should read a syntax only through the built-in selectors, and check the others as not read", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/dependency-nodes": ["import"],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector: "CallExpression[callee.name='jest.mock'] > Literal",
+                  kind: "value",
+                  name: "require",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES, [
+          importOf(FORMAT, BUTTON),
+          { ...importOf(FORMAT, BUTTON), syntax: "require" },
+        ]);
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "disallowed",
+          "not-checked",
+        ]);
+        expect(dependencies[1].verdict).toEqual({
+          status: "not-checked",
+          reason: "not-read",
+        });
+      });
+    });
+
+    describe("with the sources of the dependencies", () => {
+      const TYPESCRIPT_FILES = [
+        "src/a.ts",
+        "src/b.ts",
+        "src/c.mjs",
+        "src/d/index.tsx",
+      ];
+
+      const TYPESCRIPT_DEPENDENCIES = [
+        importOf("src/a.ts", "src/b.ts"),
+        importOf("src/a.ts", "src/c.mjs"),
+        importOf("src/a.ts", "src/d/index.tsx"),
+      ];
+
+      /**
+       * Writes the config of the quick start with the settings that are given besides its own.
+       * @param settings The settings to add.
+       * @returns The config text.
+       */
+      function configWithSettings(settings: object): string {
+        return JSON.stringify(
+          {
+            settings: { ...QUICK_START_SETTINGS, ...settings },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+      }
+
+      it("should give each dependency the full source of its target, as the statement of the quick start writes it", () => {
+        // Arrange
+        const sketch = createSketch(
+          QUICK_START_CONFIG,
+          QUICK_START_FILES,
+          QUICK_START_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies.map(({ source }) => source)).toEqual([
+          "./index.js",
+          "../../../helpers/format/index.js",
+          "./Button.css",
+          "../../components/atoms/Button/index.js",
+          "../../components/atoms/Button/index.js",
+          "../../helpers/format/index.js",
+          "../../components/atoms/Button/Button.spec.js",
+          "react",
+          "./modules/checkout/index.js",
+        ]);
+      });
+
+      it("should write the same full sources and warn about nothing, whatever the config says in import/resolver", () => {
+        // Arrange
+        const sketches = [
+          {},
+          { "import/resolver": "typescript" },
+          { "import/resolver": ["typescript", "node"] },
+          { "import/resolver": { node: { extensions: [".ts"] } } },
+          { "import/resolver": { webpack: {} } },
+          { "import/resolve": { extensions: [".ts", ".tsx"] } },
+        ].map((settings) =>
+          createSketch(
+            configWithSettings(settings),
+            TYPESCRIPT_FILES,
+            TYPESCRIPT_DEPENDENCIES
+          )
+        );
+
+        // Act
+        const evaluations = sketches.map((sketch) => evaluate(sketch));
+
+        // Assert
+        expect(
+          evaluations.map(({ dependencies }) =>
+            dependencies.map(({ source }) => source)
+          )
+        ).toEqual(sketches.map(() => ["./b.ts", "./c.mjs", "./d/index.tsx"]));
+        expect(evaluations.map(({ problems }) => problems)).toEqual(
+          sketches.map(() => [])
+        );
+      });
+    });
+
     describe("when the config is not one JSON5 object", () => {
       it.each([
         [
@@ -892,6 +1309,49 @@ describe("Evaluate", () => {
         expect(
           [...evaluation.files.values()].map(({ element }) => element.types)
         ).toEqual([null, null, null, null, null, null]);
+      });
+
+      it("should not evaluate the dependencies, whose files and sources it still describes", () => {
+        // Arrange
+        const sketch = createSketch(
+          "{ settings: ",
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const evaluation = evaluate(sketch);
+
+        // Assert
+        expect(evaluation.notEvaluated).toBe("config-unparsed");
+        expect(evaluation.policies).toEqual([]);
+        expect(
+          evaluation.dependencies.map(({ ref, source, verdict }) => [
+            ref.path,
+            ref.index,
+            source,
+            verdict.status,
+          ])
+        ).toEqual([
+          [
+            "src/modules/checkout/index.js",
+            0,
+            "../../components/atoms/Button/index.js",
+            "not-evaluated",
+          ],
+          [
+            "src/modules/checkout/index.js",
+            1,
+            "../../components/atoms/Button/Button.spec.js",
+            "not-evaluated",
+          ],
+          [
+            "src/helpers/format/index.js",
+            0,
+            "../../components/atoms/Button/index.js",
+            "not-evaluated",
+          ],
+        ]);
       });
 
       it("should have nothing to summarize, and the rules are not at fault", () => {
@@ -987,6 +1447,528 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("with the rule that is evaluated", () => {
+      it("should evaluate the deprecated element-types rule when the dependencies rule is not written, placing its policies at rules", () => {
+        // Arrange
+        const config = configWithRule("boundaries/element-types", [
+          2,
+          {
+            default: QUICK_START_OPTIONS.default,
+            rules: QUICK_START_OPTIONS.policies,
+          },
+        ]);
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies, policies, rules, notEvaluated } =
+          evaluate(sketch);
+
+        // Assert
+        expect(notEvaluated).toBeUndefined();
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "allowed",
+          "disallowed",
+          "disallowed",
+        ]);
+        expect(
+          rules.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+        ).toEqual([["boundaries/element-types", true]]);
+        expect(
+          policies.map(({ index, decided, disallowed }) => [
+            index,
+            decided,
+            disallowed,
+          ])
+        ).toEqual([
+          [0, 0, 0],
+          [1, 1, 0],
+          [2, 1, 1],
+          [null, 1, 1],
+        ]);
+        expect(slice(config, policies[2].range).replace(/\s+/g, " ")).toBe(
+          '{ "disallow": { "to": { "file": { "categories": "test" } } } }'
+        );
+      });
+
+      it("should evaluate the dependencies rule and not the deprecated one when both are written", () => {
+        // Arrange
+        const config = JSON.stringify({
+          settings: QUICK_START_SETTINGS,
+          rules: {
+            "boundaries/element-types": [2, { default: "allow" }],
+            "boundaries/dependencies": [2, { default: "disallow" }],
+          },
+        });
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies, rules } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "disallowed",
+          "disallowed",
+          "disallowed",
+        ]);
+        expect(
+          rules.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+        ).toEqual([
+          ["boundaries/element-types", false],
+          ["boundaries/dependencies", true],
+        ]);
+      });
+
+      it.each([
+        ["off", "off"],
+        ["off by its number", 0],
+        ["written with only a severity", [2]],
+        ["written with only a severity as a number", 2],
+      ])(
+        "should evaluate the deprecated element-types rule, as ESLint reports through it, when the dependencies rule is %s",
+        (_title, entry) => {
+          // Arrange
+          const config = JSON.stringify(
+            {
+              settings: QUICK_START_SETTINGS,
+              rules: {
+                "boundaries/dependencies": entry,
+                "boundaries/element-types": [2, QUICK_START_OPTIONS],
+              },
+            },
+            null,
+            2
+          );
+          const sketch = createSketch(
+            config,
+            QUICK_START_FILES,
+            QUICK_START_DEPENDENCIES
+          );
+
+          // Act
+          const { dependencies, policies, rules, notEvaluated } =
+            evaluate(sketch);
+
+          // Assert
+          expect(notEvaluated).toBeUndefined();
+          expect(listDisallowed(dependencies)).toEqual(ESLINT_REPORTS);
+          expect(
+            rules.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+          ).toEqual([
+            ["boundaries/dependencies", false],
+            ["boundaries/element-types", true],
+          ]);
+          expect(
+            policies.map(({ index, decided, disallowed }) => [
+              index,
+              decided,
+              disallowed,
+            ])
+          ).toEqual([
+            [0, 1, 0],
+            [1, 2, 0],
+            [2, 1, 1],
+            [null, 1, 1],
+          ]);
+          expect(slice(config, policies[2].range).replace(/\s+/g, " ")).toBe(
+            '{ "disallow": { "to": { "file": { "categories": "test" } } } }'
+          );
+        }
+      );
+
+      it.each([
+        ["off", "off"],
+        ["off by its number", 0],
+      ])(
+        "should evaluate the dependencies rule, as ESLint reports through it, when the deprecated rule is %s",
+        (_title, entry) => {
+          // Arrange
+          const config = JSON.stringify(
+            {
+              settings: QUICK_START_SETTINGS,
+              rules: {
+                "boundaries/element-types": entry,
+                "boundaries/dependencies": [2, QUICK_START_OPTIONS],
+              },
+            },
+            null,
+            2
+          );
+          const sketch = createSketch(
+            config,
+            QUICK_START_FILES,
+            QUICK_START_DEPENDENCIES
+          );
+
+          // Act
+          const { dependencies, rules, notEvaluated } = evaluate(sketch);
+
+          // Assert
+          expect(notEvaluated).toBeUndefined();
+          expect(listDisallowed(dependencies)).toEqual(ESLINT_REPORTS);
+          expect(
+            rules.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+          ).toEqual([
+            ["boundaries/element-types", false],
+            ["boundaries/dependencies", true],
+          ]);
+        }
+      );
+
+      it.each([
+        ["rule-off", "the dependencies rule is off", "off", [2]],
+        ["rule-off", "both rules are off", "off", "off"],
+        ["rule-off", "the deprecated rule has no options", 0, 2],
+        [
+          "no-options",
+          "the dependencies rule has no options and the deprecated rule is off",
+          2,
+          "off",
+        ],
+      ])(
+        "should say %s, as the dependencies rule, when no rule runs because %s",
+        (reason, _title, dependenciesEntry, elementTypesEntry) => {
+          // Arrange
+          const config = JSON.stringify(
+            {
+              settings: QUICK_START_SETTINGS,
+              rules: {
+                "boundaries/element-types": elementTypesEntry,
+                "boundaries/dependencies": dependenciesEntry,
+              },
+            },
+            null,
+            2
+          );
+          const sketch = createSketch(
+            config,
+            QUICK_START_FILES,
+            QUICK_START_DEPENDENCIES
+          );
+
+          // Act
+          const { dependencies, rules, notEvaluated } = evaluate(sketch);
+
+          // Assert
+          expect(notEvaluated).toBe(reason);
+          expect(
+            dependencies.every(
+              ({ verdict }) => verdict.status === "not-evaluated"
+            )
+          ).toBe(true);
+          expect(
+            rules.map(({ name: ruleName, evaluated }) => [ruleName, evaluated])
+          ).toEqual([
+            ["boundaries/element-types", false],
+            ["boundaries/dependencies", true],
+          ]);
+        }
+      );
+
+      it("should disallow with the level warning when the severity is warn", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          "warn",
+          QUICK_START_OPTIONS,
+        ]);
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies[0].verdict.status).toBe("allowed");
+        expect(listDisallowed(dependencies).map(({ level }) => level)).toEqual([
+          "warning",
+          "warning",
+        ]);
+      });
+
+      it("should render the custom message of the home for the policy that decides", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          2,
+          {
+            ...QUICK_START_OPTIONS,
+            policies: [
+              ...QUICK_START_OPTIONS.policies.slice(0, 2),
+              {
+                ...QUICK_START_OPTIONS.policies[2],
+                message:
+                  "Never import test files from {{ from.element.types.[0] }}s",
+              },
+            ],
+          },
+        ]);
+        const sketch = createSketch(config, CHECKOUT_FILES, [
+          CHECKOUT_DEPENDENCIES[1],
+        ]);
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies[0].verdict).toMatchObject({
+          status: "disallowed",
+          policy: { index: 2 },
+          message: "Never import test files from modules",
+        });
+      });
+
+      it("should disallow with the error and no policy when a custom message fails to render, and count it for no policy", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          2,
+          {
+            ...QUICK_START_OPTIONS,
+            policies: [
+              ...QUICK_START_OPTIONS.policies.slice(0, 2),
+              {
+                ...QUICK_START_OPTIONS.policies[2],
+                message: "Never import {{ unknownHelper from }}",
+              },
+            ],
+          },
+        ]);
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies, policies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies[1].verdict).toEqual({
+          status: "disallowed",
+          policy: undefined,
+          message: expect.stringContaining(
+            'The custom message "Never import {{ unknownHelper from }}" of the policy at index 2 failed to render'
+          ),
+          level: "error",
+        });
+        expect(
+          policies.map(({ index, decided, disallowed }) => [
+            index,
+            decided,
+            disallowed,
+          ])
+        ).toEqual([
+          [0, 0, 0],
+          [1, 1, 0],
+          [2, 0, 0],
+          [null, 1, 1],
+        ]);
+      });
+
+      it("should disallow with the message that says it renders empty, and count it for the policy that decided", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          2,
+          {
+            ...QUICK_START_OPTIONS,
+            policies: [
+              ...QUICK_START_OPTIONS.policies.slice(0, 2),
+              {
+                ...QUICK_START_OPTIONS.policies[2],
+                message: "{{from.element.parents.[0].type}}",
+              },
+            ],
+          },
+        ]);
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { dependencies, policies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies[1].verdict).toEqual({
+          status: "disallowed",
+          policy: { index: 2, range: policies[2].range },
+          message:
+            'The custom message "{{from.element.parents.[0].type}}" of the policy at index 2 renders to an empty text for this dependency, and ESLint stops with an error when a rule reports a problem with no message.',
+          level: "error",
+        });
+        expect(
+          policies.map(({ index, decided, disallowed, errors }) => [
+            index,
+            decided,
+            disallowed,
+            errors,
+          ])
+        ).toEqual([
+          [0, 0, 0, 0],
+          [1, 1, 0, 0],
+          [2, 1, 1, 1],
+          [null, 1, 1, 1],
+        ]);
+      });
+
+      it("should pass the exported name of an export from with an alias to the policies", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          2,
+          {
+            default: "allow",
+            policies: [
+              {
+                disallow: {
+                  to: { element: { type: "helper" } },
+                  dependency: { specifiers: "round" },
+                },
+              },
+            ],
+          },
+        ]);
+        const aliased: SketchDependency = {
+          ...importOf(
+            "src/modules/checkout/index.js",
+            "src/helpers/format/index.js"
+          ),
+          syntax: "export-from",
+          specifiers: [{ kind: "named", name: "floor", alias: "round" }],
+        };
+        const renamed: SketchDependency = {
+          ...aliased,
+          specifiers: [{ kind: "named", name: "round", alias: "r" }],
+        };
+        const sketch = createSketch(
+          config,
+          ["src/modules/checkout/index.js", "src/helpers/format/index.js"],
+          [aliased, renamed]
+        );
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "disallowed",
+          "allowed",
+        ]);
+      });
+    });
+
+    describe("while no dependency is evaluated", () => {
+      it.each([
+        [
+          "config-unparsed",
+          "it is not one JSON5 object",
+          "{ settings: // unparsable",
+        ],
+        ["rules-invalid", "a default fails the schema", MOCKUP_CONFIG],
+        ["rules-invalid", "a policy cannot be normalized", THROWING_CONFIG],
+        [
+          "no-rule",
+          "no rule is written",
+          JSON.stringify({ settings: QUICK_START_SETTINGS, rules: {} }),
+        ],
+        [
+          "no-rule",
+          "only another rule of the plugin is written",
+          configWithRule("boundaries/no-private", [2, { allowUncles: false }]),
+        ],
+        [
+          "rule-off",
+          "the dependencies rule is off by its number",
+          configWithRule("boundaries/dependencies", 0),
+        ],
+        [
+          "rule-off",
+          "the dependencies rule is off with options",
+          configWithRule("boundaries/dependencies", [
+            "off",
+            QUICK_START_OPTIONS,
+          ]),
+        ],
+        [
+          "rule-off",
+          "the deprecated rule is the one written, and it is off",
+          configWithRule("boundaries/element-types", [
+            "off",
+            QUICK_START_OPTIONS,
+          ]),
+        ],
+        [
+          "no-options",
+          "the dependencies rule is only a severity",
+          configWithRule("boundaries/dependencies", 2),
+        ],
+        [
+          "no-options",
+          "the dependencies rule is a list with only a severity",
+          configWithRule("boundaries/dependencies", ["warn"]),
+        ],
+      ])(
+        "should say %s and give every dependency the verdict not evaluated when %s",
+        (reason, _title, config) => {
+          // Arrange
+          const sketch = createSketch(config, CHECKOUT_FILES, [
+            CHECKOUT_DEPENDENCIES[0],
+            CHECKOUT_DEPENDENCIES[2],
+          ]);
+
+          // Act
+          const evaluation = evaluate(sketch);
+
+          // Assert
+          expect(evaluation.notEvaluated).toBe(reason);
+          expect(evaluation.policies).toEqual([]);
+          expect(evaluation.dependencies).toEqual([
+            {
+              dependency: CHECKOUT_DEPENDENCIES[0],
+              ref: { path: "src/modules/checkout/index.js", index: 0 },
+              source: "../../components/atoms/Button/index.js",
+              verdict: { status: "not-evaluated" },
+            },
+            {
+              dependency: CHECKOUT_DEPENDENCIES[2],
+              ref: { path: "src/helpers/format/index.js", index: 0 },
+              source: "../../components/atoms/Button/index.js",
+              verdict: { status: "not-evaluated" },
+            },
+          ]);
+        }
+      );
+
+      it("should keep saying that the rules are valid when the dependencies are not evaluated for another reason", () => {
+        // Arrange
+        const sketch = createSketch(
+          configWithRule("boundaries/dependencies", 0),
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const evaluation = evaluate(sketch);
+
+        // Assert
+        expect(evaluation.rulesValid).toBe(true);
+        expect(evaluation.rules).toEqual([
+          expect.objectContaining({
+            name: "boundaries/dependencies",
+            evaluated: true,
+          }),
+        ]);
+      });
+    });
+
     describe("memoization", () => {
       it("should return the same evaluation for the same sketch", () => {
         // Arrange
@@ -998,6 +1980,70 @@ describe("Evaluate", () => {
 
         // Assert
         expect(second).toBe(first);
+      });
+
+      it("should return the same dependencies and policies for the same sketch", () => {
+        // Arrange
+        const sketch = createSketch(
+          QUICK_START_CONFIG,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const first = evaluate(sketch);
+        const second = evaluate(sketch);
+
+        // Assert
+        expect(second.dependencies).toBe(first.dependencies);
+        expect(second.policies).toBe(first.policies);
+      });
+
+      it("should evaluate the new dependencies of a sketch that keeps the config text, without normalizing the config again", () => {
+        // Arrange
+        const before = createSketch(
+          QUICK_START_CONFIG,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES.slice(0, 1)
+        );
+        const after = createSketch(
+          QUICK_START_CONFIG,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+        const evaluationBefore = evaluate(before);
+
+        // Act
+        const evaluationAfter = evaluate(after);
+
+        // Assert
+        expect(normalizeConfig).toHaveBeenCalledTimes(1);
+        expect(evaluationBefore.dependencies).toHaveLength(1);
+        expect(evaluationAfter.dependencies).toHaveLength(3);
+        expect(evaluationAfter.dependencies[0].verdict.status).toBe("allowed");
+      });
+
+      it("should give the verdicts of two sketches with the same config text the same reference to the policy that decided", () => {
+        // Arrange
+        const before = createSketch(
+          QUICK_START_CONFIG,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+        const after = createSketch(
+          QUICK_START_CONFIG,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES.slice(0, 2)
+        );
+        const decidedBefore = evaluate(before).dependencies.map(policyOf);
+
+        // Act
+        const decidedAfter = evaluate(after).dependencies.map(policyOf);
+
+        // Assert
+        expect(decidedBefore[0]).toBeDefined();
+        expect(decidedAfter[0]).toBe(decidedBefore[0]);
+        expect(decidedAfter[1]).toBe(decidedBefore[1]);
       });
 
       it("should return another evaluation for another sketch, even when it is equal", () => {

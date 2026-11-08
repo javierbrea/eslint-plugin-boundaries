@@ -15,6 +15,8 @@ const QUICK_START = QUICK_START_EXAMPLE.sketch;
 
 const FILE = "src/modules/checkout/index.js";
 
+const OTHER_FILE = "src/helpers/format/index.js";
+
 /** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
 type PaneRender = SessionRender & { readonly pane: NodePanePom };
 
@@ -165,6 +167,95 @@ describe("NodePane", () => {
 
       // Assert
       expect(pane.file.head.path).toBe("src/features/checkout/index.js");
+    });
+  });
+
+  describe("the dependencies of a file", () => {
+    it("should list the dependencies of the file in focus with their verdicts", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Assert
+      expect(pane.file.lines.lineTexts).toEqual([
+        '1import { Button } from "../../components/atoms/Button/index.js";policy 1',
+        '2import { format } from "../../helpers/format/index.js";policy 1',
+        '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
+        '4import React from "react";not checked · external',
+      ]);
+    });
+
+    it("should list the dependencies of another file when it takes the focus", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.open({ kind: "file", path: OTHER_FILE }));
+
+      // Assert
+      expect(pane.file.head.path).toBe(OTHER_FILE);
+      expect(pane.file.lines.lineTexts).toEqual([
+        '1import { Button } from "../../components/atoms/Button/index.js";default',
+      ]);
+    });
+
+    it("should keep the file pane, and mark the line, when a dependency of the file takes the focus", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 2 }));
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.head.path).toBe(FILE);
+      expect(pane.file.lines.line(2).isSelected).toBe(true);
+    });
+
+    it("should show the file of a dependency that is in focus when nothing else was open", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: OTHER_FILE, index: 0 }));
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.head.path).toBe(OTHER_FILE);
+      expect(pane.file.lines.line(0).isSelected).toBe(true);
+    });
+
+    it("should put the dependency of a line that is clicked in focus", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      pane.file.lines.line(3).click();
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: FILE,
+        index: 3,
+      });
+      expect(pane.file.lines.line(3).isSelected).toBe(true);
+    });
+
+    it("should show the empty pane when the file of the dependency in focus is removed", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+
+      // Act
+      act(() => store.removeNode(FILE));
+
+      // Assert
+      expect(pane.shown).toBe("empty");
     });
   });
 

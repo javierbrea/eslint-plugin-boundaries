@@ -12,6 +12,7 @@ import type { TopBarProps } from "./TopBar.types";
 function createProps(overrides: Partial<TopBarProps> = {}): TopBarProps {
   return {
     files: 6,
+    dependencies: 9,
     problems: 0,
     tone: "bad",
     configHasErrors: false,
@@ -54,39 +55,39 @@ describe("TopBar", () => {
   });
 
   describe("status", () => {
-    it("should say how many files and problems the sketch has", () => {
+    it("should say how many files, dependencies and problems the sketch has", () => {
       // Arrange
-      const { bar } = renderBar({ files: 6, problems: 2 });
+      const { bar } = renderBar({ files: 6, dependencies: 9, problems: 2 });
 
       // Act
       const { statusText, problemsText } = bar;
 
       // Assert
-      expect(statusText).toBe("6 files · 2 problems");
+      expect(statusText).toBe("6 files · 9 dependencies · 2 problems");
       expect(problemsText).toBe("2 problems");
     });
 
-    it("should say one file and one problem in the singular", () => {
+    it("should say one file, one dependency and one problem in the singular", () => {
       // Arrange
-      const { bar } = renderBar({ files: 1, problems: 1 });
+      const { bar } = renderBar({ files: 1, dependencies: 1, problems: 1 });
 
       // Act
       const { statusText, problemsText } = bar;
 
       // Assert
-      expect(statusText).toBe("1 file · 1 problem");
+      expect(statusText).toBe("1 file · 1 dependency · 1 problem");
       expect(problemsText).toBe("1 problem");
     });
 
     it("should say 0 problems when there are none", () => {
       // Arrange
-      const { bar } = renderBar({ files: 0, problems: 0 });
+      const { bar } = renderBar({ files: 0, dependencies: 0, problems: 0 });
 
       // Act
       const { statusText, problemsText } = bar;
 
       // Assert
-      expect(statusText).toBe("0 files · 0 problems");
+      expect(statusText).toBe("0 files · 0 dependencies · 0 problems");
       expect(problemsText).toBe("0 problems");
     });
 
@@ -98,7 +99,7 @@ describe("TopBar", () => {
       const { statusText, problemsText } = bar;
 
       // Assert
-      expect(statusText).toBe("6 files · config has errors");
+      expect(statusText).toBe("6 files · 9 dependencies · config has errors");
       expect(problemsText).toBe("config has errors");
       expect(statusText).not.toContain("2 problems");
     });
@@ -113,7 +114,9 @@ describe("TopBar", () => {
       const { problemsColor } = bar;
 
       // Assert
-      expect(problemsColor).toBe("var(--jsb-warn)");
+      expect(problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw no problems in the color of the rest of the status", () => {
@@ -135,7 +138,9 @@ describe("TopBar", () => {
       const { problemsColor } = bar;
 
       // Assert
-      expect(problemsColor).toBe("var(--jsb-bad)");
+      expect(problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
     });
 
     it("should draw an ok dot when the config has no errors, and a red one when it has", () => {

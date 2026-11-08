@@ -14,7 +14,9 @@ import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
+import type { IconName } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
+import { STATE_TEXT, TONE_COLORS, getCountTone } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {
@@ -24,6 +26,12 @@ import {
   RENAME_ACTION_LABEL,
 } from "./ProjectTreeItem.constants";
 import type { ProjectTreeItemProps } from "./ProjectTreeItem.types";
+
+/** The mark of a file with failing dependencies: the cross of errors, or the triangle of the line of a warning. */
+const FAILURE_ICONS: Readonly<Record<Tone, IconName>> = {
+  bad: "cross",
+  warn: "warn",
+};
 
 const Root = styled("li")({
   margin: 0,
@@ -72,7 +80,13 @@ const Row = styled("div")(({ theme }) => ({
   },
   "&[data-kind='folder']": { color: "var(--jsb-muted)" },
   "&[data-kind='config']": { color: "var(--jsb-accent)" },
-  "&[data-bad]": { color: "var(--jsb-bad)" },
+  // The name is text, so it has the text color of errors; the icon and the badge at the end keep the token
+  "&[data-bad]": { color: STATE_TEXT.bad },
+  // What the dependency in focus points to: outlined inside the row, so that the neighbors do not cover it
+  "&[data-target]": {
+    outline: "1px dashed var(--jsb-accent)",
+    outlineOffset: -1,
+  },
   // The row actions show on hover and while the row has the focus
   "&:hover [data-actions], &[data-focused] [data-actions], &:focus-within [data-actions]":
     { maxWidth: 52, opacity: 1 },
@@ -92,6 +106,12 @@ const Glyph = styled("span")(({ theme }) => ({
   ...theme.typography.monoTiny,
   fontWeight: "inherit",
   lineHeight: "inherit",
+}));
+
+// The row centers it, so it needs no line height of the row's
+const TargetTag = styled("span")(({ theme }) => ({
+  color: "var(--jsb-accent)",
+  ...theme.typography.monoMicro,
 }));
 
 const Name = styled("span")({
@@ -116,15 +136,26 @@ const Actions = styled("span")({
   opacity: 0,
 });
 
-const Failure = styled("span")({
+const Failure = styled("span", {
+  shouldForwardProp: (prop) => prop !== "tone",
+})<{ tone: Tone }>(({ tone }) => ({
   display: "inline-flex",
-  color: "var(--jsb-bad)",
-});
+  color: TONE_COLORS[tone],
+}));
 
 const Group = styled("ul")({ margin: 0, padding: 0, listStyle: "none" });
 
 /**
- * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The config is red only when it has errors.
+ * Writes the value of a data attribute that a row sets without a value, so that the styles select the rows that have it.
+ * @param isSet Whether the row has the attribute.
+ * @returns An empty value to set the attribute, or `undefined` to leave it out.
+ */
+function flag(isSet: boolean): "" | undefined {
+  return isSet ? "" : undefined;
+}
+
+/**
+ * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The badge is red when the config has errors, or when any failing dependency it counts is an error, and in the color of warnings otherwise.
  * @param item The item.
  * @param counts Problems per node.
  * @returns The number to show, the tone of the badge and what the number counts, for assistive technology.
@@ -136,33 +167,38 @@ function getBadge(
   if (item.kind === "config") {
     return {
       count: counts.config,
-      tone: counts.configHasErrors ? "bad" : "warn",
+      tone: getCountTone(counts.configHasErrors),
       label: formatCount(counts.config, "problem", "problems"),
     };
   }
 
-  const count = counts.byPath.get(item.id) ?? 0;
+  const failing = counts.byPath.get(item.id);
+  const count = failing?.count ?? 0;
 
   return {
     count,
-    tone: "bad",
+    tone: getCountTone(failing?.hasErrors ?? false),
     label: formatCount(count, "failing dependency", "failing dependencies"),
   };
 }
 
 /**
- * Tells whether the row of an item is drawn in the color of errors: a file with failing dependencies, or the config when it has errors. A folder never is, whatever its files do.
+ * Tells whether the row of an item is drawn in the color of errors: a file with failing dependencies, any of which is an error, or the config when it has errors. A file whose failures are all warnings is not, and a folder never is, whatever its files do.
  * @param item The item.
- * @param isFailingFile Whether the item is a file with failing dependencies.
+ * @param badge What the badge of the item counts.
+ * @param badge.count
+ * @param badge.tone
  * @param counts Problems per node.
  * @returns Whether the row is red.
  */
 function isRowBad(
   item: ProjectItem,
-  isFailingFile: boolean,
+  badge: { count: number; tone: Tone },
   counts: ProblemCounts
 ): boolean {
-  return isFailingFile || (item.kind === "config" && counts.configHasErrors);
+  return item.kind === "config"
+    ? counts.configHasErrors
+    : item.kind === "file" && badge.count > 0 && badge.tone === "bad";
 }
 
 /**
@@ -198,7 +234,7 @@ function useFocusRequest(
 }
 
 /**
- * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
+ * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. The item that the dependency in focus points to is outlined and tagged `target`. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
  * @param props ProjectTreeItem props.
  * @param props.ref The ref of the root element of the item.
  * @param props.id The id attribute of the item.
@@ -235,7 +271,8 @@ export function ProjectTreeItem({
   const isRenaming = context.renaming === itemId;
   const badge = getBadge(item, context.counts);
   const isFailingFile = item.kind === "file" && badge.count > 0;
-  const isBad = isRowBad(item, isFailingFile, context.counts);
+  const isBad = isRowBad(item, badge, context.counts);
+  const isTarget = context.target === itemId;
 
   /**
    * Starts the rename with F2 and removes the node with Delete.
@@ -271,7 +308,8 @@ export function ProjectTreeItem({
         <Row
           {...getContentProps()}
           data-kind={item.kind}
-          data-bad={isBad ? "" : undefined}
+          data-bad={flag(isBad)}
+          data-target={flag(isTarget)}
         >
           <Chevron aria-hidden>
             {itemStatus.expandable ? (
@@ -336,9 +374,11 @@ export function ProjectTreeItem({
                 </Tooltip>
               </Actions>
             ) : null}
+            {/* After the actions, which take a gap even while they are clipped: before them, the tag would be that gap away from the end of the row */}
+            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
             {isFailingFile ? (
-              <Failure>
-                <Icon name="cross" />
+              <Failure tone={badge.tone} data-failure="">
+                <Icon name={FAILURE_ICONS[badge.tone]} />
               </Failure>
             ) : null}
             {badge.count > 0 ? (
