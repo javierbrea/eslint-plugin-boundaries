@@ -30,7 +30,7 @@ This page focuses on how to configure the `boundaries/dependencies` rule options
 
 This rule evaluates dependencies. By default it checks only local-origin dependencies to known, non-internal targets. A dependency is skipped when its target is external or core, when its target is unknown, or when it is internal to the same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
 
-When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `rules`, which contains the policies. Policies are processed in order, and the last policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
+When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `policies`. Policies are processed in order, and the last policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
 
 ## Options
 
@@ -40,7 +40,7 @@ When a dependency is evaluated, the rule decides whether it is allowed or disall
   {
     "default": <string>,
     "message": <string>,
-    "rules": <array>,
+    "policies": <array>,
     "checkAllOrigins": <boolean>,
     "checkUnknownLocals": <boolean>,
     "checkInternals": <boolean>
@@ -55,13 +55,14 @@ The first element is the ESLint severity (`0` = off, `1` = warning, `2` = error)
 - `checkUnknownLocals`: Optional. Whether to check local dependencies whose target element is unknown (not matching any element descriptor) or to ignore them (default: `false`).
 - `checkInternals`: Optional. Whether to check internal dependencies (dependencies within files in the same element) (default: `false`).
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information.
-- `rules`: An array of policy objects processed in order to determine whether a dependency should be allowed. Each policy object can contain the following properties:
+- `policies`: An array of policy objects processed in order to determine whether a dependency should be allowed. Each policy object can contain the following properties:
   - `from`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the file being analyzed matches this selector, the policy is evaluated. Otherwise, it is skipped.
   - `to`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the dependency target matches this selector, the policy is evaluated. Otherwise, it is skipped.
   - `disallow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is disallowed (can be overridden by a subsequent policy returning `"allow"`).
   - `allow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is allowed (can be overridden by a subsequent policy returning `"disallow"`).
   - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information.
   - _`importKind`_: `<string>` - Optional. **Deprecated** (kept for backward compatibility). Makes sense only for [TypeScript](../guides/typescript-support.md) projects. Use `dependency.kind` instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule is only evaluated for dependencies of the specified kind.
+- _`rules`_: Optional. **Deprecated** alias of `policies`, kept for backward compatibility. It prints a deprecation warning, and `policies` takes precedence when both are set. See [Legacy Policy Configuration](../policies/legacy.mdx#legacy-rules-option-in-rules-configuration).
 
 :::warning
 You must provide at least one of `allow` or `disallow` effect for each policy.
@@ -400,7 +401,7 @@ This rule provides detailed error messages to help you understand and resolve vi
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific policies. Use the [`message` option](#options) in your rule configuration and see [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
+You can customize error messages globally or for specific policies. Use the [`message` option](#options) in your rule configuration and see [Policies -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Further Reading
