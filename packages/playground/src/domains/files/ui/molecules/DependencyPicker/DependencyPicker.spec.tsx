@@ -1042,6 +1042,36 @@ describe("DependencyPicker", () => {
       // Assert
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
+
+    it("should not refuse the dependency it submitted while it closes, when the file holds it by then", () => {
+      // Arrange
+      const { picker, update } = renderPicker();
+      fillMockupDraft(picker);
+      picker.confirm();
+
+      // Act
+      update({ open: false, dependencies: [MOCKUP_DEPENDENCY] });
+
+      // Assert
+      expect(picker.isRendered).toBe(true);
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
+    });
+
+    it("should check the draft against the dependencies it is given while it is open", () => {
+      // Arrange
+      const { picker, update } = renderPicker();
+      fillMockupDraft(picker);
+
+      // Act
+      update({ dependencies: [OTHER_IMPORT] });
+
+      // Assert
+      expect(picker.refusal).toBe(
+        'The name "round" is already imported by another statement of the file.'
+      );
+      expect(picker.isConfirmEnabled).toBe(false);
+    });
   });
 
   describe("a name that is typed and not confirmed", () => {

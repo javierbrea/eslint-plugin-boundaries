@@ -360,6 +360,26 @@ describe("FileNode", () => {
       expect(node.picker.isRendered).toBe(false);
     });
 
+    it("should not refuse the dependency it added while the picker fades out", () => {
+      // Arrange
+      const { node } = renderNode();
+      const { picker } = node;
+      node.addButton.press();
+      picker.target.select("An external module");
+      picker.typeModule("lodash");
+      picker.names.openEditor();
+      picker.names.typeName("debounce");
+      picker.names.confirm();
+
+      // Act
+      picker.confirm();
+
+      // Assert
+      expect(picker.isRendered).toBe(true);
+      expect(picker.refusal).toBeNull();
+      expect(picker.isConfirmEnabled).toBe(true);
+    });
+
     it("should add nothing, and close the picker, when the user gives up", async () => {
       // Arrange
       const { node, store } = renderNode();

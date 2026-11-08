@@ -216,7 +216,22 @@ function FormRow({
 }
 
 /**
- * The dialog that adds a dependency to a file or edits one: the target (a file of the sketch or an external module), the syntax, the kind, the names and a preview of the statement they write, which shows why a draft is refused. The draft is its own: the dialog calls `onSubmit` only with a dependency that the sketch can hold, and starts from `initial`, or empty, each time it opens. A name that is typed in the editor of the names and not added yet counts as if it had been: the preview writes it after the names that are added, the draft is checked with it and the dependency that is submitted holds it, until the editor closes.
+ * Keeps a value as it was given while a dialog was open, so that the dialog shows the same while it fades out after it closes. React renders again at once with the new state, before it draws.
+ * @param isOpen Whether the dialog is open.
+ * @param value The value given now.
+ * @returns The value given now while the dialog is open, and the last one given while it was open once it closes.
+ */
+function useValueWhileOpen<Value>(isOpen: boolean, value: Value): Value {
+  const [kept, setKept] = useState(value);
+
+  if (isOpen && kept !== value) {
+    setKept(value);
+  }
+  return isOpen ? value : kept;
+}
+
+/**
+ * The dialog that adds a dependency to a file or edits one: the target (a file of the sketch or an external module), the syntax, the kind, the names and a preview of the statement they write, which shows why a draft is refused. The draft is its own: the dialog calls `onSubmit` only with a dependency that the sketch can hold, and starts from `initial`, or empty, each time it opens. While it closes, it checks the draft against the dependencies it was given last while open, so that the sketch that holds the dependency it has just submitted does not refuse it. A name that is typed in the editor of the names and not added yet counts as if it had been: the preview writes it after the names that are added, the draft is checked with it and the dependency that is submitted holds it, until the editor closes.
  * @param props DependencyPicker props.
  * @param props.open Whether the dialog is open.
  * @param props.from Path of the file the dependency belongs to.
@@ -247,6 +262,8 @@ export function DependencyPicker({
   // Counts the times the dialog opened: the editor of the names is new each time, so it starts closed, and the name it held is gone with it
   const [openings, setOpenings] = useState(0);
   const [wasOpen, setWasOpen] = useState(isOpen);
+  // A dialog that closes after an add stays on the page until it fades out, and the file it is given by then holds the draft, whose names would repeat themselves
+  const checkedDependencies = useValueWhileOpen(isOpen, dependencies);
   const files = useMemo(() => getFiles({ tree }), [tree]);
   const options = useMemo(
     () => files.filter((path) => path !== from),
@@ -274,7 +291,10 @@ export function DependencyPicker({
   const refusal =
     dependency === undefined
       ? undefined
-      : getDependencyError({ tree, dependencies }, dependency);
+      : getDependencyError(
+          { tree, dependencies: checkedDependencies },
+          dependency
+        );
   // Only a draft that has a target and that the sketch can hold is submitted
   const submittable = refusal === undefined ? dependency : undefined;
   const titleId = `${baseId}-title`;
