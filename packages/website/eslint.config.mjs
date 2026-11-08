@@ -34,7 +34,7 @@ export default [
       ],
     },
   },
-  // The playground loads in its own chunk, so no file imports a value from it statically
+  // The main entry of the playground loads only in its own chunk, so no file imports a value from it statically; the docs components import `@boundaries/playground/share`, its light entry, statically
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
@@ -68,7 +68,13 @@ export default [
         { type: "site", pattern: "src/components/site/*" },
         { type: "ui", pattern: "src/components/ui/*" },
         { type: "motion", pattern: "src/components/motion" },
-        { type: "docs-component", pattern: "src/components/CodeDiff" },
+        {
+          type: "docs-component",
+          pattern: [
+            "src/components/CodeDiff",
+            "src/components/OpenInPlayground",
+          ],
+        },
         { type: "data", pattern: "src/data/*" },
         { type: "prism", pattern: "src/prism" },
       ],
@@ -115,7 +121,7 @@ export default [
             },
             {
               from: { element: { type: "docs-component" } },
-              allow: { to: { element: { type: ["prism", "ui"] } } },
+              allow: { to: { element: { type: ["prism", "ui", "data"] } } },
             },
           ],
         },

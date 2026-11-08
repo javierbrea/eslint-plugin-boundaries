@@ -1,0 +1,10 @@
+/* A block of the page, spaced like the paragraphs around it */
+.root {
+  margin-bottom: var(--ifm-paragraph-margin-bottom);
+}
+
+/* The link style of the docs (`.markdown a`) underlines links and sets their transition, and it outranks the button's own rules */
+.root .link {
+  text-decoration: none;
+  transition-property: transform, box-shadow, color, border-color;
+}
