@@ -18,12 +18,14 @@ const Frame = styled("aside")({
   minHeight: 0,
 });
 
+// Each part keeps the height of what it holds, so that the content scrolls when it is taller than the pane. A part that clips what it holds, such as a list with rounded corners, has no minimum height of its own, and with rows sized to fit the pane the grid would shrink it to share the height that is left, cutting its rows instead of scrolling
 const Content = styled("div")({
   display: "grid",
   flex: 1,
   minHeight: 0,
   boxSizing: "border-box",
   alignContent: "start",
+  gridAutoRows: "max-content",
   gap: 10,
   padding: "12px 14px",
   overflow: "auto",
