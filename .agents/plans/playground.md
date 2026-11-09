@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-08): the extraction is released (`config` and `policies` 1.0.1 in v7.4.2, 2026-11-05), and `release` was merged into this branch after it. Phases 4 (#599), 5 (#621) and 6 (#630, merged on 2026-11-08) are in this branch: the panes classify the files of a sketch and give the verdicts of its dependencies, following the mockup (decision 16). Phase 7 (#554) is in progress on `feat/554/playground-share`.
+Status (2026-11-09): the extraction is released (`config` and `policies` 1.0.1 in v7.4.2, 2026-11-05), and `release` was merged into this branch after it. Phases 4 (#599), 5 (#621) and 6 (#630) are in this branch: the panes classify the files of a sketch and give the verdicts of its dependencies, following the mockup (decision 16). Phase 7 (#554) is in review in #633: the sketch lives in the URL, the top bar has the example picker, Help, Reset and Share, the Quick start of the next docs opens its example, and the navbar and the home link to the playground. Phase 8 (#555) starts when #633 merges.
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives", "Starting a phase" and "Finishing a phase" sections of the `write-plan` skill; phase 9 removes it.
 
@@ -30,7 +30,7 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | 4 Scaffold | #551 | `feat/551/playground-scaffold` | #510 and 2 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): scaffold the package and the website shell` | #599 |
 | 5 M1 | #552 | `feat/552/playground-identify` | 4 merged | `feat/539/playground` | `feat(playground): identify the files of a sketched project` | #621 |
 | 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged | `feat/539/playground` | `feat(playground): verdicts of the dependencies` | #630 |
-| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | |
+| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | #633 |
 | 8 Docs | #555 | `docs/555/playground-guide` | 7 merged | `feat/539/playground` | `docs(website): document the playground` | |
 | 9 Cleanup | — | `chore/539/playground-cleanup` | 8 merged | `feat/539/playground` | `chore(playground): remove the playground plan` | |
 
