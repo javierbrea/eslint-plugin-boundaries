@@ -636,10 +636,11 @@ describe("Shell", () => {
 
       // Assert
       const { file } = shell.inspector;
+      const { boxes } = file.section("from");
 
-      expect(file.title(FILE).isRendered).toBe(true);
-      expect(file.facet("element").isRendered).toBe(true);
-      expect(file.facet("element").entries.types).toBe('[ "module" ]');
+      expect(file.section("from").summary).toBe(FILE);
+      expect(boxes.box("element").isRendered).toBe(true);
+      expect(boxes.box("element").entries.types).toBe('[ "module" ]');
     });
 
     it("should add its tab to the problems and select it", () => {
@@ -1250,10 +1251,10 @@ describe("Shell", () => {
       // Assert
       const { file } = shell.inspector;
 
-      expect(file.title("src/features/checkout/index.js").isRendered).toBe(
-        true
+      expect(file.section("from").summary).toBe(
+        "src/features/checkout/index.js"
       );
-      expect(file.facet("element").isRendered).toBe(true);
+      expect(file.section("from").boxes.box("element").isRendered).toBe(true);
     });
 
     it("should show the status of the renamed project at once", () => {
@@ -1425,8 +1426,10 @@ describe("Shell", () => {
         shell.node.file.lines.line(2).click();
 
         // Assert
-        expect(shell.inspector.file.title(FILE).isRendered).toBe(true);
-        expect(shell.inspector.file.summary.total).toBe("4 dependencies");
+        expect(shell.inspector.file.section("from").summary).toBe(FILE);
+        expect(shell.inspector.file.section("from").dependencies.total).toBe(
+          "4 dependencies"
+        );
         expect(shell.project.tree.selectedPaths).toEqual([FILE]);
         expect(shell.node.file.head.path).toBe(FILE);
       });
@@ -1606,7 +1609,7 @@ describe("Shell", () => {
       });
     });
 
-    describe("open policy in config", () => {
+    describe("open in config", () => {
       it("should open the config with the lines of the policy highlighted", () => {
         // Arrange
         const shell = renderExample();

@@ -1,5 +1,5 @@
 import { ConfigInspectorPom } from "@/domains/config/ui/molecules/ConfigInspector/ConfigInspector.pom";
-import { FileInspectorPom } from "@/domains/files/ui/molecules/FileInspector/FileInspector.pom";
+import { FileInspectorPom } from "@/domains/files/ui/organisms/FileInspector/FileInspector.pom";
 import { ProjectSummaryPom } from "@/domains/project/ui/molecules/ProjectSummary/ProjectSummary.pom";
 import { InspectorLayoutPom } from "@/domains/shell/ui/templates/InspectorLayout/InspectorLayout.pom";
 import { Pom } from "@/shared/testing/pom";

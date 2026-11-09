@@ -1,4 +1,4 @@
-import type { SketchSpecifier } from "@/contract";
+import type { SketchDependencyTarget, SketchSpecifier } from "@/contract";
 import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
 
 import {
@@ -44,4 +44,13 @@ export function getChipLabel(specifier: SketchSpecifier): string {
   const { kind, name: chipName } = getChipParts(specifier);
 
   return `${kind} ${chipName}`;
+}
+
+/**
+ * Names what a dependency points to, as the inspector shows it in the header of the section of the target.
+ * @param target What the dependency points to.
+ * @returns The path of the file for a node of the sketch, and the name of the module for an external one, such as `react`.
+ */
+export function getTargetName(target: SketchDependencyTarget): string {
+  return target.kind === "node" ? target.path : target.name;
 }

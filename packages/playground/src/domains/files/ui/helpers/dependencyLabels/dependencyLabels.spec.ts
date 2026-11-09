@@ -5,6 +5,7 @@ import {
   getChipLabel,
   getChipParts,
   getFileOptionLabel,
+  getTargetName,
 } from "./dependencyLabels";
 import {
   IMPORT_KIND_OPTIONS,
@@ -148,6 +149,30 @@ describe("dependencyLabels", () => {
 
       // Assert
       expect(parts).toEqual({ kind: "named", name: "round as r" });
+    });
+  });
+
+  describe("getTargetName", () => {
+    it("should name a file of the sketch by its path", () => {
+      // Act
+      const targetName = getTargetName({
+        kind: "node",
+        path: "src/components/atoms/Button/index.js",
+      });
+
+      // Assert
+      expect(targetName).toBe("src/components/atoms/Button/index.js");
+    });
+
+    it("should name an external module by its name, subpath included", () => {
+      // Act
+      const names = [
+        getTargetName({ kind: "external", name: "react" }),
+        getTargetName({ kind: "external", name: "react/jsx-runtime" }),
+      ];
+
+      // Assert
+      expect(names).toEqual(["react", "react/jsx-runtime"]);
     });
   });
 });

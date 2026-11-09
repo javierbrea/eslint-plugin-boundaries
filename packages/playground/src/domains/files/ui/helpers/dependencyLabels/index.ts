@@ -8,5 +8,6 @@ export {
   getChipLabel,
   getChipParts,
   getFileOptionLabel,
+  getTargetName,
 } from "./dependencyLabels";
 export type { ChipParts, LabeledOption } from "./dependencyLabels.types";
