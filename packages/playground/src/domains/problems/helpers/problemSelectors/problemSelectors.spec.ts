@@ -3,10 +3,8 @@ import type {
   ConfigToken,
   DependencyResult,
   DependencyVerdict,
-  EntityDescription,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Focus, ProblemsTabId } from "@/domains/session/helpers/focus";
 
@@ -152,7 +150,6 @@ function createEvaluation(
   return {
     sketch: { config: "{}", tree: [], dependencies: [] },
     problems: [],
-    files: new Map(),
     dependencies: [],
     notEvaluated: undefined,
     ...overrides,
@@ -1155,14 +1152,6 @@ describe("problemSelectors", () => {
         level: "error",
       });
       const FOCUS: Focus = { kind: "dependency", path: CHECKOUT, index: 2 };
-      const DESCRIPTION: EntityDescription = createEntityDescription({
-        element: {
-          types: ["component"],
-          path: "src/components",
-          isUnknown: false,
-        },
-        file: { categories: ["test"], isUnknown: false },
-      });
 
       /**
        * Gets the facts of the body of the dependency tab.
@@ -1177,7 +1166,6 @@ describe("problemSelectors", () => {
             evaluation: createEvaluation({
               sketch: { config: CONFIG, tree: [], dependencies: [] },
               dependencies: [DECIDED],
-              files: new Map([[BUTTON, DESCRIPTION]]),
               ...overrides,
             }),
           })
@@ -1203,7 +1191,7 @@ describe("problemSelectors", () => {
         return decisive?.tokens.map(({ text }) => text).join("");
       }
 
-      it("should give the dependency with its verdict, the file it points to and the text of its policy", () => {
+      it("should give the dependency with its verdict and the text of its policy", () => {
         // Act
         const facts = getDetail();
 
@@ -1213,7 +1201,6 @@ describe("problemSelectors", () => {
           ref: { path: CHECKOUT, index: 2 },
         });
         expect(facts.result).toBe(DECIDED);
-        expect(facts.description).toBe(DESCRIPTION);
         expect(facts.policy).toMatchObject({ index: 0, range: POLICY_AT });
         expect(joinPolicy(facts)).toBe(
           '{\n  disallow: { to: { file: { categories: "test" } } },\n}'
@@ -1395,23 +1382,6 @@ describe("problemSelectors", () => {
           expect(facts.policy).toBeUndefined();
         }
       );
-
-      it("should give no description for a dependency that points to a module outside the sketch", () => {
-        // Arrange
-        const outside: DependencyResult = {
-          ...DECIDED,
-          dependency: {
-            ...DECIDED.dependency,
-            target: { kind: "external", name: "react" },
-          },
-        };
-
-        // Act
-        const facts = getDetail({ dependencies: [outside] });
-
-        // Assert
-        expect(facts.description).toBeUndefined();
-      });
 
       it("should list the file of the dependency under its tab when the evaluation does not have the dependency", () => {
         // Act

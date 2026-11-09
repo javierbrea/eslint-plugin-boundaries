@@ -13,6 +13,7 @@ import type {
   ProblemTabFacts,
 } from "@/domains/problems/helpers/problemSelectors";
 import { toDependencyDetail } from "@/domains/problems/ui/helpers/dependencyDetail";
+import { getDependencyLocation } from "@/domains/problems/ui/helpers/dependencyLocation";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { ProblemsTabId } from "@/domains/session/helpers/focus";
@@ -105,16 +106,20 @@ export function getDependencyProblemItems(
   dependencies: readonly FailingDependency[],
   withLocation: boolean
 ): ProblemItem[] {
-  return dependencies.map(({ ref, source, verdict }) => ({
-    key: `dependency:${ref.path}:${ref.index}`,
-    level: verdict.level,
-    ...(withLocation ? { location: ref.path } : {}),
-    position: `:${ref.index + 1}`,
-    source,
-    message: verdict.message,
-    meta: getVerdictMeta(verdict),
-    target: { kind: "dependency", path: ref.path, index: ref.index },
-  }));
+  return dependencies.map(({ ref, source, verdict }) => {
+    const where = getDependencyLocation(ref, source);
+
+    return {
+      key: `dependency:${ref.path}:${ref.index}`,
+      level: verdict.level,
+      ...(withLocation ? { location: where.path } : {}),
+      position: where.position,
+      source: where.source,
+      message: verdict.message,
+      meta: getVerdictMeta(verdict),
+      target: { kind: "dependency", path: ref.path, index: ref.index },
+    };
+  });
 }
 
 /**

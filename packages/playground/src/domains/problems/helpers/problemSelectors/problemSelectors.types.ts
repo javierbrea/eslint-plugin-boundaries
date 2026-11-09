@@ -5,7 +5,6 @@ import type {
   DependencyVerdict,
   DisallowedVerdict,
   Evaluation,
-  EntityDescription,
   NotEvaluatedReason,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
@@ -85,7 +84,7 @@ export type ProblemTabFacts = {
 /** What the lists read of the evaluation of the store. */
 export type ProblemEvaluation = Pick<
   Evaluation,
-  "sketch" | "problems" | "files" | "dependencies" | "notEvaluated"
+  "sketch" | "problems" | "dependencies" | "notEvaluated"
 >;
 
 /** What `getProblemList` reads. */
@@ -106,7 +105,7 @@ export type ProblemListInputs = {
 export type HighlightFacts = {
   /** The index of the policy in the options, or `null` for the default. It is `undefined` when no policy of the evaluation starts at the highlighted range, such as after the user edited the policy until it is not one: the note leaves the number out. */
   readonly policy: number | null | undefined;
-  /** The dependency that `Open policy in config` came from. */
+  /** The dependency that `Open in config` came from. */
   readonly dependency: DependencyRef;
 };
 
@@ -126,7 +125,7 @@ export type ProblemRowsFacts = {
   readonly highlight: HighlightFacts | undefined;
 };
 
-/** The policy that decided a dependency, as the card of the dependency tab shows it. */
+/** The policy that decided a dependency, as the column of the dependency tab shows it. */
 export type PolicyFacts = {
   /** The index of the policy in the options, or `null` for the default. */
   readonly index: number | null;
@@ -142,8 +141,6 @@ export type DependencyDetailFacts = {
   readonly subject: Extract<ProblemSubject, { readonly kind: "dependency" }>;
   /** The dependency with its verdict. */
   readonly result: DependencyResult;
-  /** How the plugin describes the file that the dependency points to; `undefined` for an external module. */
-  readonly description: EntityDescription | undefined;
   /** The policy that decided it; `undefined` when none did, such as for a dependency that is not checked. */
   readonly policy: PolicyFacts | undefined;
 };

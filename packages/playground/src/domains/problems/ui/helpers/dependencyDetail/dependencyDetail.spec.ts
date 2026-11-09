@@ -2,17 +2,18 @@ import type { SketchDependency } from "@/contract";
 import type {
   ConfigToken,
   DependencyVerdict,
-  EntityDescription,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
-import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 import type { DependencyDetailFacts } from "@/domains/problems/helpers/problemSelectors";
+import type { DependencyRef } from "@/domains/project/helpers/sketch";
 
 import { toDependencyDetail } from "./dependencyDetail";
 
 const CHECKOUT = "src/modules/checkout/index.js";
 
 const SPEC_FILE = "src/components/atoms/Button/Button.spec.js";
+
+const SOURCE = "../../components/atoms/Button/Button.spec.js";
 
 const POLICY_RANGE: TextRange = { from: 40, to: 90, line: 3, column: 9 };
 
@@ -25,15 +26,6 @@ const DEPENDENCY: SketchDependency = {
   importKind: "value",
   specifiers: [{ kind: "named", name: "renderButton" }],
 };
-
-const DESCRIPTION: EntityDescription = createEntityDescription({
-  element: {
-    types: ["component"],
-    path: "src/components/atoms/Button",
-    isUnknown: false,
-  },
-  file: { categories: ["test"], isUnknown: false },
-});
 
 const DISALLOWED: DependencyVerdict = {
   status: "disallowed",
@@ -69,23 +61,28 @@ const POLICY: DependencyDetailFacts["policy"] = {
  * @returns The facts.
  */
 function createFacts(
-  overrides: Partial<Pick<DependencyDetailFacts, "description" | "policy">> & {
+  overrides: Partial<Pick<DependencyDetailFacts, "policy">> & {
     verdict?: DependencyVerdict;
     dependency?: SketchDependency;
+    ref?: DependencyRef;
   } = {}
 ): DependencyDetailFacts {
-  const { verdict = DISALLOWED, dependency = DEPENDENCY, ...rest } = overrides;
+  const {
+    verdict = DISALLOWED,
+    dependency = DEPENDENCY,
+    ref = { path: CHECKOUT, index: 2 },
+    ...rest
+  } = overrides;
 
   return {
-    subject: { kind: "dependency", ref: { path: CHECKOUT, index: 2 } },
+    subject: { kind: "dependency", ref },
     result: {
       dependency,
-      ref: { path: CHECKOUT, index: 2 },
-      source: "../../components/atoms/Button/Button.spec.js",
+      ref,
+      source: SOURCE,
       description: undefined,
       verdict,
     },
-    description: DESCRIPTION,
     policy: POLICY,
     ...rest,
   };
@@ -252,140 +249,61 @@ describe("dependencyDetail", () => {
       });
     });
 
-    describe("the facts", () => {
-      it("should list where it points to, the element and the file categories, the kind and the syntax of the mockup", () => {
+    describe("where the dependency is", () => {
+      it("should give the file that has it, its line after a colon and the source its statement writes", () => {
         // Act
-        const { facts } = toDependencyDetail(createFacts());
+        const detail = toDependencyDetail(createFacts());
 
         // Assert
-        expect(facts).toEqual([
-          { label: "to", value: SPEC_FILE },
-          { label: "element", value: "component" },
-          { label: "file", value: "test" },
-          { label: "kind", value: "value" },
-          { label: "syntax", value: "import" },
-        ]);
-      });
-
-      it("should point to the name of an external module and have no element and no file", () => {
-        // Act
-        const { facts } = toDependencyDetail(
-          createFacts({
-            dependency: {
-              ...DEPENDENCY,
-              target: { kind: "external", name: "react" },
-            },
-            description: undefined,
-          })
-        );
-
-        // Assert
-        expect(facts).toEqual([
-          { label: "to", value: "react" },
-          { label: "element", value: null },
-          { label: "file", value: null },
-          { label: "kind", value: "value" },
-          { label: "syntax", value: "import" },
-        ]);
-      });
-
-      it("should join the types of the element and the categories of the file", () => {
-        // Act
-        const { facts } = toDependencyDetail(
-          createFacts({
-            description: {
-              ...DESCRIPTION,
-              element: { ...DESCRIPTION.element, types: ["component", "atom"] },
-              file: { ...DESCRIPTION.file, categories: ["test", "style"] },
-            },
-          })
-        );
-
-        // Assert
-        expect(facts[1]).toEqual({
-          label: "element",
-          value: "component, atom",
+        expect(detail.location).toEqual({
+          path: CHECKOUT,
+          position: ":3",
+          source: SOURCE,
         });
-        expect(facts[2]).toEqual({ label: "file", value: "test, style" });
       });
 
-      it.each<
+      it("should number the line from 1 whatever the index of the dependency", () => {
+        // Act
+        const detail = toDependencyDetail(
+          createFacts({ ref: { path: "src/index.js", index: 0 } })
+        );
+
+        // Assert
+        expect(detail.location.path).toBe("src/index.js");
+        expect(detail.location.position).toBe(":1");
+      });
+
+      it.each<[string, DependencyVerdict]>([
         [
-          string,
-          EntityDescription["element"]["types"],
-          EntityDescription["file"]["categories"],
-        ]
-      >([
-        ["null", null, null],
-        ["empty", [], []],
+          "allowed",
+          { status: "allowed", policy: { index: 1, range: POLICY_RANGE } },
+        ],
+        ["not checked", { status: "not-checked", reason: "not-local" }],
+        ["not evaluated", { status: "not-evaluated" }],
       ])(
-        "should have no element and no file when the plugin gives %s lists",
-        (_title, types, categories) => {
+        "should give it for a dependency that is %s too",
+        (_title, verdict) => {
           // Act
-          const { facts } = toDependencyDetail(
-            createFacts({
-              description: {
-                ...DESCRIPTION,
-                element: { ...DESCRIPTION.element, types },
-                file: { ...DESCRIPTION.file, categories },
-              },
-            })
-          );
+          const detail = toDependencyDetail(createFacts({ verdict }));
 
           // Assert
-          expect(facts[1].value).toBeNull();
-          expect(facts[2].value).toBeNull();
-        }
-      );
-
-      it("should have no element and no file for a file that the evaluation did not describe", () => {
-        // Act
-        const { facts } = toDependencyDetail(
-          createFacts({ description: undefined })
-        );
-
-        // Assert
-        expect(facts[1].value).toBeNull();
-        expect(facts[2].value).toBeNull();
-      });
-
-      it("should say type for a type import", () => {
-        // Act
-        const { facts } = toDependencyDetail(
-          createFacts({ dependency: { ...DEPENDENCY, importKind: "type" } })
-        );
-
-        // Assert
-        expect(facts[3]).toEqual({ label: "kind", value: "type" });
-      });
-
-      it.each<[SketchDependency["syntax"], string]>([
-        ["import", "import"],
-        ["export-from", "export … from"],
-        ["require", "require()"],
-        ["dynamic-import", "import()"],
-      ])(
-        "should label the syntax %s as %s, with the name of the table of the syntaxes",
-        (syntax, label) => {
-          // Act
-          const { facts } = toDependencyDetail(
-            createFacts({ dependency: { ...DEPENDENCY, syntax } })
-          );
-
-          // Assert
-          expect(facts[4]).toEqual({ label: "syntax", value: label });
+          expect(detail.location).toEqual({
+            path: CHECKOUT,
+            position: ":3",
+            source: SOURCE,
+          });
         }
       );
     });
 
-    describe("the card of the policy", () => {
-      it("should be headed by the index of the policy as a comment, hold its text in pieces and open the config at its range from the dependency", () => {
+    describe("the policy", () => {
+      it("should be named by the index of the policy, hold its text in pieces and open the config at its range from the dependency", () => {
         // Act
         const { policy } = toDependencyDetail(createFacts());
 
         // Assert
         expect(policy).toEqual({
-          heading: "// policies[2]",
+          ref: "policies[2]",
           tokens: POLICY_TOKENS,
           target: {
             kind: "config",
@@ -396,7 +314,7 @@ describe("dependencyDetail", () => {
         });
       });
 
-      it("should be headed by the default when the default decided", () => {
+      it("should be named default when the default decided", () => {
         // Act
         const { policy } = toDependencyDetail(
           createFacts({
@@ -409,7 +327,7 @@ describe("dependencyDetail", () => {
         );
 
         // Assert
-        expect(policy?.heading).toBe("// default");
+        expect(policy?.ref).toBe("default");
         expect(policy?.tokens).toEqual([
           { kind: "string", text: '"disallow"' },
         ]);
@@ -421,7 +339,7 @@ describe("dependencyDetail", () => {
         });
       });
 
-      it("should be headed by the first policy as policies[0]", () => {
+      it("should be named policies[0] for the first policy", () => {
         // Act
         const { policy } = toDependencyDetail(
           createFacts({
@@ -434,7 +352,7 @@ describe("dependencyDetail", () => {
         );
 
         // Assert
-        expect(policy?.heading).toBe("// policies[0]");
+        expect(policy?.ref).toBe("policies[0]");
       });
     });
   });

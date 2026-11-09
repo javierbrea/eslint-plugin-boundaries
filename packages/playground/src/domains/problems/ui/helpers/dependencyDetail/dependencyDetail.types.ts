@@ -1,5 +1,6 @@
 import type { ConfigToken } from "@/domains/evaluation/helpers/engine";
 import type { VerdictIcon } from "@/domains/evaluation/ui/helpers/verdictText";
+import type { DependencyLocation } from "@/domains/problems/ui/helpers/dependencyLocation";
 import type { Target } from "@/domains/session/helpers/focus";
 import type { StateTone } from "@/ui-kit/helpers/tone";
 
@@ -13,21 +14,13 @@ export type VerdictLineContent = {
   readonly text: string;
 };
 
-/** A fact about the dependency: a label and, in mono after it, the value. */
-export type DependencyFact = {
-  /** What the fact is about, such as `to` or `syntax`. */
-  readonly label: string;
-  /** The value, or `null` when there is none, which is drawn as `null`. */
-  readonly value: string | null;
-};
-
-/** The policy that decided the dependency, as the card of the dependency tab draws it. */
+/** The policy that decided the dependency, as the column of the dependency tab draws it: its name, its text and the button that opens it. */
 export type PolicyCardContent = {
-  /** The comment that opens the card: `// policies[2]` or `// default`. */
-  readonly heading: string;
+  /** Names the policy in the head of its column: `policies[2]` or `default`. */
+  readonly ref: string;
   /** The policy as written in the config, split into the pieces that the card colors as the editor does. The pieces joined are the text. */
   readonly tokens: readonly ConfigToken[];
-  /** What `Open policy in config` opens: the config at the range of the policy, with its index and the dependency it came from. */
+  /** What `Open in config` opens: the config at the range of the policy, with its index and the dependency it came from. */
   readonly target: Target;
 };
 
@@ -35,10 +28,10 @@ export type PolicyCardContent = {
 export type DependencyDetailContent = {
   /** What the engine says about the dependency. */
   readonly verdict: VerdictLineContent;
+  /** Where the dependency is: its file, its line and the source its statement writes, as the row of its problem says it. */
+  readonly location: DependencyLocation;
   /** The sentence under the verdict line: the message of a disallowed dependency, or why a dependency is not checked. `undefined` for the others. */
   readonly message: string | undefined;
-  /** The facts about the dependency, in order. */
-  readonly facts: readonly DependencyFact[];
-  /** The policy that decided it. `undefined` when none did, and then there is no button and no card. */
+  /** The policy that decided it. `undefined` when none did, and then the body has no column for the policy. */
   readonly policy: PolicyCardContent | undefined;
 };

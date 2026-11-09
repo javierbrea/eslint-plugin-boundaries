@@ -134,6 +134,6 @@ The focus is one of: nothing, the config node, a file, or a dependency of the op
 - A file in the tree opens it in the node pane, the inspector describes it, and its tab is added and selected.
 - `eslint.config.js` opens the editor, the inspector shows the config, and its tab is added and selected.
 - A dependency line takes the focus: the line is highlighted, its target is outlined (1 px dashed `--jsb-accent`) in the tree with a `target` tag, and the dependency tab is added and selected.
-- `Open policy in config` opens the config scrolled to the policy, with its lines highlighted; the tabs are `Project` and `eslint.config.js`, whose note names the dependency it came from.
+- `Open in config`, in the policy column of the dependency tab, opens the config scrolled to the policy, with its lines highlighted; the tabs are `Project` and `eslint.config.js`, whose note names the dependency it came from.
 - A problem opens the config at its range or puts its dependency in focus.
 - Nothing in focus shows the `Nothing open` pane, the numbers of the project and the `Project` tab.

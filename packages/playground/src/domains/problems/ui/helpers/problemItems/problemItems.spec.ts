@@ -900,7 +900,6 @@ describe("problemItems", () => {
       const DETAIL: DependencyDetailFacts = {
         subject: { kind: "dependency", ref: { path: CHECKOUT, index: 2 } },
         result: failing(CHECKOUT, 2),
-        description: undefined,
         policy: {
           index: 2,
           range: POLICY_RANGE,
@@ -917,6 +916,22 @@ describe("problemItems", () => {
         expect(content.notes).toEqual([]);
         expect(content.empty).toBeUndefined();
         expect(content.detail?.verdict.text).toBe("disallowed · policy 2");
+      });
+
+      it("should say where the dependency is in the words of its row of the list", () => {
+        // Arrange
+        const [row] = getDependencyProblemItems([failing(CHECKOUT, 2)], true);
+
+        // Act
+        const content = toProblemListContent(DETAIL);
+
+        // Assert
+        expect(content.detail?.location).toEqual({
+          path: row.location,
+          position: row.position,
+          source: row.source,
+        });
+        expect(content.detail?.location.position).toBe(":3");
       });
 
       it("should give no body for the other lists", () => {

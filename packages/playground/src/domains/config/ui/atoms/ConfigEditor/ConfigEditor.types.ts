@@ -19,7 +19,7 @@ export type ConfigEditorProps = {
   readonly label: string;
   /** The text can be selected and copied, and not edited */
   readonly readOnly?: boolean;
-  /** The range to mark until it is unset, such as the policy that "Open policy in config" points at: the editor marks the lines it touches. It is read when its offsets change, and not when the editor already has that range, such as the one it reported with an edit, which comes back. The range follows the edits of the user and is reported with them, and is dropped when an edit deletes its text or when `value` replaces the text */
+  /** The range to mark until it is unset, such as the policy that "Open in config" points at: the editor marks the lines it touches. It is read when its offsets change, and not when the editor already has that range, such as the one it reported with an edit, which comes back. The range follows the edits of the user and is reported with them, and is dropped when an edit deletes its text or when `value` replaces the text */
   readonly highlight?: TextRange;
   /** Scrolls to a range and puts the cursor at its start when its key changes */
   readonly reveal?: ConfigReveal;

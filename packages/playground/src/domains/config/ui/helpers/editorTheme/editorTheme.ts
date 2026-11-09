@@ -92,7 +92,7 @@ export const editorTheme = EditorView.theme(
       backgroundColor: "transparent",
       color: "var(--jsb-code-error)",
     },
-    // The mark of a policy that "Open policy in config" points at, with the bar on the leftmost gutter
+    // The mark of a policy that "Open in config" points at, with the bar on the leftmost gutter
     [`.cm-line.${HIGHLIGHT_CLASS}, .cm-gutterElement.${HIGHLIGHT_CLASS}`]: {
       backgroundColor: HIGHLIGHT,
     },

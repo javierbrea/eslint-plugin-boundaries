@@ -7,11 +7,10 @@ import {
   getVerdictTone,
 } from "@/domains/evaluation/ui/helpers/verdictText";
 import type { DependencyDetailFacts } from "@/domains/problems/helpers/problemSelectors";
-import { getSyntaxFacts } from "@/domains/project/helpers/sketch";
+import { getDependencyLocation } from "@/domains/problems/ui/helpers/dependencyLocation";
 
 import type {
   DependencyDetailContent,
-  DependencyFact,
   PolicyCardContent,
   VerdictLineContent,
 } from "./dependencyDetail.types";
@@ -59,47 +58,11 @@ function getMessage({
 }
 
 /**
- * Writes the value of a fact about the file that the dependency points to: the names that the plugin gives it, joined.
- * @param names The element types or the file categories of the file.
- * @returns The names joined by a comma and a space, or `null` when the file has none, or the dependency points to a module outside the sketch.
- */
-function joinNames(names: readonly string[] | null | undefined): string | null {
-  return names === null || names === undefined || names.length === 0
-    ? null
-    : names.join(", ");
-}
-
-/**
- * Lists the facts of the dependency: where it points to, how the plugin describes the file it points to, and how it is written.
- * @param facts The facts of the body of the tab.
- * @param facts.result
- * @param facts.description
- * @returns `to`, `element`, `file`, `kind` and `syntax`, in order.
- */
-function getFacts({
-  result,
-  description,
-}: DependencyDetailFacts): readonly DependencyFact[] {
-  const { target, importKind, syntax } = result.dependency;
-
-  return [
-    {
-      label: "to",
-      value: target.kind === "node" ? target.path : target.name,
-    },
-    { label: "element", value: joinNames(description?.element.types) },
-    { label: "file", value: joinNames(description?.file.categories) },
-    { label: "kind", value: importKind },
-    { label: "syntax", value: getSyntaxFacts(syntax).name },
-  ];
-}
-
-/**
- * Writes the card of the policy that decided the dependency.
+ * Writes the column of the policy that decided the dependency.
  * @param facts The facts of the body of the tab.
  * @param facts.policy
  * @param facts.result
- * @returns The heading, the pieces of the policy text and what `Open policy in config` opens, or `undefined` when no policy decided the dependency.
+ * @returns The name of the policy, the pieces of its text and what `Open in config` opens, or `undefined` when no policy decided the dependency.
  */
 function getPolicyCard({
   policy,
@@ -109,8 +72,7 @@ function getPolicyCard({
     return undefined;
   }
   return {
-    heading:
-      policy.index === null ? "// default" : `// policies[${policy.index}]`,
+    ref: policy.index === null ? "default" : `policies[${policy.index}]`,
     tokens: policy.tokens,
     target: {
       kind: "config",
@@ -124,15 +86,15 @@ function getPolicyCard({
 /**
  * Turns the facts of the dependency in focus into what the body of its tab draws.
  * @param facts The facts, as `getProblemList` returns them.
- * @returns The verdict line, the message, the facts and the card of the policy.
+ * @returns The verdict line, where the dependency is, the message and the policy that decided it.
  */
 export function toDependencyDetail(
   facts: DependencyDetailFacts
 ): DependencyDetailContent {
   return {
     verdict: getVerdictLine(facts.result),
+    location: getDependencyLocation(facts.result.ref, facts.result.source),
     message: getMessage(facts.result),
-    facts: getFacts(facts),
     policy: getPolicyCard(facts),
   };
 }

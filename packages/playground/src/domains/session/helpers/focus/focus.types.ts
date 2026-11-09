@@ -21,7 +21,7 @@ export type Target =
       readonly range?: TextRange;
       /** The index of the policy that the range holds in the options of the rule, or `null` for the default. The note names it, and the store finds it again after each evaluation of the config, from where the range of the highlight starts. */
       readonly policy?: number | null;
-      /** The dependency that `Open policy in config` came from. */
+      /** The dependency that `Open in config` came from. */
       readonly dependency?: DependencyRef;
     }
   /** A file of the sketch. */
@@ -53,6 +53,6 @@ export type PolicyHighlight = {
   readonly range: TextRange;
   /** The index of the policy in the options of the rule, or `null` for the default. It is `undefined` when it is not known: no policy of the evaluation starts where the range starts, such as when the user edited the policy until it is not one, and the note leaves the number out. While the evaluation is behind the text, it is the one the last evaluation found. */
   readonly policy: number | null | undefined;
-  /** The dependency that `Open policy in config` came from. */
+  /** The dependency that `Open in config` came from. */
   readonly dependency: DependencyRef;
 };

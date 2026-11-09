@@ -666,7 +666,7 @@ describe("ProblemsPane", () => {
         expect(pane.panel.tab("line 3").hasBadge).toBe(false);
       });
 
-      it("should say the verdict, the message and the facts of the dependency", () => {
+      it("should say the verdict, where the dependency is and the message", () => {
         // Arrange
         const { store, pane } = renderPane(FULL_QUICK_START);
 
@@ -676,17 +676,25 @@ describe("ProblemsPane", () => {
         // Assert
         expect(pane.detail.verdictText).toBe("disallowed · policy 2");
         expect(pane.detail.verdictColor).toBe("var(--jsb-bad)");
+        expect(pane.detail.locationText).toBe(
+          `${FILE}:3 → ${BUTTON_SPEC_SOURCE}`
+        );
         expect(pane.detail.message).toBe(TEST_MESSAGE);
-        expect(pane.detail.facts).toEqual([
-          "to src/components/atoms/Button/Button.spec.js",
-          "element component",
-          "file test",
-          "kind value",
-          "syntax import",
-        ]);
       });
 
-      it("should show the policy that decided it as it is written in the config", () => {
+      it("should say where the dependency is as its row in the list of the sketch does", () => {
+        // Arrange
+        const { store, pane } = renderPane(FULL_QUICK_START);
+        const { locationWithPosition } = pane.list.row(`${FILE}:3`);
+
+        // Act
+        focusDependency(store, FILE, 2);
+
+        // Assert
+        expect(pane.detail.locationText).toBe(locationWithPosition);
+      });
+
+      it("should name the policy that decided it, and show it as it is written in the config", () => {
         // Arrange
         const { store, pane } = renderPane(FULL_QUICK_START);
 
@@ -694,9 +702,13 @@ describe("ProblemsPane", () => {
         focusDependency(store, FILE, 2);
 
         // Assert
+        expect(pane.detail.policyHeadTexts).toEqual([
+          "Policy",
+          "policies[2]",
+          "Open in config",
+        ]);
         expect(pane.detail.policyCardText).toBe(
           [
-            "// policies[2]",
             "{",
             "  // No element may import a test file, whatever element it belongs to",
             '  disallow: { to: { file: { categories: "test" } } },',
@@ -705,7 +717,7 @@ describe("ProblemsPane", () => {
         );
       });
 
-      it("should show the default as the policy when the default decided", () => {
+      it("should name the default as the policy and show it when the default decided", () => {
         // Arrange
         const { store, pane } = renderPane(FULL_QUICK_START);
 
@@ -714,8 +726,12 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(pane.detail.verdictText).toBe("disallowed · default");
-        expect(pane.detail.policyCardText).toBe('// default\n"disallow"');
-        expect(pane.detail.facts[1]).toBe("element component");
+        expect(pane.detail.policyHeadTexts).toEqual([
+          "Policy",
+          "default",
+          "Open in config",
+        ]);
+        expect(pane.detail.policyCardText).toBe('"disallow"');
       });
 
       it("should say that an allowed dependency is allowed, with its policy and no message", () => {
@@ -749,7 +765,7 @@ describe("ProblemsPane", () => {
         expect(pane.panel.tab("line 4").icon.pathData).toBe(ICON_PATHS.skip);
       });
 
-      it("should offer no policy for a dependency that is not checked, and point to the module", () => {
+      it("should offer no policy for a dependency that is not checked, and say the module it imports", () => {
         // Arrange
         const { store, pane } = renderPane(FULL_QUICK_START);
 
@@ -757,8 +773,8 @@ describe("ProblemsPane", () => {
         focusDependency(store, FILE, 3);
 
         // Assert
-        expect(pane.detail.facts[0]).toBe("to react");
-        expect(pane.detail.facts[1]).toBe("element null");
+        expect(pane.detail.locationText).toBe(`${FILE}:4 → react`);
+        expect(pane.detail.hasPolicyColumn).toBe(false);
         expect(pane.detail.canOpenPolicy).toBe(false);
         expect(pane.detail.policyCardText).toBeNull();
       });
@@ -775,11 +791,12 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(pane.detail.verdictText).toBe("not evaluated");
+        expect(pane.detail.hasPolicyColumn).toBe(false);
         expect(pane.detail.canOpenPolicy).toBe(false);
         expect(pane.panel.tab("line 3").icon.pathData).toBe(ICON_PATHS.skip);
       });
 
-      it("should open the config at the policy when Open policy in config is pressed, keeping where it came from", () => {
+      it("should open the config at the policy when Open in config is pressed, keeping where it came from", () => {
         // Arrange
         const { store, pane } = renderPane(FULL_QUICK_START);
         focusDependency(store, FILE, 2);
