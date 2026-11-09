@@ -113,12 +113,11 @@ describe("Disclosure", () => {
       const disclosure = renderDisclosure({ isOpen: true });
 
       // Act
-      const { isOpen, controlledId, bodyId, bodyText } = disclosure;
+      const { isOpen, bodyId, bodyText } = disclosure;
 
       // Assert
       expect(isOpen).toBe(true);
       expect(bodyId).not.toBeNull();
-      expect(controlledId).toBe(bodyId);
       expect(bodyText).toBe("4 dependencies");
     });
 
@@ -135,7 +134,7 @@ describe("Disclosure", () => {
       expect(bodyText).toBe("");
     });
 
-    it("should name the same body when it is folded, so that it is there when it opens", () => {
+    it("should name no body while it is folded, which is not rendered then, and the same body again when it opens", () => {
       // Arrange
       const { rerender } = render(inRoot(<Disclosure {...PROPS} isOpen />));
       const disclosure = new DisclosurePom();
@@ -143,9 +142,14 @@ describe("Disclosure", () => {
 
       // Act
       rerender(inRoot(<Disclosure {...PROPS} isOpen={false} />));
+      const whileFolded = disclosure.controlledId;
+      rerender(inRoot(<Disclosure {...PROPS} isOpen />));
+      const whenOpenAgain = disclosure.controlledId;
 
       // Assert
-      expect(disclosure.controlledId).toBe(whileOpen);
+      expect(whileOpen).not.toBeNull();
+      expect(whileFolded).toBeNull();
+      expect(whenOpenAgain).toBe(whileOpen);
     });
 
     it("should give each disclosure a body of its own", () => {

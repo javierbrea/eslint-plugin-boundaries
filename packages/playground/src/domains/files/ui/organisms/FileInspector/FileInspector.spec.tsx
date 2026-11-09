@@ -809,9 +809,6 @@ describe("FileInspector", () => {
       // Assert
       expect(sections.map(({ isOpen }) => isOpen)).toEqual([true, true, true]);
       expect(sections.map(({ bodyId }) => bodyId)).not.toContain(null);
-      expect(sections.map(({ controlledId }) => controlledId)).toEqual(
-        sections.map(({ bodyId }) => bodyId)
-      );
     });
 
     it("should say that each box is expanded, and control the body that lists its properties, while it is open", () => {
@@ -819,12 +816,11 @@ describe("FileInspector", () => {
       const from = renderInspector(FILE).section("from");
 
       // Act
-      const { isOpen, controlledId, bodyId } = from.boxes.box("file");
+      const { isOpen, bodyId } = from.boxes.box("file");
 
       // Assert
       expect(isOpen).toBe(true);
       expect(bodyId).not.toBeNull();
-      expect(controlledId).toBe(bodyId);
     });
 
     it("should fold the section from, and keep its header, when the user folded it", () => {

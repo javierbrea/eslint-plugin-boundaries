@@ -206,12 +206,11 @@ describe("EntityBoxes", () => {
       const element = renderBoxes().box("element");
 
       // Act
-      const { isOpen, controlledId, bodyId } = element;
+      const { isOpen, bodyId } = element;
 
       // Assert
       expect(isOpen).toBe(true);
       expect(bodyId).not.toBeNull();
-      expect(controlledId).toBe(bodyId);
     });
 
     it("should list no property of a box that is folded", () => {

@@ -111,7 +111,7 @@ const Content = styled("div", {
 );
 
 /**
- * A header over a body that it folds. The header is one button with a chevron, a label and an optional summary: it takes `aria-expanded` and `aria-controls`, which points at the body, and the chevron turns a quarter while the body is shown. The body is not rendered while the disclosure is folded. The owner keeps the state, so that it can survive the disclosure.
+ * A header over a body that it folds. The header is one button with a chevron, a label and an optional summary: it takes `aria-expanded` and, while the body is shown, `aria-controls`, which points at the body, so that it never names an element that is not there; the chevron turns a quarter while the body is shown. The body is not rendered while the disclosure is folded. The owner keeps the state, so that it can survive the disclosure.
  * @param props Disclosure props.
  * @param props.label Name of what is folded.
  * @param props.summary Text after the label, such as a path or a digest.
@@ -141,7 +141,7 @@ export function Disclosure({
         type="button"
         variant={variant}
         aria-expanded={isOpen}
-        aria-controls={bodyId}
+        aria-controls={isOpen ? bodyId : undefined}
         onClick={onToggle}
       >
         <Chevron isOpen={isOpen}>

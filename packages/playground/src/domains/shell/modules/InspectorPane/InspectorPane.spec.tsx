@@ -35,7 +35,7 @@ const WITH_NOT_READ: Sketch = {
   ),
 };
 
-/** The file that imports Button, format, the test of Button and react, which is the 4th dependency of the file */
+/** The position of the import of the test of Button, the 3rd of the dependencies of the file: Button, format, the test of Button and react */
 const BUTTON_SPEC_LINE = 2;
 
 const REACT_LINE = 3;
