@@ -60,6 +60,14 @@
   color: var(--jsb-accent);
 }
 
+/* Navbar: the desktop items need about 1160px; narrower, they squeeze each other (links wrap, the version caret drops, the title is cut to a letter). The GitHub stars pill gives way below 1200px (GithubStars.module.css) and then the title next to the logo below 1100px, which leaves about 20px of slack for a longer version label or star count; re-measure both when a navbar item changes */
+
+@media (min-width: 997px) and (max-width: 1099px) {
+  .navbar__title {
+    display: none;
+  }
+}
+
 /* Navbar: "Get started" call to action, a primary button on desktop and a plain link in the mobile sidebar */
 
 @media (min-width: 997px) {

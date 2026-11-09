@@ -22,8 +22,8 @@
   text-decoration: none;
 }
 
-/* Below the desktop breakpoint Docusaurus moves navbar items into the mobile sidebar */
-@media (max-width: 996px) {
+/* Below the desktop breakpoint (997px) Docusaurus moves navbar items into the mobile sidebar; up to 1199px the desktop navbar has no room for the pill (the title next to the logo gives way below 1100px, see custom.css) */
+@media (max-width: 1199px) {
   .stars {
     display: none;
   }
