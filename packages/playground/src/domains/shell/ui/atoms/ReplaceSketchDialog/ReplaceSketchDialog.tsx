@@ -18,6 +18,7 @@ import type { ReplaceSketchDialogProps } from "./ReplaceSketchDialog.types";
  * @param props.replacement What would replace the sketch.
  * @param props.onCancel Called when the user gives up.
  * @param props.onConfirm Called when the user goes on.
+ * @param props.onExited Called when the dialog is gone from the page after it closed.
  * @returns The dialog.
  */
 export function ReplaceSketchDialog({
@@ -25,6 +26,7 @@ export function ReplaceSketchDialog({
   replacement,
   onCancel,
   onConfirm,
+  onExited,
 }: Readonly<ReplaceSketchDialogProps>): ReactNode {
   const { title, confirmLabel } =
     replacement.kind === "reset"
@@ -43,6 +45,7 @@ export function ReplaceSketchDialog({
       confirmLabel={confirmLabel}
       onCancel={onCancel}
       onConfirm={onConfirm}
+      onExited={onExited}
     />
   );
 }

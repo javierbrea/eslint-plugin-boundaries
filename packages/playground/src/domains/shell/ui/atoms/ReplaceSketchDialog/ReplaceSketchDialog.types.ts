@@ -13,4 +13,6 @@ export type ReplaceSketchDialogProps = {
   readonly onCancel: () => void;
   /** Called when the user goes on. */
   readonly onConfirm: () => void;
+  /** Called when the dialog is gone from the page after it closed. The dialog keeps the focus while it fades out, so a caller that puts something else on screen and gives it the focus waits for this. */
+  readonly onExited: () => void;
 };

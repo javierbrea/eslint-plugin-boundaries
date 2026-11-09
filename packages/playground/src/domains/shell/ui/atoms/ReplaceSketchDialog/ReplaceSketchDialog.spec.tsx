@@ -10,12 +10,14 @@ type Page = {
   dialog: ReplaceSketchDialogPom;
   /** The props of the dialog, with the spies of its handlers. */
   props: ReplaceSketchDialogProps;
+  /** Renders the dialog again with other props. */
+  update: (changes: Partial<ReplaceSketchDialogProps>) => void;
 };
 
 /**
  * Renders the dialog.
  * @param changes What differs from an open dialog that asks about a reset.
- * @returns The page object of the dialog and its props.
+ * @returns The page object of the dialog, its props and the function that updates it.
  */
 function renderDialog(changes: Partial<ReplaceSketchDialogProps> = {}): Page {
   const props: ReplaceSketchDialogProps = {
@@ -23,12 +25,16 @@ function renderDialog(changes: Partial<ReplaceSketchDialogProps> = {}): Page {
     replacement: { kind: "reset" },
     onCancel: jest.fn(),
     onConfirm: jest.fn(),
+    onExited: jest.fn(),
     ...changes,
   };
+  const { rerender } = render(<ReplaceSketchDialog {...props} />);
 
-  render(<ReplaceSketchDialog {...props} />);
-
-  return { dialog: new ReplaceSketchDialogPom(), props };
+  return {
+    dialog: new ReplaceSketchDialogPom(),
+    props,
+    update: (next) => rerender(<ReplaceSketchDialog {...props} {...next} />),
+  };
 }
 
 describe("ReplaceSketchDialog", () => {
@@ -98,6 +104,31 @@ describe("ReplaceSketchDialog", () => {
 
       // Assert
       expect(isRendered).toBe(false);
+    });
+  });
+
+  describe("onExited", () => {
+    it("should not be called while the dialog is open", () => {
+      // Arrange
+      const { props } = renderDialog();
+
+      // Act
+      const { onExited } = props;
+
+      // Assert
+      expect(onExited).not.toHaveBeenCalled();
+    });
+
+    it("should be called once the dialog is gone after it closed", async () => {
+      // Arrange
+      const { dialog, props, update } = renderDialog();
+
+      // Act
+      update({ isOpen: false });
+      await dialog.dialog.waitUntilGone();
+
+      // Assert
+      expect(props.onExited).toHaveBeenCalledTimes(1);
     });
   });
 

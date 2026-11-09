@@ -955,6 +955,37 @@ describe("Playground", () => {
       await expect(store.load()).resolves.toBeUndefined();
     });
 
+    it("should leave the sketch on screen while the dialog fades out, and reset it once the dialog is gone", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const clear = jest.spyOn(store, "clear");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.actions.pressReset();
+
+      const dialog = await playground.waitForDialog("Reset the sketch?");
+
+      // Act
+      dialog.button("Reset").press();
+
+      const isDialogLeaving = dialog.isRendered;
+      const statusWhileLeaving = playground.statusText;
+      const clearsWhileLeaving = clear.mock.calls.length;
+
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(isDialogLeaving).toBe(true);
+      expect(statusWhileLeaving).toMatch(/^1 file ·/);
+      expect(clearsWhileLeaving).toBe(0);
+      expect(dialog.isRendered).toBe(false);
+      expect(clear).toHaveBeenCalledTimes(1);
+    });
+
     it("should not ask when the sketch is an example, whatever the source is", async () => {
       // Arrange
       const store = new MemoryStore(QUICK_START_EXAMPLE.sketch);
@@ -1195,6 +1226,49 @@ describe("Playground", () => {
       expect(playground.statusText).toMatch(/^1 file ·/);
     });
 
+    it("should keep the sketch as it is when the user gives up after an earlier confirmation, and not replace it again", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const confirmation = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      confirmation.button("Open example").press();
+      await confirmation.waitUntilGone();
+      await waitForPickerText(playground, "Example Policies");
+      playground.project
+        .item("src/helpers/data/sort.spec.js")
+        .deleteAction.press();
+      save.mockClear();
+
+      const statusBefore = playground.statusText;
+
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Quick start");
+
+      const question = await playground.waitForDialog(
+        "Open the Quick start example?"
+      );
+
+      // Act
+      question.button("Cancel").press();
+      await question.waitUntilGone();
+
+      // Assert
+      expect(playground.statusText).toBe(statusBefore);
+      expect(save).not.toHaveBeenCalled();
+    });
+
     it("should save the example and show it when the user confirms", async () => {
       // Arrange
       const store = new MemoryStore();
@@ -1224,6 +1298,41 @@ describe("Playground", () => {
         EXAMPLES.find(({ title }) => title === "Policies")?.sketch
       );
       expect(playground.shell.node.shown).toBe("empty");
+    });
+
+    it("should leave the sketch on screen while the dialog fades out, and show the example once the dialog is gone", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      save.mockClear();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      // Act
+      dialog.button("Open example").press();
+
+      const isDialogLeaving = dialog.isRendered;
+      const statusWhileLeaving = playground.statusText;
+      const savesWhileLeaving = save.mock.calls.length;
+
+      await waitForPickerText(playground, "Example Policies");
+
+      // Assert
+      expect(isDialogLeaving).toBe(true);
+      expect(statusWhileLeaving).toMatch(/^1 file ·/);
+      expect(savesWhileLeaving).toBe(0);
+      expect(dialog.isRendered).toBe(false);
+      expect(save).toHaveBeenCalledTimes(1);
     });
 
     it("should show the example even when the store cannot save it", async () => {

@@ -35,6 +35,10 @@ export function Playground({
     kind: "reset",
   });
   const [askedAbout, setAskedAbout] = useState<number | undefined>(undefined);
+  // The replacement that the user confirmed, which waits for the dialog to be gone before it comes on screen
+  const [confirmed, setConfirmed] = useState<Replacement | undefined>(
+    undefined
+  );
   // The control that had the keyboard focus goes with the old shell when a replacement shows a new one, so the new shell is asked to focus the control that made the replacement. The request is for the first sketch that comes on screen after it, so a sketch that comes from outside later does not take the focus from where the user is
   const [focusRequest, setFocusRequest] = useState<FocusRequest | undefined>(
     undefined
@@ -122,8 +126,15 @@ export function Playground({
   const cancelReplacement = useCallback(() => setAskedAbout(undefined), []);
   const confirmReplacement = useCallback(() => {
     setAskedAbout(undefined);
-    replace(replacement);
-  }, [replace, replacement]);
+    setConfirmed(replacement);
+  }, [replacement]);
+  // The dialog keeps the keyboard focus while it fades out. A new shell that came on screen with it would ask for the focus and lose it to the dialog, and the focus would fall to the page when the dialog leaves, so the confirmed replacement waits for the dialog to be gone
+  const replaceConfirmed = useCallback(() => {
+    if (confirmed !== undefined) {
+      setConfirmed(undefined);
+      replace(confirmed);
+    }
+  }, [confirmed, replace]);
 
   return (
     <ThemeRoot testId={PLAYGROUND_TEST_ID}>
@@ -154,6 +165,7 @@ export function Playground({
         }
         onCancel={cancelReplacement}
         onConfirm={confirmReplacement}
+        onExited={replaceConfirmed}
       />
     </ThemeRoot>
   );
