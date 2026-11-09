@@ -26,7 +26,15 @@ const SECOND: Sketch = {
   dependencies: [],
 };
 
+const THIRD: Sketch = {
+  config: "{ rules: {} }",
+  tree: [{ path: "lib/c.js", kind: "file" }],
+  dependencies: [],
+};
+
 const PAGE = "/playground/";
+
+const DOCS = "/docs/quick-start/";
 
 /** The stores that a test created, so that the next test starts without their timers or their listeners */
 const stores: HashStore[] = [];
@@ -317,6 +325,278 @@ describe("HashStore", () => {
       // Assert
       expect(window.location.hash).toBe("#v=2&s=abc");
     });
+
+    describe("when a sketch was saved after the hash that the store last read or wrote, and is not written yet", () => {
+      it("should return the saved sketch when the host moved to another page before the write and the user came back to the entry of the first hash", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        window.history.pushState({}, "", DOCS);
+        // The write is dropped, because the page is another one
+        jest.advanceTimersByTime(1000);
+        // Back restores the URL of the entry that the first write made
+        window.history.pushState({}, "", `${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should return the saved sketch, and write it once, when the load comes before the delay ends", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        jest.advanceTimersByTime(499);
+
+        const replaceState = jest.spyOn(window.history, "replaceState");
+
+        // Act
+        const sketch = await store.load();
+        jest.advanceTimersByTime(1000);
+        window.dispatchEvent(new Event("pagehide"));
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+        expect(replaceState).toHaveBeenCalledTimes(1);
+      });
+
+      it("should return the saved sketch when the hash is the one of a link that the store read, and the host left the page before the write", async () => {
+        // Arrange
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        const store = createStore();
+
+        await store.load();
+        await store.save(SECOND);
+        window.history.pushState({}, "", DOCS);
+        jest.advanceTimersByTime(1000);
+        window.history.pushState({}, "", `${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should return the shared sketch, which wrote the hash, over the hash that is still the same when a save follows", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.share(FIRST);
+        await store.save(SECOND);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should return the saved sketch, and write it, after the browser refused to write it", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        jest
+          .spyOn(window.history, "replaceState")
+          .mockImplementationOnce(() => {
+            throw new DOMException("refused", "SecurityError");
+          });
+        jest.advanceTimersByTime(500);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+        expect(sketch).toStrictEqual(SECOND);
+      });
+
+      it("should return the shared sketch, and write it, after the browser refused to write it", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        jest
+          .spyOn(window.history, "replaceState")
+          .mockImplementationOnce(() => {
+            throw new DOMException("refused", "SecurityError");
+          });
+        await store.share(SECOND);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+        expect(sketch).toStrictEqual(SECOND);
+      });
+
+      it("should return the sketch of another hash, such as a link that was pasted, and drop the saved one", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        setUrl(`${PAGE}${hashOf(THIRD)}`);
+
+        // Act
+        const sketch = await store.load();
+        jest.advanceTimersByTime(1000);
+        window.dispatchEvent(new Event("pagehide"));
+
+        // Assert
+        expect(sketch).toStrictEqual(THIRD);
+        expect(readPageSketch()).toStrictEqual(THIRD);
+      });
+
+      it("should write nothing when the next load finds the hash of the link that won", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        setUrl(`${PAGE}${hashOf(THIRD)}`);
+        await store.load();
+
+        const replaceState = jest.spyOn(window.history, "replaceState");
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(THIRD);
+        expect(replaceState).not.toHaveBeenCalled();
+      });
+
+      it("should not bring the dropped sketch back when the hash of the first sketch comes back", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        setUrl(`${PAGE}${hashOf(THIRD)}`);
+        await store.load();
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(FIRST);
+        expect(window.location.hash).toBe(hashOf(FIRST));
+      });
+
+      it("should return the sketch of an older entry of the history, which the store did not write last", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        jest.advanceTimersByTime(500);
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(FIRST);
+        expect(window.location.hash).toBe(hashOf(FIRST));
+      });
+
+      it("should return the saved sketch when the hash cannot be read, and then the same hash comes back", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        setUrl(`${PAGE}#v=2&s=abc`);
+        await store.load().catch(() => undefined);
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should return the saved sketch, and write it, when the hash is only the anchor of a heading", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        setUrl(`${PAGE}#installation`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should not return a sketch that was cleared, when the hash that it was newer than comes back", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+        await store.clear();
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(FIRST);
+      });
+    });
+
+    describe("when the hash holds the sketch that the store wrote", () => {
+      it("should return it and write nothing", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+
+        const replaceState = jest.spyOn(window.history, "replaceState");
+
+        // Act
+        const sketch = await store.load();
+        jest.advanceTimersByTime(1000);
+
+        // Assert
+        expect(sketch).toStrictEqual(FIRST);
+        expect(replaceState).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe("save", () => {
@@ -452,8 +732,6 @@ describe("HashStore", () => {
     });
 
     describe("when the host moves to another page before the write", () => {
-      const DOCS = "/docs/quick-start/";
-
       it("should write nothing to the other page when the delay ends", async () => {
         // Arrange
         const store = createStore();
