@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-07): the extraction is released (`config` and `policies` 1.0.1 in v7.4.2, 2026-11-05), and `release` was merged into this branch after it. Phases 4 (#599) and 5 (#621) are in this branch: the panes classify the files of a sketch, following the mockup (decision 16). Phase 6 (#553) is done on `feat/553/playground-verdicts`, in draft PR #630 into this branch: dependencies entered with the picker and evaluated with `@boundaries/policies`, with their verdicts in the file pane, the tree, the inspector and the problems panel; its review updated the mockup and the colors of state text (decision 18), and wrote the sources in full, which text mode reads back with one rule of the playground (decision 19). Phase 7 (#554) starts when it merges.
+Status (2026-11-09): the extraction is released (`config` and `policies` 1.0.1 in v7.4.2, 2026-11-05), and `release` was merged into this branch after it. Phases 4 (#599), 5 (#621) and 6 (#630) are in this branch: the panes classify the files of a sketch and give the verdicts of its dependencies, following the mockup (decision 16). Phase 7 (#554) is in review in #633: the sketch lives in the URL, the top bar has the example picker, Help, Reset and Share, the Quick start opens its example, in the docs of 7.4.1 and in the next ones, and the navbar and the home link to the playground. Phase 8 (#555) starts when #633 merges. Three follow-ups out of the phases are filed: the text contrast (#634), evaluating in a web worker (#635) and the glob backtracking of `@boundaries/elements` (#636).
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives", "Starting a phase" and "Finishing a phase" sections of the `write-plan` skill; phase 9 removes it.
 
@@ -12,10 +12,9 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | File | Read it when |
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done, the interface. |
-| `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
 | `playground/08-docs.md` | Phase 8 (#555): the guide page and the docs buttons. |
 | `playground/09-cleanup.md` | Phase 9: remove the plan before merging into `release`. |
-| `playground/mockups/` | Phases 7 and 8: the approved HTML mockup of the interface and its renders, which `00-shared.md` section 6 describes. |
+| `playground/mockups/` | Before changing the interface: the approved HTML mockup and its renders, which `00-shared.md` section 6 describes; phase 9 removes it. |
 
 ## Phases
 
@@ -31,7 +30,7 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | 4 Scaffold | #551 | `feat/551/playground-scaffold` | #510 and 2 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): scaffold the package and the website shell` | #599 |
 | 5 M1 | #552 | `feat/552/playground-identify` | 4 merged | `feat/539/playground` | `feat(playground): identify the files of a sketched project` | #621 |
 | 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged | `feat/539/playground` | `feat(playground): verdicts of the dependencies` | #630 |
-| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | |
+| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | #633 |
 | 8 Docs | #555 | `docs/555/playground-guide` | 7 merged | `feat/539/playground` | `docs(website): document the playground` | |
 | 9 Cleanup | — | `chore/539/playground-cleanup` | 8 merged | `feat/539/playground` | `chore(playground): remove the playground plan` | |
 
@@ -69,6 +68,7 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 17. The state of a playground instance is a store per mount of the shell, written as pure transitions and read through hooks, and whatever opens something produces a typed `Target` that one transition opens; the store owns the engine of the instance. The data of a local app reaches it through other implementations of `ProjectSource` and `StateStore`, not through other hooks (review of #621, maintainer, 2026-11-04).
 18. Text in a state color outside code areas mixes 85% of the token with 15% of `--jsb-ink`, and not-checked text is `--jsb-muted`, so that the page passes Lighthouse Accessibility 100; icons, badges and outlines keep the tokens (`00-shared.md` section 6, "Color"; maintainer, 2026-11-06, review of the phase 6 page).
 19. A statement writes the relative path of its target in full, with its extension and its `index` (`../../helpers/format/index.js`), and the playground does not read `settings["import/resolver"]`. Text mode also reads short sources, with one rule of its own: a source that names a file exactly is that file; otherwise it is the file that adds a code extension to it (`.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`, `.mts`, `.cts`, `.d.ts`), or `/index` and one of them; a source that ends with `/`, or is `.` or `..`, names a folder and reads only its `index`; a source that matches several files is a problem of its line, never a silent choice; when the reading settles, the line shows the full path. The selectors of `boundaries/additional-dependency-nodes` are not run either, and the playground warns at that setting, in the config problems (maintainer, 2026-11-06, review of #630; it replaces a first version of this decision that modeled the `node` and `typescript` resolvers).
+20. Every docs change of the playground, the guide, the "Open in playground" buttons and the fixes of the examples, goes in `docs/` and in the snapshot of the latest release (the first entry of `versions.json`, today `versioned_docs/version-7.4.1/`) with its sidebar, so that the published docs link to the playground as soon as it is deployed (maintainer, 2026-11-09, review of #633).
 
 ## Open questions
 

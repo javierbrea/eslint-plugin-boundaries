@@ -66,6 +66,7 @@
         "!{projectRoot}/vite.config.js",
         // The package is an ES module, so the configs of the tools that never take part in the build are .cjs files; tsconfig.eslint.json is read by lint and check:types only
         "!{projectRoot}/jest.config.cjs",
+        "!{projectRoot}/jest.setup.cjs",
         "!{projectRoot}/babel.config.cjs",
         "!{projectRoot}/cspell.config.cjs",
         "!{projectRoot}/tsconfig.eslint.json"

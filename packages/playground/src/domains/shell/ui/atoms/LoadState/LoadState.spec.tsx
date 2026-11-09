@@ -1,5 +1,7 @@
 import { render } from "@testing-library/react";
 
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
+
 import { LoadState } from "./LoadState";
 import { LoadStatePom } from "./LoadState.pom";
 import type { LoadStateProps } from "./LoadState.types";
@@ -7,10 +9,14 @@ import type { LoadStateProps } from "./LoadState.types";
 /**
  * Renders the message of a load.
  * @param load The state of the load of the sketch.
+ * @param onReset Called when the user asks to reset the sketch, if the message has a button for it.
  * @returns The page object of the message.
  */
-function renderLoadState(load: LoadStateProps["load"]): LoadStatePom {
-  render(<LoadState load={load} />);
+function renderLoadState(
+  load: LoadStateProps["load"],
+  onReset?: () => void
+): LoadStatePom {
+  render(<LoadState load={load} onReset={onReset} />);
 
   return new LoadStatePom();
 }
@@ -97,6 +103,20 @@ describe("LoadState", () => {
       );
     });
 
+    it("should break a reason that is one long word, so that it never widens the page", () => {
+      // Arrange
+      const message = renderLoadState({
+        status: "failed",
+        error: new Error(`"src/${"x".repeat(3000)}.js" cannot be found`),
+      });
+
+      // Act
+      const { overflowWrap } = message;
+
+      // Assert
+      expect(overflowWrap).toBe("anywhere");
+    });
+
     it("should not pass the failed state to the DOM", () => {
       // Arrange
       renderLoadState({ status: "failed", error: "offline" });
@@ -106,6 +126,74 @@ describe("LoadState", () => {
 
       // Assert
       expect(logged).toEqual([]);
+    });
+  });
+
+  describe("reset", () => {
+    it("should offer to reset the sketch when it could not be loaded and the host has a way to do it", () => {
+      // Arrange
+      const message = renderLoadState(
+        { status: "failed", error: new Error("unreadable link") },
+        jest.fn()
+      );
+
+      // Act
+      const { hasResetButton, text } = message;
+
+      // Assert
+      expect(hasResetButton).toBe(true);
+      expect(text).toBe("The sketch could not be loaded: unreadable link");
+    });
+
+    it("should call the host when the button is pressed", () => {
+      // Arrange
+      const onReset = jest.fn();
+      const message = renderLoadState(
+        { status: "failed", error: "offline" },
+        onReset
+      );
+
+      // Act
+      message.pressReset();
+
+      // Assert
+      expect(onReset).toHaveBeenCalledTimes(1);
+    });
+
+    it("should draw the reset icon in the button", () => {
+      // Arrange
+      const message = renderLoadState(
+        { status: "failed", error: "offline" },
+        jest.fn()
+      );
+
+      // Act
+      const { resetIcon } = message;
+
+      // Assert
+      expect(resetIcon.pathData).toBe(ICON_PATHS.reset);
+    });
+
+    it("should offer nothing when the host has no way to reset the sketch", () => {
+      // Arrange
+      const message = renderLoadState({ status: "failed", error: "offline" });
+
+      // Act
+      const { hasResetButton } = message;
+
+      // Assert
+      expect(hasResetButton).toBe(false);
+    });
+
+    it("should offer nothing while the sketch is loading, whatever the host can do", () => {
+      // Arrange
+      const message = renderLoadState({ status: "loading" }, jest.fn());
+
+      // Act
+      const { hasResetButton } = message;
+
+      // Assert
+      expect(hasResetButton).toBe(false);
     });
   });
 });

@@ -5,7 +5,12 @@ import type {
   SketchSpecifier,
 } from "@/contract";
 
-import { isSameDependency, isSameProject } from "./compare";
+import {
+  findSameSketch,
+  isSameDependency,
+  isSameProject,
+  isSameSketch,
+} from "./compare";
 
 /**
  * Creates a dependency of a file on a node of the sketch.
@@ -288,6 +293,96 @@ describe("Compare", () => {
 
       // Assert
       expect(result).toBe(false);
+    });
+  });
+
+  describe("isSameSketch", () => {
+    it("should be true for sketches that hold the same config, tree and dependencies in other objects", () => {
+      // Arrange
+      const first = createSketch(
+        TREE.map((node) => ({ ...node })),
+        [toNode("src/index.js", "src/helpers/format.js")]
+      );
+      const second = createSketch(
+        TREE.map((node) => ({ ...node })),
+        [toNode("src/index.js", "src/helpers/format.js")]
+      );
+
+      // Act
+      const result = isSameSketch(first, second);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it("should be false when only the config text differs", () => {
+      // Arrange
+      const first = createSketch(TREE, [], "{ settings: {}, rules: {} }");
+      const second = createSketch(TREE, [], "{ settings: {}, rules: [] }");
+
+      // Act
+      const result = isSameSketch(first, second);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it("should be false when only the tree differs", () => {
+      // Arrange
+      const first = createSketch(TREE);
+      const second = createSketch([
+        ...TREE,
+        { path: "src/a.js", kind: "file" },
+      ]);
+
+      // Act
+      const result = isSameSketch(first, second);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it("should be false when only the dependencies differ", () => {
+      // Arrange
+      const first = createSketch(TREE, []);
+      const second = createSketch(TREE, [
+        toNode("src/index.js", "src/helpers/format.js"),
+      ]);
+
+      // Act
+      const result = isSameSketch(first, second);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("findSameSketch", () => {
+    it("should find the first candidate that holds the same sketch", () => {
+      // Arrange
+      const sketch = createSketch(TREE);
+      const candidates = [
+        { id: "other", sketch: createSketch([]) },
+        { id: "first", sketch: { ...sketch } },
+        { id: "second", sketch: { ...sketch } },
+      ];
+
+      // Act
+      const found = findSameSketch(candidates, sketch);
+
+      // Assert
+      expect(found).toBe(candidates[1]);
+    });
+
+    it("should find none when no candidate holds the same sketch", () => {
+      // Arrange
+      const candidates = [{ id: "other", sketch: createSketch([]) }];
+
+      // Act
+      const found = findSameSketch(candidates, createSketch(TREE));
+
+      // Assert
+      expect(found).toBeUndefined();
     });
   });
 

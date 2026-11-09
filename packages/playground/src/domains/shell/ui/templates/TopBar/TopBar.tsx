@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
+import { TOP_BAR_TEST_ID } from "./TopBar.constants";
 import type { TopBarProps } from "./TopBar.types";
 
 /** Height of the bar in pixels, border included. */
@@ -17,7 +18,11 @@ const Bar = styled("div")({
   height: BAR_HEIGHT,
   padding: "0 10px 0 12px",
   borderBottom: "1px solid var(--jsb-line)",
+  // What the bar holds keeps its size, so that a message that does not fit is the only item that gives way (see the message of the share)
+  "& > *": { flexShrink: 0 },
 });
+
+const Spacer = styled("span")({ flex: 1 });
 
 const Status = styled("div")(({ theme }) => ({
   display: "inline-flex",
@@ -44,14 +49,16 @@ const Count = styled("span", {
 })<{ color?: string }>(({ color }) => ({ color }));
 
 /**
- * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, or that the config has errors. The example picker, help, reset and share are for the next milestone.
+ * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, or that the config has errors. It places what the caller gives it around the status: something before it, such as the picker of examples, and something at the other end, such as the actions, after a spacer that pushes them to the end.
  * @param props TopBar props.
  * @param props.files How many files the sketch has.
  * @param props.dependencies How many dependencies the sketch has.
  * @param props.problems How many problems it has.
  * @param props.tone The color of the number of problems.
  * @param props.configHasErrors Whether the config has errors.
- * @param props.testId The test id of the root element, when the component that is the bar has one.
+ * @param props.start What goes before the status.
+ * @param props.end What goes at the end of the bar.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The bar.
  */
 export function TopBar({
@@ -60,10 +67,13 @@ export function TopBar({
   problems,
   tone,
   configHasErrors,
-  testId,
+  start,
+  end,
+  testId = TOP_BAR_TEST_ID,
 }: Readonly<TopBarProps>): ReactNode {
   return (
     <Bar data-testid={testId}>
+      {start}
       <Status>
         <Dot failing={configHasErrors} aria-hidden="true" />
         <span>
@@ -78,6 +88,8 @@ export function TopBar({
           )}
         </span>
       </Status>
+      <Spacer />
+      {end}
     </Bar>
   );
 }

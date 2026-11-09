@@ -32,7 +32,7 @@ function renderBar(overrides: Partial<TopBarProps> = {}): {
   const { rerender } = render(<TopBar {...createProps(overrides)} />);
 
   return {
-    bar: new TopBarPom(),
+    bar: new TopBarPom({ testId: overrides.testId }),
     update: (next) =>
       rerender(<TopBar {...createProps({ ...overrides, ...next })} />),
   };
@@ -170,6 +170,67 @@ describe("TopBar", () => {
     });
   });
 
+  describe("slots", () => {
+    it("should place the start before the status and the end after it, in order", () => {
+      // Arrange
+      const { bar } = renderBar({
+        start: <button type="button">Pick</button>,
+        end: (
+          <>
+            <button type="button">Help</button>
+            <button type="button">Share</button>
+          </>
+        ),
+      });
+
+      // Act
+      const { startTexts, endTexts } = bar;
+
+      // Assert
+      expect(startTexts).toEqual(["Pick"]);
+      expect(endTexts).toEqual(["Help", "Share"]);
+    });
+
+    it("should place nothing around the status when it is given nothing", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      const { startTexts, endTexts } = bar;
+
+      // Assert
+      expect(startTexts).toEqual([]);
+      expect(endTexts).toEqual([]);
+    });
+
+    it("should take the room that is left between the status and the end, to push the end to the far side", () => {
+      // Arrange
+      const { bar } = renderBar({ end: <button type="button">Share</button> });
+
+      // Act
+      const { spacerGrow } = bar;
+
+      // Assert
+      expect(spacerGrow).toBe("1");
+    });
+  });
+
+  describe("fit", () => {
+    it("should keep the size of the start, the status and the end when there is not room for all of them", () => {
+      // Arrange
+      const { bar } = renderBar({
+        start: <button type="button">Pick</button>,
+        end: <button type="button">Share</button>,
+      });
+
+      // Act
+      const { itemShrinks } = bar;
+
+      // Assert
+      expect(itemShrinks).toEqual(["0", "0", "0"]);
+    });
+  });
+
   describe("props", () => {
     it("should not pass the color or the failing state to the DOM", () => {
       // Arrange
@@ -186,26 +247,27 @@ describe("TopBar", () => {
   });
 
   describe("testId", () => {
-    it("should render the test id of the component that is the bar", () => {
+    it("should render the test id of the top bar by default", () => {
+      // Arrange
+      renderBar();
+
+      // Act
+      const { isRendered } = new TopBarPom({ testId: "top-bar" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+    });
+
+    it("should render the test id of the component that is the bar in place of its own", () => {
       // Arrange
       const { bar } = renderBar({ testId: "shell-top-bar" });
 
       // Act
-      const { renderedTestId } = bar;
+      const { isRendered } = bar;
 
       // Assert
-      expect(renderedTestId).toBe("shell-top-bar");
-    });
-
-    it("should render no test id when it is given none", () => {
-      // Arrange
-      const { bar } = renderBar();
-
-      // Act
-      const { renderedTestId } = bar;
-
-      // Assert
-      expect(renderedTestId).toBeNull();
+      expect(isRendered).toBe(true);
+      expect(new TopBarPom().isRendered).toBe(false);
     });
   });
 });

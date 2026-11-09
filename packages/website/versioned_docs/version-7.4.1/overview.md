@@ -103,7 +103,7 @@ Given this configuration, the plugin builds a **description** for each dependenc
   from: {
     element: {
       types: ["controller"],
-      captured: { elementName: "controller-a" },
+      captured: null,
     },
     file: { categories: null },
     module: { origin: "local" },
@@ -111,7 +111,7 @@ Given this configuration, the plugin builds a **description** for each dependenc
   to: {
     element: {
       types: ["view"],
-      captured: { elementName: "view-a" },
+      captured: null,
     },
     file: { categories: null },
     module: { origin: "local" },
@@ -164,13 +164,17 @@ const dependencyRulePolicies = [
   },
   // Only controllers may use the `axios` package
   {
-    from: { element: { type: "!controller" } },
-    disallow: {
+    from: { element: { type: "controller" } },
+    allow: {
       to: { module: { origin: "external", source: "axios" } },
     },
   },
 ];
 ```
+
+:::note[Packages]
+By default, the rule does not check the dependencies on packages. Set `checkAllOrigins: true` in its options to check them, such as `axios` here. With no `default` option, a dependency that no policy allows is disallowed, so with these policies only controllers can import `axios` and no element can import any other package.
+:::
 
 :::note
 This is a very simplified view. See **[Selectors](./selectors/selectors.md)** for the full syntax and capabilities of selectors, and **[Policies](./policies/policies.mdx)** for the full list of policy properties.
@@ -178,7 +182,7 @@ This is a very simplified view. See **[Selectors](./selectors/selectors.md)** fo
 
 ### 4. Get Instant Feedback
 
-When a file violates a dependencies rule policy, ESLint reports an error. For example, a model importing a view:
+When a file has a dependency that the policies don't allow, ESLint reports an error. For example, a model importing a view:
 
 ```javascript
 // src/models/model-a/index.js
@@ -188,7 +192,7 @@ import View from "../../views/view-a";
 ESLint reports:
 
 ```text
-error  Dependencies to elements of type "view" are not allowed in elements of type "model". Denied by policy at index 2  boundaries/dependencies
+1:18  error  There is no policy allowing dependencies from elements of type "model" to elements of type "view"  boundaries/dependencies
 ```
 
 ## Scope

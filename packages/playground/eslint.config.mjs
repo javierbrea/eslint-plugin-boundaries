@@ -191,6 +191,8 @@ const FILES = [
   // The file that an element exposes to the others. Any index.ts matches, so policies also check `fileInternalPath`
   { pattern: "src/**/index.ts", category: "entry" },
   { pattern: "src/index.ts", category: "package-entry" },
+  // The second entry of the package, `@boundaries/playground/share`, which the docs also run in Node.js
+  { pattern: "src/share.ts", category: "share-entry" },
   { pattern: "src/**/*.spec.{ts,tsx}", category: "test" },
   // Page objects, the only code that knows how a component is queried and driven in a test
   { pattern: "src/**/*.pom.ts", category: "pom" },
@@ -231,6 +233,12 @@ const POLICIES = [
   {
     from: { file: { categories: "package-entry" } },
     allow: { to: entryOf(["app", "contract", "data"]) },
+  },
+
+  // The share entry loads in Node.js, where the docs compute a link while they render: it only reaches helpers, so that it never loads React, MUI or a component
+  {
+    from: { file: { categories: "share-entry" } },
+    allow: { to: entryOf("helper") },
   },
 
   // External modules: each one belongs to the layers that need it, so a helper stays free of React and only the engine knows the evaluation packages
@@ -287,6 +295,10 @@ const POLICIES = [
       ]),
     },
   },
+  {
+    from: elementNamed("share", "sketchHash", "helper"),
+    allow: { to: externalModule("fflate") },
+  },
   // Test code and its support may import any external module, such as the testing library
   {
     from: [
@@ -312,13 +324,13 @@ const POLICIES = [
       "Only specs import a mock. Production code and page objects never do",
   },
 
-  // A spec may import the entry of any element, which includes the testing support, and the page objects, constants and mocks that it drives, by file
+  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, and the share entry, which its own spec proves in Node.js
   {
     from: { file: { categories: "test" } },
     allow: {
       to: [
         entryOf(ELEMENT_TYPES),
-        { file: { categories: ["pom", "constants", "mock"] } },
+        { file: { categories: ["pom", "constants", "mock", "share-entry"] } },
       ],
     },
   },

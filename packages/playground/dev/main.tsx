@@ -6,14 +6,15 @@ import "../../website/src/css/tokens.css";
 import "../../website/src/css/fonts.css";
 import "./harness.css";
 import {
-  MemoryStore,
+  HashStore,
   Playground,
   QUICK_START_EXAMPLE,
   SketchSource,
 } from "../src";
 
 const source = new SketchSource(QUICK_START_EXAMPLE.sketch);
-const store = new MemoryStore();
+// The hash of the URL keeps the sketch, as on the website, so Share and Reset work. The harness has no Quick start page, so it passes no `quickStartUrl` and the help draws no link
+const store = new HashStore();
 
 /**
  * Host page of the harness: a bar that toggles the theme as the website does, and the playground below it, with the Quick start example.

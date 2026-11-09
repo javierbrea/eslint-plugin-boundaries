@@ -2,17 +2,20 @@ import type {
   Sketch,
   SketchDependency,
   SketchDependencySyntax,
+  SketchNode,
   SketchSpecifier,
 } from "@/contract";
 
 import { SYNTAX_FACTS } from "./sketch.constants";
 import type {
+  DependencyChecker,
   DependencyRef,
   EditResult,
+  KindOf,
   SpecifierKind,
   SyntaxFacts,
 } from "./sketch.types";
-import { getNodeKind } from "./tree";
+import { createNodeIndex, getNodeKind } from "./tree";
 
 const NOT_FOUND = "There is no dependency at that line.";
 
@@ -84,6 +87,22 @@ const SPECIFIER_ORDER: readonly SpecifierKind[] = [
   "named",
 ];
 
+/** What the checks of a dependency read from the sketch that would hold it */
+type DependencyLookups = {
+  /** What is at a path of the tree */
+  readonly kindOf: KindOf;
+  /** The names that the other statements of the file of a dependency declare in the namespace of its syntax. It is read only for a syntax that declares names */
+  readonly takenNames: (dependency: SketchDependency) => ReadonlySet<string>;
+};
+
+/**
+ * Gets the name that a specifier declares in its file: its alias, or its name when it has none.
+ * @param specifier The specifier.
+ */
+function getDeclaredName(specifier: SketchSpecifier): string {
+  return specifier.alias ?? specifier.name;
+}
+
 /**
  * Gets what a syntax holds: its name, the kinds of statement and the kinds of name. The checks of a dependency are derived from the same table.
  * @param syntax The syntax of the dependency.
@@ -137,18 +156,18 @@ function isLocalName(word: string): boolean {
 
 /**
  * Tells why a target cannot be written in a statement.
- * @param sketch The sketch that would hold the dependency: only its tree counts.
+ * @param kindOf What is at a path of the tree that would hold the dependency.
  * @param dependency The dependency to check.
  * @returns The reason as a sentence for the user, or `undefined` when the target is valid.
  */
 function getTargetError(
-  sketch: Pick<Sketch, "tree">,
+  kindOf: KindOf,
   dependency: SketchDependency
 ): string | undefined {
   const { from, target } = dependency;
 
   if (target.kind === "node") {
-    if (getNodeKind(sketch.tree, target.path) !== "file") {
+    if (kindOf(target.path) !== "file") {
       return `"${target.path}" is not a file of the sketch.`;
     }
     return target.path === from ? "A file cannot depend on itself." : undefined;
@@ -297,10 +316,13 @@ function getSpecifiersError(dependency: SketchDependency): string | undefined {
     }
   }
 
-  const locals = specifiers.map(
-    (specifier) => specifier.alias ?? specifier.name
-  );
-  const repeated = locals.find((local, index) => locals.indexOf(local) < index);
+  const seen = new Set<string>();
+  const repeated = specifiers.map(getDeclaredName).find((local) => {
+    const isRepeated = seen.has(local);
+
+    seen.add(local);
+    return isRepeated;
+  });
 
   return repeated === undefined
     ? undefined
@@ -309,12 +331,12 @@ function getSpecifiersError(dependency: SketchDependency): string | undefined {
 
 /**
  * Tells why a name that a statement declares is already declared by another statement of its file. A name is declared in one of two namespaces, and a name can be declared once in each: the local names that the `import` statements of the file bind, whether they import values or types, and the names that its `export … from` statements export, `default` included. A name that one statement imports and another exports is not repeated, and neither is one that another file declares. `require()` and `import()` declare no name, and neither does `export * from`.
- * @param sketch The sketch that would hold the dependency: only its dependencies count, which are the other statements of the file and of the other files.
+ * @param takenNames The names that the other statements of the file declare in the namespace of the syntax of the dependency, which are read only for a syntax that declares names.
  * @param dependency The dependency to check, whose specifiers are valid.
  * @returns The reason as a sentence for the user, naming the first repeated name in the order of the specifiers, or `undefined` when no other statement of the file declares a name of the dependency in the same namespace.
  */
 function getRepeatedNameError(
-  sketch: Pick<Sketch, "dependencies">,
+  takenNames: () => ReadonlySet<string>,
   dependency: SketchDependency
 ): string | undefined {
   const { syntax, specifiers } = dependency;
@@ -324,21 +346,35 @@ function getRepeatedNameError(
     return undefined;
   }
 
-  // A syntax declares its names in one namespace, so the statements of the same syntax are the ones that share it
-  const taken = new Set(
-    getFileDependencies(sketch, dependency.from)
-      .filter((other) => other.syntax === syntax)
-      .flatMap((other) =>
-        other.specifiers.map((specifier) => specifier.alias ?? specifier.name)
-      )
-  );
+  const taken = takenNames();
   const repeated = specifiers
-    .map((specifier) => specifier.alias ?? specifier.name)
+    .map(getDeclaredName)
     .find((declared) => taken.has(declared));
 
   return repeated === undefined
     ? undefined
     : `The name "${repeated}" is already ${verb} by another statement of the file.`;
+}
+
+/**
+ * Tells why a dependency cannot be in a sketch, reading the sketch through lookups.
+ * @param lookups What the checks read from the sketch that would hold the dependency.
+ * @param dependency The dependency to check.
+ * @returns The reason as a sentence for the user, or `undefined` when the sketch can hold it, as {@link getDependencyError} gives it.
+ */
+function getDependencyErrorBy(
+  lookups: DependencyLookups,
+  dependency: SketchDependency
+): string | undefined {
+  if (lookups.kindOf(dependency.from) !== "file") {
+    return `"${dependency.from}" is not a file of the sketch.`;
+  }
+  return (
+    getTargetError(lookups.kindOf, dependency) ??
+    getSyntaxError(dependency) ??
+    getSpecifiersError(dependency) ??
+    getRepeatedNameError(() => lookups.takenNames(dependency), dependency)
+  );
 }
 
 /**
@@ -351,15 +387,58 @@ export function getDependencyError(
   sketch: Pick<Sketch, "tree" | "dependencies">,
   dependency: SketchDependency
 ): string | undefined {
-  if (getNodeKind(sketch.tree, dependency.from) !== "file") {
-    return `"${dependency.from}" is not a file of the sketch.`;
-  }
-  return (
-    getTargetError(sketch, dependency) ??
-    getSyntaxError(dependency) ??
-    getSpecifiersError(dependency) ??
-    getRepeatedNameError(sketch, dependency)
+  return getDependencyErrorBy(
+    {
+      kindOf: (path) => getNodeKind(sketch.tree, path),
+      // A syntax declares its names in one namespace, so the statements of the same syntax are the ones that share it
+      takenNames: ({ from, syntax }) =>
+        new Set(
+          getFileDependencies(sketch, from)
+            .filter((other) => other.syntax === syntax)
+            .flatMap((other) => other.specifiers.map(getDeclaredName))
+        ),
+    },
+    dependency
   );
+}
+
+/**
+ * Starts the checks of a list of dependencies that come one after the other, such as the ones of a link. Each one is checked as {@link getDependencyError} would check it against the tree and the ones accepted before it, but the tree is indexed once and the names that each file declares are kept as they are accepted, so that the checks take time in proportion to the number of dependencies and names, where checking each against a scan of the tree and of the dependencies before it takes the square of it.
+ * @param tree The nodes of the sketch that the dependencies belong to.
+ * @returns The checker, with no dependency accepted yet.
+ */
+export function createDependencyChecker(
+  tree: readonly SketchNode[]
+): DependencyChecker {
+  const nodes = createNodeIndex();
+  // The names that each file declares in each namespace, by syntax and file
+  const declared = new Map<string, Set<string>>();
+  const noNames: ReadonlySet<string> = new Set();
+
+  tree.forEach(nodes.add);
+
+  return {
+    accept: (dependency) => {
+      const key = `${dependency.syntax} ${dependency.from}`;
+      const error = getDependencyErrorBy(
+        {
+          kindOf: nodes.kindOf,
+          takenNames: () => declared.get(key) ?? noNames,
+        },
+        dependency
+      );
+
+      if (error === undefined) {
+        const names = declared.get(key) ?? new Set<string>();
+
+        dependency.specifiers.forEach((specifier) => {
+          names.add(getDeclaredName(specifier));
+        });
+        declared.set(key, names);
+      }
+      return error;
+    },
+  };
 }
 
 /**
@@ -390,7 +469,7 @@ function indexOfRef(
  * @param dependency The dependency to sort. It is not changed.
  * @returns The dependency with its names in the order of the statement.
  */
-function sortSpecifiers(dependency: SketchDependency): SketchDependency {
+export function sortSpecifiers(dependency: SketchDependency): SketchDependency {
   return {
     ...dependency,
     specifiers: SPECIFIER_ORDER.flatMap((kind) =>

@@ -4,10 +4,12 @@ Package-scoped agent instructions for `@boundaries/playground` (Nx project `play
 
 ## Host contract
 
-- The package exports one component, `Playground`, whose props are the whole contract with a host: a `ProjectSource` (where the project comes from, and what can be edited) and a `StateStore` (where the state is kept). They live in `src/contract/`, with their in-memory implementations.
+- The package exports one component, `Playground`, whose props are the whole contract with a host: a `ProjectSource` (where the project comes from, and what can be edited) and a `StateStore` (where the state is kept). They live in `src/contract/`, with their in-memory implementations, and their TSDoc says what each member does and which ones are optional.
 - The host owns the page, its layout and its theme, and gives the container of the playground its height: the playground fills it. The package never imports from a host (the Docusaurus aliases, Infima, or a relative path into the website; lint-enforced in `eslint.config.mjs`), never adds global styles, and touches `window` and `document` only in effects and event handlers.
 - It reads the `--jsb-*` tokens of the host (`packages/website/src/css/tokens.css`) and follows the host's `data-theme` attribute on `<html>`. It never changes the attributes of `<html>` and never reads or writes `localStorage`; `src/ui-kit/providers/ThemeRoot/` keeps MUI from doing so.
-- It runs only in browsers: `src` never reads a Node.js global, and its tests run in jsdom.
+- The package has two entries. `@boundaries/playground` (`src/index.ts`) exports the component, the contract and the stores. `@boundaries/playground/share` (`src/share.ts`) reaches only helpers: it loads no React, no MUI and no component, and it also runs in Node.js, where the docs compute the link of an example while they render on the server. The rest runs only in browsers.
+- `src` never reads a Node.js global, and its tests run in jsdom, except `src/share.spec.ts`, which runs in Node.js (`@jest-environment node`) to prove the `/share` entry works there. What `share.ts` reaches uses only the web globals that Node.js also has, such as `btoa` and `TextEncoder`.
+- A sketch that comes from outside, such as a link, is untrusted: `decodeHash` refuses data that unpacks past the limit of `src/domains/share/helpers/sketchHash/sketchHash.constants.ts` before anything reads it, and `readSketch` refuses what the edits could not make and what passes the limits of `src/domains/project/helpers/sketch/sketch.constants.ts`. A check that runs over it takes time in proportion to its size, through `createNodeIndex` and `createDependencyChecker`, and never scans the nodes or the dependencies already read for each new one.
 
 ## Layering
 
@@ -15,7 +17,8 @@ Package-scoped agent instructions for `@boundaries/playground` (Nx project `play
 
 ```
 src/
-├─ index.ts         package entry: the component, the contract and the examples
+├─ index.ts         package entry: the component, the contract, the examples and the stores
+├─ share.ts         the `/share` entry: the link of an example, for the docs
 ├─ app/             the Playground component
 ├─ contract/        the host contract
 ├─ ui-kit/          domain-free building blocks, mostly MUI with the playground's styles
@@ -27,8 +30,9 @@ src/
    ├─ evaluation/   what boundaries says about the sketch: helpers, ui
    ├─ problems/     the problems of the sketch: helpers, ui, modules
    ├─ session/      what the user has open and edits in one instance: helpers, data
+   ├─ share/        the sketch as a link: helpers, data, modules, ui
    ├─ shell/        the frame that places the panes: ui, modules
-   └─ examples/     static content: data
+   └─ examples/     the examples and their picker: data, modules, ui
 ```
 
 An element is one folder of a layer, `<layer>/<Name>/`, under `shared/`, under `domains/<domain>/` or, for the `ui-kit-*` types, under `ui-kit/`. Its entry is the `index.ts` at its root; the hooks of a module under `modules/<Name>/hooks/` are private to that module. The layers and what each may import:
@@ -57,10 +61,10 @@ An element is one folder of a layer, `<layer>/<Name>/`, under `shared/`, under `
 | `testing` | `shared/testing/<name>/` | Test support shared by specs and page objects | `testing`, `helper`, every `ui-kit-*`, `contract` |
 | `app` | `app/` | The `Playground` component | `module`, `data`, every `ui-*` and `ui-kit-*`, `helper`, `contract` |
 
-- An element may always import itself; any import the table does not list is denied. `src/index.ts` imports only the entries of `app`, `contract` and `data`.
+- An element may always import itself; any import the table does not list is denied. `src/index.ts` imports only the entries of `app`, `contract` and `data`, and `src/share.ts` only the entries of `helper` elements.
 - `shared/` has every layer of a domain except `modules/<Name>`, plus `testing/`. A layer folder is created with its first element.
 - Domains organize the code, they do not isolate it: a domain imports the entries of another domain's elements. The exceptions are three limits. `shared` and `ui-kit` never import a domain. Only `app` and the `shell` domain import the `shell` domain. The `session` domain imports, among the domains, only the `helper` elements of `project` and `evaluation`, so that every other domain can depend on it. The limits apply to specs, page objects and mocks too.
-- External packages are allowed per layer: React outside `helper` and `contract`, MUI and Emotion in `ui-*` and `ui-kit-*`, and the rest (the tree view, CodeMirror, the resizable panels, the `@boundaries/*` packages and `@humanwhocodes/momoa`) in the elements that need them. The engine, `domains/evaluation/helpers/engine`, is the only production code that imports `@boundaries/*`, through their public exports only, and the types it exports are the playground's own, so that no other code depends on the shape of their results. Test, page object, mock and `testing` files may import any external package. A new external package is allowed in `eslint.config.mjs` before its first import.
+- External packages are allowed per layer: React outside `helper` and `contract`, MUI and Emotion in `ui-*` and `ui-kit-*`, and the rest (the tree view, CodeMirror, the resizable panels, the `@boundaries/*` packages, `@humanwhocodes/momoa` and `fflate`) in the elements that need them. The engine, `domains/evaluation/helpers/engine`, is the only production code that imports `@boundaries/*`, through their public exports only, and the types it exports are the playground's own, so that no other code depends on the shape of their results. Test, page object, mock and `testing` files may import any external package. A new external package is allowed in `eslint.config.mjs` before its first import.
 
 Where a new element goes:
 
@@ -84,4 +88,4 @@ The state of a playground instance lives in its store (`src/domains/session/data
 
 ## Harness
 
-`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, the Quick start example, as on the website, and a button that toggles `data-theme` as the website does. It is not part of the build.
+`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, the Quick start example kept in the hash of the URL by a `HashStore`, as on the website, and a button that toggles `data-theme` as the website does. It is not part of the build.

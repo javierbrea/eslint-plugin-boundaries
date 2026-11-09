@@ -1,5 +1,5 @@
-import { TopBarPom } from "@/domains/shell/ui/atoms/TopBar/TopBar.pom";
 import { ShellRegionsPom } from "@/domains/shell/ui/templates/ShellRegions/ShellRegions.pom";
+import { TopBarPom } from "@/domains/shell/ui/templates/TopBar/TopBar.pom";
 import { Pom } from "@/shared/testing/pom";
 
 import { SHELL_LAYOUT_TEST_ID } from "./ShellLayout.constants";

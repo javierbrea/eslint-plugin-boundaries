@@ -15,12 +15,22 @@ import type { ShellProps } from "./Shell.types";
  * @param props.initialSketch The sketch to start from.
  * @param props.capabilities What the user can change in the project.
  * @param props.onSketchChange Called with each new sketch after an edit.
+ * @param props.quickStartUrl The URL of the Quick start guide, which the help links to.
+ * @param props.onReset Called with the sketch on screen when the user asks to reset it.
+ * @param props.onSelectExample Called with the example and the sketch on screen when the user picks an example.
+ * @param props.makeLink Makes the link that Share copies, if the host can.
+ * @param props.initialFocus The control of the top bar that takes the keyboard focus when the shell is first rendered, if any.
  * @returns The shell, as large as its container.
  */
 export function Shell({
   initialSketch,
   capabilities,
   onSketchChange,
+  quickStartUrl,
+  onReset,
+  onSelectExample,
+  makeLink,
+  initialFocus,
 }: Readonly<ShellProps>): ReactNode {
   return (
     <SessionProvider
@@ -30,7 +40,15 @@ export function Shell({
     >
       <ConfigEditorSnapshotProvider>
         <ShellLayout
-          topBar={<ShellTopBar />}
+          topBar={
+            <ShellTopBar
+              quickStartUrl={quickStartUrl}
+              onReset={onReset}
+              onSelectExample={onSelectExample}
+              makeLink={makeLink}
+              initialFocus={initialFocus}
+            />
+          }
           regions={<ShellPanes />}
           testId={SHELL_TEST_ID}
         />

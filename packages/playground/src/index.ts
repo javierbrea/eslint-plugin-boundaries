@@ -17,3 +17,4 @@ export {
   EXAMPLES,
   QUICK_START_EXAMPLE,
 } from "@/domains/examples/data/examples";
+export { HashStore } from "@/domains/share/data/hashStore";

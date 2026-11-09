@@ -1,0 +1,241 @@
+import type { Sketch, SketchDependency, SketchNode } from "@/contract";
+import {
+  MAX_SKETCH_DEPENDENCIES,
+  MAX_SKETCH_NODES,
+} from "@/domains/project/helpers/sketch/sketch.constants";
+import { LONG_LINK_LENGTH } from "@/domains/share/helpers/sketchHash";
+import { MAX_SKETCH_JSON_BYTES } from "@/domains/share/helpers/sketchHash/sketchHash.constants";
+
+import { getCopiedOutcome, getRefusedOutcome } from "./shareOutcome";
+
+/**
+ * Makes a sketch with a number of files and a number of dependencies, spread over the files, each on an external module of its own.
+ * @param fileCount How many files.
+ * @param dependencyCount How many dependencies.
+ * @returns The sketch, which the reader of links accepts when it is within the limits.
+ */
+function createSketch(fileCount: number, dependencyCount: number): Sketch {
+  const tree: SketchNode[] = Array.from({ length: fileCount }, (_, index) => ({
+    path: `src/f${index}.js`,
+    kind: "file",
+  }));
+  const dependencies: SketchDependency[] = Array.from(
+    { length: dependencyCount },
+    (_, index) => ({
+      from: `src/f${index % fileCount}.js`,
+      target: { kind: "external", name: `m${index}` },
+      syntax: "import",
+      importKind: "value",
+      specifiers: [{ kind: "named", name: `n${index}` }],
+    })
+  );
+
+  return { config: "{ settings: {}, rules: {} }", tree, dependencies };
+}
+
+/**
+ * Makes a sketch whose JSON as a link writes it has exactly the bytes given, all of them ASCII.
+ * @param bytes The size of the JSON.
+ * @returns The sketch, which has no files and a config as long as the size needs.
+ */
+function createSketchOfBytes(bytes: number): Sketch {
+  const empty: Sketch = { config: "", tree: [], dependencies: [] };
+  const overhead = JSON.stringify(empty).length;
+
+  return { ...empty, config: "a".repeat(bytes - overhead) };
+}
+
+describe("ShareOutcome", () => {
+  describe("getCopiedOutcome", () => {
+    it("should say that the link was copied when it is short", () => {
+      // Arrange
+      const link = `https://example.com/playground/#v=1&s=${"a".repeat(40)}`;
+
+      // Act
+      const outcome = getCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toBe("copied");
+    });
+
+    it("should say that the link was copied when it has the longest length that is not long", () => {
+      // Arrange
+      const link = "a".repeat(LONG_LINK_LENGTH);
+
+      // Act
+      const outcome = getCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toBe("copied");
+    });
+
+    it("should say that the link is long when it has one character more", () => {
+      // Arrange
+      const link = "a".repeat(LONG_LINK_LENGTH + 1);
+
+      // Act
+      const outcome = getCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toBe("long");
+    });
+  });
+
+  describe("getRefusedOutcome", () => {
+    it("should refuse nothing when the sketch is small", () => {
+      // Arrange
+      const sketch = createSketch(3, 4);
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toBeUndefined();
+    });
+
+    it("should refuse nothing when the sketch has nothing", () => {
+      // Arrange
+      const sketch: Sketch = { config: "", tree: [], dependencies: [] };
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toBeUndefined();
+    });
+
+    it("should refuse nothing when the sketch has the most files and dependencies a link can hold", () => {
+      // Arrange
+      const sketch = createSketch(MAX_SKETCH_NODES, MAX_SKETCH_DEPENDENCIES);
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(sketch.tree).toHaveLength(1000);
+      expect(sketch.dependencies).toHaveLength(3000);
+      expect(refusal).toBeUndefined();
+    });
+
+    it("should say that the sketch is too large when it has one file more than a link can hold", () => {
+      // Arrange
+      const sketch = createSketch(MAX_SKETCH_NODES + 1, 0);
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toEqual({
+        kind: "too-large",
+        reason: "The sketch has more than 1000 files and folders.",
+      });
+    });
+
+    it("should count the folders as well as the files", () => {
+      // Arrange
+      const full = createSketch(MAX_SKETCH_NODES, 0);
+      const sketch: Sketch = {
+        ...full,
+        tree: [...full.tree, { path: "empty", kind: "folder" }],
+      };
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toEqual({
+        kind: "too-large",
+        reason: "The sketch has more than 1000 files and folders.",
+      });
+    });
+
+    it("should say that the sketch is too large when it has one dependency more than a link can hold", () => {
+      // Arrange
+      const sketch = createSketch(
+        MAX_SKETCH_NODES,
+        MAX_SKETCH_DEPENDENCIES + 1
+      );
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toEqual({
+        kind: "too-large",
+        reason: "The sketch has more than 3000 dependencies.",
+      });
+    });
+
+    it("should refuse nothing when the JSON of the sketch has the most bytes a link can hold", () => {
+      // Arrange
+      const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES);
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toBeUndefined();
+    });
+
+    it("should say that the sketch is too large when its JSON has one byte more than a link can hold", () => {
+      // Arrange
+      const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES + 1);
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toEqual({
+        kind: "too-large",
+        reason:
+          "The sketch in the link is larger than 4 MiB, which the playground does not load.",
+      });
+    });
+
+    it("should say that the sketch is invalid, with the reason the reader of links gives, when it is refused for another cause", () => {
+      // Arrange
+      const sketch: Sketch = {
+        config: "",
+        tree: [{ path: "src/a.js ", kind: "file" }],
+        dependencies: [],
+      };
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toStrictEqual({
+        kind: "invalid",
+        reason:
+          '"src/a.js " cannot be in the tree. A path cannot end with a space.',
+      });
+    });
+
+    it("should say that the sketch is invalid when a dependency points to a file that it does not have", () => {
+      // Arrange
+      const sketch: Sketch = {
+        config: "",
+        tree: [{ path: "src/a.js", kind: "file" }],
+        dependencies: [
+          {
+            from: "src/a.js",
+            target: { kind: "node", path: "src/missing.js" },
+            syntax: "import",
+            importKind: "value",
+            specifiers: [],
+          },
+        ],
+      };
+
+      // Act
+      const refusal = getRefusedOutcome(sketch);
+
+      // Assert
+      expect(refusal).toStrictEqual({
+        kind: "invalid",
+        reason:
+          'Dependency 1 cannot be in the sketch. "src/missing.js" is not a file of the sketch.',
+      });
+    });
+  });
+});

@@ -1,4 +1,9 @@
+import { fireEvent, within } from "@testing-library/react";
+
 import { Pom } from "@/shared/testing/pom";
+import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
+
+import { LOAD_STATE_RESET_LABEL } from "./LoadState.constants";
 
 /** The selector of the message: a status while the sketch loads, an alert when it could not be loaded. */
 const MESSAGE_SELECTOR = "[role='status'], [role='alert']";
@@ -34,5 +39,47 @@ export class LoadStatePom extends Pom {
    */
   get color(): string {
     return getComputedStyle(this.root).color;
+  }
+
+  /**
+   * Where the message may break a word that is longer than its line.
+   * @returns The computed value.
+   */
+  get overflowWrap(): string {
+    return getComputedStyle(this.root).overflowWrap;
+  }
+
+  /**
+   * The button that resets the sketch, which sits next to the message and not inside it.
+   * @returns The elements of the buttons next to the message that have its label.
+   */
+  private get resetButtons(): HTMLElement[] {
+    return within(this.root.parentElement as HTMLElement).queryAllByRole(
+      "button",
+      { name: LOAD_STATE_RESET_LABEL }
+    );
+  }
+
+  /**
+   * Whether the message has a button to reset the sketch.
+   * @returns True when there is one next to the message.
+   */
+  get hasResetButton(): boolean {
+    return this.resetButtons.length > 0;
+  }
+
+  /**
+   * The icon of the button that resets the sketch.
+   * @returns The page object of the icon.
+   */
+  get resetIcon(): IconPom {
+    return new IconPom({
+      root: this.resetButtons[0].querySelector("svg") as unknown as HTMLElement,
+    });
+  }
+
+  /** Presses the button that resets the sketch. */
+  pressReset(): void {
+    fireEvent.click(this.resetButtons[0]);
   }
 }

@@ -5,9 +5,12 @@ module.exports = createConfig({
   // Names of the libraries the playground uses, and the words of their APIs
   words: [
     "describedby",
+    "fflate",
+    "haspopup",
     "keymap",
     "keyshortcuts",
     "labelledby",
+    "menuitemradio",
     "momoa",
     "noreferrer",
   ],

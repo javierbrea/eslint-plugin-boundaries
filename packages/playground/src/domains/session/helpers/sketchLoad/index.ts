@@ -1,1 +1,1 @@
-export type { PendingLoad, SketchLoad } from "./sketchLoad.types";
+export type { PendingLoad, SketchLoad, SketchLoader } from "./sketchLoad.types";

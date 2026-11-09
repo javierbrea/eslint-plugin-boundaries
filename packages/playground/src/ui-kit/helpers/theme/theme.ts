@@ -248,6 +248,37 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   MuiDialogActions: {
     styleOverrides: { root: { padding: "12px 22px 18px" } },
   },
+  // A menu is a card of its own, on the lighter surface of the listboxes, with a little room between it and what opens it
+  MuiMenu: {
+    styleOverrides: {
+      paper: {
+        margin: "4px 0",
+        backgroundColor: "var(--jsb-paper-2)",
+        borderRadius: "var(--jsb-radius)",
+        boxShadow: "var(--jsb-shadow)",
+      },
+      list: { padding: 4 },
+    },
+  },
+  MuiMenuItem: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        ...theme.typography.body1,
+        minHeight: 30,
+        padding: "0 10px",
+        borderRadius: 4,
+        // The item that the pointer or the arrows are on
+        "&:hover": { backgroundColor: HOVER_BACKGROUND },
+        "&.Mui-focusVisible": { backgroundColor: HOVER_BACKGROUND },
+        // The item that is picked, which stays the same under the pointer
+        "&.Mui-selected": { backgroundColor: "var(--jsb-accent-soft)" },
+        "&.Mui-selected:hover": { backgroundColor: "var(--jsb-accent-soft)" },
+        "&.Mui-selected.Mui-focusVisible": {
+          backgroundColor: "var(--jsb-accent-soft)",
+        },
+      }),
+    },
+  },
   // Every input is mono; the dense size is the one of the rename field of the tree
   MuiInputBase: {
     styleOverrides: {

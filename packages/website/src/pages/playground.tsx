@@ -1,10 +1,12 @@
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import { useLocation } from "@docusaurus/router";
 import Heading from "@theme/Heading";
 import Layout from "@theme/Layout";
 import { Suspense, lazy } from "react";
 import type { ReactNode } from "react";
 
 import { useMediaQuery } from "../components/motion/useMediaQuery";
+import { DOCS_QUICK_START } from "../data/site/links";
 
 import styles from "./playground.module.css";
 
@@ -16,14 +18,24 @@ const NARROW_QUERY = "(max-width: 996px)";
 
 // The playground and its host objects load in their own chunk, requested only by this page and only in the browser
 const LazyPlayground = lazy(async () => {
-  const { MemoryStore, Playground, QUICK_START_EXAMPLE, SketchSource } =
+  const { HashStore, Playground, QUICK_START_EXAMPLE, SketchSource } =
     await import("@boundaries/playground");
   const source = new SketchSource(QUICK_START_EXAMPLE.sketch);
-  const store = new MemoryStore();
+  const store = new HashStore();
 
   return {
     default: function WebsitePlayground(): ReactNode {
-      return <Playground source={source} store={store} />;
+      // A visit to this page that the router makes, such as the navbar entry while the page is open, drops the hash from the URL without any event that the store hears: the playground mounts again, and the store loads the sketch it remembers and writes it back to the hash
+      const { key } = useLocation();
+
+      return (
+        <Playground
+          key={key}
+          source={source}
+          store={store}
+          quickStartUrl={DOCS_QUICK_START}
+        />
+      );
     },
   };
 });

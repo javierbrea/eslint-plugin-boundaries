@@ -40,7 +40,7 @@ Read the **[migration guide below](#migration-to-boundariesdependencies)** for c
 :::
 
 :::info[Same base mechanism as Policies]
-This rule builds on the same base configuration documented in **[Policies](../policies/policies.mdx)** (a `default` plus a `rules` array). The difference is that it always targets **external and core modules**, and its policy `allow`/`disallow` values match the module `source`, `internalPath`, and import `specifiers`. Read [Policies](../policies/policies.mdx) first, then the options below for the differences.
+This rule builds on the same base configuration documented in **[Policies](../policies/policies.mdx)** (a `default` plus a `policies` array). The difference is that it always targets **external and core modules**, and its policy `allow`/`disallow` values match the module `source`, `internalPath`, and import `specifiers`. Read [Policies](../policies/policies.mdx) first, then the options below for the differences.
 :::
 
 ## Rule Details
@@ -51,19 +51,20 @@ This rule validates dependencies to external and core modules. It allows or disa
 
 ```text
 "boundaries/external":
-  [<severity>, { "default": <string>, "message": <string>, "rules": <object> }]
+  [<severity>, { "default": <string>, "message": <string>, "policies": <array> }]
 ```
 
 The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second item is the options object:
 
 - `default`: `"allow"` or `"disallow"`. Determines the default behavior for external imports that don't match any policy.
 - `message`: Custom error message for policy violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
-- `rules`: An array of policy objects processed in order to determine whether an import should be allowed. Each policy object contains:
+- `policies`: An array of policy objects processed in order to determine whether an import should be allowed. Each policy object contains:
   - `from`: **[`<entity selectors>`](../selectors/selectors.md)** - If the file being analyzed matches this selector, the policy is evaluated. Otherwise, it is skipped. Accepts both legacy element selectors (for example `{ type: "helper" }`) and entity selectors (for example `{ element: { type: "helper" } }`)
   - `disallow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is disallowed (can be overridden by a subsequent policy returning `"allow"`)
   - `allow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is allowed (can be overridden by a subsequent policy returning `"disallow"`)
   - _`importKind`_: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the policy is only evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`
   - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information
+- _`rules`_: Optional. **Deprecated** alias of `policies`, kept for backward compatibility. It prints a deprecation warning, and `policies` takes precedence when both are set. See [Legacy Policy Configuration](../policies/legacy.mdx#legacy-rules-option-in-rules-configuration).
 
 :::warning
 Each policy requires `from` and at least one of `allow` or `disallow`.
@@ -334,14 +335,16 @@ This rule provides detailed error messages to help you understand and resolve vi
 
 It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). Messages include information about the external dependency that is not allowed, such as the module origin and source and, when applicable, the import specifiers and internal path details (read [Classification](../classification/classification.md) for more information on how files and modules are described).
 
-For example:
+For example, for a molecule component importing `@material-ui/icons`, which the policy at index 2 of the configuration example disallows:
 
-`Dependencies with module source "react" to entities of module with origin "external" are not allowed in elements of type "helper". Denied by rule at index 0`
+`Dependencies with module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "component" and captured values: family="molecules". Denied by policy at index 2`
+
+The other imports of the Incorrect examples are reported because no policy allows them, with a message that starts with `There is no policy allowing dependencies from ...`.
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
+You can customize error messages globally or for specific policies. See [Policies -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ### `report` in Legacy Custom Messages

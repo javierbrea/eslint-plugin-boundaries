@@ -1,83 +1,17 @@
 import { createEngine } from "@/domains/evaluation/helpers/engine";
-import type {
-  DependencyResult,
-  DependencyVerdict,
-  TextRange,
-} from "@/domains/evaluation/helpers/engine";
-import { toStatement } from "@/domains/project/helpers/sketch";
 
+import {
+  listDecisions,
+  listDisallowed,
+  listReported,
+  listStatements,
+  slice,
+} from "./exampleVerdicts.mock";
 import { QUICK_START_EXAMPLE } from "./quickStart";
 import {
   QUICK_START_MESSAGES,
   QUICK_START_STATEMENTS,
 } from "./quickStartVerdicts.mock";
-
-/** The level of a dependency that is disallowed, by the severity ESLint reports it with */
-const LEVELS = { 1: "warning", 2: "error" } as const;
-
-/**
- * Reads the text a range covers.
- * @param text The config text.
- * @param range A range of the text.
- * @param range.from
- * @param range.to
- * @returns The text in the range.
- */
-function slice(text: string, { from, to }: TextRange): string {
-  return text.slice(from, to);
-}
-
-/**
- * Lists the dependencies that were disallowed.
- * @param results The dependencies with their verdicts.
- * @returns For each one that was disallowed, sorted by file and line, its file, its line, its message and its level.
- */
-function listDisallowed(results: readonly DependencyResult[]): {
-  path: string;
-  line: number;
-  message: string;
-  level: "error" | "warning";
-}[] {
-  return results
-    .flatMap(({ ref, verdict }) =>
-      verdict.status === "disallowed"
-        ? [
-            {
-              path: ref.path,
-              line: ref.index + 1,
-              message: verdict.message,
-              level: verdict.level,
-            },
-          ]
-        : []
-    )
-    .sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
-}
-
-/**
- * Tells what decided a verdict, as a table of a test writes it.
- * @param verdict The verdict.
- * @returns The skip reason of a dependency that is not checked, and otherwise the index of the policy that decided, with `null` for the default and `undefined` when none is known.
- */
-function decisionOf(
-  verdict: DependencyVerdict
-): string | number | null | undefined {
-  if (verdict.status === "not-checked") {
-    return verdict.reason;
-  }
-  return verdict.status === "not-evaluated" ? undefined : verdict.policy?.index;
-}
-
-/**
- * Writes the statement of a dependency as its result says it.
- * @param result The dependency with its source.
- * @param result.dependency
- * @param result.source
- * @returns The text of the statement.
- */
-function statementOf({ dependency, source }: DependencyResult): string {
-  return toStatement(dependency, source);
-}
 
 describe("QUICK_START_EXAMPLE", () => {
   const evaluate = createEngine().evaluate;
@@ -90,14 +24,9 @@ describe("QUICK_START_EXAMPLE", () => {
       const { dependencies } = evaluate(example);
 
       // Assert
-      const statementsByFile = Object.fromEntries(
-        Object.keys(QUICK_START_STATEMENTS).map((path) => [
-          path,
-          dependencies.filter(({ ref }) => ref.path === path).map(statementOf),
-        ])
-      );
-
-      expect(statementsByFile).toEqual(QUICK_START_STATEMENTS);
+      expect(
+        listStatements(dependencies, Object.keys(QUICK_START_STATEMENTS))
+      ).toEqual(QUICK_START_STATEMENTS);
       expect(dependencies).toHaveLength(9);
     });
 
@@ -107,12 +36,7 @@ describe("QUICK_START_EXAMPLE", () => {
 
       // Assert
       expect(listDisallowed(dependencies)).toEqual(
-        QUICK_START_MESSAGES.map(({ path, line, message, severity }) => ({
-          path,
-          line,
-          message,
-          level: LEVELS[severity],
-        }))
+        listReported(QUICK_START_MESSAGES)
       );
     });
 
@@ -121,14 +45,7 @@ describe("QUICK_START_EXAMPLE", () => {
       const { dependencies } = evaluate(example);
 
       // Assert
-      expect(
-        dependencies.map(({ ref, verdict }) => [
-          ref.path,
-          ref.index + 1,
-          verdict.status,
-          decisionOf(verdict),
-        ])
-      ).toEqual([
+      expect(listDecisions(dependencies)).toEqual([
         [
           "src/components/atoms/Button/Button.spec.js",
           1,

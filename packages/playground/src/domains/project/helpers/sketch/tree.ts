@@ -1,7 +1,7 @@
 import type { Sketch, SketchNode } from "@/contract";
 
-import { getAncestors, getPathError } from "./paths";
-import type { TreeItem } from "./sketch.types";
+import { getAncestors, getPathError, joinPath } from "./paths";
+import type { IndexEntry, NodeIndex, TreeItem } from "./sketch.types";
 
 /** A node of the trie that {@link toItems} builds while it reads the paths */
 type Entry = {
@@ -65,13 +65,15 @@ function toItems(nodes: readonly SketchNode[]): readonly TreeItem[] {
   for (const node of nodes) {
     const segments = node.path.split("/");
     let level = root;
+    let folder = "";
 
-    segments.forEach((segment, index) => {
+    for (const [index, segment] of segments.entries()) {
       let entry = level.get(segment);
 
       if (entry === undefined) {
         entry = {
-          path: segments.slice(0, index + 1).join("/"),
+          // The path of an entry is the one of its folder and its name, so that a path of many segments is not joined again for each of them
+          path: joinPath(folder, segment),
           name: segment,
           kind: index === segments.length - 1 ? node.kind : "folder",
           children: new Map(),
@@ -79,7 +81,8 @@ function toItems(nodes: readonly SketchNode[]): readonly TreeItem[] {
         level.set(segment, entry);
       }
       level = entry.children;
-    });
+      folder = entry.path;
+    }
   }
   return sortEntries(root);
 }
@@ -154,6 +157,122 @@ export function getNodeKind(
 }
 
 /**
+ * Tells why a node cannot be added where something already is.
+ * @param existing What is at the path of the new node.
+ * @param kind Whether the new node is a file or a folder.
+ */
+function getTakenError(
+  existing: SketchNode["kind"],
+  kind: SketchNode["kind"]
+): string {
+  return existing === kind
+    ? "That path already exists."
+    : `A ${existing} already exists at that path.`;
+}
+
+/**
+ * Tells why a node cannot be added under a file.
+ * @param file The path of the file.
+ */
+function getUnderFileError(file: string): string {
+  return `"${file}" is a file, so nothing can be added under it.`;
+}
+
+/**
+ * Tells what is at an entry of the index: a folder when anything is under it, whatever was declared there.
+ * @param entry The entry.
+ */
+function getEntryKind(entry: IndexEntry): SketchNode["kind"] {
+  return entry.children.size > 0 ? "folder" : entry.kind;
+}
+
+/**
+ * Finds the entry of a path in the index, if there is one.
+ * @param root The entries of the root.
+ * @param path A path of the tree.
+ */
+function findEntry(
+  root: ReadonlyMap<string, IndexEntry>,
+  path: string
+): IndexEntry | undefined {
+  let level = root;
+  let entry: IndexEntry | undefined;
+
+  for (const segment of path.split("/")) {
+    entry = level.get(segment);
+    if (entry === undefined) {
+      return undefined;
+    }
+    level = entry.children;
+  }
+  return entry;
+}
+
+/**
+ * Indexes nodes by path, one segment at a time. It answers what {@link getNodeKind} and {@link getAddError} answer for the same nodes, but it reads each segment of a path once and scans no list, so that checking a long list of nodes one after the other takes time in proportion to the size of the list, where scanning the nodes already checked for each one takes the square of it.
+ * @returns An index with no node yet.
+ */
+export function createNodeIndex(): NodeIndex {
+  const root = new Map<string, IndexEntry>();
+
+  return {
+    kindOf: (path) => {
+      const entry = findEntry(root, path);
+
+      return entry === undefined ? undefined : getEntryKind(entry);
+    },
+    getAddError: (path, kind) => {
+      const pathError = getPathError(path);
+
+      if (pathError !== undefined) {
+        return pathError;
+      }
+
+      const segments = path.split("/");
+      let level = root;
+
+      // The folders above the path, from the root down: a file among them has nothing to hold the node
+      for (const [index, segment] of segments.slice(0, -1).entries()) {
+        const folder = level.get(segment);
+
+        // Nothing is here, so nothing is below this point either
+        if (folder === undefined) {
+          return undefined;
+        }
+        if (getEntryKind(folder) === "file") {
+          return getUnderFileError(segments.slice(0, index + 1).join("/"));
+        }
+        level = folder.children;
+      }
+
+      const existing = level.get(segments[segments.length - 1]);
+
+      return existing === undefined
+        ? undefined
+        : getTakenError(getEntryKind(existing), kind);
+    },
+    add: ({ path, kind }) => {
+      const segments = path.split("/");
+      let level = root;
+
+      for (const [index, segment] of segments.entries()) {
+        let entry = level.get(segment);
+
+        if (entry === undefined) {
+          // The folders above a node are implied by it. The first node added at a path is the one that declares it
+          entry = {
+            kind: index === segments.length - 1 ? kind : "folder",
+            children: new Map(),
+          };
+          level.set(segment, entry);
+        }
+        level = entry.children;
+      }
+    },
+  };
+}
+
+/**
  * Tells whether a sketch has a file or a folder at a path, implied folders included.
  * @param sketch The sketch to read.
  * @param path A path of the sketch.
@@ -183,16 +302,12 @@ export function getAddError(
   const existing = getNodeKind(nodes, path);
 
   if (existing !== undefined) {
-    return existing === kind
-      ? "That path already exists."
-      : `A ${existing} already exists at that path.`;
+    return getTakenError(existing, kind);
   }
 
   const file = getAncestors(path).find(
     (ancestor) => getNodeKind(nodes, ancestor) === "file"
   );
 
-  return file === undefined
-    ? undefined
-    : `"${file}" is a file, so nothing can be added under it.`;
+  return file === undefined ? undefined : getUnderFileError(file);
 }

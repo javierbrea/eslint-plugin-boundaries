@@ -17,5 +17,5 @@ export type ConfirmDialogProps = {
   /** Called when the user goes on. */
   readonly onConfirm: () => void;
   /** Called when the dialog is gone from the page after it closed. The dialog keeps the focus while it fades out, so a caller that gives the focus back waits for this. */
-  readonly onExited: () => void;
+  readonly onExited?: () => void;
 };

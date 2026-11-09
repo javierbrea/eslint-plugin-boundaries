@@ -7,6 +7,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
@@ -785,6 +787,111 @@ describe("the widgets of MUI", () => {
       expect(content.padding).toBe("6px 22px 4px");
       expect(afterTitle["padding-top"]).toBe("6px");
       expect(actions.padding).toBe("12px 22px 18px");
+    });
+  });
+
+  describe("menu", () => {
+    /**
+     * Opens a menu of two items, the second one picked, anchored to a button.
+     * @returns The root element, where the menu renders.
+     */
+    function renderMenu(): HTMLElement {
+      const anchor = document.createElement("button");
+
+      document.body.append(anchor);
+
+      return renderInRoot(
+        <Menu open anchorEl={anchor}>
+          <MenuItem>First</MenuItem>
+          <MenuItem selected>Second</MenuItem>
+        </Menu>
+      );
+    }
+
+    afterEach(() => {
+      document.body.querySelectorAll(":scope > button").forEach((anchor) => {
+        anchor.remove();
+      });
+    });
+
+    it("should draw the list as a card on the lighter surface, 4 px away from what opens it, inside the root element", () => {
+      // Arrange
+      const root = renderMenu();
+      const paper = document.querySelector(".MuiMenu-paper") as HTMLElement;
+
+      // Act
+      const style = getStyle(paper);
+
+      // Assert
+      expect(root.contains(paper)).toBe(true);
+      expect(style).toMatchObject({
+        margin: "4px 0",
+        "background-color": "var(--jsb-paper-2)",
+        border: "1px solid var(--jsb-line)",
+        "border-radius": "var(--jsb-radius)",
+        "box-shadow": "var(--jsb-shadow)",
+      });
+    });
+
+    it("should pad the list by 4 px", () => {
+      // Arrange
+      renderMenu();
+
+      // Act
+      const style = getStyle(view.getByRole("menu"));
+
+      // Assert
+      expect(style.padding).toBe("4px");
+    });
+
+    it("should draw each item as a 30 px row of the body font with a 4 px radius", () => {
+      // Arrange
+      renderMenu();
+
+      // Act
+      const style = getStyle(view.getByRole("menuitem", { name: "First" }));
+
+      // Assert
+      expect(style).toMatchObject({
+        "min-height": "30px",
+        padding: "0 10px",
+        "border-radius": "4px",
+        "font-size": "13px",
+        "font-family": "var(--jsb-font-body)",
+      });
+    });
+
+    it("should highlight an item with the hover of a row, under the pointer and with the keyboard", () => {
+      // Arrange
+      renderMenu();
+      const item = view.getByRole("menuitem", { name: "First" });
+
+      // Act
+      const hover = getStyle(item, `${OWN_CLASS}:hover`);
+      const keyboard = getStyle(item, `${OWN_CLASS}.Mui-focusVisible`);
+
+      // Assert
+      expect(hover["background-color"]).toBe(HOVER_BACKGROUND);
+      expect(keyboard["background-color"]).toBe(HOVER_BACKGROUND);
+    });
+
+    it("should draw the picked item in the soft accent, which the pointer and the keyboard leave as it is", () => {
+      // Arrange
+      renderMenu();
+      const item = view.getByRole("menuitem", { name: "Second" });
+
+      // Act
+      const picked = getStyle(item, `${OWN_CLASS}.Mui-selected`);
+      const hover = getStyle(item, `${OWN_CLASS}.Mui-selected:hover`);
+      const keyboard = getStyle(
+        item,
+        `${OWN_CLASS}.Mui-selected.Mui-focusVisible`
+      );
+
+      // Assert
+      expect(picked["background-color"]).toBe("var(--jsb-accent-soft)");
+      expect(hover["background-color"]).toBe("var(--jsb-accent-soft)");
+      expect(keyboard["background-color"]).toBe("var(--jsb-accent-soft)");
     });
   });
 

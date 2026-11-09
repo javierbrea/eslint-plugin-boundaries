@@ -7,4 +7,6 @@ export type PlaygroundProps = {
   source: ProjectSource;
   /** Where the state is kept; a saved sketch takes precedence over the one of the source */
   store: StateStore;
+  /** URL of the Quick start guide, which the help dialog links to; without it the dialog draws no link */
+  quickStartUrl?: string;
 };

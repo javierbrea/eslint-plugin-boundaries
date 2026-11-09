@@ -2,6 +2,7 @@ import { waitFor } from "@testing-library/react";
 
 import type { ProjectPanePom } from "@/domains/project/modules/ProjectPane/ProjectPane.pom";
 import { ShellPom } from "@/domains/shell/modules/Shell/Shell.pom";
+import type { ShellTopBarPom } from "@/domains/shell/modules/ShellTopBar/ShellTopBar.pom";
 import { LoadStatePom } from "@/domains/shell/ui/atoms/LoadState/LoadState.pom";
 import { SHELL_LAYOUT_LABEL } from "@/domains/shell/ui/templates/ShellLayout/ShellLayout.constants";
 import { getInsertedRules } from "@/shared/testing/emittedStyle";
@@ -37,6 +38,14 @@ export class PlaygroundPom extends Pom {
    */
   get loadState(): LoadStatePom {
     return this.childPom(LoadStatePom);
+  }
+
+  /**
+   * The top bar of the shell, with the picker of examples and the actions.
+   * @returns The page object of the top bar.
+   */
+  get topBar(): ShellTopBarPom {
+    return this.shell.topBar;
   }
 
   /**
@@ -82,6 +91,35 @@ export class PlaygroundPom extends Pom {
       ConfirmDialogPom,
       accessibleName === undefined ? {} : { name: accessibleName }
     );
+  }
+
+  /**
+   * Waits for a dialog of the playground to be on screen, such as the one that asks before the sketch is replaced.
+   * @param accessibleName The accessible name of the dialog, such as its title.
+   * @returns A promise of the page object of the dialog, which settles when the dialog is on screen.
+   */
+  async waitForDialog(accessibleName: string): Promise<ConfirmDialogPom> {
+    const dialog = this.dialog(accessibleName);
+
+    await waitFor(() => {
+      if (!dialog.isRendered) {
+        throw new Error(`The dialog "${accessibleName}" is not on screen yet`);
+      }
+    });
+
+    return dialog;
+  }
+
+  /**
+   * Waits for the message that says that the sketch is loading.
+   * @returns A promise that settles when the message is a status.
+   */
+  async waitUntilLoading(): Promise<void> {
+    await waitFor(() => {
+      if (!this.loadState.isRendered || this.loadState.role !== "status") {
+        throw new Error("The sketch is not loading");
+      }
+    });
   }
 
   /**
