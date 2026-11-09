@@ -99,8 +99,8 @@ describe("ProblemsPane", () => {
       const { pane } = renderPane();
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch*"]);
-      expect(pane.list.emptyText).toBe("No problems in the sketch.");
+      expect(getTabs(pane)).toEqual(["Project*"]);
+      expect(pane.list.emptyText).toBe("No problems in the project.");
     });
 
     it("should list the problems of the config with the count of the tab", () => {
@@ -108,7 +108,7 @@ describe("ProblemsPane", () => {
       const { pane } = renderPane(MISTAKES);
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*"]);
       expect(pane.list.row("eslint.config.js:15:16").message).toContain(
         "Invalid rule options."
       );
@@ -154,8 +154,8 @@ describe("ProblemsPane", () => {
       });
 
       // Assert
-      expect(before).toEqual(["Sketch*"]);
-      expect(getTabs(pane)).toEqual(["Sketch2*"]);
+      expect(before).toEqual(["Project*"]);
+      expect(getTabs(pane)).toEqual(["Project2*"]);
     });
   });
 
@@ -189,7 +189,7 @@ describe("ProblemsPane", () => {
       pane.list.row("eslint.config.js:5:7").press();
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch2", "eslint.config.js2*"]);
+      expect(getTabs(pane)).toEqual(["Project2", "eslint.config.js2*"]);
       expect(pane.note.isRendered).toBe(true);
       expect(pane.list.row("eslint.config.js:15:16").opens).toBe(true);
     });
@@ -212,7 +212,7 @@ describe("ProblemsPane", () => {
       // Arrange
       const { store, pane } = renderPane(MISTAKES);
       act(() => store.open({ kind: "file", path: FILE }));
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Act
       pane.list.row("eslint.config.js:5:7").press();
@@ -241,7 +241,7 @@ describe("ProblemsPane", () => {
       typeLines(store, "src/index.js\nsrc/../outside.js\n");
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch1*"]);
+      expect(getTabs(pane)).toEqual(["Project1*"]);
       expect(pane.list.row("Project text:2").message).toContain(
         "The path cannot have `.` or `..` segments."
       );
@@ -256,7 +256,7 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(pane.list.row("Project text:2").message).toContain(
-        '"./y" does not resolve to a file of the sketch.'
+        '"./y" does not resolve to a file of the project.'
       );
       expect(pane.list.row("Project text:2").meta).toContain(
         "  import x from './y';"
@@ -299,7 +299,7 @@ describe("ProblemsPane", () => {
       typeLines(store, "src/../outside.js\n");
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*"]);
       expect(pane.list.rowCount).toBe(2);
     });
 
@@ -312,8 +312,8 @@ describe("ProblemsPane", () => {
       act(() => store.setView("tree"));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch*"]);
-      expect(pane.list.emptyText).toBe("No problems in the sketch.");
+      expect(getTabs(pane)).toEqual(["Project*"]);
+      expect(pane.list.emptyText).toBe("No problems in the project.");
     });
   });
 
@@ -326,7 +326,7 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "checkout/index.js*"]);
       expect(pane.list.emptyText).toBe("No problems in this file.");
       expect(pane.panel.holds("No problems in this file.")).toBe(true);
     });
@@ -342,7 +342,7 @@ describe("ProblemsPane", () => {
       );
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch", "format/index.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "format/index.js*"]);
     });
 
     it("should show the body of the tab that the user selects", () => {
@@ -351,10 +351,10 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch2*", "checkout/index.js"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "checkout/index.js"]);
       expect(pane.list.row("eslint.config.js:5:7").opens).toBe(true);
       expect(pane.panel.holds("No problems in this file.")).toBe(false);
     });
@@ -363,20 +363,20 @@ describe("ProblemsPane", () => {
       // Arrange
       const { store, pane } = renderPane();
       act(() => store.open({ kind: "file", path: FILE }));
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Act
       pane.panel.tab("checkout/index.js").select();
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "checkout/index.js*"]);
     });
 
     it("should leave the tab of the sketch selected when the file is renamed", () => {
       // Arrange
       const { store, pane } = renderPane();
       act(() => store.open({ kind: "file", path: FILE }));
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Act
       act(() => {
@@ -384,7 +384,7 @@ describe("ProblemsPane", () => {
       });
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch*", "checkout/index.js"]);
+      expect(getTabs(pane)).toEqual(["Project*", "checkout/index.js"]);
     });
 
     it("should go back to the tab of the sketch alone when the file is removed", () => {
@@ -396,7 +396,7 @@ describe("ProblemsPane", () => {
       act(() => store.removeNode(FILE));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch*"]);
+      expect(getTabs(pane)).toEqual(["Project*"]);
     });
   });
 
@@ -409,7 +409,7 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch2", "eslint.config.js2*"]);
+      expect(getTabs(pane)).toEqual(["Project2", "eslint.config.js2*"]);
       expect(pane.list.rowCount).toBe(2);
     });
 
@@ -421,7 +421,7 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch", "eslint.config.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "eslint.config.js*"]);
       expect(pane.list.emptyText).toBe("No problems in the config.");
     });
 
@@ -435,7 +435,7 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch1", "eslint.config.js*"]);
+      expect(getTabs(pane)).toEqual(["Project1", "eslint.config.js*"]);
       expect(pane.list.emptyText).toBe("No problems in the config.");
     });
 
@@ -470,7 +470,7 @@ describe("ProblemsPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch", "eslint.config.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "eslint.config.js*"]);
     });
   });
 
@@ -481,7 +481,7 @@ describe("ProblemsPane", () => {
         const { pane } = renderPane(FULL_QUICK_START);
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2*"]);
+        expect(getTabs(pane)).toEqual(["Project2*"]);
         expect(pane.list.rows.map((row) => row.locationWithPosition)).toEqual([
           `${FORMAT}:1 → ${BUTTON_SOURCE}`,
           `${FILE}:3 → ${BUTTON_SPEC_SOURCE}`,
@@ -518,7 +518,7 @@ describe("ProblemsPane", () => {
         });
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2*"]);
+        expect(getTabs(pane)).toEqual(["Project2*"]);
         expect(pane.list.row("eslint.config.js:5:7").opens).toBe(true);
       });
 
@@ -537,7 +537,7 @@ describe("ProblemsPane", () => {
         expect(pane.list.row(`${FILE}:3`).icon.wrapperStyle.color).toBe(
           "var(--jsb-warn)"
         );
-        expect(pane.panel.tab(/Sketch/).badge.isRendered).toBe(true);
+        expect(pane.panel.tab(/Project/).badge.isRendered).toBe(true);
       });
 
       it("should put the dependency in focus when its row is pressed, and select the tab of the dependency", () => {
@@ -554,7 +554,7 @@ describe("ProblemsPane", () => {
           index: 2,
         });
         expect(getTabs(pane)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -568,8 +568,8 @@ describe("ProblemsPane", () => {
         });
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch*"]);
-        expect(pane.list.emptyText).toBe("No problems in the sketch.");
+        expect(getTabs(pane)).toEqual(["Project*"]);
+        expect(pane.list.emptyText).toBe("No problems in the project.");
       });
     });
 
@@ -582,7 +582,7 @@ describe("ProblemsPane", () => {
         act(() => store.open({ kind: "file", path: FILE }));
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2", "checkout/index.js1*"]);
+        expect(getTabs(pane)).toEqual(["Project2", "checkout/index.js1*"]);
         expect(pane.list.rows.map((row) => row.text)).toEqual([
           `:3 ${BUTTON_SPEC_SOURCE}${TEST_MESSAGE}disallowed · policy 2`,
         ]);
@@ -610,7 +610,7 @@ describe("ProblemsPane", () => {
         act(() => store.open({ kind: "file", path: "src/index.js" }));
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2", "src/index.js*"]);
+        expect(getTabs(pane)).toEqual(["Project2", "src/index.js*"]);
         expect(pane.list.emptyText).toBe("No problems in this file.");
       });
 
@@ -624,7 +624,7 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(getTabs(pane)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -655,7 +655,7 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(getTabs(pane)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -809,7 +809,7 @@ describe("ProblemsPane", () => {
         pane.detail.openPolicy();
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2", "eslint.config.js*"]);
+        expect(getTabs(pane)).toEqual(["Project2", "eslint.config.js*"]);
         expect(pane.notes.map((note) => note.text)).toEqual([
           `No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of ${FILE}.`,
         ]);
@@ -837,7 +837,7 @@ describe("ProblemsPane", () => {
         pane.detail.openPolicy();
 
         // Act
-        pane.panel.tab(/Sketch/).select();
+        pane.panel.tab(/Project/).select();
         const keptWhileSketchShows = store.getState().highlight !== undefined;
         pane.panel.tab("eslint.config.js").select();
         const noteAfterReturn = pane.note.isRendered;
@@ -975,7 +975,7 @@ describe("ProblemsPane", () => {
         expect(bodyHidden).toBe(false);
         expect(pane.detail.isRendered).toBe(true);
         expect(getTabs(pane)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -987,7 +987,7 @@ describe("ProblemsPane", () => {
         focusDependency(store, FILE, 2);
 
         // Act
-        pane.panel.tab(/Sketch/).select();
+        pane.panel.tab(/Project/).select();
 
         // Assert
         expect(pane.list.rowCount).toBe(2);
@@ -997,7 +997,7 @@ describe("ProblemsPane", () => {
           index: 2,
         });
         expect(getTabs(pane)).toEqual([
-          "Sketch2*",
+          "Project2*",
           "checkout/index.js1",
           "line 3",
         ]);
@@ -1012,7 +1012,7 @@ describe("ProblemsPane", () => {
         act(() => store.open({ kind: "file", path: FILE }));
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch2", "checkout/index.js1*"]);
+        expect(getTabs(pane)).toEqual(["Project2", "checkout/index.js1*"]);
       });
 
       it("should move to the next dependency of the file when the one before it is removed", () => {
@@ -1025,7 +1025,7 @@ describe("ProblemsPane", () => {
 
         // Assert
         expect(getTabs(pane)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 2*",
         ]);
@@ -1041,7 +1041,7 @@ describe("ProblemsPane", () => {
         act(() => store.removeDependency({ path: FILE, index: 2 }));
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(getTabs(pane)).toEqual(["Project1", "checkout/index.js*"]);
       });
 
       it("should follow the evaluation of the config", () => {
@@ -1102,7 +1102,7 @@ describe("ProblemsPane", () => {
       pane.panel.toggle.press();
 
       // Act
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Assert
       expect(pane.panel.tabPanel().isRendered).toBe(true);
@@ -1115,10 +1115,10 @@ describe("ProblemsPane", () => {
       pane.panel.toggle.press();
 
       // Act
-      pane.panel.tab(/Sketch/).select();
+      pane.panel.tab(/Project/).select();
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Sketch*", "checkout/index.js"]);
+      expect(getTabs(pane)).toEqual(["Project*", "checkout/index.js"]);
       expect(pane.panel.tabPanel().isRendered).toBe(true);
     });
 
@@ -1132,7 +1132,7 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(pane.panel.tabPanel().isRendered).toBe(false);
-      expect(getTabs(pane)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(pane)).toEqual(["Project", "checkout/index.js*"]);
     });
   });
 });

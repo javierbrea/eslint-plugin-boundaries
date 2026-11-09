@@ -2,4 +2,4 @@
 export const PROJECT_SUMMARY_TEST_ID = "project-summary";
 
 /** The title of the summary. */
-export const PROJECT_SUMMARY_TITLE = "Sketch";
+export const PROJECT_SUMMARY_TITLE = "Project";

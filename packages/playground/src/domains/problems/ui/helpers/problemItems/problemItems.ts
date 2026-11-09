@@ -31,7 +31,7 @@ const TEXT_LOCATION = "Project text";
 const EMPTY_TEXTS: Readonly<
   Record<Exclude<ProblemSubject["kind"], "dependency">, string>
 > = {
-  sketch: "No problems in the sketch.",
+  sketch: "No problems in the project.",
   config: "No problems in the config.",
   file: "No problems in this file.",
 };
@@ -129,12 +129,12 @@ export function getTabLabel(path: string): string {
 /**
  * Names the tab of a subject.
  * @param subject What the tab is about.
- * @returns The text of the tab: `Sketch`, the path of the config, the folder and the name of the file, or `line 3` for a dependency.
+ * @returns The text of the tab: `Project`, the path of the config, the folder and the name of the file, or `line 3` for a dependency.
  */
 function getSubjectLabel(subject: ProblemSubject): string {
   switch (subject.kind) {
     case "sketch":
-      return "Sketch";
+      return "Project";
     case "config":
       return CONFIG_PATH;
     case "file":

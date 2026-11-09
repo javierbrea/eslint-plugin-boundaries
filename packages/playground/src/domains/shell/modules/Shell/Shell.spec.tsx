@@ -471,7 +471,7 @@ describe("Shell", () => {
       // Assert
       const { project } = shell.inspector;
 
-      expect(project.title.text).toBe("Sketch");
+      expect(project.title.text).toBe("Project");
       expect(project.count("files")).toBe("6");
     });
 
@@ -480,8 +480,8 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
-      expect(shell.problems.list.emptyText).toBe("No problems in the sketch.");
+      expect(getTabs(shell)).toEqual(["Project*"]);
+      expect(shell.problems.list.emptyText).toBe("No problems in the project.");
     });
 
     it("should open the config from the button of the empty pane", () => {
@@ -493,7 +493,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.config.editorNamed(CONFIG).isRendered).toBe(true);
-      expect(getTabs(shell)).toEqual(["Sketch", "eslint.config.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "eslint.config.js*"]);
     });
 
     it("should add a file at the root and open it from the button of the empty pane", () => {
@@ -528,7 +528,7 @@ describe("Shell", () => {
 
       expect(item.field.isTextboxNamed("New name of new-file.js")).toBe(true);
       expect(item.field.isFocused).toBe(true);
-      expect(getTabs(shell)).toEqual(["Sketch", "new-file.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "new-file.js*"]);
       expect(item.ariaSelected).toBe("true");
     });
 
@@ -650,7 +650,7 @@ describe("Shell", () => {
       shell.project.click(FILE);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "checkout/index.js*"]);
       expect(shell.problems.list.emptyText).toBe("No problems in this file.");
     });
 
@@ -663,7 +663,7 @@ describe("Shell", () => {
       shell.project.click(OTHER_FILE);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "format/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "format/index.js*"]);
     });
   });
 
@@ -698,7 +698,7 @@ describe("Shell", () => {
       shell.project.click(CONFIG);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "eslint.config.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "eslint.config.js*"]);
       expect(shell.problems.list.emptyText).toBe("No problems in the config.");
     });
 
@@ -763,7 +763,7 @@ describe("Shell", () => {
       expect(getStatus(shell)).toBe(
         "6 files · 0 dependencies · config has errors"
       );
-      expect(getTabs(shell)).toEqual(["Sketch1", "eslint.config.js1*"]);
+      expect(getTabs(shell)).toEqual(["Project1", "eslint.config.js1*"]);
     });
   });
 
@@ -796,7 +796,7 @@ describe("Shell", () => {
       const { shell } = renderShell({ initialSketch: MISTAKES });
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch2*"]);
+      expect(getTabs(shell)).toEqual(["Project2*"]);
       expect(
         getProblemRow(shell, "eslint.config.js:15:16").locationWithPosition
       ).toBe("eslint.config.js:15:16");
@@ -876,7 +876,7 @@ describe("Shell", () => {
       getProblemRow(shell, "eslint.config.js:5:7").press();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch2", "eslint.config.js2*"]);
+      expect(getTabs(shell)).toEqual(["Project2", "eslint.config.js2*"]);
       expect(shell.problems.note.isRendered).toBe(true);
       expect(
         getProblemRow(shell, "eslint.config.js:15:16").locationWithPosition
@@ -887,7 +887,7 @@ describe("Shell", () => {
       // Arrange
       const { shell } = renderShell({ initialSketch: MISTAKES });
       shell.project.click(FILE);
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Act
       getProblemRow(shell, "eslint.config.js:5:7").press();
@@ -906,7 +906,7 @@ describe("Shell", () => {
       shell.node.config.editor.moveCursor(0);
 
       // Act
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
       getProblemRow(shell, "eslint.config.js:15:16").press();
 
       // Assert
@@ -1077,7 +1077,7 @@ describe("Shell", () => {
       text.blur();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch1*"]);
+      expect(getTabs(shell)).toEqual(["Project1*"]);
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
       expect(getProblemItem(shell, "Project text:9").text).toContain(
         "The path cannot have `.` or `..` segments."
@@ -1117,7 +1117,7 @@ describe("Shell", () => {
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
-      expect(getTabs(shell)).toEqual(["Sketch1*"]);
+      expect(getTabs(shell)).toEqual(["Project1*"]);
     });
 
     it("should drop the lines that could not be read when the tree comes back", () => {
@@ -1131,7 +1131,7 @@ describe("Shell", () => {
       shell.project.foot.pressView("Tree");
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
+      expect(getTabs(shell)).toEqual(["Project*"]);
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
 
@@ -1161,7 +1161,7 @@ describe("Shell", () => {
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
+      expect(getTabs(shell)).toEqual(["Project*"]);
     });
 
     it("should keep the dependency in focus on its line when another line is turned into what it says", () => {
@@ -1207,7 +1207,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.head.path).toBe(FILE);
-      expect(getTabs(shell)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "checkout/index.js*"]);
     });
   });
 
@@ -1222,7 +1222,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.head.path).toBe("src/main.js");
-      expect(getTabs(shell)).toEqual(["Sketch", "src/main.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "src/main.js*"]);
     });
 
     it("should follow a folder that holds the file and is renamed", () => {
@@ -1235,7 +1235,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.head.path).toBe("src/features/checkout/index.js");
-      expect(getTabs(shell)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "checkout/index.js*"]);
     });
 
     it("should describe the renamed file in the inspector at once, without lagging behind the rename", () => {
@@ -1273,13 +1273,13 @@ describe("Shell", () => {
       // Arrange
       const { shell } = renderShell();
       shell.project.click(FILE);
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Act
       shell.project.rename("src/modules", "features");
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch*", "checkout/index.js"]);
+      expect(getTabs(shell)).toEqual(["Project*", "checkout/index.js"]);
       expect(shell.node.file.head.path).toBe("src/features/checkout/index.js");
     });
 
@@ -1292,7 +1292,7 @@ describe("Shell", () => {
       shell.project.rename("src/index.js", "main.js");
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "src/main.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "src/main.js*"]);
     });
 
     it("should leave nothing in focus when the file in focus is removed", () => {
@@ -1306,7 +1306,7 @@ describe("Shell", () => {
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
+      expect(getTabs(shell)).toEqual(["Project*"]);
     });
 
     it("should leave nothing in focus when a folder that holds the file in focus is removed", async () => {
@@ -1374,7 +1374,7 @@ describe("Shell", () => {
       shell.project.click(FILE);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch2", "checkout/index.js1*"]);
+      expect(getTabs(shell)).toEqual(["Project2", "checkout/index.js1*"]);
       expect(shell.problems.list.rows.map((row) => row.message)).toEqual([
         'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
       ]);
@@ -1392,7 +1392,7 @@ describe("Shell", () => {
         // Assert
         expect(shell.node.file.lines.line(2).isSelected).toBe(true);
         expect(getTabs(shell)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -1490,7 +1490,7 @@ describe("Shell", () => {
         // Assert
         expect(getStatus(shell)).toBe("6 files · 10 dependencies · 2 problems");
         expect(getTabs(shell)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 5*",
         ]);
@@ -1510,7 +1510,7 @@ describe("Shell", () => {
         );
         expect(getStatus(shell)).toBe("6 files · 10 dependencies · 3 problems");
         expect(getTabs(shell)).toEqual([
-          "Sketch3",
+          "Project3",
           "checkout/index.js2",
           "line 5*",
         ]);
@@ -1561,7 +1561,7 @@ describe("Shell", () => {
           '3import { renderButton } from "lodash";not checked · external'
         );
         expect(getStatus(shell)).toBe("6 files · 9 dependencies · 1 problem");
-        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(getTabs(shell)).toEqual(["Project1", "checkout/index.js*"]);
         expect(shell.project.item(FILE).row.badgeNames).toEqual([]);
       });
     });
@@ -1587,7 +1587,7 @@ describe("Shell", () => {
           )
         ).toEqual([[], [], ["1 failing dependency"]]);
         expect(getStatus(shell)).toBe("6 files · 8 dependencies · 1 problem");
-        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(getTabs(shell)).toEqual(["Project1", "checkout/index.js*"]);
         expect(shell.problems.list.emptyText).toBe("No problems in this file.");
       });
 
@@ -1601,7 +1601,7 @@ describe("Shell", () => {
         shell.node.file.lines.line(2).deleteAction.press();
 
         // Assert
-        expect(getTabs(shell)).toEqual(["Sketch1", "checkout/index.js*"]);
+        expect(getTabs(shell)).toEqual(["Project1", "checkout/index.js*"]);
         expect(shell.node.file.head.path).toBe(FILE);
       });
     });
@@ -1639,7 +1639,7 @@ describe("Shell", () => {
         shell.problems.detail.openPolicy();
 
         // Assert
-        expect(getTabs(shell)).toEqual(["Sketch2", "eslint.config.js*"]);
+        expect(getTabs(shell)).toEqual(["Project2", "eslint.config.js*"]);
         expect(shell.problems.note.text).toBe(
           "No problems in the config. Policy 2 is highlighted, opened from the dependency at line 3 of src/modules/checkout/index.js."
         );
@@ -1780,7 +1780,7 @@ describe("Shell", () => {
 
         // Assert
         expect(getTabs(shell)).toEqual([
-          "Sketch2",
+          "Project2",
           "checkout/index.js1",
           "line 3*",
         ]);
@@ -1847,8 +1847,8 @@ describe("Shell", () => {
       shell.project.item(FILE).deleteAction.press();
 
       // Assert
-      expect(opened).toEqual(["Sketch", "checkout/index.js*"]);
-      expect(getTabs(shell)).toEqual(["Sketch*"]);
+      expect(opened).toEqual(["Project", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project*"]);
     });
 
     it("should show the body of the tab that the user selects", () => {
@@ -1857,10 +1857,10 @@ describe("Shell", () => {
       shell.project.click(FILE);
 
       // Act
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch2*", "checkout/index.js"]);
+      expect(getTabs(shell)).toEqual(["Project2*", "checkout/index.js"]);
       expect(
         getProblemRow(shell, "eslint.config.js:5:7").locationWithPosition
       ).toBe("eslint.config.js:5:7");
@@ -1873,13 +1873,13 @@ describe("Shell", () => {
       // Arrange
       const { shell } = renderShell();
       shell.project.click(FILE);
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Act
       shell.problems.tab("checkout/index.js").select();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "checkout/index.js*"]);
       expect(shell.problems.list.emptyText).toBe("No problems in this file.");
     });
 
@@ -1887,13 +1887,13 @@ describe("Shell", () => {
       // Arrange
       const { shell } = renderShell();
       shell.project.click(FILE);
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Act
       shell.project.click(OTHER_FILE);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "format/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "format/index.js*"]);
     });
 
     it("should switch between the tab of a file and the one of the config", () => {
@@ -1905,7 +1905,7 @@ describe("Shell", () => {
       shell.project.click(CONFIG);
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch", "eslint.config.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "eslint.config.js*"]);
     });
   });
 
@@ -1942,7 +1942,7 @@ describe("Shell", () => {
       shell.problems.toggleNamed("Collapse the problems").press();
 
       // Act
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Assert
       expect(shell.problems.tabPanel.isRendered).toBe(true);
@@ -1955,10 +1955,10 @@ describe("Shell", () => {
       shell.problems.toggleNamed("Collapse the problems").press();
 
       // Act
-      shell.problems.tab(/Sketch/).select();
+      shell.problems.tab(/Project/).select();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Sketch*", "checkout/index.js"]);
+      expect(getTabs(shell)).toEqual(["Project*", "checkout/index.js"]);
       expect(shell.problems.tabPanel.isRendered).toBe(true);
     });
 
@@ -1972,7 +1972,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.problems.tabPanel.isRendered).toBe(false);
-      expect(getTabs(shell)).toEqual(["Sketch", "checkout/index.js*"]);
+      expect(getTabs(shell)).toEqual(["Project", "checkout/index.js*"]);
     });
   });
 
@@ -2091,10 +2091,12 @@ describe("Shell", () => {
 
       // Assert
       expect(first.problems.tabs.map(({ text }) => text)).toEqual([
-        "Sketch",
+        "Project",
         "checkout/index.js",
       ]);
-      expect(second.problems.tabs.map(({ text }) => text)).toEqual(["Sketch2"]);
+      expect(second.problems.tabs.map(({ text }) => text)).toEqual([
+        "Project2",
+      ]);
       expect(second.node.shown).toBe("empty");
       expect(second.node.empty.title).toBe("Open a file or the config");
     });

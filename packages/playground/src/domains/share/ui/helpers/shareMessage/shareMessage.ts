@@ -25,8 +25,8 @@ const MESSAGES: Readonly<
 
 /** How the message of a sketch that is not shared starts, for each kind of refusal. It is followed by a colon and the reason, as the message of a sketch that could not be loaded is. */
 const REFUSAL_LEADS: Readonly<Record<ShareRefusal["kind"], string>> = {
-  "too-large": "The sketch is too large for a link",
-  invalid: "The sketch cannot be shared",
+  "too-large": "The project is too large for a link",
+  invalid: "The project cannot be shared",
 };
 
 /**

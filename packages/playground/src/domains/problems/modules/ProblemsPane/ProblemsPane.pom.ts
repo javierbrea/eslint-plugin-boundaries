@@ -33,7 +33,7 @@ export class ProblemsPanePom extends Pom {
 
   /**
    * Gets a tab of the panel by its accessible name.
-   * @param accessibleName The accessible name of the tab, such as `Sketch 2 problems`, or a pattern.
+   * @param accessibleName The accessible name of the tab, such as `Project 2 problems`, or a pattern.
    * @returns The page object of the tab.
    */
   tab(accessibleName: string | RegExp): ProblemsTabPom {

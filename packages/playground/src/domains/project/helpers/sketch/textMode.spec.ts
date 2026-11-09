@@ -690,11 +690,11 @@ describe("TextMode", () => {
         expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
           {
             line: 2,
-            reason: '"./b.js" does not resolve to a file of the sketch.',
+            reason: '"./b.js" does not resolve to a file of the project.',
           },
           {
             line: 3,
-            reason: '"./b.jsx" does not resolve to a file of the sketch.',
+            reason: '"./b.jsx" does not resolve to a file of the project.',
           },
         ]);
       });
@@ -782,9 +782,9 @@ describe("TextMode", () => {
         expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
           {
             line: 2,
-            reason: '"./b/" does not resolve to a file of the sketch.',
+            reason: '"./b/" does not resolve to a file of the project.',
           },
-          { line: 4, reason: '"." does not resolve to a file of the sketch.' },
+          { line: 4, reason: '"." does not resolve to a file of the project.' },
         ]);
         expect(sketch.dependencies.map(({ target }) => target)).toEqual([
           { kind: "node", path: "src.js" },
@@ -812,16 +812,19 @@ describe("TextMode", () => {
         expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
           {
             line: 2,
-            reason: '"../../b" does not resolve to a file of the sketch.',
+            reason: '"../../b" does not resolve to a file of the project.',
           },
           {
             line: 3,
-            reason: '"../.." does not resolve to a file of the sketch.',
+            reason: '"../.." does not resolve to a file of the project.',
           },
-          { line: 7, reason: '".." does not resolve to a file of the sketch.' },
+          {
+            line: 7,
+            reason: '".." does not resolve to a file of the project.',
+          },
           {
             line: 8,
-            reason: '"../b" does not resolve to a file of the sketch.',
+            reason: '"../b" does not resolve to a file of the project.',
           },
         ]);
       });
@@ -1159,15 +1162,15 @@ describe("TextMode", () => {
       expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
         {
           line: 2,
-          reason: '"./missing" does not resolve to a file of the sketch.',
+          reason: '"./missing" does not resolve to a file of the project.',
         },
         {
           line: 3,
-          reason: '"../../above" does not resolve to a file of the sketch.',
+          reason: '"../../above" does not resolve to a file of the project.',
         },
         {
           line: 4,
-          reason: '"./pages" does not resolve to a file of the sketch.',
+          reason: '"./pages" does not resolve to a file of the project.',
         },
       ]);
     });
@@ -1220,7 +1223,7 @@ describe("TextMode", () => {
         {
           line: 4,
           reason:
-            '".react" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+            '".react" is not a module name: names do not start with "." or "/". Point to a file of the project instead.',
         },
         { line: 5, reason: 'An import of "default" needs an alias.' },
         { line: 6, reason: 'The name "a" is used twice in the statement.' },
@@ -1413,7 +1416,7 @@ describe("TextMode", () => {
         {
           line: 2,
           text: '  import "../ c.js";',
-          reason: '"../ c.js" does not resolve to a file of the sketch.',
+          reason: '"../ c.js" does not resolve to a file of the project.',
         },
         {
           line: 3,
@@ -1603,7 +1606,7 @@ describe("TextMode", () => {
         ]);
         expect(problems.map(({ line }) => line)).toEqual([2, 4]);
         expect(problems[0].reason).toBe(
-          '"./missing.js" does not resolve to a file of the sketch.'
+          '"./missing.js" does not resolve to a file of the project.'
         );
       });
 
@@ -1874,7 +1877,7 @@ describe("TextMode", () => {
         {
           line: 4,
           text: '  import "./d";',
-          reason: '"./d" does not resolve to a file of the sketch.',
+          reason: '"./d" does not resolve to a file of the project.',
         },
       ]);
       expect(problems).toEqual(fromText(text, SKETCH).problems);

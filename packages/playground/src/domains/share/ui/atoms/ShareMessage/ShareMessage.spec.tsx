@@ -140,7 +140,7 @@ describe("ShareMessage", () => {
       // Arrange
       const message = renderMessage({
         kind: "too-large",
-        reason: "The sketch has more than 1000 files and folders.",
+        reason: "The project has more than 1000 files and folders.",
       });
 
       // Act
@@ -148,7 +148,7 @@ describe("ShareMessage", () => {
 
       // Assert
       expect(text).toBe(
-        "The sketch is too large for a link: The sketch has more than 1000 files and folders."
+        "The project is too large for a link: The project has more than 1000 files and folders."
       );
       expect(color).toBe(
         "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
@@ -160,7 +160,7 @@ describe("ShareMessage", () => {
       // Arrange
       const message = renderMessage({
         kind: "invalid",
-        reason: "Dependency 1 cannot be in the sketch.",
+        reason: "Dependency 1 cannot be in the project.",
       });
 
       // Act
@@ -168,7 +168,7 @@ describe("ShareMessage", () => {
 
       // Assert
       expect(text).toBe(
-        "The sketch cannot be shared: Dependency 1 cannot be in the sketch."
+        "The project cannot be shared: Dependency 1 cannot be in the project."
       );
     });
   });
@@ -205,7 +205,7 @@ describe("ShareMessage", () => {
       // Arrange
       const message = renderMessage({
         kind: "too-large",
-        reason: "The sketch has more than 1000 files and folders.",
+        reason: "The project has more than 1000 files and folders.",
       });
 
       // Act
@@ -213,7 +213,7 @@ describe("ShareMessage", () => {
 
       // Assert
       expect(title).toBe(
-        "The sketch is too large for a link: The sketch has more than 1000 files and folders."
+        "The project is too large for a link: The project has more than 1000 files and folders."
       );
       expect(text).toBe(title);
     });

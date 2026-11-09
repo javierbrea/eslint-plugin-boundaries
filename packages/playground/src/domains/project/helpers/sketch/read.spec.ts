@@ -118,7 +118,7 @@ function reverseOrders(value: unknown): unknown {
 }
 
 const NOT_A_SKETCH =
-  'The data is not a sketch: it must be an object with "config", "tree" and "dependencies".';
+  'The data is not a project: it must be an object with "config", "tree" and "dependencies".';
 
 /** Every syntax and every kind of name, with names that look like keywords of the syntax, in the order text mode reads back */
 const KITCHEN_SINK: unknown = {
@@ -619,39 +619,39 @@ describe("readSketch", () => {
       [
         "a key it does not know",
         createValue({ extra: 1 }),
-        'The sketch has the unknown key "extra".',
+        'The project has the unknown key "extra".',
       ],
       [
         "the key __proto__, which JSON.parse creates as an own key",
         JSON.parse(
           '{"config":"","tree":[],"dependencies":[],"__proto__":{}}'
         ) as unknown,
-        'The sketch has the unknown key "__proto__".',
+        'The project has the unknown key "__proto__".',
       ],
       [
         "no config",
         { tree: [], dependencies: [] },
-        'The sketch needs "config" to be text.',
+        'The project needs "config" to be text.',
       ],
       [
         "a config that is not text",
         createValue({ config: {} }),
-        'The sketch needs "config" to be text.',
+        'The project needs "config" to be text.',
       ],
       [
         "a tree that is not a list",
         createValue({ tree: {} }),
-        'The sketch needs "tree" to be a list.',
+        'The project needs "tree" to be a list.',
       ],
       [
         "no dependencies",
         { config: "", tree: [] },
-        'The sketch needs "dependencies" to be a list.',
+        'The project needs "dependencies" to be a list.',
       ],
       [
         "dependencies that are not a list",
         createValue({ dependencies: "none" }),
-        'The sketch needs "dependencies" to be a list.',
+        'The project needs "dependencies" to be a list.',
       ],
     ])("should refuse a sketch with %s", (_name, value, expected) => {
       // Act
@@ -1075,7 +1075,7 @@ describe("readSketch", () => {
       const error = getError(value);
 
       // Assert
-      expect(error).toBe("The sketch has more than 1000 files and folders.");
+      expect(error).toBe("The project has more than 1000 files and folders.");
     });
 
     it("should count the folders that the tree declares as well as the files", () => {
@@ -1088,7 +1088,7 @@ describe("readSketch", () => {
       const error = getError(value);
 
       // Assert
-      expect(error).toBe("The sketch has more than 1000 files and folders.");
+      expect(error).toBe("The project has more than 1000 files and folders.");
     });
 
     it("should accept the most dependencies it accepts", () => {
@@ -1110,7 +1110,7 @@ describe("readSketch", () => {
       const error = getError(value);
 
       // Assert
-      expect(error).toBe("The sketch has more than 3000 dependencies.");
+      expect(error).toBe("The project has more than 3000 dependencies.");
     });
 
     it("should say that a sketch with too many files and folders is refused for its size", () => {
@@ -1122,7 +1122,7 @@ describe("readSketch", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        error: "The sketch has more than 1000 files and folders.",
+        error: "The project has more than 1000 files and folders.",
         tooLarge: true,
       });
     });
@@ -1136,7 +1136,7 @@ describe("readSketch", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        error: "The sketch has more than 3000 dependencies.",
+        error: "The project has more than 3000 dependencies.",
         tooLarge: true,
       });
     });
@@ -1170,7 +1170,7 @@ describe("readSketch", () => {
       const error = getError(value);
 
       // Assert
-      expect(error).toBe("The sketch has more than 1000 files and folders.");
+      expect(error).toBe("The project has more than 1000 files and folders.");
     });
   });
 
@@ -1256,17 +1256,17 @@ describe("readSketch", () => {
       [
         "is of a file that is not in the tree",
         createDependency({ from: "src/missing.js" }),
-        '"src/missing.js" is not a file of the sketch.',
+        '"src/missing.js" is not a file of the project.',
       ],
       [
         "is of a folder",
         createDependency({ from: "src" }),
-        '"src" is not a file of the sketch.',
+        '"src" is not a file of the project.',
       ],
       [
         "points to a file that is not in the tree",
         createDependency({ target: { kind: "node", path: "src/missing.js" } }),
-        '"src/missing.js" is not a file of the sketch.',
+        '"src/missing.js" is not a file of the project.',
       ],
       [
         "points to its own file",
@@ -1276,7 +1276,7 @@ describe("readSketch", () => {
       [
         "points to a module with a name that starts with a dot",
         createDependency({ target: { kind: "external", name: "./b" } }),
-        '"./b" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+        '"./b" is not a module name: names do not start with "." or "/". Point to a file of the project instead.',
       ],
       [
         "points to a module with a space in its name",
@@ -1319,7 +1319,7 @@ describe("readSketch", () => {
       const error = getError(value);
 
       // Assert
-      expect(error).toBe(`Dependency 1 cannot be in the sketch. ${reason}`);
+      expect(error).toBe(`Dependency 1 cannot be in the project. ${reason}`);
     });
 
     it("should refuse a name that another statement of the same file already imports, and name the later statement", () => {
@@ -1336,7 +1336,7 @@ describe("readSketch", () => {
 
       // Assert
       expect(error).toBe(
-        'Dependency 2 cannot be in the sketch. The name "b" is already imported by another statement of the file.'
+        'Dependency 2 cannot be in the project. The name "b" is already imported by another statement of the file.'
       );
     });
 
@@ -1359,7 +1359,7 @@ describe("readSketch", () => {
 
       // Assert
       expect(error).toBe(
-        'Dependency 3 cannot be in the sketch. The name "b" is already imported by another statement of the file.'
+        'Dependency 3 cannot be in the project. The name "b" is already imported by another statement of the file.'
       );
     });
 
@@ -1380,7 +1380,7 @@ describe("readSketch", () => {
 
       // Assert
       expect(error).toBe(
-        'Dependency 2 cannot be in the sketch. The name "b" is already exported by another statement of the file.'
+        'Dependency 2 cannot be in the project. The name "b" is already exported by another statement of the file.'
       );
     });
 

@@ -45,10 +45,10 @@ describe("ReplaceSketchDialog", () => {
 
       // Act
       const { title } = dialog.dialog;
-      const isNamedDialog = dialog.dialog.isDialogNamed("Reset the sketch?");
+      const isNamedDialog = dialog.dialog.isDialogNamed("Reset the project?");
 
       // Assert
-      expect(title).toBe("Reset the sketch?");
+      expect(title).toBe("Reset the project?");
       expect(isNamedDialog).toBe(true);
     });
 
@@ -60,7 +60,7 @@ describe("ReplaceSketchDialog", () => {
       const { text, buttonTexts } = dialog.dialog;
 
       // Assert
-      expect(text).toBe("Your changes to the sketch are lost.");
+      expect(text).toBe("Your changes to the project are lost.");
       expect(buttonTexts).toEqual(["Cancel", "Reset"]);
     });
   });
@@ -89,7 +89,7 @@ describe("ReplaceSketchDialog", () => {
       const { text, buttonTexts } = dialog.dialog;
 
       // Assert
-      expect(text).toBe("Your changes to the sketch are lost.");
+      expect(text).toBe("Your changes to the project are lost.");
       expect(buttonTexts).toEqual(["Cancel", "Open example"]);
     });
   });

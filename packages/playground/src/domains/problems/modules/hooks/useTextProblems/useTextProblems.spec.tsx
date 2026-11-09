@@ -58,7 +58,7 @@ describe("useTextProblems", () => {
       {
         line: 2,
         text: UNREADABLE_LINE,
-        reason: '"./b" does not resolve to a file of the sketch.',
+        reason: '"./b" does not resolve to a file of the project.',
       },
     ]);
   });

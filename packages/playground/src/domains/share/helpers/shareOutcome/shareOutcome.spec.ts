@@ -127,7 +127,7 @@ describe("ShareOutcome", () => {
       // Assert
       expect(refusal).toEqual({
         kind: "too-large",
-        reason: "The sketch has more than 1000 files and folders.",
+        reason: "The project has more than 1000 files and folders.",
       });
     });
 
@@ -145,7 +145,7 @@ describe("ShareOutcome", () => {
       // Assert
       expect(refusal).toEqual({
         kind: "too-large",
-        reason: "The sketch has more than 1000 files and folders.",
+        reason: "The project has more than 1000 files and folders.",
       });
     });
 
@@ -162,7 +162,7 @@ describe("ShareOutcome", () => {
       // Assert
       expect(refusal).toEqual({
         kind: "too-large",
-        reason: "The sketch has more than 3000 dependencies.",
+        reason: "The project has more than 3000 dependencies.",
       });
     });
 
@@ -188,7 +188,7 @@ describe("ShareOutcome", () => {
       expect(refusal).toEqual({
         kind: "too-large",
         reason:
-          "The sketch in the link is larger than 4 MiB, which the playground does not load.",
+          "The project in the link is larger than 4 MiB, which the playground does not load.",
       });
     });
 
@@ -234,7 +234,7 @@ describe("ShareOutcome", () => {
       expect(refusal).toStrictEqual({
         kind: "invalid",
         reason:
-          'Dependency 1 cannot be in the sketch. "src/missing.js" is not a file of the sketch.',
+          'Dependency 1 cannot be in the project. "src/missing.js" is not a file of the project.',
       });
     });
   });

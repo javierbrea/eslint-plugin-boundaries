@@ -272,7 +272,7 @@ describe("Playground", () => {
       await playground.waitForStatus("2 files ·");
 
       // Assert
-      expect(loadingText).toBe("Loading the sketch…");
+      expect(loadingText).toBe("Loading the project…");
       expect(loadState.isRendered).toBe(false);
     });
 
@@ -305,7 +305,7 @@ describe("Playground", () => {
       });
 
       // Assert
-      expect(loadingText).toBe("Loading the sketch…");
+      expect(loadingText).toBe("Loading the project…");
       expect(previousSketchShown).toBe(false);
       await expect(
         playground.waitForStatus("2 files ·")
@@ -336,9 +336,9 @@ describe("Playground", () => {
       const loadingText = playground.loadState.text;
 
       // Assert
-      expect(failureBefore).toBe("The sketch could not be loaded: offline");
+      expect(failureBefore).toBe("The project could not be loaded: offline");
       expect(playground.holds(/could not be loaded/)).toBe(false);
-      expect(loadingText).toBe("Loading the sketch…");
+      expect(loadingText).toBe("Loading the project…");
     });
 
     it("should show why the sketch could not be loaded when the store fails", async () => {
@@ -355,7 +355,7 @@ describe("Playground", () => {
 
       // Assert
       expect(playground.loadState.text).toBe(
-        "The sketch could not be loaded: disk read failed"
+        "The project could not be loaded: disk read failed"
       );
     });
 
@@ -376,7 +376,7 @@ describe("Playground", () => {
 
       // Assert
       expect(playground.loadState.text).toBe(
-        "The sketch could not be loaded: offline"
+        "The project could not be loaded: offline"
       );
     });
   });
@@ -590,7 +590,7 @@ describe("Playground", () => {
       const loadingText = playground.loadState.text;
 
       // Assert
-      expect(loadingText).toBe("Loading the sketch…");
+      expect(loadingText).toBe("Loading the project…");
       await expect(
         playground.waitForStatus("1 file ·")
       ).resolves.toBeUndefined();
@@ -787,7 +787,7 @@ describe("Playground", () => {
       expect(shownBefore).toBe("file");
       expect(playground.shell.node.shown).toBe("empty");
       expect(playground.shell.problems.tabs).toHaveLength(1);
-      expect(playground.shell.problems.tabs[0].text).toMatch(/^Sketch/);
+      expect(playground.shell.problems.tabs[0].text).toMatch(/^Project/);
       expect(playground.shell.problems.tabs[0].isSelected).toBe(true);
     });
 
@@ -833,7 +833,7 @@ describe("Playground", () => {
 
       // Assert
       expect(failure).toBe(
-        "The sketch could not be loaded: The link is damaged"
+        "The project could not be loaded: The link is damaged"
       );
     });
 
@@ -905,11 +905,11 @@ describe("Playground", () => {
 
       // Act
       playground.topBar.actions.pressReset();
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       // Assert
-      expect(dialog.title).toBe("Reset the sketch?");
-      expect(dialog.text).toBe("Your changes to the sketch are lost.");
+      expect(dialog.title).toBe("Reset the project?");
+      expect(dialog.text).toBe("Your changes to the project are lost.");
       expect(dialog.buttonTexts).toEqual(["Cancel", "Reset"]);
       expect(clear).not.toHaveBeenCalled();
       expect(playground.statusText).toMatch(/^1 file ·/);
@@ -927,7 +927,7 @@ describe("Playground", () => {
       playground.project.item("src/index.ts").deleteAction.press();
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       // Act
       dialog.button("Cancel").press();
@@ -951,7 +951,7 @@ describe("Playground", () => {
       playground.project.click("src/components/Price/index.ts");
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       // Act
       dialog.button("Reset").press();
@@ -977,7 +977,7 @@ describe("Playground", () => {
       playground.project.item("src/index.ts").deleteAction.press();
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       // Act
       dialog.button("Reset").press();
@@ -1008,7 +1008,7 @@ describe("Playground", () => {
       playground.project.item("src/index.ts").deleteAction.press();
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       await store.save(SAVED_SKETCH);
 
@@ -1068,7 +1068,7 @@ describe("Playground", () => {
       });
 
       // Assert
-      expect(loadingText).toBe("Loading the sketch…");
+      expect(loadingText).toBe("Loading the project…");
       await expect(
         playground.waitForStatus("1 file ·")
       ).resolves.toBeUndefined();
@@ -1090,7 +1090,7 @@ describe("Playground", () => {
 
       // Assert
       expect(playground.loadState.text).toBe(
-        "The sketch could not be loaded: offline"
+        "The project could not be loaded: offline"
       );
       expect(playground.loadState.hasResetButton).toBe(true);
     });
@@ -1234,7 +1234,7 @@ describe("Playground", () => {
 
       // Assert
       expect(dialog.title).toBe("Open the Policies example?");
-      expect(dialog.text).toBe("Your changes to the sketch are lost.");
+      expect(dialog.text).toBe("Your changes to the project are lost.");
       expect(dialog.buttonTexts).toEqual(["Cancel", "Open example"]);
       expect(save).not.toHaveBeenCalled();
       expect(playground.statusText).toMatch(/^1 file ·/);
@@ -1628,7 +1628,7 @@ describe("Playground", () => {
       playground.topBar.actions.focusReset();
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       // Act
       dialog.button("Reset").press();
@@ -1763,12 +1763,12 @@ describe("Playground", () => {
 
       playground.topBar.actions.pressReset();
 
-      const first = await playground.waitForDialog("Reset the sketch?");
+      const first = await playground.waitForDialog("Reset the project?");
 
       first.button("Cancel").press();
       await first.waitUntilGone();
       playground.topBar.actions.pressReset();
-      await playground.waitForDialog("Reset the sketch?");
+      await playground.waitForDialog("Reset the project?");
 
       // Assert
       expect(loadsBefore).toBe(1);
@@ -1788,7 +1788,7 @@ describe("Playground", () => {
 
       // Assert
       await expect(
-        playground.waitForDialog("Reset the sketch?")
+        playground.waitForDialog("Reset the project?")
       ).resolves.toBeDefined();
     });
 
@@ -1803,7 +1803,7 @@ describe("Playground", () => {
       playground.project.item("src/index.ts").deleteAction.press();
       playground.topBar.actions.pressReset();
 
-      const dialog = await playground.waitForDialog("Reset the sketch?");
+      const dialog = await playground.waitForDialog("Reset the project?");
 
       await store.save(SAVED_SKETCH);
 
@@ -1910,7 +1910,7 @@ describe("Playground", () => {
       expect(store.shared).toEqual([]);
       expect(writeText).not.toHaveBeenCalled();
       expect(playground.topBar.actions.message.text).toBe(
-        'The sketch cannot be shared: Dependency 1 cannot be in the sketch. The default name "default" cannot have an alias.'
+        'The project cannot be shared: Dependency 1 cannot be in the project. The default name "default" cannot have an alias.'
       );
     });
   });
@@ -2018,7 +2018,7 @@ describe("Playground", () => {
 
       // Assert
       expect(failure).toContain(
-        'The sketch could not be loaded: The link has the format version "2", which this playground does not know.'
+        'The project could not be loaded: The link has the format version "2", which this playground does not know.'
       );
       expect(window.location.hash).toBe("");
       expect(window.location.pathname).toBe(PAGE);
@@ -2045,7 +2045,7 @@ describe("Playground", () => {
       // Assert
       expect(window.location.hash.length).toBeLessThan(300);
       expect(playground.loadState.text).toBe(
-        `The sketch could not be loaded: "${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
+        `The project could not be loaded: "${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
       );
 
       playground.loadState.pressReset();
