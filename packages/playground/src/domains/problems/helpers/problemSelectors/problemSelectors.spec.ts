@@ -3,9 +3,10 @@ import type {
   ConfigToken,
   DependencyResult,
   DependencyVerdict,
-  FileDescription,
+  EntityDescription,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
+import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Focus, ProblemsTabId } from "@/domains/session/helpers/focus";
 
@@ -56,7 +57,7 @@ const UNREADABLE_LINE = "  import { a } from './b'";
 const TEXT_PROBLEM: TextProblem = {
   line: 2,
   text: UNREADABLE_LINE,
-  reason: '"./b" does not resolve to a file of the sketch.',
+  reason: '"./b" does not resolve to a file of the project.',
 };
 
 const NO_FOCUS: Focus = { kind: "none" };
@@ -125,6 +126,7 @@ function result(
     },
     ref: { path, index },
     source: "./x",
+    description: undefined,
     verdict,
   };
 }
@@ -1153,15 +1155,14 @@ describe("problemSelectors", () => {
         level: "error",
       });
       const FOCUS: Focus = { kind: "dependency", path: CHECKOUT, index: 2 };
-      const DESCRIPTION: FileDescription = {
+      const DESCRIPTION: EntityDescription = createEntityDescription({
         element: {
           types: ["component"],
           path: "src/components",
-          captured: null,
+          isUnknown: false,
         },
-        file: { categories: ["test"] },
-        module: { origin: "local" },
-      };
+        file: { categories: ["test"], isUnknown: false },
+      });
 
       /**
        * Gets the facts of the body of the dependency tab.

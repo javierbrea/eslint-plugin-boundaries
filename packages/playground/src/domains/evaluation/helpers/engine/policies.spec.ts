@@ -64,6 +64,7 @@ function resultOf(verdict: DependencyVerdict): DependencyResult {
     dependency: DEPENDENCY,
     ref: { path: DEPENDENCY.from, index: 0 },
     source: "./b",
+    description: undefined,
     verdict,
   };
 }

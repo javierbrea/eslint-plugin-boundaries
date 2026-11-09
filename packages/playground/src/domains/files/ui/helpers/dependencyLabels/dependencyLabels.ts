@@ -1,5 +1,5 @@
 import type { SketchSpecifier } from "@/contract";
-import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
 
 import {
   NO_ELEMENT_LABEL,
@@ -13,7 +13,7 @@ import type { ChipParts } from "./dependencyLabels.types";
  * @returns The types, or `no element` when no element descriptor matches the file.
  */
 export function getFileOptionLabel(
-  description: FileDescription | undefined
+  description: EntityDescription | undefined
 ): string {
   const types = description?.element.types ?? [];
 

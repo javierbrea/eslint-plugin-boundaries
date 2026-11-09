@@ -5,7 +5,7 @@ import type {
   DependencyVerdict,
   DisallowedVerdict,
   Evaluation,
-  FileDescription,
+  EntityDescription,
   NotEvaluatedReason,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
@@ -143,7 +143,7 @@ export type DependencyDetailFacts = {
   /** The dependency with its verdict. */
   readonly result: DependencyResult;
   /** How the plugin describes the file that the dependency points to; `undefined` for an external module. */
-  readonly description: FileDescription | undefined;
+  readonly description: EntityDescription | undefined;
   /** The policy that decided it; `undefined` when none did, such as for a dependency that is not checked. */
   readonly policy: PolicyFacts | undefined;
 };

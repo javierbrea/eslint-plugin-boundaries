@@ -2,9 +2,10 @@ import type { SketchDependency } from "@/contract";
 import type {
   ConfigToken,
   DependencyVerdict,
-  FileDescription,
+  EntityDescription,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
+import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 import type { DependencyDetailFacts } from "@/domains/problems/helpers/problemSelectors";
 
 import { toDependencyDetail } from "./dependencyDetail";
@@ -25,15 +26,14 @@ const DEPENDENCY: SketchDependency = {
   specifiers: [{ kind: "named", name: "renderButton" }],
 };
 
-const DESCRIPTION: FileDescription = {
+const DESCRIPTION: EntityDescription = createEntityDescription({
   element: {
     types: ["component"],
     path: "src/components/atoms/Button",
-    captured: null,
+    isUnknown: false,
   },
-  file: { categories: ["test"] },
-  module: { origin: "local" },
-};
+  file: { categories: ["test"], isUnknown: false },
+});
 
 const DISALLOWED: DependencyVerdict = {
   status: "disallowed",
@@ -82,6 +82,7 @@ function createFacts(
       dependency,
       ref: { path: CHECKOUT, index: 2 },
       source: "../../components/atoms/Button/Button.spec.js",
+      description: undefined,
       verdict,
     },
     description: DESCRIPTION,
@@ -295,7 +296,7 @@ describe("dependencyDetail", () => {
             description: {
               ...DESCRIPTION,
               element: { ...DESCRIPTION.element, types: ["component", "atom"] },
-              file: { categories: ["test", "style"] },
+              file: { ...DESCRIPTION.file, categories: ["test", "style"] },
             },
           })
         );
@@ -311,8 +312,8 @@ describe("dependencyDetail", () => {
       it.each<
         [
           string,
-          FileDescription["element"]["types"],
-          FileDescription["file"]["categories"],
+          EntityDescription["element"]["types"],
+          EntityDescription["file"]["categories"],
         ]
       >([
         ["null", null, null],
@@ -326,7 +327,7 @@ describe("dependencyDetail", () => {
               description: {
                 ...DESCRIPTION,
                 element: { ...DESCRIPTION.element, types },
-                file: { categories },
+                file: { ...DESCRIPTION.file, categories },
               },
             })
           );

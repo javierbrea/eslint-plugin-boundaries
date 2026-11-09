@@ -1,5 +1,5 @@
 import type { Sketch, SketchDependency } from "@/contract";
-import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
 
 /** Props of {@link DependencyPicker}. */
 export type DependencyPickerProps = {
@@ -12,7 +12,7 @@ export type DependencyPickerProps = {
   /** The other dependencies of the file, which the draft is checked against while the dialog is open: the names it imports or exports must not be the ones of another statement. When a dependency is being edited, it is not among them, so that it can keep its own names */
   readonly dependencies: readonly SketchDependency[];
   /** The description of each file, by path, for the element types the options show */
-  readonly descriptions: ReadonlyMap<string, FileDescription>;
+  readonly descriptions: ReadonlyMap<string, EntityDescription>;
   /** The dependency being edited, or `undefined` to add one */
   readonly initial?: SketchDependency;
   /** Called when the user gives up: the cancel button, Escape, or a click outside the dialog */

@@ -1,6 +1,5 @@
 // cspell:ignore patern dissallow -- deliberate typos, the mistakes of the config that the tests evaluate
 import { normalizeConfig } from "@boundaries/config";
-import type { EntityDescription } from "@boundaries/elements";
 import { describeEntity } from "@boundaries/policies";
 
 import type { Sketch, SketchDependency, SketchNode } from "@/contract";
@@ -8,10 +7,10 @@ import type { Sketch, SketchDependency, SketchNode } from "@/contract";
 import type {
   DependencyResult,
   Engine,
-  FileDescription,
   PolicyRef,
   TextRange,
 } from "./engine.types";
+import { omitDeprecated } from "./entityDescription.mock";
 import { createEngine } from "./evaluate";
 import { QUICK_START_DESCRIPTIONS } from "./quickStartDescriptions.mock";
 
@@ -318,30 +317,6 @@ function policyOf({ verdict }: DependencyResult): PolicyRef | undefined {
     : undefined;
 }
 
-/**
- * Picks what the engine keeps of a description of the plugin: the properties that the plugin's debug output is compared by.
- * @param description The description of a file, as `describeEntity` or the plugin gives it.
- * @param description.element The element of the file.
- * @param description.file The file itself.
- * @param description.module The module of the file.
- * @returns Its element types, element path, captured values, file categories and module origin, in the facets of the plugin.
- */
-function pickDescribed({
-  element,
-  file,
-  module: moduleDescription,
-}: EntityDescription): FileDescription {
-  return {
-    element: {
-      types: element.types,
-      path: element.path,
-      captured: element.captured,
-    },
-    file: { categories: file.categories },
-    module: { origin: moduleDescription.origin },
-  };
-}
-
 describe("Evaluate", () => {
   describe("createEngine", () => {
     it("should not share the evaluation of a sketch between engines", () => {
@@ -434,7 +409,7 @@ describe("Evaluate", () => {
           // Assert
           expect(description).toBeDefined();
           expect(description).toEqual(
-            pickDescribed(QUICK_START_DESCRIPTIONS[path])
+            omitDeprecated(QUICK_START_DESCRIPTIONS[path])
           );
         }
       );
@@ -455,7 +430,7 @@ describe("Evaluate", () => {
           new Map(
             QUICK_START_FILES.map((path) => [
               path,
-              pickDescribed(describeEntity(settings, `/project/${path}`)),
+              omitDeprecated(describeEntity(settings, `/project/${path}`)),
             ])
           )
         );
@@ -486,7 +461,7 @@ describe("Evaluate", () => {
           // Assert
           expect(QUICK_START_FILES.map((path) => files.get(path))).toEqual(
             QUICK_START_FILES.map((path) =>
-              pickDescribed(QUICK_START_DESCRIPTIONS[path])
+              omitDeprecated(QUICK_START_DESCRIPTIONS[path])
             )
           );
         }
@@ -517,7 +492,7 @@ describe("Evaluate", () => {
         // Assert
         expect(QUICK_START_FILES.map((path) => files.get(path))).toEqual(
           QUICK_START_FILES.map((path) =>
-            pickDescribed(describeEntity(settings, `/project/${path}`))
+            omitDeprecated(describeEntity(settings, `/project/${path}`))
           )
         );
         expect(files.get("src/index.js")!.module.origin).toBe("local");
@@ -1253,6 +1228,498 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("with the description of the dependencies", () => {
+      /** `import { renderButton } from "../../components/atoms/Button/Button.spec.js";`, in the checkout module */
+      const SPEC_IMPORT: SketchDependency = {
+        ...importOf(CHECKOUT, BUTTON_SPEC),
+        specifiers: [{ kind: "named", name: "renderButton" }],
+      };
+
+      /** An import with no names of the package `react`, in the checkout module */
+      const REACT_IMPORT: SketchDependency = {
+        ...importOf(CHECKOUT, BUTTON),
+        target: { kind: "external", name: "react" },
+      };
+
+      /** What the plugin describes of the index of the button when the settings of the quick start describe it */
+      const BUTTON_AS_COMPONENT = {
+        element: {
+          types: ["component"],
+          path: "src/components/atoms/Button",
+          fileInternalPath: "index.js",
+          captured: null,
+          parents: [],
+          isIgnored: false,
+          isUnknown: false,
+        },
+        file: {
+          categories: null,
+          path: BUTTON,
+          captured: null,
+          isIgnored: false,
+          isUnknown: true,
+        },
+        module: { origin: "local", source: null, internalPath: null },
+      };
+
+      /** What the plugin describes of it when no descriptor gives it an element: a file that is only a local file */
+      const BUTTON_AS_UNKNOWN = {
+        element: {
+          types: null,
+          path: null,
+          fileInternalPath: null,
+          captured: null,
+          parents: [],
+          isIgnored: false,
+          isUnknown: true,
+        },
+        file: {
+          categories: null,
+          path: BUTTON,
+          captured: null,
+          isIgnored: false,
+          isUnknown: true,
+        },
+        module: { origin: "local", source: null, internalPath: null },
+      };
+
+      /** The `dependency` of the description of the import of the button by the checkout module, which no element relates to */
+      const IMPORT_OF_BUTTON = {
+        kind: "value",
+        nodeKind: "import",
+        source: "../../components/atoms/Button/index.js",
+        specifiers: [],
+        relationship: { from: null, to: null },
+      };
+
+      it("should describe what a dependency on a file points to, and the dependency, as the plugin does", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+          SPEC_IMPORT,
+        ]);
+
+        // Act
+        const [{ description }] = evaluate(sketch).dependencies;
+
+        // Assert
+        expect(description).toEqual({
+          to: {
+            element: {
+              types: ["component"],
+              path: "src/components/atoms/Button",
+              fileInternalPath: "Button.spec.js",
+              captured: null,
+              parents: [],
+              isIgnored: false,
+              isUnknown: false,
+            },
+            file: {
+              categories: ["test"],
+              path: BUTTON_SPEC,
+              captured: null,
+              isIgnored: false,
+              isUnknown: false,
+            },
+            module: { origin: "local", source: null, internalPath: null },
+          },
+          dependency: {
+            kind: "value",
+            nodeKind: "import",
+            source: "../../components/atoms/Button/Button.spec.js",
+            specifiers: ["renderButton"],
+            relationship: { from: null, to: null },
+          },
+        });
+      });
+
+      it("should describe what a dependency on a file points to as the plugin described that file, which is what the evaluation says of the file", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+          SPEC_IMPORT,
+        ]);
+
+        // Act
+        const evaluation = evaluate(sketch);
+
+        // Assert
+        expect(evaluation.dependencies[0].description?.to).toEqual(
+          omitDeprecated(QUICK_START_DESCRIPTIONS[BUTTON_SPEC])
+        );
+        expect(evaluation.dependencies[0].description?.to).toEqual(
+          evaluation.files.get(BUTTON_SPEC)
+        );
+      });
+
+      it("should describe a dependency on an external module as a module that no element and no file of the sketch describe", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+          REACT_IMPORT,
+        ]);
+
+        // Act
+        const [{ description }] = evaluate(sketch).dependencies;
+
+        // Assert
+        expect(description).toEqual({
+          to: {
+            element: {
+              types: null,
+              path: null,
+              fileInternalPath: null,
+              captured: null,
+              parents: [],
+              isIgnored: false,
+              isUnknown: true,
+            },
+            file: {
+              categories: null,
+              path: null,
+              captured: null,
+              isIgnored: false,
+              isUnknown: true,
+            },
+            module: { origin: "external", source: "react", internalPath: null },
+          },
+          dependency: {
+            kind: "value",
+            nodeKind: "import",
+            source: "react",
+            specifiers: [],
+            relationship: { from: null, to: null },
+          },
+        });
+      });
+
+      it.each([
+        ["import", "import"],
+        ["export-from", "export"],
+        ["require", "require"],
+        ["dynamic-import", "dynamic-import"],
+      ] as const)(
+        "should describe a dependency of the syntax %s with the node kind %s",
+        (syntax, nodeKind) => {
+          // Arrange
+          const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+            { ...importOf(CHECKOUT, BUTTON), syntax },
+          ]);
+
+          // Act
+          const [{ description }] = evaluate(sketch).dependencies;
+
+          // Assert
+          expect(description?.dependency).toEqual({
+            ...IMPORT_OF_BUTTON,
+            nodeKind,
+          });
+        }
+      );
+
+      it("should describe a dependency of the kind type, which a statement `import type` writes", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+          { ...importOf(CHECKOUT, BUTTON), importKind: "type" },
+        ]);
+
+        // Act
+        const [{ description }] = evaluate(sketch).dependencies;
+
+        // Assert
+        expect(description?.dependency.kind).toBe("type");
+      });
+
+      it("should describe the names that the plugin reads from the statement, as the policies match them", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+          {
+            ...importOf(CHECKOUT, BUTTON),
+            specifiers: [
+              { kind: "default", name: "Button" },
+              { kind: "named", name: "render", alias: "draw" },
+              { kind: "named", name: "mount" },
+            ],
+          },
+          {
+            ...importOf(CHECKOUT, BUTTON),
+            syntax: "export-from",
+            specifiers: [{ kind: "named", name: "render", alias: "draw" }],
+          },
+        ]);
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(
+          dependencies.map(
+            ({ description }) => description?.dependency.specifiers
+          )
+        ).toEqual([["render", "mount"], ["draw"]]);
+      });
+
+      describe("when the elements of the dependency are related", () => {
+        /** A module with a component inside, where the dependencies go between them */
+        const NESTED_CONFIG = JSON.stringify({
+          settings: {
+            "boundaries/elements": [
+              { type: "module", pattern: "modules/*", capture: ["name"] },
+              {
+                type: "component",
+                pattern: "components/*",
+                capture: ["component"],
+              },
+            ],
+          },
+          rules: { "boundaries/dependencies": [2, { default: "allow" }] },
+        });
+        const MODULE_INDEX = "src/modules/a/index.js";
+        const COMPONENT_INDEX = "src/modules/a/components/b/index.js";
+        const NESTED_FILES = [MODULE_INDEX, COMPONENT_INDEX];
+
+        it("should describe a dependency of a module on its component as from its parent to its child, and the parents of the component", () => {
+          // Arrange
+          const sketch = createSketch(NESTED_CONFIG, NESTED_FILES, [
+            importOf(MODULE_INDEX, COMPONENT_INDEX),
+          ]);
+
+          // Act
+          const [{ description }] = evaluate(sketch).dependencies;
+
+          // Assert
+          expect(description?.dependency.relationship).toEqual({
+            from: "parent",
+            to: "child",
+          });
+          expect(description?.to.element).toEqual({
+            types: ["component"],
+            path: "src/modules/a/components/b",
+            fileInternalPath: "index.js",
+            captured: { component: "b" },
+            parents: [
+              {
+                types: ["module"],
+                path: "src/modules/a",
+                captured: { name: "a" },
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          });
+        });
+
+        it("should describe a dependency of a component on its module as the inverse", () => {
+          // Arrange
+          const sketch = createSketch(NESTED_CONFIG, NESTED_FILES, [
+            importOf(COMPONENT_INDEX, MODULE_INDEX),
+          ]);
+
+          // Act
+          const [{ description }] = evaluate(sketch).dependencies;
+
+          // Assert
+          expect(description?.dependency.relationship).toEqual({
+            from: "child",
+            to: "parent",
+          });
+        });
+
+        it("should describe a dependency inside an element as internal to it", () => {
+          // Arrange
+          const sketch = createSketch(
+            NESTED_CONFIG,
+            [...NESTED_FILES, "src/modules/a/other.js"],
+            [importOf(MODULE_INDEX, "src/modules/a/other.js")]
+          );
+
+          // Act
+          const [{ description }] = evaluate(sketch).dependencies;
+
+          // Assert
+          expect(description?.dependency.relationship).toEqual({
+            from: "internal",
+            to: "internal",
+          });
+        });
+      });
+
+      describe("when the plugin does not read the syntax of a dependency", () => {
+        const NODES_CONFIG = JSON.stringify({
+          settings: {
+            ...QUICK_START_SETTINGS,
+            "boundaries/dependency-nodes": ["import"],
+          },
+          rules: QUICK_START_RULES,
+        });
+        const NODES = [
+          importOf(CHECKOUT, BUTTON),
+          { ...importOf(CHECKOUT, BUTTON), syntax: "require" as const },
+        ];
+
+        it("should describe the dependencies that it reads, and none of the others", () => {
+          // Arrange
+          const sketch = createSketch(NODES_CONFIG, QUICK_START_FILES, NODES);
+
+          // Act
+          const { dependencies } = evaluate(sketch);
+
+          // Assert
+          expect(dependencies[0].description?.dependency).toEqual(
+            IMPORT_OF_BUTTON
+          );
+          expect(dependencies[1].description).toBeUndefined();
+        });
+
+        it("should describe the dependencies that it reads, and none of the others, while no dependency is evaluated", () => {
+          // Arrange
+          const sketch = createSketch(
+            JSON.stringify({
+              settings: {
+                ...QUICK_START_SETTINGS,
+                "boundaries/dependency-nodes": ["import"],
+              },
+              rules: {},
+            }),
+            QUICK_START_FILES,
+            NODES
+          );
+
+          // Act
+          const { dependencies, notEvaluated } = evaluate(sketch);
+
+          // Assert
+          expect(notEvaluated).toBe("no-rule");
+          expect(dependencies[0].description?.dependency).toEqual(
+            IMPORT_OF_BUTTON
+          );
+          expect(dependencies[1].description).toBeUndefined();
+          expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+            "not-evaluated",
+            "not-evaluated",
+          ]);
+        });
+      });
+
+      describe("while no dependency is evaluated", () => {
+        it.each([
+          ["rules-invalid", "a policy cannot be normalized", THROWING_CONFIG],
+          [
+            "no-rule",
+            "no rule is written",
+            JSON.stringify({ settings: QUICK_START_SETTINGS, rules: {} }),
+          ],
+          [
+            "rule-off",
+            "the dependencies rule is off",
+            configWithRule("boundaries/dependencies", 0),
+          ],
+          [
+            "no-options",
+            "the dependencies rule is only a severity",
+            configWithRule("boundaries/dependencies", 2),
+          ],
+        ])(
+          "should describe every dependency with the settings of the config, as when it is evaluated, for %s: %s",
+          (reason, _title, config) => {
+            // Arrange
+            const sketch = createSketch(config, CHECKOUT_FILES, [
+              CHECKOUT_DEPENDENCIES[0],
+            ]);
+
+            // Act
+            const evaluation = evaluate(sketch);
+
+            // Assert
+            expect(evaluation.notEvaluated).toBe(reason);
+            expect(evaluation.dependencies[0].description).toEqual({
+              to: BUTTON_AS_COMPONENT,
+              dependency: IMPORT_OF_BUTTON,
+            });
+          }
+        );
+
+        it("should describe the dependencies with the settings that leave out the invalid descriptors, as the files are described", () => {
+          // Arrange
+          const sketch = createSketch(MOCKUP_CONFIG, CHECKOUT_FILES, [
+            CHECKOUT_DEPENDENCIES[0],
+          ]);
+
+          // Act
+          const evaluation = evaluate(sketch);
+
+          // Assert
+          expect(evaluation.notEvaluated).toBe("rules-invalid");
+          expect(evaluation.dependencies[0].description?.to).toEqual(
+            BUTTON_AS_UNKNOWN
+          );
+          expect(evaluation.dependencies[0].description?.to).toEqual(
+            evaluation.files.get(BUTTON)
+          );
+        });
+      });
+
+      describe("when the config is not one JSON5 object", () => {
+        it("should describe the dependencies with the placeholder settings that describe the files, so that it describes no element and no category", () => {
+          // Arrange
+          const sketch = createSketch("{ settings: ", CHECKOUT_FILES, [
+            CHECKOUT_DEPENDENCIES[0],
+            CHECKOUT_DEPENDENCIES[1],
+          ]);
+
+          // Act
+          const evaluation = evaluate(sketch);
+
+          // Assert
+          expect(evaluation.notEvaluated).toBe("config-unparsed");
+          expect(evaluation.dependencies[0].description).toEqual({
+            to: BUTTON_AS_UNKNOWN,
+            dependency: IMPORT_OF_BUTTON,
+          });
+          expect(evaluation.dependencies[1].description?.to.file).toEqual({
+            categories: null,
+            path: BUTTON_SPEC,
+            captured: null,
+            isIgnored: false,
+            isUnknown: true,
+          });
+        });
+      });
+
+      describe("memoization", () => {
+        it("should return the same description for the same sketch", () => {
+          // Arrange
+          const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [
+            SPEC_IMPORT,
+          ]);
+          const first = evaluate(sketch).dependencies[0].description;
+
+          // Act
+          const second = evaluate(sketch).dependencies[0].description;
+
+          // Assert
+          expect(first).toBeDefined();
+          expect(second).toBe(first);
+        });
+
+        it("should not read the config again to describe the dependencies of a sketch that keeps its text", () => {
+          // Arrange
+          evaluate(createSketch(QUICK_START_CONFIG, QUICK_START_FILES));
+          const normalizations = jest.mocked(normalizeConfig).mock.calls.length;
+
+          // Act
+          const { dependencies } = evaluate(
+            createSketch(QUICK_START_CONFIG, QUICK_START_FILES, [SPEC_IMPORT])
+          );
+
+          // Assert
+          expect(jest.mocked(normalizeConfig)).toHaveBeenCalledTimes(
+            normalizations
+          );
+          expect(dependencies[0].description?.to.file.categories).toEqual([
+            "test",
+          ]);
+        });
+      });
+    });
+
     describe("when the config is not one JSON5 object", () => {
       it.each([
         [
@@ -1935,12 +2402,14 @@ describe("Evaluate", () => {
               dependency: CHECKOUT_DEPENDENCIES[0],
               ref: { path: "src/modules/checkout/index.js", index: 0 },
               source: "../../components/atoms/Button/index.js",
+              description: expect.any(Object),
               verdict: { status: "not-evaluated" },
             },
             {
               dependency: CHECKOUT_DEPENDENCIES[2],
               ref: { path: "src/helpers/format/index.js", index: 0 },
               source: "../../components/atoms/Button/index.js",
+              description: expect.any(Object),
               verdict: { status: "not-evaluated" },
             },
           ]);

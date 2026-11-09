@@ -1,7 +1,8 @@
 import { render } from "@testing-library/react";
 
 import type { Sketch, SketchDependency } from "@/contract";
-import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
+import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { DependencyPicker } from "./DependencyPicker";
@@ -25,15 +26,11 @@ const TREE: Sketch["tree"] = [
  * @param types The types of its element, or `null` when no element descriptor matches it.
  * @returns The description.
  */
-function describeWithTypes(types: readonly string[] | null): FileDescription {
-  return {
-    element: { types, path: null, captured: null },
-    file: { categories: null },
-    module: { origin: "local" },
-  };
+function describeWithTypes(types: readonly string[] | null): EntityDescription {
+  return createEntityDescription({ element: { types } });
 }
 
-const DESCRIPTIONS: ReadonlyMap<string, FileDescription> = new Map([
+const DESCRIPTIONS: ReadonlyMap<string, EntityDescription> = new Map([
   [BUTTON, describeWithTypes(["component"])],
   [FORMAT, describeWithTypes(["helper"])],
   [FROM, describeWithTypes(["module"])],
@@ -282,8 +279,8 @@ describe("DependencyPicker", () => {
       const { labels, checked } = picker.target;
 
       // Assert
-      expect(labels).toEqual(["A file of the sketch", "An external module"]);
-      expect(checked).toBe("A file of the sketch");
+      expect(labels).toEqual(["A file of the project", "An external module"]);
+      expect(checked).toBe("A file of the project");
       expect(picker.hasFileField).toBe(true);
       expect(picker.hasModuleField).toBe(false);
     });
@@ -397,7 +394,7 @@ describe("DependencyPicker", () => {
       picker.typeModule("react");
 
       // Act
-      picker.target.select("A file of the sketch");
+      picker.target.select("A file of the project");
       const file = picker.file.value;
       picker.target.select("An external module");
       const moduleName = picker.moduleValue;
@@ -839,7 +836,7 @@ describe("DependencyPicker", () => {
 
       // Assert
       expect(picker.refusal).toBe(
-        '"./format" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.'
+        '"./format" is not a module name: names do not start with "." or "/". Point to a file of the project instead.'
       );
       expect(picker.isConfirmEnabled).toBe(false);
     });
@@ -1385,7 +1382,7 @@ describe("DependencyPicker", () => {
       const { picker } = renderPicker({ initial });
 
       // Assert
-      expect(picker.target.checked).toBe("A file of the sketch");
+      expect(picker.target.checked).toBe("A file of the project");
       expect(picker.file.value).toBe(BUTTON);
       expect(picker.syntax.checked).toBe("export … from");
       expect(picker.kind.checked).toBe("type");

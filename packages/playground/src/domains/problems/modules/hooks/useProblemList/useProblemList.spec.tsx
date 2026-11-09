@@ -233,7 +233,7 @@ describe("useProblemList", () => {
       expect(result.current).toEqual(
         expect.objectContaining({
           description: expect.objectContaining({
-            file: { categories: ["test"] },
+            file: expect.objectContaining({ categories: ["test"] }) as unknown,
           }) as unknown,
           policy: expect.objectContaining({ index: 2 }) as unknown,
         })

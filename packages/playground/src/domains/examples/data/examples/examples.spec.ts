@@ -2,7 +2,7 @@ import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type {
   DependencyResult,
   Evaluation,
-  FileDescription,
+  EntityDescription,
 } from "@/domains/evaluation/helpers/engine";
 import {
   findSameSketch,
@@ -22,7 +22,7 @@ import { QUICK_START_EXAMPLE } from "./quickStart";
  * @param description What the engine says about the file.
  * @param description.file
  */
-function hasSeveralCategories({ file }: FileDescription): boolean {
+function hasSeveralCategories({ file }: EntityDescription): boolean {
   return file.categories !== null && file.categories.length > 1;
 }
 

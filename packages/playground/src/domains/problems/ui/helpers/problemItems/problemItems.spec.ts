@@ -65,6 +65,7 @@ function failing(
     },
     ref: { path, index },
     source: "../../components/atoms/Button/index.js",
+    description: undefined,
     verdict: {
       status: "disallowed",
       policy: { index: 2, range: POLICY_RANGE },
@@ -458,7 +459,7 @@ describe("problemItems", () => {
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        { id: "sketch", label: "Project", count: 3, tone: "bad" },
       ]);
     });
 
@@ -470,7 +471,7 @@ describe("problemItems", () => {
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "warn" },
+        { id: "sketch", label: "Project", count: 3, tone: "warn" },
       ]);
     });
 
@@ -487,7 +488,7 @@ describe("problemItems", () => {
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        { id: "sketch", label: "Project", count: 3, tone: "bad" },
         {
           id: "node",
           label: "eslint.config.js",
@@ -510,7 +511,7 @@ describe("problemItems", () => {
 
       // Assert
       expect(tabs).toEqual([
-        { id: "sketch", label: "Sketch", count: 3, tone: "bad" },
+        { id: "sketch", label: "Project", count: 3, tone: "bad" },
         { id: "node", label: "checkout/index.js", mono: true },
       ]);
       expect(tabs[1]).not.toHaveProperty("count");
@@ -656,7 +657,7 @@ describe("problemItems", () => {
         "config:0",
         "text:0",
       ]);
-      expect(content.empty).toBe("No problems in the sketch.");
+      expect(content.empty).toBe("No problems in the project.");
       expect(content.notes).toEqual([]);
     });
 

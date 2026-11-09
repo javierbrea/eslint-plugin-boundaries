@@ -1,4 +1,5 @@
-import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
+import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 
 import {
   getChipLabel,
@@ -16,12 +17,8 @@ import {
  * @param types The types of the element of the file, or `null` when no element descriptor matches it.
  * @returns The description.
  */
-function describeWithTypes(types: readonly string[] | null): FileDescription {
-  return {
-    element: { types, path: null, captured: null },
-    file: { categories: null },
-    module: { origin: "local" },
-  };
+function describeWithTypes(types: readonly string[] | null): EntityDescription {
+  return createEntityDescription({ element: { types } });
 }
 
 describe("dependencyLabels", () => {

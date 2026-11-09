@@ -1,3 +1,5 @@
+import { describeDependency, evaluateDependency } from "@boundaries/policies";
+
 import type {
   SketchDependency,
   SketchDependencySyntax,
@@ -16,6 +18,22 @@ import { selectRule } from "./evaluatedRule";
 import { normalizeConfigSafely } from "./normalizeConfigSafely";
 import { parseConfig } from "./parseConfig";
 import { resolveRootPath } from "./rootPath";
+
+// The real descriptions and evaluations, which the tests only count
+jest.mock<{
+  describeDependency: typeof describeDependency;
+  evaluateDependency: typeof evaluateDependency;
+}>("@boundaries/policies", () => {
+  const actual = jest.requireActual<{
+    describeDependency: typeof describeDependency;
+    evaluateDependency: typeof evaluateDependency;
+  }>("@boundaries/policies");
+  return {
+    ...actual,
+    describeDependency: jest.fn(actual.describeDependency),
+    evaluateDependency: jest.fn(actual.evaluateDependency),
+  };
+});
 
 const SETTINGS = {
   "boundaries/elements": [
@@ -1199,6 +1217,392 @@ describe("Dependencies", () => {
       });
     });
 
+    describe("with the description of each dependency", () => {
+      /** What the plugin describes of the helper that the checkout module imports, with the settings of the quick start */
+      const FORMAT_AS_HELPER = {
+        element: {
+          types: ["helper"],
+          path: "src/helpers/format",
+          fileInternalPath: "index.js",
+          captured: null,
+          parents: [],
+          isIgnored: false,
+          isUnknown: false,
+        },
+        file: {
+          categories: null,
+          path: FORMAT,
+          captured: null,
+          isIgnored: false,
+          isUnknown: true,
+        },
+        module: { origin: "local", source: null, internalPath: null },
+      };
+
+      it("should give each result the description of the dependency, as the plugin describes it", () => {
+        // Arrange
+        const input = createInput(
+          { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+          [dependencyOn(CHECKOUT, FORMAT)]
+        );
+
+        // Act
+        const [{ description }] = evaluateDependencies(input);
+
+        // Assert
+        expect(description).toEqual({
+          to: FORMAT_AS_HELPER,
+          dependency: {
+            kind: "value",
+            nodeKind: "import",
+            source: "../../helpers/format/index.js",
+            specifiers: [],
+            relationship: { from: null, to: null },
+          },
+        });
+      });
+
+      it.each<[string, Partial<SketchDependency>, readonly string[]]>([
+        [
+          "the imported name of a named import, and not its alias",
+          { specifiers: [{ kind: "named", name: "round", alias: "r" }] },
+          ["round"],
+        ],
+        [
+          "only the named imports of a statement",
+          {
+            specifiers: [
+              { kind: "default", name: "format" },
+              { kind: "named", name: "round" },
+              { kind: "namespace", name: "all" },
+            ],
+          },
+          ["round"],
+        ],
+        [
+          "the exported name of an export from, which is its alias when it has one",
+          {
+            syntax: "export-from",
+            specifiers: [
+              { kind: "named", name: "round", alias: "y" },
+              { kind: "named", name: "floor" },
+            ],
+          },
+          ["y", "floor"],
+        ],
+        ["none for a require", { syntax: "require" }, []],
+        ["none for an import with no names", { specifiers: [] }, []],
+      ])(
+        "should describe the specifiers as the plugin reads them: %s",
+        (_title, overrides, expected) => {
+          // Arrange
+          const input = createInput(
+            { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+            [{ ...MODULE_ON_HELPER, ...overrides }]
+          );
+
+          // Act
+          const [{ description }] = evaluateDependencies(input);
+
+          // Assert
+          expect(description?.dependency.specifiers).toEqual(expected);
+        }
+      );
+
+      it.each([
+        ["import", "import"],
+        ["export-from", "export"],
+        ["require", "require"],
+        ["dynamic-import", "dynamic-import"],
+      ] as const)(
+        "should describe the syntax %s as the node kind %s",
+        (syntax, nodeKind) => {
+          // Arrange
+          const input = createInput(
+            { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+            [dependencyOn(CHECKOUT, FORMAT, { syntax })]
+          );
+
+          // Act
+          const [{ description }] = evaluateDependencies(input);
+
+          // Assert
+          expect(description?.dependency.nodeKind).toBe(nodeKind);
+        }
+      );
+
+      it.each(["value", "type"] as const)(
+        "should describe an import of kind %s with that kind",
+        (importKind) => {
+          // Arrange
+          const input = createInput(
+            { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+            [dependencyOn(CHECKOUT, FORMAT, { importKind })]
+          );
+
+          // Act
+          const [{ description }] = evaluateDependencies(input);
+
+          // Assert
+          expect(description?.dependency.kind).toBe(importKind);
+        }
+      );
+
+      it("should describe a dependency on an external module by the module, with no element and no file", () => {
+        // Arrange
+        const input = createInput(
+          { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+          [
+            {
+              ...MODULE_ON_HELPER,
+              target: { kind: "external", name: "react/jsx-runtime" },
+            },
+          ]
+        );
+
+        // Act
+        const [{ description }] = evaluateDependencies(input);
+
+        // Assert
+        expect(description?.to.module).toEqual({
+          origin: "external",
+          source: "react",
+          internalPath: "jsx-runtime",
+        });
+        expect(description?.to.element).toMatchObject({
+          types: null,
+          path: null,
+          isUnknown: true,
+        });
+        expect(description?.to.file).toMatchObject({
+          categories: null,
+          path: null,
+          isUnknown: true,
+        });
+        expect(description?.dependency.source).toBe("react/jsx-runtime");
+      });
+
+      it("should describe a dependency that the rule skips, as the policies match it", () => {
+        // Arrange
+        const input = createInput(
+          { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+          [dependencyOn(INDEX, CHECKOUT)]
+        );
+
+        // Act
+        const [{ description, verdict }] = evaluateDependencies(input);
+
+        // Assert
+        expect(verdict).toEqual({
+          status: "not-checked",
+          reason: "from-unknown",
+        });
+        expect(description?.to.element.types).toEqual(["module"]);
+      });
+
+      it("should describe a dependency that the rule disallows, as it describes one that the rule allows", () => {
+        // Arrange
+        const input = createInput(
+          { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+          [dependencyOn(FORMAT, BUTTON)]
+        );
+
+        // Act
+        const [{ description, verdict }] = evaluateDependencies(input);
+
+        // Assert
+        expect(verdict.status).toBe("disallowed");
+        expect(description?.to.element.types).toEqual(["component"]);
+        expect(description?.dependency.relationship).toEqual({
+          from: null,
+          to: null,
+        });
+      });
+
+      it("should describe a dependency between elements that are related with the relationship from both sides", () => {
+        // Arrange
+        const nestedSettings = {
+          "boundaries/elements": [
+            { type: "module", pattern: "modules/*" },
+            { type: "component", pattern: "components/*" },
+          ],
+        };
+        const input = createInput(
+          {
+            settings: nestedSettings,
+            rules: { "boundaries/dependencies": QUICK_START_RULE },
+          },
+          [
+            dependencyOn(
+              "src/modules/a/index.js",
+              "src/modules/a/components/b/index.js"
+            ),
+            dependencyOn(
+              "src/modules/a/components/b/index.js",
+              "src/modules/a/index.js"
+            ),
+          ]
+        );
+
+        // Act
+        const results = evaluateDependencies(input);
+
+        // Assert
+        expect(
+          results.map(({ description }) => description?.dependency.relationship)
+        ).toEqual([
+          { from: "parent", to: "child" },
+          { from: "child", to: "parent" },
+        ]);
+      });
+
+      it("should describe no dependency that the plugin does not read, and describe the others", () => {
+        // Arrange
+        const input = createInput(
+          {
+            settings: {
+              ...SETTINGS,
+              "boundaries/dependency-nodes": ["import"],
+            },
+            rules: { "boundaries/dependencies": QUICK_START_RULE },
+          },
+          [
+            dependencyOn(CHECKOUT, FORMAT),
+            dependencyOn(CHECKOUT, FORMAT, { syntax: "require" }),
+          ]
+        );
+
+        // Act
+        const results = evaluateDependencies(input);
+
+        // Assert
+        expect(
+          results.map(({ description }) => description !== undefined)
+        ).toEqual([true, false]);
+        expect(results[1].verdict).toEqual({
+          status: "not-checked",
+          reason: "not-read",
+        });
+      });
+
+      it("should describe the dependencies while none is evaluated, and not the ones that the plugin does not read", () => {
+        // Arrange
+        const input = createInput(
+          {
+            settings: {
+              ...SETTINGS,
+              "boundaries/dependency-nodes": ["import"],
+            },
+            rules: {},
+          },
+          [
+            dependencyOn(CHECKOUT, FORMAT),
+            dependencyOn(CHECKOUT, FORMAT, { syntax: "require" }),
+          ]
+        );
+
+        // Act
+        const results = evaluateDependencies(input);
+
+        // Assert
+        expect(input.rule).toBeUndefined();
+        expect(results[0].description?.to).toEqual(FORMAT_AS_HELPER);
+        expect(results[1].description).toBeUndefined();
+        expect(results.map(({ verdict }) => verdict)).toEqual([
+          { status: "not-evaluated" },
+          { status: "not-evaluated" },
+        ]);
+      });
+
+      describe("how many times the plugin describes a dependency", () => {
+        const DEPENDENCIES = [
+          dependencyOn(CHECKOUT, FORMAT),
+          dependencyOn(CHECKOUT, BUTTON),
+          dependencyOn(FORMAT, BUTTON),
+        ];
+
+        it("should describe each dependency once when it is evaluated", () => {
+          // Arrange
+          const input = createInput(
+            { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+            DEPENDENCIES
+          );
+
+          // Act
+          evaluateDependencies(input);
+
+          // Assert
+          expect(describeDependency).toHaveBeenCalledTimes(3);
+        });
+
+        it("should decide each dependency with the description that it gives the result", () => {
+          // Arrange
+          const input = createInput(
+            { rules: { "boundaries/dependencies": QUICK_START_RULE } },
+            DEPENDENCIES
+          );
+
+          // Act
+          const results = evaluateDependencies(input);
+
+          // Assert
+          const described = jest
+            .mocked(describeDependency)
+            .mock.results.map(({ value }) => value as unknown);
+          const decided = jest
+            .mocked(evaluateDependency)
+            .mock.calls.map(([, , description]) => description as unknown);
+
+          expect(decided).toHaveLength(3);
+          expect(
+            decided.map(
+              (description, index) => description === described[index]
+            )
+          ).toEqual([true, true, true]);
+          expect(
+            results.map(({ description }) => description?.to.element.types)
+          ).toEqual([["helper"], ["component"], ["component"]]);
+        });
+
+        it("should describe each dependency once when none is evaluated", () => {
+          // Arrange
+          const input = createInput({ rules: {} }, DEPENDENCIES);
+
+          // Act
+          evaluateDependencies(input);
+
+          // Assert
+          expect(describeDependency).toHaveBeenCalledTimes(3);
+          expect(evaluateDependency).not.toHaveBeenCalled();
+        });
+
+        it("should not describe a dependency that the plugin does not read", () => {
+          // Arrange
+          const input = createInput(
+            {
+              settings: {
+                ...SETTINGS,
+                "boundaries/dependency-nodes": ["import"],
+              },
+              rules: { "boundaries/dependencies": QUICK_START_RULE },
+            },
+            [
+              dependencyOn(CHECKOUT, FORMAT),
+              dependencyOn(CHECKOUT, FORMAT, { syntax: "require" }),
+              dependencyOn(CHECKOUT, FORMAT, { syntax: "dynamic-import" }),
+            ]
+          );
+
+          // Act
+          evaluateDependencies(input);
+
+          // Assert
+          expect(describeDependency).toHaveBeenCalledTimes(1);
+          expect(evaluateDependency).toHaveBeenCalledTimes(1);
+        });
+      });
+    });
+
     describe("while no dependency is evaluated", () => {
       it("should give every dependency the verdict not evaluated, with its place and its source", () => {
         // Arrange
@@ -1218,12 +1622,14 @@ describe("Dependencies", () => {
             dependency: dependencies[0],
             ref: { path: CHECKOUT, index: 0 },
             source: "../../helpers/format/index.js",
+            description: expect.any(Object),
             verdict: { status: "not-evaluated" },
           },
           {
             dependency: dependencies[1],
             ref: { path: CHECKOUT, index: 1 },
             source: "../../components/atoms/Button/Button.spec.js",
+            description: expect.any(Object),
             verdict: { status: "not-evaluated" },
           },
         ]);
