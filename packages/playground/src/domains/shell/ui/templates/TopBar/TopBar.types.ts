@@ -18,6 +18,6 @@ export type TopBarProps = {
   readonly start?: ReactNode;
   /** What goes at the end of the bar, after the space that the status leaves, such as the actions. */
   readonly end?: ReactNode;
-  /** The test id of the root element. The bar renders none when it is unset: the component that is the bar sets its own. */
+  /** The test id of the root element, in place of the default one: the component that is the bar gives its own. */
   readonly testId?: string;
 };

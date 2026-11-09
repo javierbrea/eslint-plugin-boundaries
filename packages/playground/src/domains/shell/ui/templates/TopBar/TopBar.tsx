@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
+import { TOP_BAR_TEST_ID } from "./TopBar.constants";
 import type { TopBarProps } from "./TopBar.types";
 
 /** Height of the bar in pixels, border included. */
@@ -57,7 +58,7 @@ const Count = styled("span", {
  * @param props.configHasErrors Whether the config has errors.
  * @param props.start What goes before the status.
  * @param props.end What goes at the end of the bar.
- * @param props.testId The test id of the root element, when the component that is the bar has one.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The bar.
  */
 export function TopBar({
@@ -68,7 +69,7 @@ export function TopBar({
   configHasErrors,
   start,
   end,
-  testId,
+  testId = TOP_BAR_TEST_ID,
 }: Readonly<TopBarProps>): ReactNode {
   return (
     <Bar data-testid={testId}>

@@ -32,7 +32,7 @@ function renderBar(overrides: Partial<TopBarProps> = {}): {
   const { rerender } = render(<TopBar {...createProps(overrides)} />);
 
   return {
-    bar: new TopBarPom(),
+    bar: new TopBarPom({ testId: overrides.testId }),
     update: (next) =>
       rerender(<TopBar {...createProps({ ...overrides, ...next })} />),
   };
@@ -247,26 +247,27 @@ describe("TopBar", () => {
   });
 
   describe("testId", () => {
-    it("should render the test id of the component that is the bar", () => {
+    it("should render the test id of the top bar by default", () => {
+      // Arrange
+      renderBar();
+
+      // Act
+      const { isRendered } = new TopBarPom({ testId: "top-bar" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+    });
+
+    it("should render the test id of the component that is the bar in place of its own", () => {
       // Arrange
       const { bar } = renderBar({ testId: "shell-top-bar" });
 
       // Act
-      const { renderedTestId } = bar;
+      const { isRendered } = bar;
 
       // Assert
-      expect(renderedTestId).toBe("shell-top-bar");
-    });
-
-    it("should render no test id when it is given none", () => {
-      // Arrange
-      const { bar } = renderBar();
-
-      // Act
-      const { renderedTestId } = bar;
-
-      // Assert
-      expect(renderedTestId).toBeNull();
+      expect(isRendered).toBe(true);
+      expect(new TopBarPom().isRendered).toBe(false);
     });
   });
 });

@@ -1,24 +1,16 @@
 import { Pom } from "@/shared/testing/pom";
 
+import { TOP_BAR_TEST_ID } from "./TopBar.constants";
+
 /** What the text of the status starts with: the number of files. */
 const STATUS_PATTERN = /^\d+ files? ·/;
 
 /** The attributes that the styled parts of the bar use as props and must not leave in the DOM. The `failing` prop is not here: React drops a boolean on an attribute it does not know, so only the console of the spec shows a leak of it. */
 const PROP_ATTRIBUTES = ["color"] as const;
 
-/** Page object of the top bar. It has no test id: it finds the status text within its parent and takes the bar that holds the status as its root. A component that is the bar gives it its root with the `root` option. */
+/** Page object of the top bar. It finds its root by the test id of the bar, or by the `testId` option when a component that is the bar gives it another. A component that is the bar can also give it its root with the `root` option. */
 export class TopBarPom extends Pom {
-  protected readonly defaultTestId = "";
-
-  /** @inheritdoc */
-  protected findRoot(): HTMLElement {
-    return this.pickMatch(
-      this.searchBase
-        .queryAllByText(STATUS_PATTERN)
-        .flatMap((label) => label.parentElement?.parentElement ?? []),
-      `the text ${STATUS_PATTERN}`
-    );
-  }
+  protected readonly defaultTestId: string = TOP_BAR_TEST_ID;
 
   /**
    * The element of the text of the status, which holds the number of files and the count of problems.
@@ -169,13 +161,5 @@ export class TopBarPom extends Pom {
       (element) =>
         PROP_ATTRIBUTES.filter((attribute) => element.hasAttribute(attribute))
     );
-  }
-
-  /**
-   * The test id the bar renders, which a component that is the bar gives it.
-   * @returns The `data-testid` attribute, or null when the bar has none.
-   */
-  get renderedTestId(): string | null {
-    return this.root.getAttribute("data-testid");
   }
 }
