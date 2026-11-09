@@ -8,6 +8,7 @@ import {
   renameNode,
   setConfig,
 } from "./edit";
+import { MAX_PATH_LENGTH, MAX_PATH_SEGMENTS } from "./sketch.constants";
 import type { EditResult, RenameResult } from "./sketch.types";
 
 /**
@@ -176,6 +177,24 @@ describe("Edit", () => {
       expect(error).toBe(
         "eslint.config.js at the root is the config node, not a file or a folder."
       );
+    });
+
+    it("should refuse a path too long or too deep to be one, so that no edit makes a sketch that a link cannot hold", () => {
+      // Arrange
+      const deep = `${"a/".repeat(MAX_PATH_SEGMENTS)}f.js`;
+      const long = "x".repeat(MAX_PATH_LENGTH + 1);
+
+      // Act
+      const errors = [
+        getError(addNode(SKETCH, deep, "file")),
+        getError(addNode(SKETCH, long, "folder")),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        "The path cannot have more than 64 segments.",
+        "The path cannot have more than 1024 characters.",
+      ]);
     });
 
     it("should refuse an existing node", () => {
@@ -375,6 +394,17 @@ describe("Edit", () => {
 
       // Assert
       expect(error).toBe("The path has an empty segment.");
+    });
+
+    it("should refuse a new path too deep to be one", () => {
+      // Arrange
+      const deep = `${"a/".repeat(MAX_PATH_SEGMENTS)}main.js`;
+
+      // Act
+      const error = getError(renameNode(SKETCH, "src/index.js", deep));
+
+      // Assert
+      expect(error).toBe("The path cannot have more than 64 segments.");
     });
 
     it("should refuse a new path with a quote, so that no dependency is left that a statement cannot write", () => {

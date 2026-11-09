@@ -21,12 +21,14 @@ const Label = styled("span")({ color: "var(--jsb-muted)" });
  * @param props.examples The examples to list.
  * @param props.currentId The id of the example that the sketch on screen is, if any.
  * @param props.onSelect Called with the example that the user picks.
+ * @param props.autoFocus Whether the button takes the keyboard focus when it is first rendered.
  * @returns The button and its list, which opens inside the root element of the playground.
  */
 export function ExamplePicker<Option extends ExampleOption>({
   examples,
   currentId,
   onSelect,
+  autoFocus = false,
 }: Readonly<ExamplePickerProps<Option>>): ReactNode {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const listId = useId();
@@ -37,6 +39,7 @@ export function ExamplePicker<Option extends ExampleOption>({
     <>
       <Button
         variant="outlined"
+        autoFocus={autoFocus}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listId : undefined}

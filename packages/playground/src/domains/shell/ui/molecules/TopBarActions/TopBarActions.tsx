@@ -27,6 +27,7 @@ const Group = styled("div")({ display: "contents" });
  * @param props.onHelp Called when the user asks for the help.
  * @param props.onReset Called when the user asks to reset the sketch.
  * @param props.onShare Called when the user asks to share the sketch. Without it there is no Share button and no message.
+ * @param props.autoFocusReset Whether the Reset button takes the keyboard focus when it is first rendered.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The actions, which take their place in the flex row of the bar.
  */
@@ -37,6 +38,7 @@ export function TopBarActions({
   onHelp,
   onReset,
   onShare,
+  autoFocusReset = false,
   testId = TOP_BAR_ACTIONS_TEST_ID,
 }: Readonly<TopBarActionsProps>): ReactNode {
   return (
@@ -55,6 +57,7 @@ export function TopBarActions({
       </Tooltip>
       <Button
         variant="text"
+        autoFocus={autoFocusReset}
         startIcon={<Icon name="reset" />}
         onClick={onReset}
       >

@@ -14,4 +14,6 @@ export type ExamplePickerProps<Option extends ExampleOption = ExampleOption> = {
   readonly currentId: string | undefined;
   /** Called with the example that the user picks, once the list has closed. */
   readonly onSelect: (example: Option) => void;
+  /** Whether the button takes the keyboard focus when it is first rendered, such as the one of a new shell that replaced the one in which the user picked an example. It defaults to `false`. */
+  readonly autoFocus?: boolean;
 };

@@ -177,6 +177,29 @@ describe("TopBarActions", () => {
       expect(props.onReset).toHaveBeenCalledTimes(1);
       expect(props.onShare).not.toHaveBeenCalled();
     });
+
+    it("should take the keyboard focus when it is first rendered, if the caller asks for it", () => {
+      // Arrange
+      const { actions } = renderActions({ autoFocusReset: true });
+
+      // Act
+      const { isResetFocused } = actions;
+
+      // Assert
+      expect(isResetFocused).toBe(true);
+    });
+
+    it("should not take the keyboard focus by itself", () => {
+      // Arrange
+      const { actions } = renderActions();
+
+      // Act
+      const { isResetFocused } = actions;
+
+      // Assert
+      expect(isResetFocused).toBe(false);
+      expect(document.activeElement).toBe(document.body);
+    });
   });
 
   describe("share", () => {

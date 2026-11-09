@@ -7,7 +7,7 @@ import { HASH_STORE_WRITE_DELAY } from "./HashStore.constants";
 type PendingWrite = {
   /** The timer that runs the write after the delay */
   readonly timer: number;
-  /** Runs the write at once, as the timer and `pagehide` do */
+  /** Runs the write at once, as the timer and `pagehide` do. It writes nothing when the page is no longer the one that scheduled the write */
   readonly run: () => void;
 };
 
@@ -21,33 +21,29 @@ export class HashStore implements StateStore {
 
   private _pending: PendingWrite | undefined;
 
-  public load(): Promise<Sketch | undefined> {
-    this._cancelWrite();
-
-    const reading = decodeHash(window.location.hash);
-
-    if (reading.status === "error") {
-      return Promise.reject(new Error(reading.error));
-    }
-    if (reading.status === "sketch") {
-      this._sketch = reading.sketch;
-    } else if (this._sketch !== undefined) {
-      this._write(encodeSketch(this._sketch));
-    }
-    return Promise.resolve(this._sketch);
+  /**
+   * Loads the sketch that the hash holds, or the last one saved when the hash holds none, which is written back to the URL. It never throws: whatever goes wrong is a rejected promise.
+   * @returns The sketch, or `undefined` when there is none. It rejects with the reason when the hash cannot be read.
+   */
+  public async load(): Promise<Sketch | undefined> {
+    // Nothing waits here, so the hash is read and the pending write dropped when `load` is called, and what throws rejects the promise
+    return this._read();
   }
 
   /**
-   * Remembers the sketch and writes it to the hash once the user stops saving: 500 milliseconds after the last save, or when the page is hidden, whichever comes first. The returned promise does not wait for the write.
+   * Remembers the sketch and writes it to the hash once the user stops saving: 500 milliseconds after the last save, or when the page is hidden, whichever comes first. The returned promise does not wait for the write. The write is for the page that saved: when the host has moved to another page by then, such as a client-side navigation to the docs, nothing is written there, and the sketch stays remembered, so that the next load writes it back.
    * @param sketch The sketch to save.
    */
   public save(sketch: Sketch): Promise<void> {
     this._cancelWrite();
     this._sketch = sketch;
 
+    const page = this._getPage();
     const run = (): void => {
       this._cancelWrite();
-      this._write(encodeSketch(sketch));
+      if (this._getPage() === page) {
+        this._write(encodeSketch(sketch));
+      }
     };
 
     this._pending = {
@@ -90,6 +86,36 @@ export class HashStore implements StateStore {
     return () => window.removeEventListener("hashchange", onChange);
   }
 
+  /**
+   * Reads the hash of the page, as {@link HashStore.load} does.
+   * @returns The sketch, or `undefined` when there is none. It throws the reason when the hash cannot be read.
+   */
+  private _read(): Sketch | undefined {
+    this._cancelWrite();
+
+    const reading = decodeHash(window.location.hash);
+
+    if (reading.status === "error") {
+      throw new Error(reading.error);
+    }
+    if (reading.status === "sketch") {
+      this._sketch = reading.sketch;
+    } else if (this._sketch !== undefined) {
+      this._write(encodeSketch(this._sketch));
+    }
+    return this._sketch;
+  }
+
+  /**
+   * Gets the page that the URL is of, without its hash.
+   * @returns The path and the query.
+   */
+  private _getPage(): string {
+    const { pathname, search } = window.location;
+
+    return `${pathname}${search}`;
+  }
+
   /** Stops the write that is pending, if there is one, and the `pagehide` listener that came with it */
   private _cancelWrite(): void {
     if (this._pending !== undefined) {
@@ -112,13 +138,11 @@ export class HashStore implements StateStore {
    * @param hash The hash with its `#`, or an empty string to remove it.
    */
   private _replace(hash: string): void {
-    const { pathname, search } = window.location;
-
     try {
       window.history.replaceState(
         window.history.state,
         "",
-        `${pathname}${search}${hash}`
+        `${this._getPage()}${hash}`
       );
     } catch {
       // The sketch stays in memory, and the next save or share writes it

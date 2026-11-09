@@ -2,6 +2,7 @@ import type {
   Sketch,
   SketchDependency,
   SketchDependencySyntax,
+  SketchNode,
   SketchSpecifier,
 } from "@/contract";
 
@@ -114,4 +115,34 @@ export type SyntaxFacts = {
   readonly importKinds: readonly ImportKind[];
   /** The kinds of name it holds, in the order the picker offers them. Empty when it holds no names at all, as `require()` and `import()` do, and the picker hides the row of the names */
   readonly specifierKinds: readonly SpecifierKind[];
+};
+
+/** Tells what is at a path of a tree: the kind of node, or `undefined` when there is none. A path with a node under it is a folder, declared or not */
+export type KindOf = (path: string) => SketchNode["kind"] | undefined;
+
+/** A path of the index of a tree: what the first node added there declares, and the entries under it */
+export type IndexEntry = {
+  /** The kind of the first node added at the path, or `folder` when a node under it was added first. It tells what is at the path only when nothing is under it */
+  readonly kind: SketchNode["kind"];
+  /** The entries of the paths one segment longer, by segment */
+  readonly children: Map<string, IndexEntry>;
+};
+
+/** The nodes of a tree indexed by path, so that checking a long list of nodes one after the other takes time in proportion to the size of the list, where scanning the nodes already checked for each one takes the square of it */
+export type NodeIndex = {
+  /** Tells what is at a path among the nodes added so far, as `getNodeKind` does for a list of nodes */
+  readonly kindOf: KindOf;
+  /** Tells why a node cannot be added after the nodes added so far, as `getAddError` does for a list of nodes. It adds nothing */
+  readonly getAddError: (
+    path: string,
+    kind: SketchNode["kind"]
+  ) => string | undefined;
+  /** Adds a node. It does not check it: the first node added at a path is the one that declares it */
+  readonly add: (node: SketchNode) => void;
+};
+
+/** The checks of a list of dependencies one after the other, each against the tree and the ones accepted before it */
+export type DependencyChecker = {
+  /** Tells why the sketch cannot hold the dependency after the ones accepted so far, as `getDependencyError` does, and when it can, accepts it: the next dependencies are checked against its names */
+  readonly accept: (dependency: SketchDependency) => string | undefined;
 };

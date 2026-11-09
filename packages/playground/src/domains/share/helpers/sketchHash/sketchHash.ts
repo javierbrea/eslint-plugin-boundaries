@@ -1,4 +1,4 @@
-import { deflateSync, inflateSync } from "fflate";
+import { deflateSync, Inflate } from "fflate";
 
 import type { Sketch } from "@/contract";
 import { readSketch } from "@/domains/project/helpers/sketch";
@@ -6,6 +6,7 @@ import { readSketch } from "@/domains/project/helpers/sketch";
 import { fromBase64Url, toBase64Url } from "./base64Url";
 import {
   HASH_FORMAT_VERSION,
+  INFLATE_STEP_BYTES,
   LONG_LINK_LENGTH,
   MAX_SKETCH_JSON_BYTES,
 } from "./sketchHash.constants";
@@ -21,6 +22,10 @@ const NOT_PACKED =
 
 const NOT_JSON =
   "The link is damaged: its data is not a sketch written as JSON.";
+
+const UNREADABLE = "The link is damaged: it could not be read.";
+
+const TOO_LARGE = `The sketch in the link is larger than ${MAX_SKETCH_JSON_BYTES / 1024 / 1024} MiB, which the playground does not load.`;
 
 /** What unpacking the data of a link gives: the value it holds, or why the link is damaged */
 type Unpacked = { readonly value: unknown } | { readonly error: string };
@@ -70,6 +75,42 @@ export function encodeSketch(sketch: Sketch): string {
 }
 
 /**
+ * Inflates raw deflate data, stopping as soon as the result is larger than the limit. A few bytes of deflate can make gigabytes, and inflating them to the end, even into a buffer that cuts the result, costs the time of all of them: so the data is inflated a step at a time, and the result is measured after each.
+ * @param packed The raw deflate data.
+ * @returns The inflated bytes, or `undefined` when they are more than {@link MAX_SKETCH_JSON_BYTES}. It throws when the data is not raw deflate or is cut short.
+ */
+function inflateWithinLimit(packed: Uint8Array): Uint8Array | undefined {
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const inflater = new Inflate((chunk) => {
+    chunks.push(chunk);
+    size += chunk.length;
+  });
+
+  for (
+    let start = 0;
+    start < packed.length && size <= MAX_SKETCH_JSON_BYTES;
+    start += INFLATE_STEP_BYTES
+  ) {
+    const end = start + INFLATE_STEP_BYTES;
+
+    inflater.push(packed.subarray(start, end), end >= packed.length);
+  }
+  if (size > MAX_SKETCH_JSON_BYTES) {
+    return undefined;
+  }
+
+  const inflated = new Uint8Array(size);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    inflated.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return inflated;
+}
+
+/**
  * Unpacks the data of a link: base64url, then raw deflate, then JSON.
  * @param data The value of the `s` parameter.
  * @returns The value that the JSON holds, or why the data is damaged.
@@ -81,20 +122,15 @@ function unpack(data: string): Unpacked {
     return { error: NO_DATA };
   }
 
-  let json: Uint8Array;
+  let json: Uint8Array | undefined;
 
   try {
-    // The buffer is the most that is unpacked: a larger result is cut at its size, and one byte more than the limit tells that it was
-    json = inflateSync(bytes, {
-      out: new Uint8Array(MAX_SKETCH_JSON_BYTES + 1),
-    });
+    json = inflateWithinLimit(bytes);
   } catch {
     return { error: NOT_PACKED };
   }
-  if (json.length > MAX_SKETCH_JSON_BYTES) {
-    return {
-      error: `The sketch in the link is larger than ${MAX_SKETCH_JSON_BYTES / 1024 / 1024} MiB, which the playground does not load.`,
-    };
+  if (json === undefined) {
+    return { error: TOO_LARGE };
   }
   try {
     // A byte that is not UTF-8 is damage, not a character to replace
@@ -107,11 +143,10 @@ function unpack(data: string): Unpacked {
 }
 
 /**
- * Reads the hash of a link. Only a hash with an `s` parameter holds a sketch: any other, such as the anchor of a heading of a docs page, holds none. Everything it holds is untrusted: the sketch goes through `readSketch`, so that it is one that the edits could have made.
+ * Reads the hash of a link, as {@link decodeHash} does, but lets whatever goes wrong inside it throw.
  * @param hash The hash of a URL, with or without the leading `#`.
- * @returns Nothing when the hash has no sketch, the sketch, or why the hash cannot be read: an unknown version, damaged data, or a sketch that `readSketch` refuses.
  */
-export function decodeHash(hash: string): HashReading {
+function readHash(hash: string): HashReading {
   const params = new URLSearchParams(
     hash.startsWith("#") ? hash.slice(1) : hash
   );
@@ -144,6 +179,19 @@ export function decodeHash(hash: string): HashReading {
   return "error" in read
     ? { status: "error", error: read.error }
     : { status: "sketch", sketch: read.sketch };
+}
+
+/**
+ * Reads the hash of a link. Only a hash with an `s` parameter holds a sketch: any other, such as the anchor of a heading of a docs page, holds none. Everything it holds is untrusted: the sketch goes through `readSketch`, so that it is one that the edits could have made. It never throws: whatever goes wrong while it reads, such as a stack that overflows, is a link that cannot be read.
+ * @param hash The hash of a URL, with or without the leading `#`.
+ * @returns Nothing when the hash has no sketch, the sketch, or why the hash cannot be read: an unknown version, damaged data, or a sketch that `readSketch` refuses.
+ */
+export function decodeHash(hash: string): HashReading {
+  try {
+    return readHash(hash);
+  } catch {
+    return { status: "error", error: UNREADABLE };
+  }
 }
 
 /**

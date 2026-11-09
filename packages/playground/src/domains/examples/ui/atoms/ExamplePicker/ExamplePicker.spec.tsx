@@ -15,17 +15,20 @@ const EXAMPLES: readonly ExampleOption[] = [
  * Renders the picker inside the root of the playground, where its theme is.
  * @param currentId The id of the current example, if any.
  * @param onSelect Called with the example that is picked.
+ * @param autoFocus Whether the button takes the keyboard focus when it is first rendered.
  * @returns The page object of the picker.
  */
 function renderPicker(
   currentId: string | undefined,
-  onSelect: (example: ExampleOption) => void = jest.fn()
+  onSelect: (example: ExampleOption) => void = jest.fn(),
+  autoFocus?: boolean
 ): ExamplePickerPom {
   renderInRoot(
     <ExamplePicker
       examples={EXAMPLES}
       currentId={currentId}
       onSelect={onSelect}
+      autoFocus={autoFocus}
     />
   );
 
@@ -103,6 +106,29 @@ describe("ExamplePicker", () => {
       expect(popup).toBe("menu");
       expect(isExpanded).toBe(false);
       expect(isListOpen).toBe(false);
+    });
+
+    it("should take the keyboard focus when it is first rendered, if the caller asks for it", () => {
+      // Arrange
+      const picker = renderPicker("quick-start", jest.fn(), true);
+
+      // Act
+      const { isFocused } = picker;
+
+      // Assert
+      expect(isFocused).toBe(true);
+    });
+
+    it("should not take the keyboard focus by itself", () => {
+      // Arrange
+      const picker = renderPicker("quick-start");
+
+      // Act
+      const { isFocused } = picker;
+
+      // Assert
+      expect(isFocused).toBe(false);
+      expect(document.activeElement).toBe(document.body);
     });
   });
 

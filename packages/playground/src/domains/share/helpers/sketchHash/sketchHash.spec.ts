@@ -1,30 +1,60 @@
-import type { InflateOptions } from "fflate";
 import { deflateSync, inflateSync } from "fflate";
+import type { Inflate } from "fflate";
 
 import type { Sketch } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import {
   fromText,
   isSameProject,
+  readSketch,
   toText,
 } from "@/domains/project/helpers/sketch";
 
 import { fromBase64Url, toBase64Url } from "./base64Url";
 import { decodeHash, encodeSketch, isLongLink } from "./sketchHash";
 import {
+  INFLATE_STEP_BYTES,
   LONG_LINK_LENGTH,
   MAX_SKETCH_JSON_BYTES,
 } from "./sketchHash.constants";
 
-/** The signature of `inflateSync` that the mock below keeps */
-type Inflate = (data: Uint8Array, options?: InflateOptions) => Uint8Array;
+/** What `Inflate` was given and gave since the last time a test reset it: the pushes, the bytes of packed data pushed in, and the bytes of data that came out */
+const mockInflated = { pushes: 0, pushed: 0, produced: 0 };
 
-// The real `inflateSync`, which the test of the limit watches
-jest.mock<{ inflateSync: Inflate }>("fflate", () => {
-  const actual = jest.requireActual<{ inflateSync: Inflate }>("fflate");
+// The real `Inflate`, behind a recorder that the tests of the limit read
+jest.mock<{ Inflate: typeof Inflate }>("fflate", () => {
+  const actual = jest.requireActual<{ Inflate: typeof Inflate }>("fflate");
 
-  return { ...actual, inflateSync: jest.fn(actual.inflateSync) };
+  return {
+    ...actual,
+    Inflate: jest.fn((onData: (chunk: Uint8Array, final: boolean) => void) => {
+      const inflater = new actual.Inflate((chunk, final) => {
+        mockInflated.produced += chunk.length;
+        onData(chunk, final);
+      });
+
+      return {
+        push: (chunk: Uint8Array, final?: boolean) => {
+          mockInflated.pushes += 1;
+          mockInflated.pushed += chunk.length;
+          inflater.push(chunk, final);
+        },
+      };
+    }) as unknown as typeof Inflate,
+  };
 });
+
+// The real `readSketch`, which a test can make fail as an unexpected error would
+jest.mock<{ readSketch: typeof readSketch }>(
+  "@/domains/project/helpers/sketch",
+  () => {
+    const actual = jest.requireActual<{ readSketch: typeof readSketch }>(
+      "@/domains/project/helpers/sketch"
+    );
+
+    return { ...actual, readSketch: jest.fn(actual.readSketch) };
+  }
+);
 
 /** A link made with the raw deflate of Node.js (`zlib.deflateRawSync`), which is not the implementation that writes ours, for the sketch `TINY_SKETCH` */
 const ZLIB_LINK =
@@ -114,6 +144,20 @@ const EVERY_SYNTAX: Sketch = {
     },
   ],
 };
+
+/**
+ * Makes text that does not pack well, with characters of one, two, three and four bytes, in a way that is the same on every run.
+ * @param count How many characters.
+ */
+function createIncompressibleText(count: number): string {
+  const characters = [...'aZ9 {}"\\ü€\u{1F600}'];
+  let state = 1;
+
+  return Array.from({ length: count }, () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return characters[(state >>> 16) % characters.length];
+  }).join("");
+}
 
 /**
  * Makes the hash of a link from the JSON text of its data, as a link of this format is made.
@@ -507,7 +551,9 @@ describe("sketchHash", () => {
         const error = getError(cut);
 
         // Assert
-        expect(error).toMatch(/^The link is damaged: /);
+        expect(error).toBe(
+          "The link is damaged: its data cannot be unpacked. It may be cut short."
+        );
       });
 
       it("should refuse data that unpacks to text that is not JSON", () => {
@@ -612,6 +658,12 @@ describe("sketchHash", () => {
         return { ...empty, config: "a".repeat(bytes - overhead) };
       }
 
+      beforeEach(() => {
+        mockInflated.pushes = 0;
+        mockInflated.pushed = 0;
+        mockInflated.produced = 0;
+      });
+
       it("should read a sketch whose JSON has the most bytes it accepts", () => {
         // Arrange
         const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES);
@@ -632,29 +684,43 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe(
-          "The sketch in the link is larger than 8 MiB, which the playground does not load."
+          "The sketch in the link is larger than 4 MiB, which the playground does not load."
         );
       });
 
-      it("should never unpack more than the limit and one byte, so that a few bytes of deflate cannot take the memory of the page", () => {
+      it("should never unpack more than the limit and what one step of the data can make, so that a few bytes of deflate cannot take the memory of the page", () => {
         // Arrange
-        const inflate = jest.mocked(inflateSync);
-        const hash = `v=1&s=${toBase64Url(deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 4)))}`;
+        const packed = deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 8));
+        const hash = `v=1&s=${toBase64Url(packed)}`;
+        // Deflate makes at most 1,032 bytes out of one
+        const mostOfAStep = INFLATE_STEP_BYTES * 1032;
 
         // Act
         decodeHash(hash);
 
         // Assert
-        const [[, options]] = inflate.mock.calls;
-        const [{ value: unpacked }] = inflate.mock.results;
+        expect(mockInflated.produced).toBeGreaterThan(MAX_SKETCH_JSON_BYTES);
+        expect(mockInflated.produced).toBeLessThanOrEqual(
+          MAX_SKETCH_JSON_BYTES + mostOfAStep
+        );
+      });
 
-        expect(options?.out).toHaveLength(MAX_SKETCH_JSON_BYTES + 1);
-        expect(unpacked).toHaveLength(MAX_SKETCH_JSON_BYTES + 1);
+      it("should stop unpacking as soon as the result is past the limit, and not go on to the end of the data", () => {
+        // Arrange
+        const packed = deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 8));
+        const hash = `v=1&s=${toBase64Url(packed)}`;
+
+        // Act
+        const error = getError(hash);
+
+        // Assert
+        expect(error).toMatch(/is larger than 4 MiB/);
+        expect(mockInflated.pushed).toBeLessThan(packed.length / 2);
       });
 
       it("should refuse data that unpacks to many times the limit, which a few bytes of deflate can make", () => {
         // Arrange
-        const packed = deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 4));
+        const packed = deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 8));
         const hash = `v=1&s=${toBase64Url(packed)}`;
 
         // Act
@@ -662,7 +728,173 @@ describe("sketchHash", () => {
 
         // Assert
         expect(packed.length).toBeLessThan(100_000);
-        expect(error).toMatch(/is larger than 8 MiB/);
+        expect(error).toMatch(/is larger than 4 MiB/);
+      });
+
+      it("should read data that takes many steps to unpack, whole, with the characters that a step cuts in two", () => {
+        // Arrange
+        const config = createIncompressibleText(12000);
+        const sketch: Sketch = { config, tree: [], dependencies: [] };
+        const hash = encodeSketch(sketch);
+        const packed = fromBase64Url(hash.split("s=")[1]) as Uint8Array;
+
+        // Act
+        const read = getSketch(hash);
+
+        // Assert
+        expect(packed.length).toBeGreaterThan(INFLATE_STEP_BYTES * 3);
+        expect(read).toStrictEqual(sketch);
+        expect(mockInflated.pushes).toBe(
+          Math.ceil(packed.length / INFLATE_STEP_BYTES)
+        );
+        expect(mockInflated.pushed).toBe(packed.length);
+      });
+    });
+
+    describe("when a hostile link holds a sketch that is too large to read", () => {
+      /**
+       * Makes the hash of a link from a raw sketch.
+       * @param value What the JSON holds.
+       */
+      function hashOfValue(value: unknown): string {
+        return hashOfJson(JSON.stringify(value));
+      }
+
+      it.each([5000, 40000])(
+        "should refuse a path of %i folders with a reason, at once, and not throw",
+        (folders) => {
+          // Arrange
+          const hash = hashOfValue({
+            config: "",
+            tree: [{ path: `${"a/".repeat(folders)}f.js`, kind: "file" }],
+            dependencies: [],
+          });
+
+          // Act
+          const reading = decodeHash(hash);
+
+          // Assert
+          expect(hash.length).toBeLessThan(250);
+          expect(reading).toStrictEqual({
+            status: "error",
+            error: `"${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`,
+          });
+        }
+      );
+
+      it("should refuse a path of more segments than a path can have, with a reason", () => {
+        // Arrange
+        const path = Array.from({ length: 65 }, () => "a").join("/");
+        const hash = hashOfValue({
+          config: "",
+          tree: [{ path, kind: "file" }],
+          dependencies: [],
+        });
+
+        // Act
+        const error = getError(hash);
+
+        // Assert
+        expect(error).toMatch(
+          /cannot be in the tree\. The path cannot have more than 64 segments\.$/
+        );
+      });
+
+      it("should refuse more files than a sketch can have, with a reason", () => {
+        // Arrange
+        const hash = hashOfValue({
+          config: "",
+          tree: Array.from({ length: 1001 }, (_, index) => ({
+            path: `src/f${index}.js`,
+            kind: "file",
+          })),
+          dependencies: [],
+        });
+
+        // Act
+        const error = getError(hash);
+
+        // Assert
+        expect(error).toBe("The sketch has more than 1000 files and folders.");
+      });
+
+      it("should refuse more dependencies than a sketch can have, with a reason", () => {
+        // Arrange
+        const dependency = {
+          from: "a.js",
+          target: { kind: "external", name: "x" },
+          syntax: "require",
+          importKind: "value",
+          specifiers: [],
+        };
+        const hash = hashOfValue({
+          config: "",
+          tree: [{ path: "a.js", kind: "file" }],
+          dependencies: Array.from({ length: 3001 }, () => dependency),
+        });
+
+        // Act
+        const error = getError(hash);
+
+        // Assert
+        expect(error).toBe("The sketch has more than 3000 dependencies.");
+      });
+
+      it("should read a sketch of the most files and dependencies it accepts", () => {
+        // Arrange
+        const hash = hashOfValue({
+          config: "",
+          tree: Array.from({ length: 1000 }, (_, index) => ({
+            path: `src/f${index}.js`,
+            kind: "file",
+          })),
+          dependencies: Array.from({ length: 3000 }, (_, index) => ({
+            from: `src/f${index % 1000}.js`,
+            target: { kind: "external", name: `m${index}` },
+            syntax: "import",
+            importKind: "value",
+            specifiers: [{ kind: "named", name: `n${index}` }],
+          })),
+        });
+
+        // Act
+        const read = getSketch(hash);
+
+        // Assert
+        expect(read.tree).toHaveLength(1000);
+        expect(read.dependencies).toHaveLength(3000);
+      });
+    });
+
+    describe("when something unexpected goes wrong while it reads", () => {
+      it("should return the damage as an error and not throw, whatever is thrown", () => {
+        // Arrange
+        jest.mocked(readSketch).mockImplementationOnce(() => {
+          throw new RangeError("Maximum call stack size exceeded");
+        });
+
+        // Act
+        const reading = decodeHash(encodeSketch(TINY_SKETCH));
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "error",
+          error: "The link is damaged: it could not be read.",
+        });
+      });
+
+      it("should read the next link as usual", () => {
+        // Arrange
+        jest.mocked(readSketch).mockImplementationOnce(() => {
+          throw new RangeError("Maximum call stack size exceeded");
+        });
+        decodeHash(encodeSketch(TINY_SKETCH));
+
+        // Act
+        const read = getSketch(encodeSketch(TINY_SKETCH));
+
+        // Assert
+        expect(read).toStrictEqual(TINY_SKETCH);
       });
     });
   });

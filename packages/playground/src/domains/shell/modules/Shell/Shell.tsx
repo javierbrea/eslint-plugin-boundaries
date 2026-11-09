@@ -19,6 +19,7 @@ import type { ShellProps } from "./Shell.types";
  * @param props.onReset Called with the sketch on screen when the user asks to reset it.
  * @param props.onSelectExample Called with the example and the sketch on screen when the user picks an example.
  * @param props.makeLink Makes the link that Share copies, if the host can.
+ * @param props.initialFocus The control of the top bar that takes the keyboard focus when the shell is first rendered, if any.
  * @returns The shell, as large as its container.
  */
 export function Shell({
@@ -29,6 +30,7 @@ export function Shell({
   onReset,
   onSelectExample,
   makeLink,
+  initialFocus,
 }: Readonly<ShellProps>): ReactNode {
   return (
     <SessionProvider
@@ -44,6 +46,7 @@ export function Shell({
               onReset={onReset}
               onSelectExample={onSelectExample}
               makeLink={makeLink}
+              initialFocus={initialFocus}
             />
           }
           regions={<ShellPanes />}

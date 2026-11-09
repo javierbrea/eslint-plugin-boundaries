@@ -13,7 +13,7 @@ import { ReplaceSketchDialog } from "@/domains/shell/ui/atoms/ReplaceSketchDialo
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { PLAYGROUND_TEST_ID } from "./Playground.constants";
-import type { Replacement } from "./Playground.types";
+import type { FocusRequest, Replacement } from "./Playground.types";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.
@@ -35,6 +35,18 @@ export function Playground({
     kind: "reset",
   });
   const [askedAbout, setAskedAbout] = useState<number | undefined>(undefined);
+  // The control that had the keyboard focus goes with the old shell when a replacement shows a new one, so the new shell is asked to focus the control that made the replacement. The request is for the first sketch that comes on screen after it, so a sketch that comes from outside later does not take the focus from where the user is
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | undefined>(
+    undefined
+  );
+
+  if (
+    focusRequest !== undefined &&
+    focusRequest.shell === undefined &&
+    generation > focusRequest.after
+  ) {
+    setFocusRequest({ ...focusRequest, shell: generation });
+  }
 
   // The shell reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing: the sketch stays on screen, and the next edit saves again
   const save = useCallback(
@@ -62,14 +74,21 @@ export function Playground({
   const replace = useCallback(
     (replacing: Replacement) => {
       if (replacing.kind === "reset") {
+        setFocusRequest({ target: "reset", after: generation });
         reset();
       } else {
+        setFocusRequest({ target: "examples", after: generation });
         void save(replacing.example.sketch);
         show(replacing.example.sketch);
       }
     },
-    [reset, save, show]
+    [generation, reset, save, show]
   );
+  // The button of a failed load resets the sketch as the one of the top bar does, so the new shell takes the focus in the same way
+  const resetAfterFailure = useCallback(() => {
+    setFocusRequest({ target: "reset", after: generation });
+    reset();
+  }, [generation, reset]);
 
   // A replacement loses the edits of the user unless the sketch on screen is something that comes back: an example, or the sketch of the source. The examples are static, so they are compared at once. The sketch of the source is asked for only when it is needed and only once for the source (`useSourceSketch`), so a source that reads a project from disk is not read for a sketch that is an example, and a source that cannot be read leaves no way to tell, so the user is asked
   const requestReplacement = useCallback(
@@ -119,9 +138,12 @@ export function Playground({
           onReset={handleReset}
           onSelectExample={handleSelectExample}
           makeLink={makeLink}
+          initialFocus={
+            focusRequest?.shell === generation ? focusRequest.target : undefined
+          }
         />
       ) : (
-        <LoadState load={load} onReset={reset} />
+        <LoadState load={load} onReset={resetAfterFailure} />
       )}
       <ReplaceSketchDialog
         isOpen={askedAbout === generation}

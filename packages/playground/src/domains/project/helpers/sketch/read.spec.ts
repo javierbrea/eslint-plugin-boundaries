@@ -2,6 +2,12 @@ import type { Sketch, SketchDependencyTarget } from "@/contract";
 
 import { isSameProject } from "./compare";
 import { readSketch } from "./read";
+import {
+  MAX_PATH_LENGTH,
+  MAX_PATH_SEGMENTS,
+  MAX_SKETCH_DEPENDENCIES,
+  MAX_SKETCH_NODES,
+} from "./sketch.constants";
 import { fromText, toText } from "./textMode";
 
 /**
@@ -380,6 +386,10 @@ function readFuzzSketches(seed: number, attempts: number): Sketch[] {
 }
 
 describe("readSketch", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe("when the value is a sketch", () => {
     it("should return the sketch it holds", () => {
       // Arrange
@@ -937,6 +947,261 @@ describe("readSketch", () => {
 
       // Assert
       expect(error).toBe(expected);
+    });
+  });
+
+  describe("when a path is longer than a path can be", () => {
+    it("should refuse a path of one character more than the most it accepts, and quote only the start of it", () => {
+      // Arrange
+      const path = "x".repeat(MAX_PATH_LENGTH + 1);
+      const value = createValue({
+        tree: [{ path, kind: "file" }],
+        dependencies: [],
+      });
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe(
+        `"${path.slice(0, 80)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
+      );
+    });
+
+    it.each([5000, 40000])(
+      "should refuse a path of %i folders by its length, which a link of a few hundred characters can hold",
+      (folders) => {
+        // Arrange
+        const path = `${"a/".repeat(folders)}f.js`;
+        const value = createValue({
+          tree: [{ path, kind: "file" }],
+          dependencies: [],
+        });
+
+        // Act
+        const error = getError(value);
+
+        // Assert
+        expect(error).toBe(
+          `"${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
+        );
+      }
+    );
+
+    it("should refuse a path of one segment more than the most it accepts", () => {
+      // Arrange
+      const path = Array.from(
+        { length: MAX_PATH_SEGMENTS + 1 },
+        () => "a"
+      ).join("/");
+      const value = createValue({
+        tree: [{ path, kind: "file" }],
+        dependencies: [],
+      });
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe(
+        `"${path.slice(0, 80)}…" cannot be in the tree. The path cannot have more than 64 segments.`
+      );
+    });
+
+    it("should accept the longest path, and the deepest one", () => {
+      // Arrange
+      const longest = "x".repeat(MAX_PATH_LENGTH);
+      const deepest = Array.from({ length: MAX_PATH_SEGMENTS }, () => "a").join(
+        "/"
+      );
+      const value = createValue({
+        tree: [
+          { path: longest, kind: "file" },
+          { path: deepest, kind: "file" },
+        ],
+        dependencies: [],
+      });
+
+      // Act
+      const sketch = getSketch(value);
+
+      // Assert
+      expect(sketch.tree.map(({ path }) => path)).toEqual([deepest, longest]);
+    });
+  });
+
+  describe("when the sketch is larger than a link can hold", () => {
+    /**
+     * Makes a raw sketch with a number of files, and a number of dependencies of the first file on external modules.
+     * @param fileCount How many files.
+     * @param dependencyCount How many dependencies.
+     */
+    function createLargeValue(
+      fileCount: number,
+      dependencyCount: number
+    ): Record<string, unknown> {
+      return {
+        config: "{}",
+        tree: Array.from({ length: fileCount }, (_, index) => ({
+          path: `src/f${index}.js`,
+          kind: "file",
+        })),
+        dependencies: Array.from({ length: dependencyCount }, (_, index) =>
+          createDependency({
+            from: "src/f0.js",
+            target: { kind: "external", name: `m${index}` },
+            specifiers: [{ kind: "named", name: `n${index}` }],
+          })
+        ),
+      };
+    }
+
+    it("should accept the most files and folders it accepts", () => {
+      // Arrange
+      const value = createLargeValue(MAX_SKETCH_NODES, 0);
+
+      // Act
+      const sketch = getSketch(value);
+
+      // Assert
+      expect(sketch.tree).toHaveLength(1000);
+    });
+
+    it("should refuse one file more than that, and say how many it accepts", () => {
+      // Arrange
+      const value = createLargeValue(MAX_SKETCH_NODES + 1, 0);
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe("The sketch has more than 1000 files and folders.");
+    });
+
+    it("should count the folders that the tree declares as well as the files", () => {
+      // Arrange
+      const value = createLargeValue(MAX_SKETCH_NODES, 0);
+
+      (value.tree as unknown[]).push({ path: "empty", kind: "folder" });
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe("The sketch has more than 1000 files and folders.");
+    });
+
+    it("should accept the most dependencies it accepts", () => {
+      // Arrange
+      const value = createLargeValue(1, MAX_SKETCH_DEPENDENCIES);
+
+      // Act
+      const sketch = getSketch(value);
+
+      // Assert
+      expect(sketch.dependencies).toHaveLength(3000);
+    });
+
+    it("should refuse one dependency more than that, and say how many it accepts", () => {
+      // Arrange
+      const value = createLargeValue(1, MAX_SKETCH_DEPENDENCIES + 1);
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe("The sketch has more than 3000 dependencies.");
+    });
+
+    it("should refuse the size before it reads what is in the lists", () => {
+      // Arrange
+      const value = createValue({
+        tree: Array.from({ length: MAX_SKETCH_NODES + 1 }, () => null),
+        dependencies: [],
+      });
+
+      // Act
+      const error = getError(value);
+
+      // Assert
+      expect(error).toBe("The sketch has more than 1000 files and folders.");
+    });
+  });
+
+  describe("the work it does for a sketch of the most it accepts", () => {
+    /**
+     * Reads a value that must be accepted, and fails as soon as the sketch has compared the start of a path more times than a budget, which scanning the nodes or the dependencies already read for each new one does by the million: each comparison is counted and none is kept, so that a scan fails the case and does not exhaust the memory.
+     * @param value The value to read.
+     * @param budget How many comparisons are allowed.
+     */
+    function readWithBudget(value: unknown, budget: number): Sketch {
+      const startsWith = String.prototype.startsWith;
+      let comparisons = 0;
+
+      jest.spyOn(String.prototype, "startsWith").mockImplementation(function (
+        this: string,
+        search,
+        position
+      ) {
+        comparisons += 1;
+        if (comparisons > budget) {
+          throw new Error(
+            `The sketch compared the start of a path more than ${budget} times: it scans what it read`
+          );
+        }
+        return startsWith.call(this, search, position);
+      });
+      return getSketch(value);
+    }
+
+    it("should read each node without scanning the ones before it, however deep their paths are", () => {
+      // Arrange
+      const levels = Array.from({ length: 60 }, (_, level) => `d${level}`);
+      const deep = (index: number): string =>
+        `u${index}/${levels.join("/")}/f.js`;
+      const value = createValue({
+        tree: Array.from({ length: MAX_SKETCH_NODES }, (_, index) => ({
+          path: deep(index),
+          kind: "file",
+        })),
+        dependencies: [],
+      });
+
+      // Act
+      // One for each path, against the config node. Scanning the nodes before each one is half a million
+      const sketch = readWithBudget(value, MAX_SKETCH_NODES * 5);
+
+      // Assert
+      expect(sketch.tree).toHaveLength(MAX_SKETCH_NODES);
+    });
+
+    it("should check each dependency without scanning the nodes or the dependencies before it", () => {
+      // Arrange
+      const value = createValue({
+        tree: Array.from({ length: MAX_SKETCH_NODES }, (_, index) => ({
+          path: `src/f${index}.js`,
+          kind: "file",
+        })),
+        dependencies: Array.from(
+          { length: MAX_SKETCH_DEPENDENCIES },
+          (_, index) =>
+            createDependency({
+              from: "src/f0.js",
+              target: { kind: "node", path: `src/f${1 + (index % 999)}.js` },
+              specifiers: [{ kind: "named", name: `n${index}` }],
+            })
+        ),
+      });
+
+      // Act
+      // Scanning the tree for the file and the target of each dependency is millions
+      const sketch = readWithBudget(
+        value,
+        (MAX_SKETCH_NODES + MAX_SKETCH_DEPENDENCIES) * 5
+      );
+
+      // Assert
+      expect(sketch.dependencies).toHaveLength(MAX_SKETCH_DEPENDENCIES);
     });
   });
 

@@ -5,11 +5,14 @@ import type {
   FileDescription,
 } from "@/domains/evaluation/helpers/engine";
 import {
+  findSameSketch,
   fromText,
   getDependencyError,
   isSameProject,
   toText,
 } from "@/domains/project/helpers/sketch";
+import { decodeHash, encodeSketch } from "@/domains/share/helpers/sketchHash";
+import type { HashReading } from "@/domains/share/helpers/sketchHash";
 
 import { EXAMPLES } from "./examples";
 import { QUICK_START_EXAMPLE } from "./quickStart";
@@ -83,6 +86,27 @@ describe("examples", () => {
         // Assert
         expect(result.problems).toEqual([]);
         expect(isSameProject(result.sketch, sketch)).toBe(true);
+      }
+    );
+
+    it.each(EXAMPLES)(
+      "should come back from its link exactly as it is in $id, so that the picker names it and Reset does not ask about it",
+      (example) => {
+        // Act
+        const reading = decodeHash(encodeSketch(example.sketch));
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "sketch",
+          sketch: example.sketch,
+        });
+
+        const { sketch } = reading as Extract<
+          HashReading,
+          { status: "sketch" }
+        >;
+
+        expect(findSameSketch(EXAMPLES, sketch)).toBe(example);
       }
     );
 

@@ -7,6 +7,7 @@ import type {
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 
 import { addDependency, replaceDependency } from "./dependencies";
+import { MAX_PATH_LENGTH, MAX_PATH_SEGMENTS } from "./sketch.constants";
 import type { EditResult } from "./sketch.types";
 import {
   fromText,
@@ -1331,6 +1332,25 @@ describe("TextMode", () => {
           reason:
             "eslint.config.js at the root is the config node, not a file or a folder.",
         },
+      ]);
+    });
+
+    it("should leave out a path that is too long, or has too many segments, as a problem, however many folders it names", () => {
+      // Arrange
+      const folders = `${"a/".repeat(40000)}f.js`;
+      const segments = `${"a/".repeat(MAX_PATH_SEGMENTS)}f.js`;
+      const longest = "x".repeat(MAX_PATH_LENGTH + 1);
+      const text = `${folders}\n${segments}\n${longest}\nok.js\n`;
+
+      // Act
+      const { sketch, problems } = fromText(text, createSketch([]));
+
+      // Assert
+      expect(paths(sketch)).toEqual(["ok.js"]);
+      expect(problems.map(({ line, reason }) => ({ line, reason }))).toEqual([
+        { line: 1, reason: "The path cannot have more than 1024 characters." },
+        { line: 2, reason: "The path cannot have more than 64 segments." },
+        { line: 3, reason: "The path cannot have more than 1024 characters." },
       ]);
     });
 

@@ -7,10 +7,14 @@ import type {
   SketchSpecifier,
 } from "@/contract";
 
-import { getDependencyError, sortSpecifiers } from "./dependencies";
-import { SYNTAX_FACTS } from "./sketch.constants";
-import type { SketchReadResult } from "./sketch.types";
-import { canonicalizeNodes, getAddError } from "./tree";
+import { createDependencyChecker, sortSpecifiers } from "./dependencies";
+import {
+  MAX_SKETCH_DEPENDENCIES,
+  MAX_SKETCH_NODES,
+  SYNTAX_FACTS,
+} from "./sketch.constants";
+import type { NodeIndex, SketchReadResult } from "./sketch.types";
+import { canonicalizeNodes, createNodeIndex } from "./tree";
 
 /** An object whose keys are not known yet */
 type Fields = { readonly [key: string]: unknown };
@@ -25,8 +29,21 @@ const IMPORT_KINDS = ["value", "type"] as const;
 
 const SPECIFIER_KINDS = ["default", "named", "namespace"] as const;
 
+/** The most characters of a path that a reason quotes: a path that is refused for its length can be much longer, and a reason is a sentence to read */
+const MAX_QUOTED_PATH_LENGTH = 80;
+
 const NOT_A_SKETCH =
   'The data is not a sketch: it must be an object with "config", "tree" and "dependencies".';
+
+/**
+ * Writes a path between quotes, as a reason names it. A long path is cut and ends with `…`.
+ * @param path The path.
+ */
+function quotePath(path: string): string {
+  return path.length > MAX_QUOTED_PATH_LENGTH
+    ? `"${path.slice(0, MAX_QUOTED_PATH_LENGTH)}…"`
+    : `"${path}"`;
+}
 
 /**
  * Tells whether a value is an object that is not an array.
@@ -287,6 +304,13 @@ function readShape(value: unknown): Sketch | string {
   if (!Array.isArray(dependencies)) {
     return getFieldError(where, "dependencies", "a list");
   }
+  // Before the lists are read: the cost of the checks that follow grows with the size of the sketch
+  if (tree.length > MAX_SKETCH_NODES) {
+    return `The sketch has more than ${MAX_SKETCH_NODES} files and folders.`;
+  }
+  if (dependencies.length > MAX_SKETCH_DEPENDENCIES) {
+    return `The sketch has more than ${MAX_SKETCH_DEPENDENCIES} dependencies.`;
+  }
 
   const nodes = readList(tree, readNode);
 
@@ -310,17 +334,17 @@ function readShape(value: unknown): Sketch | string {
 
 /**
  * Tells why a node cannot be in the tree, as text mode would refuse the line that declares it: its path is invalid, something is already there, or a file is above it. A path that ends with a space is refused too: text mode trims the line of a node, so the next read would lose the space.
- * @param before The nodes before it in the tree.
+ * @param before The nodes before it in the tree, indexed.
  * @param node The node to check.
- * @param node.path
- * @param node.kind
+ * @param node.path The path of the node.
+ * @param node.kind Whether the node is a file or a folder.
  * @returns The reason as a sentence for the user, or `undefined` when the node can be in the tree.
  */
 function getNodeError(
-  before: readonly SketchNode[],
+  before: NodeIndex,
   { path, kind }: SketchNode
 ): string | undefined {
-  const error = getAddError(before, path, kind);
+  const error = before.getAddError(path, kind);
 
   if (error !== undefined) {
     return error;
@@ -336,15 +360,15 @@ function getNodeError(
  * @returns The reason the first node that cannot be in the tree is refused, or `undefined` when every node can.
  */
 function getTreeError(nodes: readonly SketchNode[]): string | undefined {
-  const before: SketchNode[] = [];
+  const before = createNodeIndex();
 
   for (const node of nodes) {
     const error = getNodeError(before, node);
 
     if (error !== undefined) {
-      return `"${node.path}" cannot be in the tree. ${error}`;
+      return `${quotePath(node.path)} cannot be in the tree. ${error}`;
     }
-    before.push(node);
+    before.add(node);
   }
   return undefined;
 }
@@ -359,18 +383,18 @@ function groupDependencies(
   tree: readonly SketchNode[],
   dependencies: readonly SketchDependency[]
 ): ReadonlyMap<string, readonly SketchDependency[]> | string {
+  const checker = createDependencyChecker(tree);
   const groups = new Map<string, SketchDependency[]>();
 
   for (const [index, dependency] of dependencies.entries()) {
-    const sameFile = groups.get(dependency.from) ?? [];
-    const error = getDependencyError(
-      { tree, dependencies: sameFile },
-      dependency
-    );
+    const error = checker.accept(dependency);
 
     if (error !== undefined) {
       return `Dependency ${index + 1} cannot be in the sketch. ${error}`;
     }
+
+    const sameFile = groups.get(dependency.from) ?? [];
+
     sameFile.push(dependency);
     groups.set(dependency.from, sameFile);
   }

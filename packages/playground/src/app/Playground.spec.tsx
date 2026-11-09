@@ -12,6 +12,9 @@ import {
   EXAMPLES,
   QUICK_START_EXAMPLE,
 } from "@/domains/examples/data/examples";
+import { HashStore } from "@/domains/share/data/hashStore";
+import { HASH_STORE_WRITE_DELAY } from "@/domains/share/data/hashStore/HashStore.constants";
+import { decodeHash, encodeSketch } from "@/domains/share/helpers/sketchHash";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
 import { Playground } from "./Playground";
@@ -173,6 +176,18 @@ async function waitForPickerText(
       throw new Error(`The picker does not say "${text}" yet`);
     }
   });
+}
+
+/**
+ * Reads the sketch that the hash of the page holds.
+ * @returns The paths of its tree, or what the hash holds instead of a sketch, written as JSON.
+ */
+function readPagePaths(): string[] {
+  const reading = decodeHash(window.location.hash);
+
+  return reading.status === "sketch"
+    ? reading.sketch.tree.map(({ path }) => path)
+    : [JSON.stringify(reading)];
 }
 
 /**
@@ -1265,6 +1280,175 @@ describe("Playground", () => {
     });
   });
 
+  describe("the keyboard focus after a replacement", () => {
+    it("should start on nothing when the sketch first loads", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore()
+      );
+
+      // Act
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(playground.topBar.actions.isResetFocused).toBe(false);
+      expect(playground.topBar.picker.isFocused).toBe(false);
+    });
+
+    it("should be on Reset of the new shell after Reset, when it asks nothing", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore()
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.click("src/index.ts");
+      playground.topBar.actions.focusReset();
+
+      // Act
+      playground.topBar.actions.pressReset();
+      await waitForNothingOpen(playground);
+
+      // Assert
+      expect(playground.topBar.actions.isResetFocused).toBe(true);
+      expect(document.activeElement).not.toBe(document.body);
+    });
+
+    it("should be on Reset of the new shell after Reset, when the user confirms", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore()
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.actions.focusReset();
+      playground.topBar.actions.pressReset();
+
+      const dialog = await playground.waitForDialog("Reset the sketch?");
+
+      // Act
+      dialog.button("Reset").press();
+      await dialog.waitUntilGone();
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(playground.topBar.actions.isResetFocused).toBe(true);
+    });
+
+    it("should be on the picker of the new shell after an example is chosen, when it asks nothing", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore()
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.topBar.picker.open();
+
+      // Act
+      playground.topBar.picker.pick("Quick start");
+      await playground.waitForStatus("6 files ·");
+      await playground.topBar.picker.waitUntilClosed();
+
+      // Assert
+      expect(playground.topBar.picker.isFocused).toBe(true);
+      expect(playground.topBar.actions.isResetFocused).toBe(false);
+    });
+
+    it("should be on the picker of the new shell after an example is chosen, when the user confirms", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore()
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      // Act
+      dialog.button("Open example").press();
+      await dialog.waitUntilGone();
+      await waitForPickerText(playground, "Example Policies");
+
+      // Assert
+      expect(playground.topBar.picker.isFocused).toBe(true);
+    });
+
+    it("should be on Reset of the new shell after the button of a failed load", async () => {
+      // Arrange
+      const store = new MemoryStore();
+
+      jest
+        .spyOn(store, "load")
+        .mockRejectedValueOnce(new Error("The link is damaged"));
+
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitUntilFailed();
+
+      // Act
+      playground.loadState.pressReset();
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(playground.topBar.actions.isResetFocused).toBe(true);
+    });
+
+    it("should be on nothing when a sketch comes from outside after the replacement", async () => {
+      // Arrange
+      const store = new NotifyingStore();
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.click("src/index.ts");
+      playground.topBar.actions.pressReset();
+      await waitForNothingOpen(playground);
+      await store.save(SAVED_SKETCH);
+
+      const focusedByReset = playground.topBar.actions.isResetFocused;
+
+      // Act
+      act(() => store.notify());
+      await playground.waitForStatus("1 file ·");
+
+      // Assert
+      expect(focusedByReset).toBe(true);
+      expect(playground.topBar.actions.isResetFocused).toBe(false);
+      expect(playground.topBar.picker.isFocused).toBe(false);
+    });
+
+    it("should be on nothing when the reset fails and a sketch comes from outside afterwards", async () => {
+      // Arrange
+      const store = new NotifyingStore(QUICK_START_EXAMPLE.sketch);
+      const source = createSource();
+      const { playground } = renderPlayground(source, store);
+      await playground.waitForStatus("6 files ·");
+      source.load.mockRejectedValueOnce(
+        new Error("The project cannot be read")
+      );
+      playground.topBar.actions.pressReset();
+      await playground.waitUntilFailed();
+      await store.save(SAVED_SKETCH);
+
+      // Act
+      act(() => store.notify());
+      await playground.waitForStatus("1 file ·");
+
+      // Assert
+      expect(playground.topBar.actions.isResetFocused).toBe(false);
+    });
+  });
+
   describe("the sketch of the source, for the confirmation", () => {
     it("should load the source once however many times it is asked, and only when it is needed", async () => {
       // Arrange
@@ -1403,6 +1587,140 @@ describe("Playground", () => {
         "https://example.com/playground/#v=1&s=abc"
       );
       expect(playground.topBar.actions.message.text).toBe("Link copied");
+    });
+  });
+
+  describe("with the store of the website, which keeps the sketch in the hash of the URL", () => {
+    const PAGE = "/playground/";
+
+    // The sketch of the source as a link can hold it: the default name of its dependency has no alias, which no edit makes
+    const SOURCE: Sketch = {
+      ...SOURCE_SKETCH,
+      dependencies: SOURCE_SKETCH.dependencies.map((dependency) => ({
+        ...dependency,
+        specifiers: [{ kind: "default", name: "React" }],
+      })),
+    };
+
+    let store: HashStore;
+
+    beforeEach(() => {
+      window.history.replaceState(null, "", PAGE);
+      store = new HashStore();
+    });
+
+    afterEach(async () => {
+      // Drops the write that a test left pending
+      await store.clear();
+      window.history.replaceState(null, "", "/");
+    });
+
+    /**
+     * Puts a hash in the URL, as a link that was opened does.
+     * @param hash The hash, without the leading `#`.
+     */
+    function openLink(hash: string): void {
+      window.history.replaceState(null, "", `${PAGE}#${hash}`);
+    }
+
+    it("should show the sketch of a link in the hash, over the one of the source", async () => {
+      // Arrange
+      openLink(encodeSketch(SAVED_SKETCH));
+
+      // Act
+      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      await playground.waitForStatus("1 file ·");
+
+      // Assert
+      expect(playground.project.tree.itemPaths).toEqual([
+        "eslint.config.js",
+        "src",
+        "src/index.ts",
+      ]);
+    });
+
+    it("should name the example that a link to an example opens, and not ask before it resets", async () => {
+      // Arrange
+      openLink(encodeSketch(QUICK_START_EXAMPLE.sketch));
+
+      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      await playground.waitForStatus("6 files ·");
+
+      // Act
+      playground.topBar.actions.pressReset();
+
+      // Assert
+      await playground.waitForStatus("2 files ·");
+
+      expect(playground.dialog().isRendered).toBe(false);
+    });
+
+    it("should write the hash with the edit, once the delay of the store has passed", async () => {
+      // Arrange
+      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      await playground.waitForStatus("2 files ·");
+
+      // Act
+      playground.project.item("src/index.ts").deleteAction.press();
+
+      // Assert
+      expect(window.location.hash).toBe("");
+
+      await waitFor(() => expect(window.location.hash).not.toBe(""), {
+        timeout: HASH_STORE_WRITE_DELAY + 2000,
+      });
+
+      expect(readPagePaths()).toEqual(["src/components/Price/index.ts"]);
+      expect(window.location.pathname).toBe(PAGE);
+    });
+
+    it("should show why a damaged link could not be loaded, and recover and clear the hash with Reset", async () => {
+      // Arrange
+      openLink("v=2&s=abc");
+
+      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+
+      // Act
+      await playground.waitUntilFailed();
+
+      const failure = playground.loadState.text;
+
+      playground.loadState.pressReset();
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(failure).toContain(
+        'The sketch could not be loaded: The link has the format version "2", which this playground does not know.'
+      );
+      expect(window.location.hash).toBe("");
+      expect(window.location.pathname).toBe(PAGE);
+      expect(playground.topBar.actions.isResetFocused).toBe(true);
+    });
+
+    it("should show why a link to a path of 40,000 folders could not be loaded, and not crash", async () => {
+      // Arrange
+      const deep = {
+        ...SAVED_SKETCH,
+        tree: [{ path: `${"a/".repeat(40000)}f.js`, kind: "file" }],
+      };
+
+      openLink(encodeSketch(deep as Sketch));
+
+      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+
+      // Act
+      await playground.waitUntilFailed();
+
+      // Assert
+      expect(window.location.hash.length).toBeLessThan(300);
+      expect(playground.loadState.text).toBe(
+        `The sketch could not be loaded: "${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
+      );
+
+      playground.loadState.pressReset();
+      await playground.waitForStatus("2 files ·");
+
+      expect(window.location.hash).toBe("");
     });
   });
 });

@@ -2160,6 +2160,40 @@ describe("Shell", () => {
       expect(onSelectExample).toHaveBeenCalledWith(EXAMPLES[1], QUICK_START);
     });
 
+    it.each([
+      ["Reset", "reset", [true, false]],
+      ["the picker of examples", "examples", [false, true]],
+    ] as const)(
+      "should give the keyboard focus to %s when the host asks for it",
+      (_label, initialFocus, expected) => {
+        // Arrange
+        const { shell } = renderShell({ initialFocus });
+
+        // Act
+        const focused = [
+          shell.topBar.actions.isResetFocused,
+          shell.topBar.picker.isFocused,
+        ];
+
+        // Assert
+        expect(focused).toEqual(expected);
+      }
+    );
+
+    it("should give the keyboard focus to nothing when the host does not ask", () => {
+      // Arrange
+      const { shell } = renderShell();
+
+      // Act
+      const focused = [
+        shell.topBar.actions.isResetFocused,
+        shell.topBar.picker.isFocused,
+      ];
+
+      // Assert
+      expect(focused).toEqual([false, false]);
+    });
+
     it("should offer Share when the host can make a link", () => {
       // Arrange
       const { shell } = renderShell({

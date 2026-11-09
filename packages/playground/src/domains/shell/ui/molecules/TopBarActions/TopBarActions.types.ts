@@ -16,6 +16,8 @@ export type TopBarActionsProps = {
   readonly onReset: () => void;
   /** Called when the user asks to share the sketch. The bar has neither the Share button nor its message without it. */
   readonly onShare?: () => void;
+  /** Whether the Reset button takes the keyboard focus when it is first rendered, such as the one of a new shell that replaced the one in which the user pressed Reset. It defaults to `false`. */
+  readonly autoFocusReset?: boolean;
   /** The test id of the root element, in place of the default one. */
   readonly testId?: string;
 };

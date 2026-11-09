@@ -27,6 +27,7 @@ import type { ShellTopBarProps } from "./ShellTopBar.types";
  * @param props.onReset Called with the sketch on screen when the user asks to reset it.
  * @param props.onSelectExample Called with the example and the sketch on screen when the user picks an example.
  * @param props.makeLink Makes the link that Share copies, if the host can.
+ * @param props.initialFocus The control that takes the keyboard focus when the bar is first rendered, if any.
  * @returns The bar.
  */
 export function ShellTopBar({
@@ -34,6 +35,7 @@ export function ShellTopBar({
   onReset,
   onSelectExample,
   makeLink,
+  initialFocus,
 }: Readonly<ShellTopBarProps>): ReactNode {
   const store = useSessionStore();
   const files = useSessionSelector((state) => state.evaluation.files.size);
@@ -80,6 +82,7 @@ export function ShellTopBar({
               examples={EXAMPLES}
               currentId={currentExample?.id}
               onSelect={selectExample}
+              autoFocus={initialFocus === "examples"}
             />
           ) : null
         }
@@ -91,6 +94,7 @@ export function ShellTopBar({
             onHelp={openHelp}
             onReset={reset}
             onShare={share}
+            autoFocusReset={initialFocus === "reset"}
           />
         }
         testId={SHELL_TOP_BAR_TEST_ID}

@@ -132,6 +132,14 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
+   * Whether the reset button has the keyboard focus.
+   * @returns True when it is the active element of the page.
+   */
+  get isResetFocused(): boolean {
+    return document.activeElement === this.button(RESET_BUTTON_LABEL);
+  }
+
+  /**
    * How the help button is sized and colored.
    * @returns Its computed width, height, color and background.
    */
@@ -206,6 +214,11 @@ export class TopBarActionsPom extends Pom {
   /** Presses the help button. */
   pressHelp(): void {
     fireEvent.click(this.helpButton);
+  }
+
+  /** Gives the keyboard focus to the reset button. */
+  focusReset(): void {
+    act(() => this.button(RESET_BUTTON_LABEL).focus());
   }
 
   /** Presses the reset button. */

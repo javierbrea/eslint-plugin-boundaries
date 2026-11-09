@@ -349,6 +349,57 @@ describe("ShellTopBar", () => {
     });
   });
 
+  describe("the keyboard focus when it is first rendered", () => {
+    it("should be on Reset when the host asks for it, and on nothing else", () => {
+      // Arrange
+      const { bar } = renderBar(createProps({ initialFocus: "reset" }));
+
+      // Act
+      const focused = [bar.actions.isResetFocused, bar.picker.isFocused];
+
+      // Assert
+      expect(focused).toEqual([true, false]);
+    });
+
+    it("should be on the picker of examples when the host asks for it, and on nothing else", () => {
+      // Arrange
+      const { bar } = renderBar(createProps({ initialFocus: "examples" }));
+
+      // Act
+      const focused = [bar.actions.isResetFocused, bar.picker.isFocused];
+
+      // Assert
+      expect(focused).toEqual([false, true]);
+    });
+
+    it("should be on nothing when the host does not ask", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      const focused = [bar.actions.isResetFocused, bar.picker.isFocused];
+
+      // Assert
+      expect(focused).toEqual([false, false]);
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it("should be on nothing when the host asks for the picker and the source cannot offer examples, which the bar then does not have", () => {
+      // Arrange
+      const { bar } = renderBar(createProps({ initialFocus: "examples" }), {
+        capabilities: NO_CAPABILITIES,
+      });
+
+      // Act
+      const { isResetFocused } = bar.actions;
+
+      // Assert
+      expect(bar.picker.isRendered).toBe(false);
+      expect(isResetFocused).toBe(false);
+      expect(document.activeElement).toBe(document.body);
+    });
+  });
+
   describe("share", () => {
     it("should not be there without a way to make the link", () => {
       // Arrange

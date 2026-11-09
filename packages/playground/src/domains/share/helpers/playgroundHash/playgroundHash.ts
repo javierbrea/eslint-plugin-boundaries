@@ -6,8 +6,8 @@ import type { PlaygroundHashInput } from "./playgroundHash.types";
 /**
  * Computes the hash of the link that opens an example in the playground. The project is read as text mode reads it, so that an author writes what the playground shows. The reading is synchronous and needs no browser, so the docs call it while they render on the server.
  * @param input The config and the project of the example.
- * @param input.config
- * @param input.project
+ * @param input.config The boundaries part of an ESLint config, as JSON5 text. It is not read.
+ * @param input.project The project as text mode shows it, with the dependencies of each file indented under it.
  * @returns The hash, without the leading `#`, such as `v=1&s=…`.
  * @throws An `Error` that lists each line of the project that text mode cannot read, with its number, so that a docs build fails instead of publishing a link that opens a different project.
  */

@@ -324,13 +324,13 @@ const POLICIES = [
       "Only specs import a mock. Production code and page objects never do",
   },
 
-  // A spec may import the entry of any element, which includes the testing support, and the page objects, constants and mocks that it drives, by file
+  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, and the share entry, which its own spec proves in Node.js
   {
     from: { file: { categories: "test" } },
     allow: {
       to: [
         entryOf(ELEMENT_TYPES),
-        { file: { categories: ["pom", "constants", "mock"] } },
+        { file: { categories: ["pom", "constants", "mock", "share-entry"] } },
       ],
     },
   },

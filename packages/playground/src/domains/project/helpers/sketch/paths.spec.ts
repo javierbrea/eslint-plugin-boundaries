@@ -8,7 +8,11 @@ import {
   movePath,
   normalizePath,
 } from "./paths";
-import { CONFIG_PATH } from "./sketch.constants";
+import {
+  CONFIG_PATH,
+  MAX_PATH_LENGTH,
+  MAX_PATH_SEGMENTS,
+} from "./sketch.constants";
 
 describe("Paths", () => {
   describe("cONFIG_PATH", () => {
@@ -229,6 +233,56 @@ describe("Paths", () => {
       expect(error).toBeUndefined();
     });
 
+    describe("the length of a path", () => {
+      it("should accept a path of the most characters, and one of the most segments", () => {
+        // Arrange
+        const longest = "a".repeat(MAX_PATH_LENGTH);
+        const deepest = Array.from({ length: MAX_PATH_SEGMENTS }, () => "a");
+
+        // Act
+        const errors = [getPathError(longest), getPathError(deepest.join("/"))];
+
+        // Assert
+        expect(errors).toEqual([undefined, undefined]);
+      });
+
+      it("should refuse a path of one character more than the most it accepts", () => {
+        // Arrange
+        const path = "a".repeat(MAX_PATH_LENGTH + 1);
+
+        // Act
+        const error = getPathError(path);
+
+        // Assert
+        expect(error).toBe("The path cannot have more than 1024 characters.");
+      });
+
+      it("should refuse a path of one segment more than the most it accepts", () => {
+        // Arrange
+        const path = Array.from({ length: MAX_PATH_SEGMENTS + 1 }, () => "a");
+
+        // Act
+        const error = getPathError(path.join("/"));
+
+        // Assert
+        expect(error).toBe("The path cannot have more than 64 segments.");
+      });
+
+      it.each([5000, 40000])(
+        "should refuse a path of %i folders, which a link of a few hundred characters can hold, by its length",
+        (folders) => {
+          // Arrange
+          const path = `${"a/".repeat(folders)}f.js`;
+
+          // Act
+          const error = getPathError(path);
+
+          // Assert
+          expect(error).toBe("The path cannot have more than 1024 characters.");
+        }
+      );
+    });
+
     it("should refuse the config file at the root", () => {
       // Act
       const error = getPathError("eslint.config.js");
@@ -330,6 +384,37 @@ describe("Paths", () => {
 
       // Assert
       expect(ancestors).toEqual([]);
+    });
+
+    it("should return the empty segments of a path that has them, as the folders they make", () => {
+      // Act
+      const ancestors = [
+        getAncestors("/a"),
+        getAncestors("a//b"),
+        getAncestors("a/"),
+      ];
+
+      // Assert
+      expect(ancestors).toEqual([[""], ["a", "a/"], ["a"]]);
+    });
+
+    it("should return a folder for each segment but the last, from the root down, for the deepest path allowed", () => {
+      // Arrange
+      const segments = Array.from(
+        { length: MAX_PATH_SEGMENTS },
+        (_, i) => `s${i}`
+      );
+
+      // Act
+      const ancestors = getAncestors(segments.join("/"));
+
+      // Assert
+      expect(ancestors).toHaveLength(MAX_PATH_SEGMENTS - 1);
+      expect(ancestors[0]).toBe("s0");
+      expect(ancestors[2]).toBe("s0/s1/s2");
+      expect(ancestors[MAX_PATH_SEGMENTS - 2]).toBe(
+        segments.slice(0, -1).join("/")
+      );
     });
   });
 

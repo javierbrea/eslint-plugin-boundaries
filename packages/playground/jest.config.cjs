@@ -37,7 +37,7 @@ module.exports = {
   // A module name mapper for the "@/" alias of "src/", as in tsconfig.json and vite.config.js
   moduleNameMapper: { "^@/(.*)$": "<rootDir>/src/$1" },
 
-  // The playground runs only in browsers
+  // The playground runs only in browsers; the spec of the share entry asks for Node.js, where that entry also runs
   testEnvironment: "jsdom",
 
   // The glob patterns Jest uses to detect test files

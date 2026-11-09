@@ -7,6 +7,7 @@ import type {
 
 import {
   addDependency,
+  createDependencyChecker,
   getDependency,
   getDependencyError,
   getFileDependencies,
@@ -110,6 +111,23 @@ function getError(result: EditResult): string {
   return result.error;
 }
 
+/**
+ * A small deterministic generator, so that a failure can be reproduced.
+ * @param seed The number it starts from.
+ * @returns A function that gives a number from 0 up to, not including, 1 each time it is called.
+ */
+function createRandom(seed: number): () => number {
+  let state = seed;
+
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
+
+    mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 const A = "src/a.js";
 const B = "src/b.js";
 const C = "src/c.js";
@@ -135,6 +153,74 @@ const SPECIFIER_KINDS: readonly SpecifierKind[] = [
   "named",
   "namespace",
 ];
+
+/**
+ * Makes a dependency of any kind, which mostly passes the checks and sometimes breaks one.
+ * @param random The generator of numbers.
+ */
+function createRandomDependency(random: () => number): SketchDependency {
+  const pick = <Item>(items: readonly Item[]): Item =>
+    items[Math.floor(random() * items.length)];
+  const names = ["x", "y", "z", "type", "default"];
+
+  return {
+    from: random() < 0.95 ? pick([A, B, C]) : "src/pages",
+    target:
+      random() < 0.6
+        ? { kind: "node", path: pick([A, B, C]) }
+        : { kind: "external", name: pick(["react", "a b", ".x"]) },
+    syntax: pick(SYNTAXES),
+    importKind: pick(IMPORT_KINDS),
+    specifiers: Array.from({ length: Math.floor(random() * 3) }, () => ({
+      kind: pick(SPECIFIER_KINDS),
+      name: pick(names),
+      ...(random() < 0.3 ? { alias: pick(names) } : {}),
+    })),
+  };
+}
+
+/**
+ * Feeds sequences of random dependencies to a checker and to `getDependencyError` with the dependencies accepted so far, and sets apart the ones they judge differently.
+ * @param seed The number the generator starts from.
+ * @returns What differs, with the dependencies accepted by then, and how many dependencies were accepted and refused.
+ */
+function compareWithScan(seed: number): {
+  differences: unknown[];
+  acceptances: number;
+  refusals: number;
+} {
+  const random = createRandom(seed);
+  const differences: unknown[] = [];
+  let acceptances = 0;
+
+  for (let sequence = 0; sequence < 150; sequence += 1) {
+    const checker = createDependencyChecker(TREE);
+    const accepted: SketchDependency[] = [];
+
+    for (let step = 0; step < 8; step += 1) {
+      const dependency = createRandomDependency(random);
+      const expected = getDependencyError(
+        createSketch(TREE, accepted),
+        dependency
+      );
+      const actual = checker.accept(dependency);
+
+      if (expected !== actual) {
+        differences.push({
+          accepted: [...accepted],
+          dependency,
+          expected,
+          actual,
+        });
+      }
+      if (expected === undefined) {
+        accepted.push(dependency);
+      }
+      acceptances += expected === undefined ? 1 : 0;
+    }
+  }
+  return { differences, acceptances, refusals: 150 * 8 - acceptances };
+}
 
 describe("Dependencies", () => {
   describe("getFileDependencies", () => {
@@ -1876,6 +1962,196 @@ describe("Dependencies", () => {
 
       // Assert
       expect(getError(result)).toBe("There is no dependency at that line.");
+    });
+  });
+
+  describe("createDependencyChecker", () => {
+    const named = (...names: string[]): SketchSpecifier[] =>
+      specifiers("named", ...names);
+
+    it("should accept a dependency that the sketch can hold", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      // Act
+      const error = checker.accept(toNode(A, B, { specifiers: named("b") }));
+
+      // Assert
+      expect(error).toBeUndefined();
+    });
+
+    it.each([
+      ["of a file that is not in the tree", toNode("src/none.js", B)],
+      ["of a folder", toNode("src/pages", B)],
+      ["on a node that is not a file", toNode(A, "src/pages")],
+      ["on its own file", toNode(A, A)],
+      ["on a module with a space in its name", toExternal(A, "a b")],
+      [
+        "with a kind of statement that its syntax does not hold",
+        toNode(A, B, { syntax: "require", importKind: "type" }),
+      ],
+      [
+        "with a name that is not valid",
+        toNode(A, B, { specifiers: named("1x") }),
+      ],
+      ["with a name twice", toNode(A, B, { specifiers: named("x", "y as x") })],
+    ])(
+      "should refuse a dependency %s, for the reason that getDependencyError gives",
+      (_label, dependency) => {
+        // Arrange
+        const checker = createDependencyChecker(TREE);
+        const expected = getDependencyError(createSketch(TREE), dependency);
+
+        // Act
+        const error = checker.accept(dependency);
+
+        // Assert
+        expect(expected).toBeDefined();
+        expect(error).toBe(expected);
+      }
+    );
+
+    it("should refuse a name that a dependency accepted before it imports, and say it is imported", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      checker.accept(toNode(A, B, { specifiers: named("x") }));
+
+      // Act
+      const error = checker.accept(
+        toNode(A, C, { specifiers: named("y as x") })
+      );
+
+      // Assert
+      expect(error).toBe(
+        'The name "x" is already imported by another statement of the file.'
+      );
+    });
+
+    it("should refuse a name that a dependency accepted before it exports, and say it is exported", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      checker.accept(
+        toNode(A, B, { syntax: "export-from", specifiers: named("x") })
+      );
+
+      // Act
+      const error = checker.accept(
+        toNode(A, C, { syntax: "export-from", specifiers: named("y as x") })
+      );
+
+      // Assert
+      expect(error).toBe(
+        'The name "x" is already exported by another statement of the file.'
+      );
+    });
+
+    it("should remember the names of every dependency of a file, not only of the last", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      checker.accept(toNode(A, B, { specifiers: named("x") }));
+      checker.accept(toNode(A, B, { specifiers: named("y") }));
+      checker.accept(toNode(B, C, { specifiers: named("z") }));
+
+      // Act
+      const errors = [
+        checker.accept(toNode(A, C, { specifiers: named("w as x") })),
+        checker.accept(toNode(A, C, { specifiers: named("v as y") })),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        'The name "x" is already imported by another statement of the file.',
+        'The name "y" is already imported by another statement of the file.',
+      ]);
+    });
+
+    it("should accept a name in another file, and a name that one statement imports and another exports", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      checker.accept(toNode(A, B, { specifiers: named("x") }));
+
+      // Act
+      const errors = [
+        checker.accept(toNode(B, C, { specifiers: named("x") })),
+        checker.accept(
+          toNode(A, C, { syntax: "export-from", specifiers: named("x") })
+        ),
+      ];
+
+      // Assert
+      expect(errors).toEqual([undefined, undefined]);
+    });
+
+    it("should accept statements that declare no name, however many repeat", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      // Act
+      const errors = [
+        checker.accept(toNode(A, B, { syntax: "require" })),
+        checker.accept(toNode(A, B, { syntax: "require" })),
+        checker.accept(toNode(A, B, { syntax: "dynamic-import" })),
+        checker.accept(toNode(A, B, { syntax: "dynamic-import" })),
+        checker.accept(toNode(A, B)),
+        checker.accept(toNode(A, B)),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]);
+    });
+
+    it("should not remember the names of a dependency it refuses", () => {
+      // Arrange
+      const checker = createDependencyChecker(TREE);
+
+      checker.accept(toNode(A, "src/none.js", { specifiers: named("x") }));
+
+      // Act
+      const error = checker.accept(toNode(A, B, { specifiers: named("x") }));
+
+      // Assert
+      expect(error).toBeUndefined();
+    });
+
+    it("should check the dependencies against its own tree and its own dependencies only", () => {
+      // Arrange
+      const first = createDependencyChecker(TREE);
+      const second = createDependencyChecker([{ path: A, kind: "file" }]);
+
+      first.accept(toNode(A, B, { specifiers: named("x") }));
+
+      // Act
+      const errors = [
+        second.accept(toNode(A, C, { specifiers: named("x") })),
+        second.accept(toNode(A, A)),
+      ];
+
+      // Assert
+      expect(errors).toEqual([
+        '"src/c.js" is not a file of the sketch.',
+        "A file cannot depend on itself.",
+      ]);
+    });
+
+    it("should refuse what getDependencyError refuses, in the same words, for dependencies of any kind that come one after the other", () => {
+      // Act
+      const { differences, acceptances, refusals } = compareWithScan(20261109);
+
+      // Assert
+      expect(acceptances).toBeGreaterThan(100);
+      expect(refusals).toBeGreaterThan(100);
+      expect(differences).toStrictEqual([]);
     });
   });
 });

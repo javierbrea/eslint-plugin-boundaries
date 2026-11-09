@@ -184,6 +184,46 @@ describe("HashStore", () => {
       );
     });
 
+    it("should reject with the reason, and not throw, when the hash holds a path too deep to read", async () => {
+      // Arrange
+      const deep = {
+        ...FIRST,
+        tree: [{ path: `${"a/".repeat(40000)}f.js`, kind: "file" }],
+      };
+
+      setUrl(`${PAGE}${hashOf(deep as Sketch)}`);
+
+      const store = createStore();
+
+      // Act
+      const load = () => store.load();
+
+      // Assert
+      expect(() => load().catch(() => undefined)).not.toThrow();
+      await expect(load()).rejects.toThrow(
+        `"${"a/".repeat(40)}…" cannot be in the tree. The path cannot have more than 1024 characters.`
+      );
+    });
+
+    it("should reject, and not throw, whatever goes wrong while it loads", async () => {
+      // Arrange
+      // A sketch that cannot be written as JSON, which the load of a page without a hash writes back to the URL
+      const notJson = {
+        ...FIRST,
+        tree: [{ path: 1n, kind: "file" }],
+      } as unknown as Sketch;
+      const store = createStore();
+
+      await store.save(notJson);
+
+      // Act
+      const load = () => store.load();
+
+      // Assert
+      expect(() => load().catch(() => undefined)).not.toThrow();
+      await expect(load()).rejects.toThrow(TypeError);
+    });
+
     it("should keep the sketch it saved when the hash cannot be read, for the load after the hash is cleared", async () => {
       // Arrange
       const store = createStore();
@@ -409,6 +449,127 @@ describe("HashStore", () => {
       expect(added).toHaveLength(2);
       expect(removed).toHaveLength(2);
       expect(removed[1][1]).toBe(added[1][1]);
+    });
+
+    describe("when the host moves to another page before the write", () => {
+      const DOCS = "/docs/quick-start/";
+
+      it("should write nothing to the other page when the delay ends", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+
+        const replaceState = jest.spyOn(window.history, "replaceState");
+
+        // Act
+        jest.advanceTimersByTime(1000);
+
+        // Assert
+        expect(replaceState).not.toHaveBeenCalled();
+        expect(window.location.pathname).toBe(DOCS);
+        expect(window.location.hash).toBe("");
+      });
+
+      it("should write nothing to the other page when the page is hidden", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+
+        const replaceState = jest.spyOn(window.history, "replaceState");
+
+        // Act
+        window.dispatchEvent(new Event("pagehide"));
+
+        // Assert
+        expect(replaceState).not.toHaveBeenCalled();
+        expect(window.location.hash).toBe("");
+      });
+
+      it("should not write at the end of the delay after the page was hidden, and not listen to pagehide any more", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+        window.dispatchEvent(new Event("pagehide"));
+        window.history.pushState({}, "", PAGE);
+
+        // Act
+        jest.advanceTimersByTime(1000);
+        window.dispatchEvent(new Event("pagehide"));
+
+        // Assert
+        expect(window.location.hash).toBe("");
+      });
+
+      it("should keep the sketch, so that the next load of the page writes it back", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+        jest.advanceTimersByTime(1000);
+        window.history.pushState({}, "", PAGE);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(FIRST);
+        expect(window.location.pathname).toBe(PAGE);
+        expect(window.location.hash).toBe(hashOf(FIRST));
+      });
+
+      it("should take another query as another page", async () => {
+        // Arrange
+        setUrl(`${PAGE}?tab=1`);
+
+        const store = createStore();
+
+        await store.save(FIRST);
+        setUrl(`${PAGE}?tab=2`);
+
+        // Act
+        jest.advanceTimersByTime(1000);
+
+        // Assert
+        expect(window.location.search).toBe("?tab=2");
+        expect(window.location.hash).toBe("");
+      });
+
+      it("should still write when only the hash of the page changed", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        setUrl(`${PAGE}#installation`);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(FIRST));
+      });
+
+      it("should write to the page where the last save was made", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+        await store.save(SECOND);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.pathname).toBe(DOCS);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
     });
 
     it("should keep the path and the query of the page, and the state of the history entry", async () => {

@@ -1,4 +1,8 @@
-import { CONFIG_PATH } from "./sketch.constants";
+import {
+  CONFIG_PATH,
+  MAX_PATH_LENGTH,
+  MAX_PATH_SEGMENTS,
+} from "./sketch.constants";
 import type { NormalizedPath } from "./sketch.types";
 
 /**
@@ -38,8 +42,16 @@ export function getPathError(path: string): string | undefined {
     return "The path is empty.";
   }
 
+  // Before anything reads the path: a longer one is not worth splitting
+  if (path.length > MAX_PATH_LENGTH) {
+    return `The path cannot have more than ${MAX_PATH_LENGTH} characters.`;
+  }
+
   const segments = path.split("/");
 
+  if (segments.length > MAX_PATH_SEGMENTS) {
+    return `The path cannot have more than ${MAX_PATH_SEGMENTS} segments.`;
+  }
   if (segments.includes("")) {
     return "The path has an empty segment.";
   }
@@ -98,11 +110,14 @@ export function joinPath(folder: string, child: string): string {
  * @returns For `a/b/c.js`, `["a", "a/b"]`.
  */
 export function getAncestors(path: string): readonly string[] {
-  const segments = path.split("/").slice(0, -1);
+  const ancestors: string[] = [];
+  let end = path.indexOf("/");
 
-  return segments.map((_segment, index) =>
-    segments.slice(0, index + 1).join("/")
-  );
+  while (end !== -1) {
+    ancestors.push(path.slice(0, end));
+    end = path.indexOf("/", end + 1);
+  }
+  return ancestors;
 }
 
 /**

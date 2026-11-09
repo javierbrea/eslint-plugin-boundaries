@@ -75,6 +75,14 @@ export class ExamplePickerPom extends Pom {
   }
 
   /**
+   * Whether the button has the keyboard focus.
+   * @returns True when it is the active element of the page.
+   */
+  get isFocused(): boolean {
+    return document.activeElement === this.root;
+  }
+
+  /**
    * The list of examples, which is not rendered until the button opens it.
    * @returns The page object of the list.
    */
