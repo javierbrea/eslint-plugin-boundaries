@@ -103,6 +103,20 @@ describe("LoadState", () => {
       );
     });
 
+    it("should break a reason that is one long word, so that it never widens the page", () => {
+      // Arrange
+      const message = renderLoadState({
+        status: "failed",
+        error: new Error(`"src/${"x".repeat(3000)}.js" cannot be found`),
+      });
+
+      // Act
+      const { overflowWrap } = message;
+
+      // Assert
+      expect(overflowWrap).toBe("anywhere");
+    });
+
     it("should not pass the failed state to the DOM", () => {
       // Arrange
       renderLoadState({ status: "failed", error: "offline" });

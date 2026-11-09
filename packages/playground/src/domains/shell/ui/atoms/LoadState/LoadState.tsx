@@ -24,6 +24,8 @@ const Message = styled("div", {
   color: failed ? STATE_TEXT.bad : "var(--jsb-muted)",
   fontFamily: "var(--jsb-font-mono)",
   textAlign: "center",
+  // A reason quotes what the link holds, which can be one long word
+  overflowWrap: "anywhere",
 }));
 
 /**

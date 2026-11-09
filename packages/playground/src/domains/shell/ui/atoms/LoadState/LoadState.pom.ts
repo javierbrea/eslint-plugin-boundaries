@@ -42,6 +42,14 @@ export class LoadStatePom extends Pom {
   }
 
   /**
+   * Where the message may break a word that is longer than its line.
+   * @returns The computed value.
+   */
+  get overflowWrap(): string {
+    return getComputedStyle(this.root).overflowWrap;
+  }
+
+  /**
    * The button that resets the sketch, which sits next to the message and not inside it.
    * @returns The elements of the buttons next to the message that have its label.
    */
