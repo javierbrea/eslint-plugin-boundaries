@@ -188,6 +188,16 @@ async function waitForPickerText(
 }
 
 /**
+ * Gives the playground time to do what a replacement that was not dropped would do after the dialog left: it loads the sketch again from the store and puts it on screen. A spec that asserts that nothing was replaced waits for it, because the assertion would pass before the replacement started.
+ * @returns A promise that settles after the time has passed.
+ */
+async function settle(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+}
+
+/**
  * Reads the sketch that the hash of the page holds.
  * @returns The paths of its tree, or what the hash holds instead of a sketch, written as JSON.
  */
@@ -986,6 +996,37 @@ describe("Playground", () => {
       expect(clear).toHaveBeenCalledTimes(1);
     });
 
+    it("should drop a confirmed reset when the store loads another sketch while the dialog fades out, and keep that sketch", async () => {
+      // Arrange
+      const store = new NotifyingStore();
+      const clear = jest.spyOn(store, "clear");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.actions.pressReset();
+
+      const dialog = await playground.waitForDialog("Reset the sketch?");
+
+      await store.save(SAVED_SKETCH);
+
+      // Act
+      dialog.button("Reset").press();
+      act(() => store.notify());
+      await dialog.waitUntilGone();
+      await settle();
+
+      // Assert
+      expect(clear).not.toHaveBeenCalled();
+      expect(playground.statusText).toMatch(/^1 file ·/);
+      expect(playground.project.tree.itemPaths).toContain("src/index.ts");
+      expect(playground.project.tree.itemPaths).not.toContain(
+        "src/components/Price/index.ts"
+      );
+    });
+
     it("should not ask when the sketch is an example, whatever the source is", async () => {
       // Arrange
       const store = new MemoryStore(QUICK_START_EXAMPLE.sketch);
@@ -1333,6 +1374,149 @@ describe("Playground", () => {
       expect(savesWhileLeaving).toBe(0);
       expect(dialog.isRendered).toBe(false);
       expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it("should drop a confirmed example when the store loads another sketch while the dialog fades out, and keep that sketch", async () => {
+      // Arrange
+      const store = new NotifyingStore();
+      const save = jest.spyOn(store, "save");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      await store.save(SAVED_SKETCH);
+      save.mockClear();
+
+      // Act
+      dialog.button("Open example").press();
+      act(() => store.notify());
+      await dialog.waitUntilGone();
+      await settle();
+
+      // Assert
+      expect(save).not.toHaveBeenCalled();
+      await expect(store.load()).resolves.toEqual(SAVED_SKETCH);
+      expect(playground.statusText).toMatch(/^1 file ·/);
+      expect(playground.project.tree.itemPaths).toContain("src/index.ts");
+      expect(playground.topBar.picker.text).toBe("Example");
+    });
+
+    it("should drop a confirmed example when the store has not finished loading another sketch as the dialog is gone", async () => {
+      // Arrange
+      let resolveLoad: (sketch: Sketch) => void = () => undefined;
+      const store = new NotifyingStore();
+      const save = jest.spyOn(store, "save");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      save.mockClear();
+      jest.spyOn(store, "load").mockImplementation(
+        () =>
+          new Promise<Sketch>((resolve) => {
+            resolveLoad = resolve;
+          })
+      );
+
+      // Act
+      dialog.button("Open example").press();
+      act(() => store.notify());
+      await dialog.waitUntilGone();
+      await settle();
+
+      const isStillLoading = playground.loadState.isRendered;
+
+      await act(async () => {
+        resolveLoad(SAVED_SKETCH);
+      });
+
+      // Assert
+      expect(isStillLoading).toBe(true);
+
+      await playground.waitForStatus("1 file ·");
+
+      expect(save).not.toHaveBeenCalled();
+      expect(playground.topBar.picker.text).toBe("Example");
+    });
+
+    it("should drop a confirmed example when the host gives the playground another store while the dialog fades out, and save it to neither", async () => {
+      // Arrange
+      const source = new SketchSource(SOURCE_SKETCH);
+      const previousStore = new MemoryStore();
+      const nextStore = new MemoryStore(SAVED_SKETCH);
+      const previousSave = jest.spyOn(previousStore, "save");
+      const nextSave = jest.spyOn(nextStore, "save");
+      const { playground, rerender } = renderPlayground(source, previousStore);
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      previousSave.mockClear();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      // Act
+      dialog.button("Open example").press();
+      rerender(source, nextStore);
+      await dialog.waitUntilGone();
+      await settle();
+
+      // Assert
+      expect(previousSave).not.toHaveBeenCalled();
+      expect(nextSave).not.toHaveBeenCalled();
+      expect(playground.statusText).toMatch(/^1 file ·/);
+      expect(playground.project.tree.itemPaths).toContain("src/index.ts");
+      expect(playground.topBar.picker.text).toBe("Example");
+    });
+
+    it("should not replace the sketch when the user gives up and then presses the button that goes on while the dialog fades out", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+      playground.project.item("src/index.ts").deleteAction.press();
+      save.mockClear();
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick("Policies");
+
+      const dialog = await playground.waitForDialog(
+        "Open the Policies example?"
+      );
+
+      // Act
+      dialog.button("Cancel").press();
+      dialog.button("Open example").press();
+      await dialog.waitUntilGone();
+      await settle();
+
+      // Assert
+      expect(save).not.toHaveBeenCalled();
+      expect(playground.statusText).toMatch(/^1 file ·/);
+      expect(playground.topBar.picker.text).toBe("Example");
     });
 
     it("should show the example even when the store cannot save it", async () => {

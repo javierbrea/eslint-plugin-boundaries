@@ -6,6 +6,14 @@ export type Replacement =
   | { readonly kind: "reset" }
   | { readonly kind: "example"; readonly example: Example };
 
+/** A replacement that the user confirmed, with the sketch the question was about. */
+export type ConfirmedReplacement = {
+  /** What the user confirmed. */
+  readonly replacement: Replacement;
+  /** The number of the sketch on screen that the question was about, which is unset when no question was open. The replacement is for that sketch and for no other. */
+  readonly askedAbout: number | undefined;
+};
+
 /** The control that takes the keyboard focus in the shell that follows a replacement: the control that had it went with the old shell. It is for the first sketch that comes on screen after the replacement was asked for, and for no other. */
 export type FocusRequest = {
   /** The control of the top bar of the new shell that takes the focus. */

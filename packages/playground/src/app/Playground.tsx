@@ -13,7 +13,11 @@ import { ReplaceSketchDialog } from "@/domains/shell/ui/atoms/ReplaceSketchDialo
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { PLAYGROUND_TEST_ID } from "./Playground.constants";
-import type { FocusRequest, Replacement } from "./Playground.types";
+import type {
+  ConfirmedReplacement,
+  FocusRequest,
+  Replacement,
+} from "./Playground.types";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.
@@ -36,7 +40,7 @@ export function Playground({
   });
   const [askedAbout, setAskedAbout] = useState<number | undefined>(undefined);
   // The replacement that the user confirmed, which waits for the dialog to be gone before it comes on screen
-  const [confirmed, setConfirmed] = useState<Replacement | undefined>(
+  const [confirmed, setConfirmed] = useState<ConfirmedReplacement | undefined>(
     undefined
   );
   // The control that had the keyboard focus goes with the old shell when a replacement shows a new one, so the new shell is asked to focus the control that made the replacement. The request is for the first sketch that comes on screen after it, so a sketch that comes from outside later does not take the focus from where the user is
@@ -126,15 +130,17 @@ export function Playground({
   const cancelReplacement = useCallback(() => setAskedAbout(undefined), []);
   const confirmReplacement = useCallback(() => {
     setAskedAbout(undefined);
-    setConfirmed(replacement);
-  }, [replacement]);
-  // The dialog keeps the keyboard focus while it fades out. A new shell that came on screen with it would ask for the focus and lose it to the dialog, and the focus would fall to the page when the dialog leaves, so the confirmed replacement waits for the dialog to be gone
+    setConfirmed({ replacement, askedAbout });
+  }, [replacement, askedAbout]);
+  // The dialog keeps the keyboard focus while it fades out. A new shell that came on screen with it would ask for the focus and lose it to the dialog, and the focus would fall to the page when the dialog leaves, so the confirmed replacement waits for the dialog to be gone. The sketch on screen can change meanwhile, because the store or the host changed it, and the user confirmed about another one: the replacement is dropped then, so it does not overwrite what came from outside
   const replaceConfirmed = useCallback(() => {
     if (confirmed !== undefined) {
       setConfirmed(undefined);
-      replace(confirmed);
+      if (confirmed.askedAbout === generation) {
+        replace(confirmed.replacement);
+      }
     }
-  }, [confirmed, replace]);
+  }, [confirmed, generation, replace]);
 
   return (
     <ThemeRoot testId={PLAYGROUND_TEST_ID}>
