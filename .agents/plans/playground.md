@@ -12,10 +12,9 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | File | Read it when |
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done, the interface. |
-| `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
 | `playground/08-docs.md` | Phase 8 (#555): the guide page and the docs buttons. |
 | `playground/09-cleanup.md` | Phase 9: remove the plan before merging into `release`. |
-| `playground/mockups/` | Phases 7 and 8: the approved HTML mockup of the interface and its renders, which `00-shared.md` section 6 describes. |
+| `playground/mockups/` | Before changing the interface: the approved HTML mockup and its renders, which `00-shared.md` section 6 describes; phase 9 removes it. |
 
 ## Phases
 
@@ -75,4 +74,5 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 | Question | Decided by | Needed by |
 | --- | --- | --- |
 | Website version after phase 8 (code release or `-docs.N`) | Maintainer, `release` skill | Shipping |
+| Should the text that axe finds below 4.5:1, which Lighthouse does not reach, be raised to 4.5:1: `--jsb-faint` text outside code areas (2.85:1 in light, 3.45:1 in dark), the comment color on a highlighted line of the editor (4.37:1 in light), the numbers of the count badges (3.64:1 in light)? (PR #630, "For the reviewer"; left for later by the maintainer on 2026-11-08) | Maintainer | No phase; phase 9 files it as an issue if still open |
 | Should the `--jsb-*` tokens and the fonts move to a workspace package that the website, the harness and the local app consume with `workspace:`? The harness reaches into the website by relative paths (`dev/main.tsx`, `publicDir` in `vite.config.js`) that Nx cannot see, and nothing checks `publicDir` (review of #599) | Maintainer | The local app (out of scope); phase 9 files it as an issue if still open |
