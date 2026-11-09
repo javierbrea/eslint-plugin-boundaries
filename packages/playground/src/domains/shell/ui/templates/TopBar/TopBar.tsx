@@ -17,6 +17,8 @@ const Bar = styled("div")({
   height: BAR_HEIGHT,
   padding: "0 10px 0 12px",
   borderBottom: "1px solid var(--jsb-line)",
+  // What the bar holds keeps its size, so that a message that does not fit is the only item that gives way (see the message of the share)
+  "& > *": { flexShrink: 0 },
 });
 
 const Spacer = styled("span")({ flex: 1 });

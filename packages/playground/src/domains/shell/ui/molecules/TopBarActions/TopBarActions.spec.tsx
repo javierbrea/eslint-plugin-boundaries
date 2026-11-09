@@ -76,6 +76,19 @@ describe("TopBarActions", () => {
     });
   });
 
+  describe("fit", () => {
+    it("should never shrink its buttons, so that the message is the part that gives way", () => {
+      // Arrange
+      const { actions } = renderActions();
+
+      // Act
+      const { buttonShrinks } = actions;
+
+      // Assert
+      expect(buttonShrinks).toEqual(["0", "0", "0"]);
+    });
+  });
+
   describe("help", () => {
     it("should be an icon-only button named Help, 30 px square, in the muted color", () => {
       // Arrange

@@ -100,6 +100,19 @@ export class TopBarPom extends Pom {
   }
 
   /**
+   * How much each item of the bar shrinks when there is not room for all of them, which is none: what the bar holds keeps its size.
+   * @returns The computed `flex-shrink` of what comes before the status, of the status and of what comes after the spacer, in order. The spacer has no size to give up, so it is left out.
+   */
+  get itemShrinks(): string[] {
+    const items = Array.from(this.root.children);
+    const spacer = items.indexOf(this.status) + 1;
+
+    return items
+      .filter((_item, index) => index !== spacer)
+      .map((item) => getComputedStyle(item).flexShrink);
+  }
+
+  /**
    * Everything the status says.
    * @returns The text of the status, such as `6 files · 2 problems`.
    */

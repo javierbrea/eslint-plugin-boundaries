@@ -15,8 +15,11 @@ import {
 } from "./TopBarActions.constants";
 import type { TopBarActionsProps } from "./TopBarActions.types";
 
-// The bar spaces its items, so the actions are laid out as items of the bar and not as a box of their own
-const Group = styled("div")({ display: "contents" });
+// The bar spaces its items, so the actions are laid out as items of the bar and not as a box of their own. The buttons keep their size, so that a message that does not fit is the only item that gives way
+const Group = styled("div")({
+  display: "contents",
+  "& > button": { flexShrink: 0 },
+});
 
 /**
  * The actions at the end of the top bar: the message that says how the last share went, Help as an icon, Reset and Share. The sketch is not touched here: each button asks its caller.

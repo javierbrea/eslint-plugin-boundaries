@@ -215,6 +215,22 @@ describe("TopBar", () => {
     });
   });
 
+  describe("fit", () => {
+    it("should keep the size of the start, the status and the end when there is not room for all of them", () => {
+      // Arrange
+      const { bar } = renderBar({
+        start: <button type="button">Pick</button>,
+        end: <button type="button">Share</button>,
+      });
+
+      // Act
+      const { itemShrinks } = bar;
+
+      // Assert
+      expect(itemShrinks).toEqual(["0", "0", "0"]);
+    });
+  });
+
   describe("props", () => {
     it("should not pass the color or the failing state to the DOM", () => {
       // Arrange

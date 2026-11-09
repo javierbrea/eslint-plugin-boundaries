@@ -173,6 +173,75 @@ describe("ShareMessage", () => {
     });
   });
 
+  describe("fit", () => {
+    it("should be the first thing of its row to shrink, to nothing if it has to", () => {
+      // Arrange
+      const message = renderMessage("copied");
+
+      // Act
+      const { minWidth } = message;
+
+      // Assert
+      expect(minWidth).toBe("0");
+    });
+
+    it("should keep its words on one line and cut them with an ellipsis where there is no room for them", () => {
+      // Arrange
+      const message = renderMessage("copied");
+
+      // Act
+      const { textStyle } = message;
+
+      // Assert
+      expect(textStyle).toEqual({
+        minWidth: "0",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      });
+    });
+
+    it("should show the whole message when the pointer is on its words", () => {
+      // Arrange
+      const message = renderMessage({
+        kind: "too-large",
+        reason: "The sketch has more than 1000 files and folders.",
+      });
+
+      // Act
+      const { title, text } = message;
+
+      // Assert
+      expect(title).toBe(
+        "The sketch is too large for a link: The sketch has more than 1000 files and folders."
+      );
+      expect(text).toBe(title);
+    });
+
+    it("should say the whole message in its live region, whatever is shown of it", () => {
+      // Arrange
+      const message = renderMessage("long");
+
+      // Act
+      const { text, title } = message;
+
+      // Assert
+      expect(text).toBe("Long link copied: some apps may cut it");
+      expect(title).toBe(text);
+    });
+
+    it("should never shrink the check icon, so that the words give way to it", () => {
+      // Arrange
+      const message = renderMessage("copied");
+
+      // Act
+      const { checkFlexShrink } = message;
+
+      // Assert
+      expect(checkFlexShrink).toBe("0");
+    });
+  });
+
   describe("type", () => {
     it("should be 12 px in the body font", () => {
       // Arrange

@@ -1,6 +1,8 @@
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
+import type { ShareMessageTextStyle } from "./ShareMessage.types";
+
 /** The selector of the live region: the element that announces the message politely. */
 const REGION_SELECTOR = "[role='status']";
 
@@ -11,6 +13,14 @@ export class ShareMessagePom extends Pom {
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
     return this.findRootBySelector(REGION_SELECTOR);
+  }
+
+  /**
+   * The element of the words of the message, which is the last one of the region: the check icon, when there is one, comes before it.
+   * @returns The element.
+   */
+  private get textElement(): HTMLElement {
+    return this.root.lastElementChild as HTMLElement;
   }
 
   /**
@@ -83,5 +93,47 @@ export class ShareMessagePom extends Pom {
    */
   get checkColor(): string {
     return this.check.wrapperStyle.color;
+  }
+
+  /**
+   * How little room the region can be left with: a region that can shrink to nothing gives way before the buttons of the bar do.
+   * @returns The computed `min-width` of the region.
+   */
+  get minWidth(): string {
+    return getComputedStyle(this.root).minWidth;
+  }
+
+  /**
+   * What the words do when the region has no room for them.
+   * @returns The computed `min-width`, `overflow`, `text-overflow` and `white-space` of the element of the words.
+   */
+  get textStyle(): ShareMessageTextStyle {
+    const { minWidth, overflow, textOverflow, whiteSpace } = getComputedStyle(
+      this.textElement
+    );
+
+    return { minWidth, overflow, textOverflow, whiteSpace };
+  }
+
+  /**
+   * What a pointer over the words shows, which is the whole message when the words are cut.
+   * @returns The `title` of the element of the words, or null when it has none.
+   */
+  get title(): string | null {
+    return this.textElement.getAttribute("title");
+  }
+
+  /**
+   * How much the check icon shrinks inside the region, which it never does.
+   * @returns The computed `flex-shrink` of the element that wraps the icon, which is the first one of the region.
+   * @throws When the message has no check icon.
+   */
+  get checkFlexShrink(): string {
+    if (!this.hasCheck) {
+      throw new Error(`${this.constructor.name} found no check icon`);
+    }
+
+    return getComputedStyle(this.root.firstElementChild as HTMLElement)
+      .flexShrink;
   }
 }

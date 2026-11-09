@@ -97,6 +97,16 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
+   * How much each button shrinks when there is not room for the actions in the bar, which is none: the message is the part that gives way.
+   * @returns The computed `flex-shrink` of Help, Reset and Share, in the order they are drawn.
+   */
+  get buttonShrinks(): string[] {
+    return this.scope
+      .getAllByRole("button", { hidden: true })
+      .map((button) => getComputedStyle(button).flexShrink);
+  }
+
+  /**
    * Whether the actions have the button that shares.
    * @returns True when there is one.
    */
