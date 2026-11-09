@@ -140,6 +140,23 @@ export class PaneHeadPom extends Pom {
   }
 
   /**
+   * The color the head is drawn on.
+   * @returns The computed background color of the head.
+   */
+  get backgroundColor(): string {
+    return getComputedStyle(this.root).backgroundColor;
+  }
+
+  /**
+   * The color of the hint.
+   * @returns The computed color of the hint.
+   */
+  get hintColor(): string {
+    return getComputedStyle(this.requireElement(this.hintElement, "hint"))
+      .color;
+  }
+
+  /**
    * The text styles of the label.
    * @returns The computed styles of the head, which the label takes.
    */
