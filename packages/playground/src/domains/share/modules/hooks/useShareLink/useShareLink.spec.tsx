@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
+import { MAX_SKETCH_NODES } from "@/domains/project/helpers/sketch/sketch.constants";
 import type { SessionStore } from "@/domains/session/data/store";
 import {
   HOOK_SKETCH,
@@ -13,6 +14,7 @@ import {
   SHARE_COPIED_DURATION,
   SHARE_FAILED_DURATION,
   SHARE_LONG_DURATION,
+  SHARE_REFUSED_DURATION,
 } from "./useShareLink.constants";
 import type { MakeLink, ShareLink } from "./useShareLink.types";
 
@@ -21,6 +23,32 @@ const SHORT_LINK = "https://example.com/playground/#v=1&s=abc";
 const LONG_LINK = `https://example.com/playground/#v=1&s=${"a".repeat(
   LONG_LINK_LENGTH
 )}`;
+
+/**
+ * Makes a sketch with the number of files given and nothing else.
+ * @param fileCount How many files.
+ * @returns The sketch.
+ */
+function createSketchOfFiles(fileCount: number): Sketch {
+  return {
+    config: HOOK_SKETCH.config,
+    tree: Array.from({ length: fileCount }, (_, index) => ({
+      path: `src/f${index}.js`,
+      kind: "file",
+    })),
+    dependencies: [],
+  };
+}
+
+/** A sketch with one file more than a link can hold, which no link would open */
+const TOO_LARGE_SKETCH = createSketchOfFiles(MAX_SKETCH_NODES + 1);
+
+/** A sketch that the reader of links refuses for another cause: a path that ends with a space */
+const INVALID_SKETCH: Sketch = {
+  config: HOOK_SKETCH.config,
+  tree: [{ path: "src/a.js ", kind: "file" }],
+  dependencies: [],
+};
 
 /**
  * Replaces the clipboard of the browser, which jsdom does not have.
@@ -53,9 +81,13 @@ type ShareRender = {
 /**
  * Renders the hook inside an instance of the playground, which has the sketch it shares.
  * @param makeLink Makes the link that opens a sketch, or `undefined` for a host that cannot.
+ * @param sketch The sketch of the instance; {@link HOOK_SKETCH} when it is unset.
  * @returns What the hook returned, the store and the way to remove the instance.
  */
-function renderShare(makeLink: MakeLink | undefined): ShareRender {
+function renderShare(
+  makeLink: MakeLink | undefined,
+  sketch: Sketch = HOOK_SKETCH
+): ShareRender {
   const results: ShareLink[] = [];
 
   /**
@@ -67,9 +99,7 @@ function renderShare(makeLink: MakeLink | undefined): ShareRender {
     return null;
   }
 
-  const { store, unmount } = renderInSession(<Probe />, {
-    sketch: HOOK_SKETCH,
-  });
+  const { store, unmount } = renderInSession(<Probe />, { sketch });
 
   return {
     result: {
@@ -200,6 +230,92 @@ describe("useShareLink", () => {
     });
   });
 
+  describe("when no link could open the sketch", () => {
+    it("should ask the host for no link, copy nothing and say that the sketch is too large when it has more files than a link can hold", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const makeLink = jest.fn<Promise<string>, [Sketch]>(() =>
+        Promise.resolve(SHORT_LINK)
+      );
+      const { result } = renderShare(makeLink, TOO_LARGE_SKETCH);
+
+      // Act
+      await pressShare(result.current.share);
+
+      // Assert
+      expect(makeLink).not.toHaveBeenCalled();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(result.current.outcome).toEqual({
+        kind: "too-large",
+        reason: "The sketch has more than 1000 files and folders.",
+      });
+    });
+
+    it("should ask the host for no link, copy nothing and give the reason when the sketch is refused for another cause", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const makeLink = jest.fn<Promise<string>, [Sketch]>(() =>
+        Promise.resolve(SHORT_LINK)
+      );
+      const { result } = renderShare(makeLink, INVALID_SKETCH);
+
+      // Act
+      await pressShare(result.current.share);
+
+      // Assert
+      expect(makeLink).not.toHaveBeenCalled();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(result.current.outcome).toEqual({
+        kind: "invalid",
+        reason:
+          '"src/a.js " cannot be in the tree. A path cannot end with a space.',
+      });
+    });
+
+    it("should keep the message for its time and not a moment less", async () => {
+      // Arrange
+      const { result } = renderShare(
+        () => Promise.resolve(SHORT_LINK),
+        TOO_LARGE_SKETCH
+      );
+
+      // Act
+      await pressShare(result.current.share);
+      pass(SHARE_REFUSED_DURATION - 1);
+      const justBefore = result.current.outcome;
+      pass(1);
+
+      // Assert
+      expect(justBefore).toMatchObject({ kind: "too-large" });
+      expect(result.current.outcome).toBeUndefined();
+    });
+
+    it("should share the sketch once an edit brings it within what a link can hold", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const makeLink = jest.fn<Promise<string>, [Sketch]>(() =>
+        Promise.resolve(SHORT_LINK)
+      );
+      const { result, store } = renderShare(makeLink, TOO_LARGE_SKETCH);
+
+      await pressShare(result.current.share);
+
+      const refused = result.current.outcome;
+
+      act(() => store.removeNode("src/f0.js"));
+
+      // Act
+      await pressShare(result.current.share);
+
+      // Assert
+      expect(refused).toMatchObject({ kind: "too-large" });
+      expect(makeLink).toHaveBeenCalledTimes(1);
+      expect(makeLink).toHaveBeenCalledWith(store.getState().sketch);
+      expect(writeText).toHaveBeenCalledWith(SHORT_LINK);
+      expect(result.current.outcome).toBe("copied");
+    });
+  });
+
   describe("how long the message stays", () => {
     it.each<[string, string, number, string]>([
       ["copied", SHORT_LINK, SHARE_COPIED_DURATION, "copied"],
@@ -243,6 +359,12 @@ describe("useShareLink", () => {
       // Assert
       expect(SHARE_COPIED_DURATION).toBe(2000);
       expect(SHARE_LONG_DURATION).toBe(6000);
+    });
+
+    it("should keep the message of a sketch that is not shared as long as the one of a failure", () => {
+      // Assert
+      expect(SHARE_REFUSED_DURATION).toBe(6000);
+      expect(SHARE_REFUSED_DURATION).toBe(SHARE_FAILED_DURATION);
     });
   });
 

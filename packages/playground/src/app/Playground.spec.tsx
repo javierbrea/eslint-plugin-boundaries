@@ -38,6 +38,15 @@ const SOURCE_SKETCH: Sketch = {
   ],
 };
 
+// The sketch of the source as a link can hold it: the default name of its dependency has no alias, which no edit makes
+const LINKABLE_SKETCH: Sketch = {
+  ...SOURCE_SKETCH,
+  dependencies: SOURCE_SKETCH.dependencies.map((dependency) => ({
+    ...dependency,
+    specifiers: [{ kind: "default", name: "React" }],
+  })),
+};
+
 const SAVED_SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
   tree: [{ path: "src/index.ts", kind: "file" }],
@@ -1567,7 +1576,7 @@ describe("Playground", () => {
       const writeText = stubClipboard();
       const store = new SharingStore();
       const { playground } = renderPlayground(
-        new SketchSource(SOURCE_SKETCH),
+        new SketchSource(LINKABLE_SKETCH),
         store
       );
       await playground.waitForStatus("2 files ·");
@@ -1588,19 +1597,33 @@ describe("Playground", () => {
       );
       expect(playground.topBar.actions.message.text).toBe("Link copied");
     });
+
+    it("should share nothing and say why when no link could open the sketch on screen", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const store = new SharingStore();
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        store
+      );
+      await playground.waitForStatus("2 files ·");
+
+      // Act
+      await act(async () => {
+        playground.topBar.actions.pressShare();
+      });
+
+      // Assert
+      expect(store.shared).toEqual([]);
+      expect(writeText).not.toHaveBeenCalled();
+      expect(playground.topBar.actions.message.text).toBe(
+        'The sketch cannot be shared: Dependency 1 cannot be in the sketch. The default name "default" cannot have an alias.'
+      );
+    });
   });
 
   describe("with the store of the website, which keeps the sketch in the hash of the URL", () => {
     const PAGE = "/playground/";
-
-    // The sketch of the source as a link can hold it: the default name of its dependency has no alias, which no edit makes
-    const SOURCE: Sketch = {
-      ...SOURCE_SKETCH,
-      dependencies: SOURCE_SKETCH.dependencies.map((dependency) => ({
-        ...dependency,
-        specifiers: [{ kind: "default", name: "React" }],
-      })),
-    };
 
     let store: HashStore;
 
@@ -1628,7 +1651,10 @@ describe("Playground", () => {
       openLink(encodeSketch(SAVED_SKETCH));
 
       // Act
-      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      const { playground } = renderPlayground(
+        new SketchSource(LINKABLE_SKETCH),
+        store
+      );
       await playground.waitForStatus("1 file ·");
 
       // Assert
@@ -1643,7 +1669,10 @@ describe("Playground", () => {
       // Arrange
       openLink(encodeSketch(QUICK_START_EXAMPLE.sketch));
 
-      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      const { playground } = renderPlayground(
+        new SketchSource(LINKABLE_SKETCH),
+        store
+      );
       await playground.waitForStatus("6 files ·");
 
       // Act
@@ -1657,7 +1686,10 @@ describe("Playground", () => {
 
     it("should write the hash with the edit, once the delay of the store has passed", async () => {
       // Arrange
-      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      const { playground } = renderPlayground(
+        new SketchSource(LINKABLE_SKETCH),
+        store
+      );
       await playground.waitForStatus("2 files ·");
 
       // Act
@@ -1678,7 +1710,10 @@ describe("Playground", () => {
       // Arrange
       openLink("v=2&s=abc");
 
-      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      const { playground } = renderPlayground(
+        new SketchSource(LINKABLE_SKETCH),
+        store
+      );
 
       // Act
       await playground.waitUntilFailed();
@@ -1706,7 +1741,10 @@ describe("Playground", () => {
 
       openLink(encodeSketch(deep as Sketch));
 
-      const { playground } = renderPlayground(new SketchSource(SOURCE), store);
+      const { playground } = renderPlayground(
+        new SketchSource(LINKABLE_SKETCH),
+        store
+      );
 
       // Act
       await playground.waitUntilFailed();

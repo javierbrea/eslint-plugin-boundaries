@@ -35,6 +35,10 @@ const MAX_QUOTED_PATH_LENGTH = 80;
 const NOT_A_SKETCH =
   'The data is not a sketch: it must be an object with "config", "tree" and "dependencies".';
 
+const TOO_MANY_NODES = `The sketch has more than ${MAX_SKETCH_NODES} files and folders.`;
+
+const TOO_MANY_DEPENDENCIES = `The sketch has more than ${MAX_SKETCH_DEPENDENCIES} dependencies.`;
+
 /**
  * Writes a path between quotes, as a reason names it. A long path is cut and ends with `…`.
  * @param path The path.
@@ -306,10 +310,10 @@ function readShape(value: unknown): Sketch | string {
   }
   // Before the lists are read: the cost of the checks that follow grows with the size of the sketch
   if (tree.length > MAX_SKETCH_NODES) {
-    return `The sketch has more than ${MAX_SKETCH_NODES} files and folders.`;
+    return TOO_MANY_NODES;
   }
   if (dependencies.length > MAX_SKETCH_DEPENDENCIES) {
-    return `The sketch has more than ${MAX_SKETCH_DEPENDENCIES} dependencies.`;
+    return TOO_MANY_DEPENDENCIES;
   }
 
   const nodes = readList(tree, readNode);
@@ -412,7 +416,9 @@ export function readSketch(value: unknown): SketchReadResult {
   const shape = readShape(value);
 
   if (typeof shape === "string") {
-    return { error: shape };
+    return shape === TOO_MANY_NODES || shape === TOO_MANY_DEPENDENCIES
+      ? { error: shape, tooLarge: true }
+      : { error: shape };
   }
 
   const treeError = getTreeError(shape.tree);

@@ -135,6 +135,44 @@ describe("ShareMessage", () => {
     });
   });
 
+  describe("refused", () => {
+    it("should say why the sketch is too large for a link, in the color of errors, with no check", () => {
+      // Arrange
+      const message = renderMessage({
+        kind: "too-large",
+        reason: "The sketch has more than 1000 files and folders.",
+      });
+
+      // Act
+      const { text, color, hasCheck } = message;
+
+      // Assert
+      expect(text).toBe(
+        "The sketch is too large for a link: The sketch has more than 1000 files and folders."
+      );
+      expect(color).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
+      expect(hasCheck).toBe(false);
+    });
+
+    it("should say why the sketch cannot be shared when the cause is not its size", () => {
+      // Arrange
+      const message = renderMessage({
+        kind: "invalid",
+        reason: "Dependency 1 cannot be in the sketch.",
+      });
+
+      // Act
+      const { text } = message;
+
+      // Assert
+      expect(text).toBe(
+        "The sketch cannot be shared: Dependency 1 cannot be in the sketch."
+      );
+    });
+  });
+
   describe("type", () => {
     it("should be 12 px in the body font", () => {
       // Arrange

@@ -1113,6 +1113,52 @@ describe("readSketch", () => {
       expect(error).toBe("The sketch has more than 3000 dependencies.");
     });
 
+    it("should say that a sketch with too many files and folders is refused for its size", () => {
+      // Arrange
+      const value = createLargeValue(MAX_SKETCH_NODES + 1, 0);
+
+      // Act
+      const result = readSketch(value);
+
+      // Assert
+      expect(result).toStrictEqual({
+        error: "The sketch has more than 1000 files and folders.",
+        tooLarge: true,
+      });
+    });
+
+    it("should say that a sketch with too many dependencies is refused for its size", () => {
+      // Arrange
+      const value = createLargeValue(1, MAX_SKETCH_DEPENDENCIES + 1);
+
+      // Act
+      const result = readSketch(value);
+
+      // Assert
+      expect(result).toStrictEqual({
+        error: "The sketch has more than 3000 dependencies.",
+        tooLarge: true,
+      });
+    });
+
+    it("should not say that a sketch is refused for its size when another check refuses it", () => {
+      // Arrange
+      const value = createLargeValue(2, 0);
+
+      (value.tree as unknown[]).push({
+        path: "src/f0.js/inside.js",
+        kind: "file",
+      });
+
+      // Act
+      const result = readSketch(value);
+
+      // Assert
+      expect(result).toStrictEqual({
+        error: expect.stringMatching(/cannot be in the tree/) as string,
+      });
+    });
+
     it("should refuse the size before it reads what is in the lists", () => {
       // Arrange
       const value = createValue({

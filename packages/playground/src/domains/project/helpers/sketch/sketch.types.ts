@@ -50,7 +50,12 @@ export type EditResult =
 /** The result of reading a value as a sketch: the sketch, in the order that text mode reads back, or why the value is not one */
 export type SketchReadResult =
   | { readonly sketch: Sketch }
-  | { readonly error: string };
+  | {
+      /** Why the value is not a sketch, as a sentence for the user */
+      readonly error: string;
+      /** Present, and `true`, only when the value is refused for having more files, folders or dependencies than a sketch read from outside can have */
+      readonly tooLarge?: true;
+    };
 
 /** The result of renaming a node with the name typed for it: the new sketch and the path the node has in it, or why the rename is refused */
 export type RenameResult =

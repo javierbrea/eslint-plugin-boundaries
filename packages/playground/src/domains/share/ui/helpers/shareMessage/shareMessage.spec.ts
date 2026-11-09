@@ -1,4 +1,7 @@
-import type { ShareOutcome } from "@/domains/share/helpers/shareOutcome";
+import type {
+  ShareOutcome,
+  ShareRefusal,
+} from "@/domains/share/helpers/shareOutcome";
 
 import { getShareMessage } from "./shareMessage";
 
@@ -26,6 +29,37 @@ describe("ShareMessage", () => {
 
         // Assert
         expect(message).toEqual({ text, color, hasCheck });
+      }
+    );
+
+    it.each<[ShareRefusal, string]>([
+      [
+        {
+          kind: "too-large",
+          reason: "The sketch has more than 1000 files and folders.",
+        },
+        "The sketch is too large for a link: The sketch has more than 1000 files and folders.",
+      ],
+      [
+        {
+          kind: "invalid",
+          reason:
+            '"src/a.js " cannot be in the tree. A path cannot end with a space.',
+        },
+        'The sketch cannot be shared: "src/a.js " cannot be in the tree. A path cannot end with a space.',
+      ],
+    ])(
+      "should say why a sketch that is not shared is refused, after what its kind says, in the color of errors and with no check",
+      (refusal, text) => {
+        // Act
+        const message = getShareMessage(refusal);
+
+        // Assert
+        expect(message).toEqual({
+          text,
+          color: "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+          hasCheck: false,
+        });
       }
     );
   });

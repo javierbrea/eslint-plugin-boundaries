@@ -528,6 +528,18 @@ describe("sketchHash", () => {
         );
       });
 
+      it("should not say that damaged data is refused for its size", () => {
+        // Act
+        const reading = decodeHash("v=1&s=abcde");
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "error",
+          error:
+            'The link is damaged: the data after "s=" is not valid base64url text.',
+        });
+      });
+
       it("should refuse data that is not raw deflate", () => {
         // Arrange
         // A block of the reserved type 3 is no deflate data
@@ -688,6 +700,22 @@ describe("sketchHash", () => {
         );
       });
 
+      it("should say that the sketch is refused for its size when its JSON has one byte more", () => {
+        // Arrange
+        const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES + 1);
+
+        // Act
+        const reading = decodeHash(encodeSketch(sketch));
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "error",
+          error:
+            "The sketch in the link is larger than 4 MiB, which the playground does not load.",
+          tooLarge: true,
+        });
+      });
+
       it("should never unpack more than the limit and what one step of the data can make, so that a few bytes of deflate cannot take the memory of the page", () => {
         // Arrange
         const packed = deflateSync(new Uint8Array(MAX_SKETCH_JSON_BYTES * 8));
@@ -818,6 +846,28 @@ describe("sketchHash", () => {
         expect(error).toBe("The sketch has more than 1000 files and folders.");
       });
 
+      it("should say that a sketch with more files than it can have is refused for its size", () => {
+        // Arrange
+        const hash = hashOfValue({
+          config: "",
+          tree: Array.from({ length: 1001 }, (_, index) => ({
+            path: `src/f${index}.js`,
+            kind: "file",
+          })),
+          dependencies: [],
+        });
+
+        // Act
+        const reading = decodeHash(hash);
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "error",
+          error: "The sketch has more than 1000 files and folders.",
+          tooLarge: true,
+        });
+      });
+
       it("should refuse more dependencies than a sketch can have, with a reason", () => {
         // Arrange
         const dependency = {
@@ -838,6 +888,32 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe("The sketch has more than 3000 dependencies.");
+      });
+
+      it("should say that a sketch with more dependencies than it can have is refused for its size", () => {
+        // Arrange
+        const dependency = {
+          from: "a.js",
+          target: { kind: "external", name: "x" },
+          syntax: "require",
+          importKind: "value",
+          specifiers: [],
+        };
+        const hash = hashOfValue({
+          config: "",
+          tree: [{ path: "a.js", kind: "file" }],
+          dependencies: Array.from({ length: 3001 }, () => dependency),
+        });
+
+        // Act
+        const reading = decodeHash(hash);
+
+        // Assert
+        expect(reading).toStrictEqual({
+          status: "error",
+          error: "The sketch has more than 3000 dependencies.",
+          tooLarge: true,
+        });
       });
 
       it("should read a sketch of the most files and dependencies it accepts", () => {
