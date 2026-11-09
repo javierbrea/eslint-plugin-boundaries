@@ -18,10 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
 - docs: The Complete Example of the Policies page sets `checkAllOrigins`, without which the policy about `redux` never applied.
-- docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports, and its sample error messages say "policy", as the plugin does.
-- docs: The `boundaries/dependencies` rule page documents `policies` as its option, and `rules` only as its deprecated alias.
-- docs: The `boundaries/entry-point` rule page documents the `policies` option, and its sample error message is the one ESLint prints with the configuration of the page.
-- docs: The `boundaries/external` rule page documents the `policies` option, and its sample error message is the one ESLint prints with the configuration of the page.
+- docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports.
+- docs: The `boundaries/dependencies`, `boundaries/entry-point` and `boundaries/external` rule pages document the `policies` option, with `rules` as its deprecated alias, and their sample error messages are the ones ESLint prints with the configuration of each page.
 - docs: The rule pages name the Policies page in their links to its Message Templating section, and the `boundaries/no-private` page says that its message is customized with its `message` option.
 
 ## [7.4.1] - 2026-11-02
