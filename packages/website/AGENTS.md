@@ -22,3 +22,5 @@ The code of the playground lives in `packages/playground` only. It has two entri
 
 - `@boundaries/playground`, the component, loads only lazily on its page. `src/pages/playground.tsx` is its host: it renders the component in the browser only (`BrowserOnly` and `React.lazy`), creates its source and store inside the lazy chunk, and no file under `src/` imports a value from this entry statically (lint-enforced in `eslint.config.mjs`), so that no other page loads the chunk. MDX docs import docs components only, never the package.
 - `@boundaries/playground/share` is the light entry that docs components import statically, such as `src/components/OpenInPlayground`, which computes its link while the page renders.
+
+The docs of the playground, its guide and its "Open in playground" buttons, go in `docs/` and in the snapshot of the latest release alike, because the playground is deployed with the site and not released with a package.
