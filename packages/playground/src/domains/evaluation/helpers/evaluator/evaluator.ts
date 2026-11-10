@@ -19,7 +19,7 @@ import { spawnWorker } from "./spawnWorker";
 type Running = {
   /** The sketch it evaluates. */
   readonly sketch: Sketch;
-  /** When it started, from `Date.now()`. */
+  /** When it started, from `performance.now()`, which a change of the system clock does not move. */
   readonly startedAt: number;
   /** The timer that stops it at the time limit. */
   readonly limit: ReturnType<typeof setTimeout>;
@@ -135,14 +135,23 @@ export function createEvaluator(
    */
   function post(sketch: Sketch): void {
     if (worker === undefined) {
-      worker = spawn();
+      try {
+        worker = spawn();
+      } catch (error) {
+        // A worker that cannot be created fails as one whose script does not load: Chromium throws here for a script of another origin, and inside a sandboxed iframe. The error is reported as uncaught, as the one of a worker that fails, so that the developer tools show it
+        reportError(error);
+        settle();
+        onOutcome({ kind: "stopped", sketch, reason: "error" });
+        return;
+      }
       worker.onmessage = receive;
+      // The error is not cancelled, so the browser also reports it as uncaught: the developer tools show nothing of an error that the page cancels, and it is the only trace of a bug of the engine
       worker.onerror = () => stopAll("error");
       worker.onmessageerror = () => stopAll("error");
     }
     running = {
       sketch,
-      startedAt: Date.now(),
+      startedAt: performance.now(),
       limit: setTimeout(() => stopAll("time-limit"), EVALUATION_TIME_LIMIT),
     };
     lateTimer ??= setTimeout(() => onOutcome({ kind: "late" }), LATE_AFTER);
@@ -171,7 +180,7 @@ export function createEvaluator(
       return;
     }
 
-    const elapsed = Date.now() - running.startedAt;
+    const elapsed = performance.now() - running.startedAt;
 
     if (elapsed < REPLACE_AFTER) {
       waiting = sketch;

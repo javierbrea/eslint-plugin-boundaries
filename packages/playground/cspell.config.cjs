@@ -5,6 +5,7 @@ module.exports = createConfig({
   // Names of the libraries the playground uses, and the words of their APIs
   words: [
     "describedby",
+    "dontMock",
     "fflate",
     "haspopup",
     "keymap",

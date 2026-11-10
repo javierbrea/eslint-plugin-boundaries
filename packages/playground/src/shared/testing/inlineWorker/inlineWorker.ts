@@ -9,7 +9,7 @@ const liveWorkers = new Set<InlineWorker>();
 /** The messages that wait while the workers are held, in the order they were sent, or `undefined` while they are not held. */
 let heldMessages: (() => void)[] | undefined;
 
-/** A worker that runs its script in the thread of the tests. Messages go both ways as copies, as `postMessage` makes them, and arrive at once: a message to the worker runs its script before `postMessage` returns, unless the workers are held. */
+/** A worker that runs its script in the thread of the tests. Messages go both ways as copies, as `postMessage` makes them, and arrive at once: a message to the worker runs its script before `postMessage` returns, unless the workers are held. A script that throws while it handles a message fails the worker, as in a browser. */
 class InlineWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
@@ -46,7 +46,12 @@ class InlineWorker {
     const data = structuredClone(message);
     const deliver = (): void => {
       if (!this.terminated) {
-        this.scope.onmessage?.(new MessageEvent("message", { data }));
+        try {
+          this.scope.onmessage?.(new MessageEvent("message", { data }));
+        } catch {
+          // A browser reports an error of the script on the `onerror` of the worker, and never to the code that sent the message
+          this.fail();
+        }
       }
     };
 

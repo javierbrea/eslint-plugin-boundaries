@@ -243,6 +243,38 @@ describe("evaluator", () => {
         expect(evaluation).toEqual(engine.evaluate(SKETCH_B));
         expect(jest.getTimerCount()).toBe(0);
       });
+
+      it("should report the sketch as stopped by an error, without throwing, when the engine throws in the worker", () => {
+        // Arrange
+        const onOutcome = jest.fn<void, [EvaluationOutcome]>();
+        const evaluator = createEvaluator(onOutcome);
+
+        // Act
+        jest.isolateModules(() => {
+          // The script of the worker loads with the worker, so it takes this engine
+          jest.doMock<{ createEngine: typeof createEngine }>(
+            "@/domains/evaluation/helpers/engine",
+            () => ({
+              createEngine: () => ({
+                evaluate: () => {
+                  throw new Error("An engine bug");
+                },
+              }),
+            })
+          );
+          evaluator.evaluate(SKETCH_B);
+        });
+        // The mock outlives the isolated modules, and a later worker of this file would take it
+        jest.dontMock("@/domains/evaluation/helpers/engine");
+
+        // Assert
+        const outcomes = reported(onOutcome);
+
+        expect(outcomes).toHaveLength(1);
+        expect(pick(outcomes[0], "stopped").sketch).toBe(SKETCH_B);
+        expect(pick(outcomes[0], "stopped").reason).toBe("error");
+        expect(jest.getTimerCount()).toBe(0);
+      });
     });
   });
 
@@ -508,6 +540,38 @@ describe("evaluator", () => {
         // Assert
         expect(spawn).toHaveBeenCalledTimes(1);
         expect(posted(workers[0])).toEqual([SKETCH_A, SKETCH_B]);
+      });
+    });
+
+    describe("when the system clock changes while an evaluation runs", () => {
+      it("should not replace the running evaluation when the clock moves forward before it has run for REPLACE_AFTER", () => {
+        // Arrange
+        const { evaluator, spawn, workers } = setup();
+        evaluator.evaluate(SKETCH_A);
+        jest.setSystemTime(Date.now() + REPLACE_AFTER);
+
+        // Act
+        evaluator.evaluate(SKETCH_B);
+
+        // Assert
+        expect(spawn).toHaveBeenCalledTimes(1);
+        expect(workers[0].terminate).not.toHaveBeenCalled();
+        expect(posted(workers[0])).toEqual([SKETCH_A]);
+      });
+
+      it("should replace the running evaluation once it has run for REPLACE_AFTER when the clock moves back", () => {
+        // Arrange
+        const { evaluator, spawn, workers } = setup();
+        evaluator.evaluate(SKETCH_A);
+        jest.setSystemTime(Date.now() - 10_000);
+        evaluator.evaluate(SKETCH_B);
+
+        // Act
+        jest.advanceTimersByTime(REPLACE_AFTER);
+
+        // Assert
+        expect(spawn).toHaveBeenCalledTimes(2);
+        expect(posted(workers[1])).toEqual([SKETCH_B]);
       });
     });
 
@@ -913,6 +977,112 @@ describe("evaluator", () => {
           SKETCH_B
         );
       });
+    });
+  });
+
+  describe("when a worker cannot be created", () => {
+    /** The `reportError` of the browser, which jsdom does not have */
+    let reportErrorMock: jest.Mock<void, [unknown]>;
+
+    beforeEach(() => {
+      reportErrorMock = jest.fn();
+      Object.defineProperty(globalThis, "reportError", {
+        value: reportErrorMock,
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(globalThis, "reportError");
+    });
+
+    /**
+     * Creates an evaluator whose spawn function throws for the workers at the given positions, as the `Worker` constructor of Chromium does for a script of another origin.
+     * @param failing The positions of the workers that cannot be created, from 0.
+     * @returns What `setup` returns.
+     */
+    function setupFailingSpawn(
+      failing: readonly number[]
+    ): ReturnType<typeof setup> {
+      let created = 0;
+
+      return setup(() => {
+        created += 1;
+        if (failing.includes(created - 1)) {
+          throw new DOMException("Script cannot be accessed", "SecurityError");
+        }
+      });
+    }
+
+    it("should report the first sketch as stopped by an error, without throwing, and leave no timer", () => {
+      // Arrange
+      const { evaluator, onOutcome } = setupFailingSpawn([0]);
+
+      // Act
+      const evaluate = (): void => evaluator.evaluate(SKETCH_A);
+
+      // Assert
+      expect(evaluate).not.toThrow();
+
+      const outcomes = reported(onOutcome);
+
+      expect(outcomes).toHaveLength(1);
+      expect(pick(outcomes[0], "stopped").sketch).toBe(SKETCH_A);
+      expect(pick(outcomes[0], "stopped").reason).toBe("error");
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should report the sketch that replaces a running one as stopped by an error, and report nothing more", () => {
+      // Arrange
+      const { evaluator, onOutcome, workers } = setupFailingSpawn([1]);
+      evaluator.evaluate(SKETCH_A);
+      evaluator.evaluate(SKETCH_B);
+
+      // Act
+      jest.advanceTimersByTime(REPLACE_AFTER);
+      jest.advanceTimersByTime(EVALUATION_TIME_LIMIT * 2);
+
+      // Assert
+      const outcomes = reported(onOutcome);
+
+      expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+      expect(outcomes.map(({ kind }) => kind)).toEqual(["late", "stopped"]);
+      expect(pick(outcomes[1], "stopped").sketch).toBe(SKETCH_B);
+      expect(pick(outcomes[1], "stopped").reason).toBe("error");
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it("should report the error as one that nothing caught, so that the developer tools show it", () => {
+      // Arrange
+      const { evaluator } = setupFailingSpawn([0]);
+
+      // Act
+      evaluator.evaluate(SKETCH_A);
+
+      // Assert
+      expect(reportErrorMock).toHaveBeenCalledTimes(1);
+      expect(reportErrorMock.mock.calls[0][0]).toBeInstanceOf(DOMException);
+      expect((reportErrorMock.mock.calls[0][0] as DOMException).name).toBe(
+        "SecurityError"
+      );
+    });
+
+    it("should try a new worker with the next request", () => {
+      // Arrange
+      const { evaluator, onOutcome, spawn, workers } = setupFailingSpawn([0]);
+      evaluator.evaluate(SKETCH_A);
+
+      // Act
+      evaluator.evaluate(SKETCH_B);
+      answer(workers[0], SKETCH_B);
+
+      // Assert
+      expect(spawn).toHaveBeenCalledTimes(2);
+      expect(posted(workers[0])).toEqual([SKETCH_B]);
+      expect(pick(reported(onOutcome).at(-1), "evaluated").sketch).toBe(
+        SKETCH_B
+      );
     });
   });
 
