@@ -15,7 +15,7 @@ Read first:
 - RFC #538 "Scope" and "Interface" decision 5 for the limits to state plainly (no real source code, no `node_modules` resolution, the `dependencies` rule only, the config node holds the `settings` and `rules` sub-objects as JSON5).
 - `.github/ISSUE_TEMPLATE/bug_report.md`.
 
-Preconditions: phase 7 merged.
+Preconditions: phase 7 and the two pane pull requests (#637, #638) merged.
 
 ## From phase 6
 
