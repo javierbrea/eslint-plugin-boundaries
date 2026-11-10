@@ -49,12 +49,27 @@ const Count = styled("span", {
   shouldForwardProp: (prop) => prop !== "color",
 })<{ color?: string }>(({ color }) => ({ color }));
 
+// Read by screen readers and never drawn: the text on screen is the one beside it
+const Announcement = styled("span")({
+  position: "absolute",
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  border: 0,
+  overflow: "hidden",
+  clipPath: "inset(50%)",
+  whiteSpace: "nowrap",
+});
+
 /** What the status says after the numbers of the sketch, with the tone of its text and of the dot. */
 type StatusEnd = {
   readonly text: string | undefined;
   /** The color of the text, or `undefined` for the muted color of the status. */
   readonly textTone: StateTone | undefined;
   readonly dotTone: StateTone;
+  /** Whether a screen reader is told the text when the status starts saying it. */
+  readonly announce: boolean;
 };
 
 /**
@@ -74,26 +89,38 @@ function getStatusEnd({
 }: Readonly<TopBarProps>): StatusEnd {
   if (evaluation !== undefined) {
     return {
-      ...evaluation,
+      text: evaluation.text,
       textTone: evaluation.tone,
       dotTone: evaluation.tone,
+      announce: evaluation.announce,
     };
   }
   if (configHasErrors) {
-    return { text: "config has errors", textTone: "bad", dotTone: "bad" };
+    return {
+      text: "config has errors",
+      textTone: "bad",
+      dotTone: "bad",
+      announce: false,
+    };
   }
   if (problems === undefined) {
-    return { text: undefined, textTone: undefined, dotTone: "faint" };
+    return {
+      text: undefined,
+      textTone: undefined,
+      dotTone: "faint",
+      announce: false,
+    };
   }
   return {
     text: formatCount(problems, "problem", "problems"),
     textTone: problems > 0 ? tone : undefined,
     dotTone: "ok",
+    announce: false,
   };
 }
 
 /**
- * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, that the config has errors, or what the caller says about the evaluation. It places what the caller gives it around the status: something before it, such as the picker of examples, and something at the other end, such as the actions, after a spacer that pushes them to the end.
+ * The top bar: the status of the sketch, with how many files and dependencies it has and how many problems, that the config has errors, or what the caller says about the evaluation, which a polite live region announces when the caller asks. It places what the caller gives it around the status: something before it, such as the picker of examples, and something at the other end, such as the actions, after a spacer that pushes them to the end.
  * @param props TopBar props.
  * @param props.files How many files the sketch has.
  * @param props.dependencies How many dependencies the sketch has.
@@ -108,7 +135,7 @@ function getStatusEnd({
  */
 export function TopBar(props: Readonly<TopBarProps>): ReactNode {
   const { files, dependencies, start, end, testId = TOP_BAR_TEST_ID } = props;
-  const { text, textTone, dotTone } = getStatusEnd(props);
+  const { text, textTone, dotTone, announce } = getStatusEnd(props);
 
   return (
     <Bar data-testid={testId}>
@@ -125,12 +152,16 @@ export function TopBar(props: Readonly<TopBarProps>): ReactNode {
                 color={
                   textTone === undefined ? undefined : STATE_TEXT[textTone]
                 }
+                // The announcement says it right after, so a screen reader reads it once
+                aria-hidden={announce ? "true" : undefined}
               >
                 {text}
               </Count>
             </>
           )}
         </span>
+        {/* A polite live region that is always there, so that screen readers pick up the text that comes into it */}
+        <Announcement role="status">{announce ? text : null}</Announcement>
       </Status>
       <Spacer />
       {end}

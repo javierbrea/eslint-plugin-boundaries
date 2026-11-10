@@ -1,5 +1,6 @@
 import { fireEvent, within } from "@testing-library/react";
 
+import { SHELL_TEST_ID } from "@/domains/shell/modules/Shell/Shell.constants";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
@@ -8,13 +9,21 @@ import { LOAD_STATE_RESET_LABEL } from "./LoadState.constants";
 /** The selector of the message: a status while the sketch loads, an alert when it could not be loaded. */
 const MESSAGE_SELECTOR = "[role='status'], [role='alert']";
 
-/** Page object of the message that describes why the sketch is not on screen. It has no test id: it finds the status or the alert within its parent. */
+/** The selector of the shell, which takes the place of the message and has live regions of its own, such as the status of the top bar and the message of the share. */
+const SHELL_SELECTOR = `[data-testid='${SHELL_TEST_ID}']`;
+
+/** Page object of the message that describes why the sketch is not on screen. It has no test id: it finds the status or the alert within its parent that is not in a shell. */
 export class LoadStatePom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    return this.findRootBySelector(MESSAGE_SELECTOR);
+    return this.pickMatch(
+      Array.from(
+        this.searchBaseElement.querySelectorAll<HTMLElement>(MESSAGE_SELECTOR)
+      ).filter((element) => element.closest(SHELL_SELECTOR) === null),
+      `the selector "${MESSAGE_SELECTOR}" outside a shell`
+    );
   }
 
   /**

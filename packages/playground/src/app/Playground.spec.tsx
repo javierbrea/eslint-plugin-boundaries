@@ -276,6 +276,23 @@ describe("Playground", () => {
       expect(loadState.isRendered).toBe(false);
     });
 
+    it("should show that the sketch is loading until it loads with a store that can share, whose message is a live region of the shell", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new SharingStore()
+      );
+      const { loadState } = playground;
+
+      // Act
+      const loadingText = loadState.text;
+      await playground.waitForStatus("2 files ·");
+
+      // Assert
+      expect(loadingText).toBe("Loading the project…");
+      expect(loadState.isRendered).toBe(false);
+    });
+
     it("should show that the sketch is loading when the store changes, until the new store loads", async () => {
       // Arrange
       let resolveNext: (sketch: Sketch | undefined) => void = () => undefined;

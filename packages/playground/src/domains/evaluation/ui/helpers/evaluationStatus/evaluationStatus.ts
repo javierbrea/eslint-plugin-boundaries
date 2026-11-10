@@ -1,5 +1,4 @@
 import type { EvaluationStatus } from "@/domains/evaluation/helpers/evaluator";
-import type { StateTone } from "@/ui-kit/helpers/tone";
 
 import {
   EVALUATING_NOTE,
@@ -10,7 +9,10 @@ import {
   STOPPED_NOTE,
   STOPPED_STATUS,
 } from "./evaluationStatus.constants";
-import type { PendingVerdict } from "./evaluationStatus.types";
+import type {
+  EvaluationStatusText,
+  PendingVerdict,
+} from "./evaluationStatus.types";
 
 /** What a dependency that no evaluation has decided yet shows while the evaluation is late. One object, so that what depends on it is not made again while it does not change */
 const EVALUATING_VERDICT: PendingVerdict = {
@@ -63,19 +65,19 @@ export function getEvaluationNote(
 /**
  * Writes what the status of the top bar says in place of the problems.
  * @param evaluationStatus How the evaluation on screen stands to the sketch.
- * @returns The text and its tone while the evaluation is late, stopped or failed, and `undefined` otherwise.
+ * @returns The text, its tone and whether it is announced while the evaluation is late, stopped or failed, and `undefined` otherwise. Only a stopped or failed evaluation is announced.
  */
 export function getEvaluationStatusText(
   evaluationStatus: EvaluationStatus
-): { readonly text: string; readonly tone: StateTone } | undefined {
+): EvaluationStatusText | undefined {
   if (evaluationStatus === "late") {
-    return { text: EVALUATING_STATUS, tone: "faint" };
+    return { text: EVALUATING_STATUS, tone: "faint", announce: false };
   }
   if (evaluationStatus === "stopped") {
-    return { text: STOPPED_STATUS, tone: "warn" };
+    return { text: STOPPED_STATUS, tone: "warn", announce: true };
   }
   return evaluationStatus === "failed"
-    ? { text: FAILED_STATUS, tone: "bad" }
+    ? { text: FAILED_STATUS, tone: "bad", announce: true }
     : undefined;
 }
 

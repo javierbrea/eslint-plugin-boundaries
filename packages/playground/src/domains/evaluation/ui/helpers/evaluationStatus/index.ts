@@ -1,4 +1,7 @@
-export type { PendingVerdict } from "./evaluationStatus.types";
+export type {
+  EvaluationStatusText,
+  PendingVerdict,
+} from "./evaluationStatus.types";
 export {
   EVALUATING_NOTE,
   EVALUATING_STATUS,

@@ -9,7 +9,10 @@ import {
   getPendingVerdict,
   isEvaluationDimmed,
 } from "./evaluationStatus";
-import type { PendingVerdict } from "./evaluationStatus.types";
+import type {
+  EvaluationStatusText,
+  PendingVerdict,
+} from "./evaluationStatus.types";
 
 /** What the panes say when the evaluation took longer than the limit, which names it in seconds */
 const STOPPED_TEXT = `The evaluation took longer than ${EVALUATION_TIME_LIMIT / 1000} seconds and was stopped. Edit the project to evaluate it again.`;
@@ -67,14 +70,14 @@ describe("evaluationStatus", () => {
   });
 
   describe("getEvaluationStatusText", () => {
-    it.each<[EvaluationStatus, { text: string; tone: string } | undefined]>([
+    it.each<[EvaluationStatus, EvaluationStatusText | undefined]>([
       ["current", undefined],
       ["pending", undefined],
-      ["late", { text: "evaluating…", tone: "faint" }],
-      ["stopped", { text: "evaluation stopped", tone: "warn" }],
-      ["failed", { text: "evaluation failed", tone: "bad" }],
+      ["late", { text: "evaluating…", tone: "faint", announce: false }],
+      ["stopped", { text: "evaluation stopped", tone: "warn", announce: true }],
+      ["failed", { text: "evaluation failed", tone: "bad", announce: true }],
     ])(
-      "should write for the status %s the text and tone %j",
+      "should write for the status %s the text, the tone and whether it is announced: %j",
       (evaluationStatus, expected) => {
         // Act
         const text = getEvaluationStatusText(evaluationStatus);

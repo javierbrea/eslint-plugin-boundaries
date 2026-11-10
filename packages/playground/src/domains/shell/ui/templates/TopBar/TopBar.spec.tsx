@@ -108,7 +108,7 @@ describe("TopBar", () => {
       // Arrange
       const { bar } = renderBar({
         problems: 2,
-        evaluation: { text: "evaluating…", tone: "faint" },
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
       });
 
       // Act
@@ -124,7 +124,11 @@ describe("TopBar", () => {
       // Arrange
       const { bar } = renderBar({
         configHasErrors: true,
-        evaluation: { text: "evaluation stopped", tone: "warn" },
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
       });
 
       // Act
@@ -164,7 +168,7 @@ describe("TopBar", () => {
       // Arrange
       const { bar } = renderBar({
         problems: undefined,
-        evaluation: { text: "evaluation failed", tone: "bad" },
+        evaluation: { text: "evaluation failed", tone: "bad", announce: true },
       });
 
       // Act
@@ -179,7 +183,7 @@ describe("TopBar", () => {
       // Arrange
       const { bar, update } = renderBar({
         problems: 2,
-        evaluation: { text: "evaluating…", tone: "faint" },
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
       });
 
       // Act
@@ -187,6 +191,88 @@ describe("TopBar", () => {
 
       // Assert
       expect(bar.statusText).toBe("6 files · 9 dependencies · 2 problems");
+    });
+  });
+
+  describe("the announcement", () => {
+    it("should announce what the caller asks it to, and hide the same text on screen from screen readers, so that they hear it once", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
+      });
+
+      // Act
+      const { announcement, isProblemsHidden, statusText } = bar;
+
+      // Assert
+      expect(announcement).toBe("evaluation stopped");
+      expect(isProblemsHidden).toBe(true);
+      expect(statusText).toBe("6 files · 9 dependencies · evaluation stopped");
+    });
+
+    it("should announce nothing about the evaluation when the caller does not ask it, and leave the text on screen to screen readers", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+
+      // Act
+      const { announcement, isProblemsHidden } = bar;
+
+      // Assert
+      expect(announcement).toBe("");
+      expect(isProblemsHidden).toBe(false);
+    });
+
+    it.each<[string, Partial<TopBarProps>]>([
+      ["the problems", { problems: 2 }],
+      ["that the config has errors", { configHasErrors: true }],
+    ])("should announce nothing when it says %s", (_title, props) => {
+      // Arrange
+      const { bar } = renderBar(props);
+
+      // Act
+      const { announcement, isProblemsHidden } = bar;
+
+      // Assert
+      expect(announcement).toBe("");
+      expect(isProblemsHidden).toBe(false);
+    });
+
+    it("should be in the bar before it says anything, so that screen readers pick up what comes into it", () => {
+      // Arrange
+      const { bar, update } = renderBar({ problems: undefined });
+      const before = bar.announcement;
+
+      // Act
+      update({
+        evaluation: { text: "evaluation failed", tone: "bad", announce: true },
+      });
+
+      // Assert
+      expect(before).toBe("");
+      expect(bar.announcement).toBe("evaluation failed");
+    });
+
+    it("should not be drawn", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
+      });
+
+      // Act
+      const { isAnnouncementDrawn } = bar;
+
+      // Assert
+      expect(isAnnouncementDrawn).toBe(false);
     });
   });
 
@@ -248,7 +334,9 @@ describe("TopBar", () => {
 
       // Act
       const { problemsColor: counted } = bar;
-      update({ evaluation: { text: "evaluating…", tone: "faint" } });
+      update({
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
       const { problemsColor: evaluating } = bar;
 
       // Assert
@@ -281,7 +369,7 @@ describe("TopBar", () => {
         // Arrange
         const { bar } = renderBar({
           problems: 2,
-          evaluation: { text: "evaluating…", tone },
+          evaluation: { text: "evaluating…", tone, announce: false },
         });
 
         // Act
@@ -297,7 +385,7 @@ describe("TopBar", () => {
       // Arrange
       const { bar } = renderBar({
         configHasErrors: true,
-        evaluation: { text: "evaluating…", tone: "faint" },
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
       });
 
       // Act

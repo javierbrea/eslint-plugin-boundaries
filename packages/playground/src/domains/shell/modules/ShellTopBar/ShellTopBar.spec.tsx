@@ -250,6 +250,7 @@ describe("ShellTopBar", () => {
       expect(bar.bar.statusText).toBe("6 files · 9 dependencies · evaluating…");
       expect(bar.bar.problemsColor).toBe("var(--jsb-muted)");
       expect(bar.bar.dotColor).toBe("var(--jsb-faint)");
+      expect(bar.bar.announcement).toBe("");
     });
 
     it("should say that the evaluation was stopped when it takes longer than the limit", () => {
@@ -267,6 +268,7 @@ describe("ShellTopBar", () => {
         "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
       );
       expect(bar.bar.dotColor).toBe("var(--jsb-warn)");
+      expect(bar.bar.announcement).toBe("evaluation stopped");
     });
 
     it("should say that the evaluation failed when its worker fails", () => {
@@ -284,6 +286,7 @@ describe("ShellTopBar", () => {
         "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
       );
       expect(bar.bar.dotColor).toBe("var(--jsb-bad)");
+      expect(bar.bar.announcement).toBe("evaluation failed");
     });
 
     it("should count the problems when the evaluation arrives", () => {
@@ -297,6 +300,7 @@ describe("ShellTopBar", () => {
       // Assert
       expect(bar.bar.statusText).toBe("6 files · 9 dependencies · 2 problems");
       expect(bar.bar.dotColor).toBe("var(--jsb-ok)");
+      expect(bar.bar.announcement).toBe("");
     });
   });
 
@@ -355,6 +359,7 @@ describe("ShellTopBar", () => {
         "6 files · 8 dependencies · evaluation stopped"
       );
       expect(bar.bar.dotColor).toBe("var(--jsb-warn)");
+      expect(bar.bar.announcement).toBe("evaluation stopped");
     });
 
     it("should say that the evaluation failed in place of the problems", () => {
@@ -369,6 +374,7 @@ describe("ShellTopBar", () => {
         "6 files · 8 dependencies · evaluation failed"
       );
       expect(bar.bar.dotColor).toBe("var(--jsb-bad)");
+      expect(bar.bar.announcement).toBe("evaluation failed");
     });
 
     it("should say the problems again when the evaluation arrives", () => {

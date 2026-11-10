@@ -1,3 +1,5 @@
+import { within } from "@testing-library/react";
+
 import { Pom } from "@/shared/testing/pom";
 
 import { TOP_BAR_TEST_ID } from "./TopBar.constants";
@@ -60,6 +62,14 @@ export class TopBarPom extends Pom {
    */
   private get status(): HTMLElement {
     return this.label.parentElement as HTMLElement;
+  }
+
+  /**
+   * The live region of the status, which screen readers announce and the bar does not draw.
+   * @returns The element.
+   */
+  private get announcementRegion(): HTMLElement {
+    return within(this.status).getByRole("status");
   }
 
   /**
@@ -126,6 +136,32 @@ export class TopBarPom extends Pom {
    */
   get problemsText(): string {
     return this.problems.textContent;
+  }
+
+  /**
+   * Whether what the status says after the number of dependencies is hidden from assistive technology, which hears it from the live region instead.
+   * @returns True when its `aria-hidden` attribute is `true`.
+   */
+  get isProblemsHidden(): boolean {
+    return this.problems.getAttribute("aria-hidden") === "true";
+  }
+
+  /**
+   * What the live region of the status holds, which a screen reader announces when it changes.
+   * @returns Its text, empty when it says nothing.
+   */
+  get announcement(): string {
+    return this.announcementRegion.textContent;
+  }
+
+  /**
+   * Whether the live region of the status is drawn, which it must not be: the text on screen is beside it.
+   * @returns True when it is not absolutely positioned or not clipped, as a visually hidden element is.
+   */
+  get isAnnouncementDrawn(): boolean {
+    const { clipPath, position } = getComputedStyle(this.announcementRegion);
+
+    return clipPath !== "inset(50%)" || position !== "absolute";
   }
 
   /**
