@@ -54,7 +54,7 @@ src/modules/
 
 - One path per line. A folder ends with `/`; only an empty folder needs a line of its own.
 - An indented line is a dependency of the file above it, written as a statement. Any indentation works; the playground writes two spaces.
-- A source that starts with `./` or `../` points to a file of the project, and any other one, such as `react`, to an external module. An absolute source, starting with `/`, is refused.
+- A source that starts with `./` or `../`, or is `.` or `..`, points to a file of the project, and any other one, such as `react`, to an external module. An absolute source, starting with `/`, is refused.
 - The statements it reads are `import`, `import type`, `export … from`, `export type … from`, `require("…")` and `import("…")`, with the names they hold, such as `import format, { round as r } from "…";`, `export * as ns from "…";` or the side-effect `import "…";`. Single quotes, extra spaces and a missing `;` are accepted.
 
 A dependency is written with the full relative path of its file, with its extension and its `index`. Text mode also reads shorter sources, with one rule of its own:
@@ -159,6 +159,7 @@ The message next to the button says how it went:
 - `Link copied`.
 - `Long link copied: some apps may cut it`, for a link of more than 8,192 characters. Check that the link you pasted opens the project.
 - `The project is too large for a link`, with the reason, for a project with more than 1,000 files and folders, more than 3,000 dependencies, or more than 4 MiB once written as JSON. Nothing is copied.
+- `The link could not be copied`, when the browser refuses access to the clipboard.
 
 A link that cannot be read shows why, with a `Reset` button.
 
