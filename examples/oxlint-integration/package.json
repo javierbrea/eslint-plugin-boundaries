@@ -20,7 +20,7 @@
     "eslint-import-resolver-oxc": "0.15.0",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
-    "oxlint": "1.90.0",
+    "oxlint": "1.92.0",
     "typescript": "5.9.3"
   }
 }
