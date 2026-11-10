@@ -28,6 +28,8 @@ Use debugging to verify that your [`elements`](../classification/elements.md) se
 
 Each file description is an [**entity**](../classification/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../classification/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rule policies are correct.
 
+To reproduce a case without a project, sketch it in the [playground](./playground.md): its inspector shows how the plugin describes each file and dependency, and Share copies a link to it.
+
 ## Enabling Debug Mode
 
 You can enable debugging in two ways:

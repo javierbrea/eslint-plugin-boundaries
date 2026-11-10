@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser, evaluated in a background thread that never blocks the page. A link keeps the whole project, to share it or to open it from the docs.
+- feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser, evaluated in a background thread that never blocks the page. A link keeps the whole project, to share it or to open it from the docs, and a new Playground guide explains how to use it.
 
 ### Fixed
 
