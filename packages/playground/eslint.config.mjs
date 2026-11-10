@@ -226,6 +226,23 @@ const elementNamed = (domainName, names, types = UI_TYPES) => ({
   element: { type: types, captured: { domain: domainName, name: names } },
 });
 
+// The engine, which imports the evaluation packages: only the worker may take a value from it
+const ENGINE = elementNamed("evaluation", "engine", "helper");
+
+// The entry of the engine
+const ENGINE_ENTRY = {
+  element: { ...ENGINE.element, fileInternalPath: "index.ts" },
+  file: { categories: "entry" },
+};
+
+// The types that the matrix lets import a helper, which may take `tokenizeConfig` from the engine
+const HELPER_IMPORTERS = Object.keys(LAYER_TARGETS).filter((type) =>
+  LAYER_TARGETS[type].includes("helper")
+);
+
+const ENGINE_MESSAGE =
+  "Only serveEvaluations, which runs in the worker, creates an engine: the page asks the evaluator of the store for evaluations, and takes from the engine only its types, with import type, and tokenizeConfig, so that @boundaries/* stay out of its chunk";
+
 const POLICIES = [
   // An element may always import itself. Restrictions on test, page object and mock files come after and override this
   { allow: { dependency: { relationship: { to: "internal" } } } },
@@ -315,6 +332,38 @@ const POLICIES = [
     allow: { to: { module: { origin: "external" } } },
   },
 
+  // Only the worker creates an engine, so that the evaluation packages load in the worker and never in the page, which asks the evaluator instead. A value of the engine is denied whatever the syntax that brings it (a dynamic import, a namespace import, a re-export), except a named import of `tokenizeConfig` alone, which loads none of them; its types are allowed. These policies come before the ones of test support, which override them, and reopen nothing that the matrix denies
+  {
+    disallow: { to: ENGINE, dependency: { kind: "value" } },
+    message: ENGINE_MESSAGE,
+  },
+  {
+    from: { element: { type: HELPER_IMPORTERS } },
+    allow: {
+      to: ENGINE_ENTRY,
+      dependency: {
+        kind: "value",
+        nodeKind: "import",
+        specifiers: "tokenizeConfig",
+      },
+    },
+  },
+  {
+    disallow: {
+      to: ENGINE,
+      dependency: { kind: "value", specifiers: "!tokenizeConfig" },
+    },
+    message: ENGINE_MESSAGE,
+  },
+  // The engine itself, which defines it, and the code that the worker runs
+  {
+    allow: { to: ENGINE, dependency: { relationship: { to: "internal" } } },
+  },
+  {
+    from: { file: { categories: "worker-handler" } },
+    allow: { to: ENGINE_ENTRY },
+  },
+
   // Test, page object and mock files are test support: nothing imports them unless a policy below allows it
   {
     disallow: { to: { file: { categories: "test" } } },
@@ -334,28 +383,6 @@ const POLICIES = [
     disallow: { to: { file: { categories: "worker-entry" } } },
     message:
       "The script of a worker runs in its own thread: only the factory of the worker names it, through new URL, so that what it imports stays out of the page",
-  },
-  // Only the worker creates an engine, so that the evaluation packages load in the worker and never in the page, which asks the evaluator instead
-  {
-    disallow: { dependency: { specifiers: "createEngine" } },
-    message:
-      "Only serveEvaluations, which runs in the worker, creates an engine: the page asks the evaluator of the store for evaluations, so that @boundaries/* stay out of its chunk",
-  },
-  // The engine itself, which defines it
-  {
-    allow: {
-      dependency: {
-        relationship: { to: "internal" },
-        specifiers: "createEngine",
-      },
-    },
-  },
-  {
-    from: { file: { categories: "worker-handler" } },
-    allow: {
-      to: entryOf("helper"),
-      dependency: { specifiers: "createEngine" },
-    },
   },
   {
     disallow: { to: { file: { categories: "worker-handler" } } },
