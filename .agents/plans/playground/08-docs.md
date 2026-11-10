@@ -15,7 +15,7 @@ Read first:
 - RFC #538 "Scope" and "Interface" decision 5 for the limits to state plainly (no real source code, no `node_modules` resolution, the `dependencies` rule only, the config node holds the `settings` and `rules` sub-objects as JSON5).
 - `.github/ISSUE_TEMPLATE/bug_report.md`.
 
-Preconditions: phase 7 and the two pane pull requests (#637, #638) merged.
+Preconditions: phase 7, the two pane pull requests (#637, #638) and the worker (#635) merged.
 
 ## From phase 6
 
@@ -36,6 +36,10 @@ The words the guide documents are in the code, so the page quotes them from ther
 - Pages measured and left out as examples, because they need what the playground lacks: the rules other than `dependencies` (`external`, `entry-point`, `no-private`, `no-unknown-*`, `no-ignored-dependencies`), the guides that need module resolution or another parser (`monorepo-setup`, `custom-resolvers`, `typescript-support`, `oxlint-integration`), `settings/settings.md` (additional dependency nodes, `flag-as-external`, `root-path`), `settings/config-helpers.md` and step 5 of the Quick start (the predefined rules), `guides/debugging.md`, and the classification and selectors pages, whose blocks are fragments without a full config.
 - Phase 7 fixed, in `docs/` and `versioned_docs/version-7.4.1/`, what ESLint does not do as these pages said: the Overview (`checkAllOrigins`, the `axios` policy, the sample message), the Complete Example of Policies (`checkAllOrigins`), and the rule pages of `dependencies` (`src/` file patterns, the `policies` option, the sample messages), `entry-point` and `external` (the `policies` option, the sample messages). A button added next to one of their blocks takes the block as it is now.
 - For the part of the guide on sharing, the words and limits are in the code: Share copies a link whose hash holds the whole sketch, which a browser never sends to a server; it warns above 8,192 characters (`LONG_LINK_LENGTH`, `src/domains/share/helpers/sketchHash/sketchHash.constants.ts`) and refuses, with the reason, a sketch that a link cannot open: more than 1,000 files and folders or 3,000 dependencies (`src/domains/project/helpers/sketch/sketch.constants.ts`), or more than 4 MiB of JSON. The messages are in `src/domains/share/ui/helpers/shareMessage/`. Reset brings back the sketch of the source, the Quick start example on the website, and asks first when the sketch on screen is neither an example nor that sketch.
+
+## From the worker (#635)
+
+- For the limits of the guide: the playground evaluates in a web worker, so a project that takes long to evaluate never blocks the page; an evaluation stops after 30 s (`EVALUATION_TIME_LIMIT`, `src/domains/evaluation/helpers/evaluator/evaluator.constants.ts`) with the message of `src/domains/evaluation/ui/helpers/evaluationStatus/`, and the next edit evaluates again. A pattern with repeated `**/` grows fast on a deep path: a `boundaries/files` pattern of seven `**/a` takes 5.6 s on a file of 64 path segments in Chromium, and one of eight takes 176 s in Node.js (measured on 2026-11-10; #636).
 
 ## Scope
 
