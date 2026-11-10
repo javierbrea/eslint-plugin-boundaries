@@ -20,11 +20,12 @@ const store = new HashStore();
 <Playground
   source={source}
   store={store}
+  guideUrl="/docs/guides/playground/"
   quickStartUrl="/docs/quick-start/"
 />;
 ```
 
-The source says where the project comes from and what the user can change in it. The store keeps the sketch: `HashStore` keeps it in the hash of the URL, so that a link opens it and Share copies that link, and `MemoryStore` keeps it in memory, with no Share. A store of a host implements `StateStore`: `load`, `save` and `clear`, and optionally `share`, which makes a link, and `subscribe`, which tells the playground that the sketch changed outside it. `quickStartUrl` is the guide that the help dialog links to; without it, the dialog has no link.
+The source says where the project comes from and what the user can change in it. The store keeps the sketch: `HashStore` keeps it in the hash of the URL, so that a link opens it and Share copies that link, and `MemoryStore` keeps it in memory, with no Share. A store of a host implements `StateStore`: `load`, `save` and `clear`, and optionally `share`, which makes a link, and `subscribe`, which tells the playground that the sketch changed outside it. `guideUrl` and `quickStartUrl` are the playground guide and the Quick start guide that the help dialog links to; without one, the dialog has no link to it.
 
 A page that only links to the playground, such as a page of the docs, imports `getPlaygroundHash` from `@boundaries/playground/share`. That entry loads no React and no component, and runs in Node.js too, so the link can be computed while the page renders on the server:
 

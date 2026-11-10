@@ -15,6 +15,7 @@ import type { ShellProps } from "./Shell.types";
  * @param props.initialSketch The sketch to start from.
  * @param props.capabilities What the user can change in the project.
  * @param props.onSketchChange Called with each new sketch after an edit.
+ * @param props.guideUrl The URL of the playground guide, which the help links to.
  * @param props.quickStartUrl The URL of the Quick start guide, which the help links to.
  * @param props.onReset Called with the sketch on screen when the user asks to reset it.
  * @param props.onSelectExample Called with the example and the sketch on screen when the user picks an example.
@@ -26,6 +27,7 @@ export function Shell({
   initialSketch,
   capabilities,
   onSketchChange,
+  guideUrl,
   quickStartUrl,
   onReset,
   onSelectExample,
@@ -42,6 +44,7 @@ export function Shell({
         <ShellLayout
           topBar={
             <ShellTopBar
+              guideUrl={guideUrl}
               quickStartUrl={quickStartUrl}
               onReset={onReset}
               onSelectExample={onSelectExample}

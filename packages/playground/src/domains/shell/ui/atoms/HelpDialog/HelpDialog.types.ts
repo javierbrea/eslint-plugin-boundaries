@@ -2,7 +2,9 @@
 export type HelpDialogProps = {
   /** Whether the dialog is open. It never opens by itself: the caller opens it when the user asks. */
   readonly isOpen: boolean;
-  /** The URL of the Quick start guide, which the link of the dialog points to. The dialog draws no link without it. */
+  /** The URL of the playground guide, which the first link of the dialog points to. The dialog draws no link to it without it. */
+  readonly guideUrl?: string;
+  /** The URL of the Quick start guide, which the second link of the dialog points to. The dialog draws no link to it without it. */
   readonly quickStartUrl?: string;
   /** Called when the user closes the dialog: the button, Escape, or a click outside it. */
   readonly onClose: () => void;

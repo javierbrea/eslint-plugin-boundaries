@@ -26,6 +26,7 @@ import type { ShellTopBarProps } from "./ShellTopBar.types";
 /**
  * The top bar of the instance: the numbers of the store (how many files and dependencies the sketch has and how many problems, or how the evaluation goes when it is late, stopped or failed), the picker of examples, and Help, Reset and Share. It hands the host the sketch on screen when the user asks to reset or to open an example, and the help is the only thing it keeps, which is whether its dialog is open.
  * @param props ShellTopBar props.
+ * @param props.guideUrl The URL of the playground guide, if the host has one.
  * @param props.quickStartUrl The URL of the Quick start guide, if the host has one.
  * @param props.onReset Called with the sketch on screen when the user asks to reset it.
  * @param props.onSelectExample Called with the example and the sketch on screen when the user picks an example.
@@ -34,6 +35,7 @@ import type { ShellTopBarProps } from "./ShellTopBar.types";
  * @returns The bar.
  */
 export function ShellTopBar({
+  guideUrl,
   quickStartUrl,
   onReset,
   onSelectExample,
@@ -110,6 +112,7 @@ export function ShellTopBar({
       />
       <HelpDialog
         isOpen={isHelpOpen}
+        guideUrl={guideUrl}
         quickStartUrl={quickStartUrl}
         onClose={closeHelp}
         onExited={giveFocusBack}

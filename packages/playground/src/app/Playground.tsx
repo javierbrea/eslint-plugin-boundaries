@@ -24,12 +24,14 @@ import type {
  * @param props Playground props.
  * @param props.source Where the project comes from, and what the user can change in it.
  * @param props.store Where the state is kept.
- * @param props.quickStartUrl The URL of the Quick start guide, which the help links to. The help draws no link without it.
+ * @param props.guideUrl The URL of the playground guide, which the help links to. The help draws no link to it without it.
+ * @param props.quickStartUrl The URL of the Quick start guide, which the help links to. The help draws no link to it without it.
  * @returns The playground.
  */
 export function Playground({
   source,
   store,
+  guideUrl,
   quickStartUrl,
 }: Readonly<PlaygroundProps>): ReactNode {
   const { load, generation, reset, show } = useSketchLoad(source, store);
@@ -151,6 +153,7 @@ export function Playground({
           initialSketch={load.sketch}
           capabilities={source.capabilities}
           onSketchChange={handleSketchChange}
+          guideUrl={guideUrl}
           quickStartUrl={quickStartUrl}
           onReset={handleReset}
           onSelectExample={handleSelectExample}

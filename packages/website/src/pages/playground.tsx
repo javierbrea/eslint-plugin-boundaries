@@ -6,7 +6,7 @@ import { Suspense, lazy } from "react";
 import type { ReactNode } from "react";
 
 import { useMediaQuery } from "../components/motion/useMediaQuery";
-import { DOCS_QUICK_START } from "../data/site/links";
+import { DOCS_PLAYGROUND_GUIDE, DOCS_QUICK_START } from "../data/site/links";
 
 import styles from "./playground.module.css";
 
@@ -33,6 +33,7 @@ const LazyPlayground = lazy(async () => {
           key={key}
           source={source}
           store={store}
+          guideUrl={DOCS_PLAYGROUND_GUIDE}
           quickStartUrl={DOCS_QUICK_START}
         />
       );

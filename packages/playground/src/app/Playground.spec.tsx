@@ -111,15 +111,22 @@ type PlaygroundRender = {
  * @param source Where the project comes from.
  * @param store Where the state is kept.
  * @param quickStartUrl The URL of the Quick start guide, if the host has one.
+ * @param guideUrl The URL of the playground guide, if the host has one.
  * @returns The page object of the playground, and the ways to render it again or to remove it.
  */
 function renderPlayground(
   source: ProjectSource,
   store: StateStore,
-  quickStartUrl?: string
+  quickStartUrl?: string,
+  guideUrl?: string
 ): PlaygroundRender {
   const { rerender, unmount } = render(
-    <Playground source={source} store={store} quickStartUrl={quickStartUrl} />
+    <Playground
+      source={source}
+      store={store}
+      quickStartUrl={quickStartUrl}
+      guideUrl={guideUrl}
+    />
   );
 
   return {
@@ -130,6 +137,7 @@ function renderPlayground(
           source={nextSource}
           store={nextStore}
           quickStartUrl={quickStartUrl}
+          guideUrl={guideUrl}
         />
       ),
     unmount,
@@ -1879,7 +1887,52 @@ describe("Playground", () => {
       playground.topBar.actions.pressHelp();
 
       // Assert
-      expect(playground.topBar.help.guideLinkHref).toBe("/docs/quick-start");
+      expect(playground.topBar.help.quickStartLink.href).toBe(
+        "/docs/quick-start"
+      );
+      expect(playground.topBar.help.playgroundGuideLink.isRendered).toBe(false);
+    });
+
+    it("should link to the playground guide that the host gives", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore(),
+        undefined,
+        "/docs/guides/playground"
+      );
+      await playground.waitUntilLoaded();
+
+      // Act
+      playground.topBar.actions.pressHelp();
+
+      // Assert
+      expect(playground.topBar.help.playgroundGuideLink.href).toBe(
+        "/docs/guides/playground"
+      );
+      expect(playground.topBar.help.quickStartLink.isRendered).toBe(false);
+    });
+
+    it("should link to both guides that the host gives", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore(),
+        "/docs/quick-start",
+        "/docs/guides/playground"
+      );
+      await playground.waitUntilLoaded();
+
+      // Act
+      playground.topBar.actions.pressHelp();
+
+      // Assert
+      expect(playground.topBar.help.playgroundGuideLink.href).toBe(
+        "/docs/guides/playground"
+      );
+      expect(playground.topBar.help.quickStartLink.href).toBe(
+        "/docs/quick-start"
+      );
     });
 
     it("should draw no link when the host gives none", async () => {
@@ -1894,7 +1947,8 @@ describe("Playground", () => {
       playground.topBar.actions.pressHelp();
 
       // Assert
-      expect(playground.topBar.help.hasGuideLink).toBe(false);
+      expect(playground.topBar.help.playgroundGuideLink.isRendered).toBe(false);
+      expect(playground.topBar.help.quickStartLink.isRendered).toBe(false);
     });
   });
 

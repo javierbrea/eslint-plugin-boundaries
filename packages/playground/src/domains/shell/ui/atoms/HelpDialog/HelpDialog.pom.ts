@@ -4,7 +4,11 @@ import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
-import { HELP_DIALOG_CLOSE_LABEL } from "./HelpDialog.constants";
+import {
+  HELP_DIALOG_CLOSE_LABEL,
+  HELP_DIALOG_PLAYGROUND_GUIDE_LABEL,
+  HELP_DIALOG_QUICK_START_LABEL,
+} from "./HelpDialog.constants";
 
 /** The part of a step that holds its words: a title in bold and a sentence that follows it. */
 type StepWords = {
@@ -13,6 +17,68 @@ type StepWords = {
   /** What the step explains. */
   readonly text: string;
 };
+
+/** Page object of a link of the footer of the help dialog, a part of the dialog: the page object of the dialog builds it, so it is exported only as a type. It has no test id: it finds the element with the role `link` whose accessible name is the `name` option, within the dialog. */
+class GuideLinkPom extends Pom {
+  protected readonly defaultTestId = "";
+
+  /** @inheritdoc */
+  protected findRoot(): HTMLElement {
+    const accessibleName = this.requireName();
+
+    return this.pickMatch(
+      this.searchBase.queryAllByRole("link", { name: accessibleName }),
+      `the role "link" named ${accessibleName}`
+    );
+  }
+
+  /**
+   * Where the link goes.
+   * @returns The `href` attribute of the link.
+   */
+  get href(): string | null {
+    return this.root.getAttribute("href");
+  }
+
+  /**
+   * The icon after the words of the link.
+   * @returns The page object of the icon.
+   */
+  get icon(): IconPom {
+    return new IconPom({
+      root: this.root.querySelector("svg") as unknown as HTMLElement,
+    });
+  }
+
+  /**
+   * The color of the link.
+   * @returns The computed value.
+   */
+  get color(): string {
+    return getComputedStyle(this.root).color;
+  }
+
+  /**
+   * What the link looks like under the pointer, which a host may style.
+   * @returns The color and the text decoration that the rule of the hover declares.
+   */
+  get hover(): {
+    color: string | undefined;
+    textDecoration: string | undefined;
+  } {
+    const style = getStyle(this.root, `${OWN_CLASS}:hover`);
+
+    return { color: style.color, textDecoration: style["text-decoration"] };
+  }
+
+  /**
+   * Whether the link takes the free space of the footer, which keeps what follows the links at the right edge.
+   * @returns True when the link has an automatic margin at its end.
+   */
+  get takesFreeSpace(): boolean {
+    return getComputedStyle(this.root).marginRight === "auto";
+  }
+}
 
 /** Page object of the help dialog. It has no test id: it finds the element with the role `dialog` within its parent, whose accessible name is its title, the `name` option when it is set. A dialog is outside the element that opened it, so build it without a parent, or with the `portal` option. */
 export class HelpDialogPom extends Pom {
@@ -49,14 +115,6 @@ export class HelpDialogPom extends Pom {
     return Array.from(this.root.querySelectorAll("p")).filter(
       (paragraph) => paragraph.querySelector("svg") !== null
     );
-  }
-
-  /**
-   * The link to the guide, which is in the footer.
-   * @returns The element of the link.
-   */
-  private get guideLink(): HTMLElement {
-    return this.scope.getByRole("link");
   }
 
   /**
@@ -160,55 +218,46 @@ export class HelpDialogPom extends Pom {
   }
 
   /**
-   * Whether the dialog has the link to the guide.
-   * @returns True when the footer has a link.
+   * The link to the playground guide, which is the first one of the footer.
+   * @returns The page object of the link, which is not rendered when the dialog has no URL of the guide.
    */
-  get hasGuideLink(): boolean {
-    return this.scope.queryAllByRole("link").length > 0;
-  }
-
-  /**
-   * The words of the link to the guide.
-   * @returns The text of the link.
-   */
-  get guideLinkText(): string {
-    return this.guideLink.textContent;
-  }
-
-  /**
-   * Where the link to the guide goes.
-   * @returns The `href` attribute of the link.
-   */
-  get guideLinkHref(): string | null {
-    return this.guideLink.getAttribute("href");
-  }
-
-  /**
-   * The icon after the words of the link to the guide.
-   * @returns The page object of the icon.
-   */
-  get guideLinkIcon(): IconPom {
-    return new IconPom({
-      root: this.guideLink.querySelector("svg") as unknown as HTMLElement,
+  get playgroundGuideLink(): GuideLinkPom {
+    return this.childPom(GuideLinkPom, {
+      name: HELP_DIALOG_PLAYGROUND_GUIDE_LABEL,
     });
   }
 
   /**
-   * The color of the link to the guide.
-   * @returns The computed value.
+   * The link to the Quick start, which is the second one of the footer, or the first when there is no guide.
+   * @returns The page object of the link, which is not rendered when the dialog has no URL of the Quick start.
    */
-  get guideLinkColor(): string {
-    return getComputedStyle(this.guideLink).color;
+  get quickStartLink(): GuideLinkPom {
+    return this.childPom(GuideLinkPom, { name: HELP_DIALOG_QUICK_START_LABEL });
   }
 
   /**
-   * The elements of the footer, in the order they are drawn: the link when there is one, and the button.
+   * The elements of the footer, in the order they are drawn: the links that there are, and the button.
    * @returns The text of each one.
    */
   get footerTexts(): string[] {
     const actions = (this.root.lastElementChild as HTMLElement).children;
 
     return Array.from(actions).map((element) => element.textContent);
+  }
+
+  /**
+   * The room between the elements of the footer: the gap that the footer sets, and the margin that MUI puts before each element that follows the first unless it is told not to, which a rule of the footer declares for them.
+   * @returns The computed `gap` of the footer, and the `margin-left` that the rule of the siblings declares, which is undefined when there is no such rule.
+   */
+  get footerSpacing(): { gap: string; siblingMargin: string | undefined } {
+    const actions = this.root.lastElementChild as HTMLElement;
+
+    return {
+      gap: getComputedStyle(actions).gap,
+      siblingMargin: getStyle(actions, `${OWN_CLASS}>:not(style)~:not(style)`)[
+        "margin-left"
+      ],
+    };
   }
 
   /**
@@ -235,19 +284,6 @@ export class HelpDialogPom extends Pom {
     const style = getStyle(holder, `${OWN_CLASS} .MuiDialog-paper`);
 
     return { width: style.width ?? "", boxSizing: style["box-sizing"] ?? "" };
-  }
-
-  /**
-   * What the link to the guide looks like under the pointer, which a host may style.
-   * @returns The color and the text decoration that the rule of the hover declares.
-   */
-  get guideLinkHover(): {
-    color: string | undefined;
-    textDecoration: string | undefined;
-  } {
-    const style = getStyle(this.guideLink, `${OWN_CLASS}:hover`);
-
-    return { color: style.color, textDecoration: style["text-decoration"] };
   }
 
   /**
@@ -292,3 +328,5 @@ export class HelpDialogPom extends Pom {
     });
   }
 }
+
+export type { GuideLinkPom };
