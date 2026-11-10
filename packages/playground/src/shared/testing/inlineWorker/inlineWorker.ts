@@ -9,7 +9,20 @@ const liveWorkers = new Set<InlineWorker>();
 /** The messages that wait while the workers are held, in the order they were sent, or `undefined` while they are not held. */
 let heldMessages: (() => void)[] | undefined;
 
-/** A worker that runs its script in the thread of the tests. Messages go both ways as copies, as `postMessage` makes them, and arrive at once: a message to the worker runs its script before `postMessage` returns, unless the workers are held. A script that throws while it handles a message fails the worker, as in a browser. */
+/** An error that the handler of the page threw when the script answered a message. It goes up through the script, which never sees it as its own. */
+class PageHandlerError extends Error {
+  /**
+   * Wraps the error of the handler of the page.
+   * @param error What the handler threw.
+   */
+  constructor(readonly error: unknown) {
+    super(
+      "The handler of the page threw while the script of the worker answered"
+    );
+  }
+}
+
+/** A worker that runs its script in the thread of the tests. Messages go both ways as copies, as `postMessage` makes them, and arrive at once: a message to the worker runs its script before `postMessage` returns, unless the workers are held. A script that throws while it handles a message fails the worker, as in a browser; an error of the handler of the page reaches the code that sent the message instead, where a browser reports it as uncaught in the page. */
 class InlineWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
@@ -28,9 +41,13 @@ class InlineWorker {
       onmessage: null,
       postMessage: (message) => {
         if (!this.terminated) {
-          this.onmessage?.(
-            new MessageEvent("message", { data: structuredClone(message) })
-          );
+          try {
+            this.onmessage?.(
+              new MessageEvent("message", { data: structuredClone(message) })
+            );
+          } catch (error) {
+            throw new PageHandlerError(error);
+          }
         }
       },
     };
@@ -48,7 +65,10 @@ class InlineWorker {
       if (!this.terminated) {
         try {
           this.scope.onmessage?.(new MessageEvent("message", { data }));
-        } catch {
+        } catch (error) {
+          if (error instanceof PageHandlerError) {
+            throw error.error;
+          }
           // A browser reports an error of the script on the `onerror` of the worker, and never to the code that sent the message
           this.fail();
         }

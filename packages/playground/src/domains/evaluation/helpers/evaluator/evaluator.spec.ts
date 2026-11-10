@@ -244,6 +244,23 @@ describe("evaluator", () => {
         expect(jest.getTimerCount()).toBe(0);
       });
 
+      it("should let an error of the listener of the outcomes reach the caller, and not take it for an error of the worker", () => {
+        // Arrange
+        const onOutcome = jest.fn<void, [EvaluationOutcome]>(() => {
+          throw new Error("A bug of the page");
+        });
+        const evaluator = createEvaluator(onOutcome);
+
+        // Act
+        const evaluate = (): void => evaluator.evaluate(SKETCH_B);
+
+        // Assert
+        expect(evaluate).toThrow("A bug of the page");
+        expect(reported(onOutcome).map(({ kind }) => kind)).toEqual([
+          "evaluated",
+        ]);
+      });
+
       it("should report the sketch as stopped by an error, without throwing, when the engine throws in the worker", () => {
         // Arrange
         const onOutcome = jest.fn<void, [EvaluationOutcome]>();
