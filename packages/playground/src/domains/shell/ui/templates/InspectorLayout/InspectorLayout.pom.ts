@@ -25,6 +25,14 @@ export class InspectorLayoutPom extends Pom {
   }
 
   /**
+   * How the content sizes the rows of the parts it holds, one under the other.
+   * @returns The computed `grid-auto-rows` of the content, which is the last child of the layout.
+   */
+  get contentRowSizing(): string {
+    return getComputedStyle(this.root.lastElementChild as Element).gridAutoRows;
+  }
+
+  /**
    * The head of the pane, which is the first child of the layout.
    * @returns The page object of the head.
    */
