@@ -1,36 +1,12 @@
 import type { SettingsNormalized } from "@boundaries/config";
-import type { EntityDescription } from "@boundaries/elements";
 import { describeEntity } from "@boundaries/policies";
 
 import type { DescribedFiles } from "./describeFiles.types";
-import type { FileDescription } from "./engine.types";
+import { toEntityDescription } from "./descriptions";
+import type { EntityDescription } from "./engine.types";
 
 /** The description of each file, by path */
-type Descriptions = Map<string, FileDescription>;
-
-/**
- * Keeps what the playground shows of the description that `@boundaries/elements` gives a file.
- * @param description The description of the file.
- * @param description.element The element of the file.
- * @param description.file The file itself.
- * @param description.module The module of the file.
- * @returns The description of the file, with the names and the values of the plugin.
- */
-function toFileDescription({
-  element,
-  file,
-  module: moduleDescription,
-}: EntityDescription): FileDescription {
-  return {
-    element: {
-      types: element.types,
-      path: element.path,
-      captured: element.captured,
-    },
-    file: { categories: file.categories },
-    module: { origin: moduleDescription.origin },
-  };
-}
+type Descriptions = Map<string, EntityDescription>;
 
 /**
  * Describes files with some settings.
@@ -45,7 +21,7 @@ function describe(
   return new Map(
     paths.map((path) => [
       path,
-      toFileDescription(describeEntity(settings, path)),
+      toEntityDescription(describeEntity(settings, path)),
     ])
   );
 }

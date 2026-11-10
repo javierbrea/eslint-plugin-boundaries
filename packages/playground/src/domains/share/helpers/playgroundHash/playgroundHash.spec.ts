@@ -119,7 +119,7 @@ describe("playgroundHash", () => {
             "The project of the playground link cannot be read as text mode reads it:",
             '  line 2 (not a statement): Text mode reads the statements import, export … from, require("…") and import("…"), such as import { a } from "./a";',
             "  line 3 (../outside.js): The path cannot have `.` or `..` segments.",
-            '  line 5 (import { x } from "./missing.js";): "./missing.js" does not resolve to a file of the sketch.',
+            '  line 5 (import { x } from "./missing.js";): "./missing.js" does not resolve to a file of the project.',
           ].join("\n")
         )
       );

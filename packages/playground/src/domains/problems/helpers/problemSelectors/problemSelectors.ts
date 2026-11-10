@@ -377,7 +377,6 @@ function getDependencyDetail(
     return undefined;
   }
 
-  const { target } = result.dependency;
   const policyRef = getPolicyRef(result.verdict);
   const policy: PolicyFacts | undefined =
     policyRef === undefined
@@ -393,8 +392,6 @@ function getDependencyDetail(
   return {
     subject: { kind: "dependency", ref },
     result,
-    description:
-      target.kind === "node" ? evaluation.files.get(target.path) : undefined,
     policy,
   };
 }
@@ -413,7 +410,7 @@ function getHighlightFacts(
 }
 
 /**
- * Gets the facts of what the tab that shows lists. The sketch lists the problems of the config, the lines of text mode and the failing dependencies; a file lists its failing dependencies; the config lists its problems; a dependency gives its verdict, the file it points to and its policy. The note about why no dependency is evaluated goes above the lists of the sketch and of the config, and the one about the highlighted policy above the list of the config.
+ * Gets the facts of what the tab that shows lists. The sketch lists the problems of the config, the lines of text mode and the failing dependencies; a file lists its failing dependencies; the config lists its problems; a dependency gives its verdict and its policy. The note about why no dependency is evaluated goes above the lists of the sketch and of the config, and the one about the highlighted policy above the list of the config.
  * @param inputs The tab that shows, what is in focus, what the engine says about the sketch, the lines of text mode that could not be read and the highlighted policy.
  * @param inputs.tab
  * @param inputs.openNode

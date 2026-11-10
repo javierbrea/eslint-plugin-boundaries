@@ -19,7 +19,7 @@ import type { ProblemsPanelProps } from "./ProblemsPanel.types";
 type PanelProps = ProblemsPanelProps<string>;
 
 const TABS: PanelProps["tabs"] = [
-  { id: "sketch", label: "Sketch", count: 2, tone: "bad" },
+  { id: "sketch", label: "Project", count: 2, tone: "bad" },
   {
     id: "file:src/modules/checkout/index.js",
     label: "checkout/index.js",
@@ -116,7 +116,7 @@ describe("ProblemsPanel", () => {
       const { tabTexts } = panel;
 
       // Assert
-      expect(tabTexts).toEqual(["Sketch2", "checkout/index.js1", "line 3"]);
+      expect(tabTexts).toEqual(["Project2", "checkout/index.js1", "line 3"]);
     });
 
     it("should draw as many tabs as it is given", () => {
@@ -141,24 +141,24 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const sketch = panel.tab("Sketch 2 problems");
+      const sketch = panel.tab("Project 2 problems");
       const file = panel.tab("checkout/index.js 1 problem");
 
       // Assert
-      expect(sketch.text).toBe("Sketch2");
+      expect(sketch.text).toBe("Project2");
       expect(file.text).toBe("checkout/index.js1");
     });
 
     it("should draw the count in the tone of the tab", () => {
       // Arrange
       const tabs: PanelProps["tabs"] = [
-        { id: "sketch", label: "Sketch", count: 3, tone: "warn" },
+        { id: "sketch", label: "Project", count: 3, tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { color } = panel.tab("Sketch 3 problems").badge;
+      const { color } = panel.tab("Project 3 problems").badge;
 
       // Assert
       expect(color).toBe("var(--jsb-warn)");
@@ -167,13 +167,13 @@ describe("ProblemsPanel", () => {
     it("should draw the count as bad when the tab has no tone", () => {
       // Arrange
       const tabs: PanelProps["tabs"] = [
-        { id: "sketch", label: "Sketch", count: 3 },
+        { id: "sketch", label: "Project", count: 3 },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { color } = panel.tab("Sketch 3 problems").badge;
+      const { color } = panel.tab("Project 3 problems").badge;
 
       // Assert
       expect(color).toBe("var(--jsb-bad)");
@@ -185,7 +185,7 @@ describe("ProblemsPanel", () => {
     ])("should draw no badge when a tab %s", (_case, count) => {
       // Arrange
       const tabs: PanelProps["tabs"] = [
-        { id: "sketch", label: "Sketch", count, tone: "bad" },
+        { id: "sketch", label: "Project", count, tone: "bad" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
       const panel = new ProblemsPanelPom();
@@ -195,7 +195,7 @@ describe("ProblemsPanel", () => {
 
       // Assert
       expect(tab.hasBadge).toBe(false);
-      expect(tab.text).toBe("Sketch");
+      expect(tab.text).toBe("Project");
     });
 
     it("should draw the label of a mono tab in the small mono text, and leave the label of the others alone", () => {
@@ -205,7 +205,7 @@ describe("ProblemsPanel", () => {
 
       // Act
       const mono = panel.tab("line 3").labelStyle;
-      const body = panel.tab("Sketch 2 problems").labelStyle;
+      const body = panel.tab("Project 2 problems").labelStyle;
 
       // Assert
       expect(mono.fontFamily).toBe("var(--jsb-font-mono)");
@@ -328,7 +328,13 @@ describe("ProblemsPanel", () => {
     it("should draw the icon before the count", () => {
       // Arrange
       const tabs: PanelProps["tabs"] = [
-        { id: "sketch", label: "Sketch", icon: "warn", count: 2, tone: "warn" },
+        {
+          id: "sketch",
+          label: "Project",
+          icon: "warn",
+          count: 2,
+          tone: "warn",
+        },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
       const panel = new ProblemsPanelPom();
@@ -387,7 +393,7 @@ describe("ProblemsPanel", () => {
       render(
         <ProblemsPanel<StoreTabId>
           tabs={[
-            { id: "sketch", label: "Sketch" },
+            { id: "sketch", label: "Project" },
             { id: "node", label: "eslint.config.js", mono: true },
           ]}
           selected="sketch"
@@ -416,7 +422,7 @@ describe("ProblemsPanel", () => {
       panel.tab("line 3").select();
 
       // Assert
-      expect(panel.selectedTabText).toBe("Sketch2");
+      expect(panel.selectedTabText).toBe("Project2");
     });
 
     it("should select the tab the user presses when the state follows onSelect", () => {
@@ -703,7 +709,7 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      panel.tab("Sketch 2 problems").select();
+      panel.tab("Project 2 problems").select();
 
       // Assert
       expect(onCollapsedChange).toHaveBeenCalledWith(false);
@@ -717,7 +723,7 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      panel.tab("Sketch 2 problems").select();
+      panel.tab("Project 2 problems").select();
 
       // Assert
       expect(onCollapsedChange).not.toHaveBeenCalled();

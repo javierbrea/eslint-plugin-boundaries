@@ -46,7 +46,7 @@ export function LoadState({
     return (
       <Frame>
         <Message failed role="alert">
-          {`The sketch could not be loaded: ${reason}`}
+          {`The project could not be loaded: ${reason}`}
         </Message>
         {onReset === undefined ? null : (
           <Button
@@ -63,7 +63,7 @@ export function LoadState({
   return (
     <Frame>
       <Message failed={false} role="status">
-        Loading the sketch…
+        Loading the project…
       </Message>
     </Frame>
   );

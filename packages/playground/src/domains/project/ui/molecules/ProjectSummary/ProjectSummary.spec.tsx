@@ -38,7 +38,7 @@ describe("ProjectSummary", () => {
     const { numbers, title } = summary;
 
     // Assert
-    expect(title.text).toBe("Sketch");
+    expect(title.text).toBe("Project");
     expect(title.tagName).toBe("DIV");
     expect(numbers).toEqual([
       "6files",

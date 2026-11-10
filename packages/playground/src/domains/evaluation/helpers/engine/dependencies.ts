@@ -1,5 +1,9 @@
 import { DEPENDENCY_NODE_KEYS_MAP } from "@boundaries/config";
-import type { DependenciesRuleOptionsNormalized } from "@boundaries/config";
+import type {
+  DependenciesRuleOptionsNormalized,
+  SettingsNormalized,
+} from "@boundaries/config";
+import type { DependencyDescription as PluginDependencyDescription } from "@boundaries/elements";
 import { describeDependency, evaluateDependency } from "@boundaries/policies";
 
 import type { SketchDependency, SketchDependencySyntax } from "@/contract";
@@ -10,10 +14,18 @@ import type {
   DependencyJudgment,
 } from "./dependencies.types";
 import { getReadNodeKinds } from "./dependencyNodes";
+import { toDependencyDescription } from "./descriptions";
 import type { DependencyResult, DependencyVerdict } from "./engine.types";
+import type { EvaluatedRule } from "./evaluatedRule.types";
 
 /** The verdict of every dependency while none is evaluated */
 const NOT_EVALUATED: DependencyVerdict = { status: "not-evaluated" };
+
+/** The verdict of a dependency whose syntax `boundaries/dependency-nodes` leaves out */
+const NOT_READ: DependencyVerdict = {
+  status: "not-checked",
+  reason: "not-read",
+};
 
 /** The name that the plugin gives the dependency nodes of each syntax, which `boundaries/dependency-nodes` selects and the policies match as `nodeKind` */
 const NODE_KINDS: Readonly<Record<SketchDependencySyntax, string>> = {
@@ -63,34 +75,22 @@ function explainEmptyMessage(
 
 /**
  * Decides a dependency as the `dependencies` rule does.
- * @param dependency The dependency.
- * @param source The source its statement writes.
- * @param judgment What the rule decides with.
- * @param judgment.settings
- * @param judgment.readNodeKinds
- * @param judgment.rule
- * @returns Not checked when the plugin does not read its syntax or the rule skips it, and otherwise allowed or disallowed with the policy that decided. A custom message that fails to render makes it disallowed, with the error text and no policy. A custom message that renders to an empty text makes it disallowed too, with the policy that decided and a message that says so, because ESLint stops with an error when a rule reports a problem with no message, and the playground cannot stop.
+ * @param description What the plugin describes of the dependency, or `undefined` when it does not read it.
+ * @param settings The normalized settings.
+ * @param rule The rule that decides, or `undefined` when no dependency is evaluated.
+ * @returns Not evaluated when there is no rule, not checked when the plugin does not read the syntax of the dependency or the rule skips it, and otherwise allowed or disallowed with the policy that decided. A custom message that fails to render makes it disallowed, with the error text and no policy. A custom message that renders to an empty text makes it disallowed too, with the policy that decided and a message that says so, because ESLint stops with an error when a rule reports a problem with no message, and the playground cannot stop.
  */
 function judge(
-  dependency: SketchDependency,
-  source: string,
-  { settings, readNodeKinds, rule }: DependencyJudgment
+  description: PluginDependencyDescription | undefined,
+  settings: SettingsNormalized,
+  rule: EvaluatedRule | undefined
 ): DependencyVerdict {
-  const nodeKind = NODE_KINDS[dependency.syntax];
-  // The playground reads a syntax only through the built-in selectors of `boundaries/dependency-nodes`
-  if (!readNodeKinds.has(nodeKind)) {
-    return { status: "not-checked", reason: "not-read" };
+  if (rule === undefined) {
+    return NOT_EVALUATED;
   }
-
-  const { target } = dependency;
-  const description = describeDependency(settings, {
-    from: dependency.from,
-    to: target.kind === "node" ? target.path : undefined,
-    source,
-    kind: dependency.importKind,
-    nodeKind,
-    specifiers: getSpecifiers(dependency),
-  });
+  if (description === undefined) {
+    return NOT_READ;
+  }
 
   try {
     const evaluation = evaluateDependency(settings, rule.options, description);
@@ -124,12 +124,51 @@ function judge(
 }
 
 /**
+ * Describes a dependency as the plugin does, once, and decides it with that description.
+ * @param dependency The dependency.
+ * @param source The source its statement writes.
+ * @param judgment What the rule decides with.
+ * @param judgment.settings
+ * @param judgment.readNodeKinds
+ * @param judgment.rule
+ * @returns Its description, which is `undefined` when the plugin does not read its syntax, and its verdict, which is the same description judged, so the plugin is asked only once.
+ */
+function describeAndJudge(
+  dependency: SketchDependency,
+  source: string,
+  { settings, readNodeKinds, rule }: DependencyJudgment
+): Pick<DependencyResult, "description" | "verdict"> {
+  const nodeKind = NODE_KINDS[dependency.syntax];
+  // The playground reads a syntax only through the built-in selectors of `boundaries/dependency-nodes`
+  if (!readNodeKinds.has(nodeKind)) {
+    return {
+      description: undefined,
+      verdict: judge(undefined, settings, rule),
+    };
+  }
+
+  const { target } = dependency;
+  const described = describeDependency(settings, {
+    from: dependency.from,
+    to: target.kind === "node" ? target.path : undefined,
+    source,
+    kind: dependency.importKind,
+    nodeKind,
+    specifiers: getSpecifiers(dependency),
+  });
+  return {
+    description: toDependencyDescription(described),
+    verdict: judge(described, settings, rule),
+  };
+}
+
+/**
  * Decides every dependency of a sketch.
  * @param input The sketch, the settings and the rule.
  * @param input.sketch
  * @param input.settings
  * @param input.rule
- * @returns A result for each dependency, in the order of `Sketch.dependencies`, with the source its statement writes, in full (the relative path of the target with its extension and its `index`, or the name of an external module), which is the one `describeDependency` receives, and its position among the dependencies of its file. Every verdict is `not-evaluated` when there is no rule to evaluate.
+ * @returns A result for each dependency, in the order of `Sketch.dependencies`, with the source its statement writes, in full (the relative path of the target with its extension and its `index`, or the name of an external module), which is the one `describeDependency` receives, its position among the dependencies of its file and its description, which is made once and also decides the verdict. Every verdict is `not-evaluated` when there is no rule to evaluate, and the description is `undefined` for a dependency whose syntax the plugin does not read.
  */
 export function evaluateDependencies({
   sketch,
@@ -147,10 +186,11 @@ export function evaluateDependencies({
       dependency,
       ref: { path: dependency.from, index },
       source,
-      verdict:
-        rule === undefined
-          ? NOT_EVALUATED
-          : judge(dependency, source, { settings, readNodeKinds, rule }),
+      ...describeAndJudge(dependency, source, {
+        settings,
+        readNodeKinds,
+        rule,
+      }),
     };
   });
 }

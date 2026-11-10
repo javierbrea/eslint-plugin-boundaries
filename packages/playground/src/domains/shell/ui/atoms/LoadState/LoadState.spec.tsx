@@ -47,7 +47,7 @@ describe("LoadState", () => {
 
       // Assert
       expect(role).toBe("status");
-      expect(text).toBe("Loading the sketch…");
+      expect(text).toBe("Loading the project…");
     });
 
     it("should draw the message in the muted color", () => {
@@ -75,7 +75,7 @@ describe("LoadState", () => {
 
       // Assert
       expect(role).toBe("alert");
-      expect(text).toBe("The sketch could not be loaded: offline");
+      expect(text).toBe("The project could not be loaded: offline");
     });
 
     it("should say why the sketch could not be loaded when the reason is not an error", () => {
@@ -87,7 +87,7 @@ describe("LoadState", () => {
 
       // Assert
       expect(role).toBe("alert");
-      expect(text).toBe("The sketch could not be loaded: offline");
+      expect(text).toBe("The project could not be loaded: offline");
     });
 
     it("should draw the message in the color of errors", () => {
@@ -142,7 +142,7 @@ describe("LoadState", () => {
 
       // Assert
       expect(hasResetButton).toBe(true);
-      expect(text).toBe("The sketch could not be loaded: unreadable link");
+      expect(text).toBe("The project could not be loaded: unreadable link");
     });
 
     it("should call the host when the button is pressed", () => {

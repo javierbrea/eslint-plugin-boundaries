@@ -214,7 +214,7 @@ describe("useProblemList", () => {
       expect(dependencies.map(({ ref }) => ref.index)).toEqual([2]);
     });
 
-    it("should give the body of the dependency in focus: its verdict, the file it points to and its policy", () => {
+    it("should give the body of the dependency in focus: its verdict and its policy", () => {
       // Arrange
       const { store, result } = renderHookInSession(
         useProblemList,
@@ -232,8 +232,10 @@ describe("useProblemList", () => {
       );
       expect(result.current).toEqual(
         expect.objectContaining({
-          description: expect.objectContaining({
-            file: { categories: ["test"] },
+          result: expect.objectContaining({
+            verdict: expect.objectContaining({
+              status: "disallowed",
+            }) as unknown,
           }) as unknown,
           policy: expect.objectContaining({ index: 2 }) as unknown,
         })
@@ -256,7 +258,7 @@ describe("useProblemList", () => {
       expect(result.current.subject).toEqual({ kind: "file", path: CHECKOUT });
     });
 
-    it("should give the policy that Open policy in config highlighted, and the dependency it came from", () => {
+    it("should give the policy that Open in config highlighted, and the dependency it came from", () => {
       // Arrange
       const { store, result } = renderHookInSession(
         useProblemList,

@@ -2,7 +2,7 @@
 export type ShareRefusal = {
   /** Whether the sketch is too large for a link (`too-large`), or the link would fail to open it for another reason (`invalid`) */
   readonly kind: "too-large" | "invalid";
-  /** Why, as a sentence that reads well after `The sketch cannot be shared: ` */
+  /** Why, as a sentence that reads well after `The project cannot be shared: ` */
   readonly reason: string;
 };
 

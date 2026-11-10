@@ -18,7 +18,7 @@ const TOGGLE_NAME = new RegExp(
   `^(${COLLAPSE_PROBLEMS_LABEL}|${EXPAND_PROBLEMS_LABEL})$`
 );
 
-/** Page object of a tab of the problems panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the tabs within its parent, the one named by the `name` option (a string or a pattern, matched against the accessible name, such as `Sketch 2 problems`) when it is set, and the `index` and `containing` options pick among them. */
+/** Page object of a tab of the problems panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the tabs within its parent, the one named by the `name` option (a string or a pattern, matched against the accessible name, such as `Project 2 problems`) when it is set, and the `index` and `containing` options pick among them. */
 class ProblemsTabPom extends Pom {
   protected readonly defaultTestId = "";
 
@@ -306,7 +306,7 @@ export class ProblemsPanelPom extends Pom {
 
   /**
    * Gets a tab by its accessible name.
-   * @param accessibleName The accessible name of the tab, such as `Sketch 2 problems`, or a pattern.
+   * @param accessibleName The accessible name of the tab, such as `Project 2 problems`, or a pattern.
    * @returns The page object of the tab.
    */
   tab(accessibleName: string | RegExp): ProblemsTabPom {

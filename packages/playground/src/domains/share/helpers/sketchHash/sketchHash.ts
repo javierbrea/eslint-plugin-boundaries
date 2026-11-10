@@ -21,11 +21,11 @@ const NOT_PACKED =
   "The link is damaged: its data cannot be unpacked. It may be cut short.";
 
 const NOT_JSON =
-  "The link is damaged: its data is not a sketch written as JSON.";
+  "The link is damaged: its data is not a project written as JSON.";
 
 const UNREADABLE = "The link is damaged: it could not be read.";
 
-const TOO_LARGE = `The sketch in the link is larger than ${MAX_SKETCH_JSON_BYTES / 1024 / 1024} MiB, which the playground does not load.`;
+const TOO_LARGE = `The project in the link is larger than ${MAX_SKETCH_JSON_BYTES / 1024 / 1024} MiB, which the playground does not load.`;
 
 /** What unpacking the data of a link gives: the value it holds, or why the link is damaged */
 type Unpacked =

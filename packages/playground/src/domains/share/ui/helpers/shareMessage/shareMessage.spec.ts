@@ -36,9 +36,9 @@ describe("ShareMessage", () => {
       [
         {
           kind: "too-large",
-          reason: "The sketch has more than 1000 files and folders.",
+          reason: "The project has more than 1000 files and folders.",
         },
-        "The sketch is too large for a link: The sketch has more than 1000 files and folders.",
+        "The project is too large for a link: The project has more than 1000 files and folders.",
       ],
       [
         {
@@ -46,7 +46,7 @@ describe("ShareMessage", () => {
           reason:
             '"src/a.js " cannot be in the tree. A path cannot end with a space.',
         },
-        'The sketch cannot be shared: "src/a.js " cannot be in the tree. A path cannot end with a space.',
+        'The project cannot be shared: "src/a.js " cannot be in the tree. A path cannot end with a space.',
       ],
     ])(
       "should say why a sketch that is not shared is refused, after what its kind says, in the color of errors and with no check",

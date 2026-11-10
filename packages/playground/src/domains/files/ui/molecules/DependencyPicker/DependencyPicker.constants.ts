@@ -26,7 +26,7 @@ export const IMPORTED_ROW_LABEL = "Imported";
 export const PREVIEW_ROW_LABEL = "Preview";
 
 /** The label of the radio that points the dependency to a file of the sketch. */
-export const FILE_TARGET_LABEL = "A file of the sketch";
+export const FILE_TARGET_LABEL = "A file of the project";
 
 /** The label of the radio that points the dependency to a module outside the sketch. */
 export const EXTERNAL_TARGET_LABEL = "An external module";

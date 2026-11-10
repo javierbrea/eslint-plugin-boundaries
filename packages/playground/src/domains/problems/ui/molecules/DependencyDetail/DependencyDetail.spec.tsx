@@ -2,6 +2,7 @@ import { tokenizeConfig } from "@/domains/evaluation/helpers/engine";
 import type { DependencyDetailContent } from "@/domains/problems/ui/helpers/dependencyDetail";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
+import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 
 import { DependencyDetail } from "./DependencyDetail";
 import { DependencyDetailPom } from "./DependencyDetail.pom";
@@ -11,40 +12,32 @@ const POLICY_TEXT = `{
   disallow: { to: { file: { categories: "test" } } },
 }`;
 
+const CHECKOUT = "src/modules/checkout/index.js";
+
+const BUTTON_SPEC_SOURCE = "../../components/atoms/Button/Button.spec.js";
+
 const DISALLOWED: DependencyDetailContent = {
   verdict: { icon: "cross", tone: "bad", text: "disallowed · policy 2" },
+  location: { path: CHECKOUT, position: ":3", source: BUTTON_SPEC_SOURCE },
   message:
     'Dependencies to file of category "test" are not allowed. Denied by policy at index 2',
-  facts: [
-    { label: "to", value: "src/components/atoms/Button/Button.spec.js" },
-    { label: "element", value: "component" },
-    { label: "file", value: "test" },
-    { label: "kind", value: "value" },
-    { label: "syntax", value: "import" },
-  ],
   policy: {
-    heading: "// policies[2]",
+    ref: "policies[2]",
     tokens: tokenizeConfig(POLICY_TEXT),
     target: {
       kind: "config",
       range: { from: 40, to: 90, line: 3, column: 9 },
       policy: 2,
-      dependency: { path: "src/modules/checkout/index.js", index: 2 },
+      dependency: { path: CHECKOUT, index: 2 },
     },
   },
 };
 
 const NOT_CHECKED: DependencyDetailContent = {
   verdict: { icon: "skip", tone: "faint", text: "not checked · external" },
+  location: { path: CHECKOUT, position: ":4", source: "react" },
   message:
     "Not checked: the dependency is not local, and the rule checks external and core modules only with checkAllOrigins.",
-  facts: [
-    { label: "to", value: "react" },
-    { label: "element", value: null },
-    { label: "file", value: null },
-    { label: "kind", value: "value" },
-    { label: "syntax", value: "import" },
-  ],
   policy: undefined,
 };
 
@@ -169,11 +162,10 @@ describe("DependencyDetail", () => {
       const detail = new DependencyDetailPom();
 
       // Act
-      const { message, facts } = detail;
+      const { message } = detail;
 
       // Assert
       expect(message).toBe(NOT_CHECKED.message);
-      expect(facts[0]).toBe("to react");
     });
 
     it("should draw no message for a dependency that has none", () => {
@@ -182,34 +174,47 @@ describe("DependencyDetail", () => {
       const detail = new DependencyDetailPom();
 
       // Act
-      const { message, facts } = detail;
+      const { message, textParts } = detail;
 
       // Assert
       expect(message).toBeNull();
-      expect(facts).toHaveLength(5);
+      expect(textParts).toEqual([
+        "allowed · policy 1",
+        `${CHECKOUT}:3 → ${BUTTON_SPEC_SOURCE}`,
+      ]);
     });
   });
 
-  describe("the facts", () => {
-    it("should list each label followed by its value, in order", () => {
+  describe("the location", () => {
+    it("should say the file, the line and the source of the statement, in the words of the rows of the problem list", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
       const detail = new DependencyDetailPom();
 
       // Act
-      const { facts } = detail;
+      const { locationText } = detail;
 
       // Assert
-      expect(facts).toEqual([
-        "to src/components/atoms/Button/Button.spec.js",
-        "element component",
-        "file test",
-        "kind value",
-        "syntax import",
+      expect(locationText).toBe(`${CHECKOUT}:3 → ${BUTTON_SPEC_SOURCE}`);
+    });
+
+    it("should come under the verdict line and before the message", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { textParts } = detail;
+
+      // Assert
+      expect(textParts).toEqual([
+        "disallowed · policy 2",
+        `${CHECKOUT}:3 → ${BUTTON_SPEC_SOURCE}`,
+        DISALLOWED.message,
       ]);
     });
 
-    it("should draw a value that there is not as null", () => {
+    it("should say where a dependency that no policy decided is, too", () => {
       // Arrange
       renderInRoot(
         <DependencyDetail detail={NOT_CHECKED} onOpen={jest.fn()} />
@@ -217,57 +222,208 @@ describe("DependencyDetail", () => {
       const detail = new DependencyDetailPom();
 
       // Act
-      const { facts } = detail;
+      const { locationText } = detail;
 
       // Assert
-      expect(facts[1]).toBe("element null");
-      expect(facts[2]).toBe("file null");
+      expect(locationText).toBe(`${CHECKOUT}:4 → react`);
     });
 
-    it("should draw the values in the ink color, and null in the faint one", () => {
-      // Arrange
-      renderInRoot(
-        <DependencyDetail detail={NOT_CHECKED} onOpen={jest.fn()} />
-      );
-      const detail = new DependencyDetailPom();
-
-      // Act
-      const value = detail.factValueColor("to");
-      const missing = detail.factValueColor("element");
-
-      // Assert
-      expect(value).toBe("var(--jsb-ink)");
-      expect(missing).toBe("var(--jsb-faint)");
-    });
-
-    it("should draw them in the small mono text, in the muted color", () => {
+    it("should draw the line apart from the file, in the muted color", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
       const detail = new DependencyDetailPom();
 
       // Act
-      const { fontFamily, fontSize, color } = detail.factsStyle;
+      const { locationPosition, locationPositionColor } = detail;
+
+      // Assert
+      expect(locationPosition).toBe(":3");
+      expect(locationPositionColor).toBe("var(--jsb-muted)");
+    });
+
+    it("should write it in the mono text of 12.5 px, in the ink color, as a row of the problem list does", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { fontFamily, fontSize, fontWeight, color } = detail.locationStyle;
 
       // Assert
       expect(fontFamily).toBe("var(--jsb-font-mono)");
-      expect(fontSize).toBe("12px");
-      expect(color).toBe("var(--jsb-muted)");
+      expect(fontSize).toBe("12.5px");
+      expect(fontWeight).toBe("400");
+      expect(color).toBe("var(--jsb-ink)");
     });
   });
 
-  describe("open policy in config", () => {
+  describe("the column of the policy", () => {
+    it("should say Policy, then the policy that decided the dependency, then the button, in its head", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { hasPolicyColumn, policyHeadTexts } = detail;
+
+      // Assert
+      expect(hasPolicyColumn).toBe(true);
+      expect(policyHeadTexts).toEqual([
+        "Policy",
+        "policies[2]",
+        "Open in config",
+      ]);
+    });
+
+    it("should name the default when the default decided", () => {
+      // Arrange
+      const policy = {
+        ...(DISALLOWED.policy as NonNullable<
+          DependencyDetailContent["policy"]
+        >),
+        ref: "default",
+        tokens: [{ kind: "string" as const, text: '"disallow"' }],
+      };
+      renderInRoot(
+        <DependencyDetail
+          detail={{ ...DISALLOWED, policy }}
+          onOpen={jest.fn()}
+        />
+      );
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { policyHeadTexts, policyCardText } = detail;
+
+      // Assert
+      expect(policyHeadTexts).toEqual(["Policy", "default", "Open in config"]);
+      expect(policyCardText).toBe('"disallow"');
+    });
+
+    it("should write the label in the style of the label of a pane, in the muted color", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const style = detail.policyLabelStyle;
+
+      // Assert
+      expect(style).toEqual({
+        color: "var(--jsb-muted)",
+        fontFamily: "var(--jsb-font-mono)",
+        fontSize: "10.5px",
+        fontWeight: "500",
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
+      });
+    });
+
+    it("should write the policy in the medium mono text of 12 px, in the ink color", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const style = detail.policyRefStyle;
+
+      // Assert
+      expect(style).toEqual({
+        color: "var(--jsb-ink)",
+        fontFamily: "var(--jsb-font-mono)",
+        fontSize: "12px",
+        fontWeight: "500",
+      });
+    });
+
+    it("should be set apart from the text by a divider of 1 px, with 20 px of padding after it", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const style = detail.policyColumnStyle;
+
+      // Assert
+      expect(style).toEqual({
+        paddingLeft: "20px",
+        borderLeftWidth: "1px",
+        borderLeftStyle: "solid",
+        borderLeftColor: "var(--jsb-line)",
+      });
+    });
+
+    it("should sit beside the text, 20 px from it and at most 460 px wide", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { columns, gap } = detail;
+
+      // Assert
+      expect(columns).toBe("minmax(0, 1fr) minmax(0, 460px)");
+      expect(gap).toBe("20px");
+    });
+
+    it("should not be drawn for a dependency that no policy decided, and then the text has the width", () => {
+      // Arrange
+      renderInRoot(
+        <DependencyDetail detail={NOT_CHECKED} onOpen={jest.fn()} />
+      );
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { hasPolicyColumn, policyHeadTexts, columns } = detail;
+
+      // Assert
+      expect(hasPolicyColumn).toBe(false);
+      expect(policyHeadTexts).toEqual([]);
+      expect(columns).toBe("minmax(0, 1fr)");
+    });
+  });
+
+  describe("open in config", () => {
     it("should be a button that does not submit a form, with an arrow", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
       const detail = new DependencyDetailPom();
 
       // Act
-      const { canOpenPolicy, openPolicyText, openPolicyType } = detail;
+      const { canOpenPolicy, openPolicyText, openPolicyType, openPolicyIcon } =
+        detail;
 
       // Assert
       expect(canOpenPolicy).toBe(true);
-      expect(openPolicyText).toBe("Open policy in config");
+      expect(openPolicyText).toBe("Open in config");
       expect(openPolicyType).toBe("button");
+      expect(openPolicyIcon.pathData).toBe(ICON_PATHS.arrow);
+      expect(openPolicyIcon.isHidden).toBe(true);
+    });
+
+    it("should be at the end of the head of the policy", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { policyHeadTexts, openPolicyMarginLeft } = detail;
+
+      // Assert
+      expect(policyHeadTexts.at(-1)).toBe("Open in config");
+      expect(openPolicyMarginLeft).toBe("auto");
+    });
+
+    it("should draw the focus ring of the theme when the keyboard reaches it", () => {
+      // Arrange
+      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { openPolicyFocusStyle } = detail;
+
+      // Assert
+      expect(openPolicyFocusStyle.outline).toBe(FOCUS_RING);
     });
 
     it("should call onOpen with the target of the policy when it is pressed", () => {
@@ -317,7 +473,7 @@ describe("DependencyDetail", () => {
   });
 
   describe("the card of the policy", () => {
-    it("should say its heading as a comment, and the policy under it", () => {
+    it("should hold the policy as it is written in the config, with no comment above it", () => {
       // Arrange
       renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
       const detail = new DependencyDetailPom();
@@ -326,19 +482,7 @@ describe("DependencyDetail", () => {
       const { policyCardText } = detail;
 
       // Assert
-      expect(policyCardText).toBe(`// policies[2]\n${POLICY_TEXT}`);
-    });
-
-    it("should draw the heading in the color of a comment of the code", () => {
-      // Arrange
-      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
-      const detail = new DependencyDetailPom();
-
-      // Act
-      const { policyHeadingColor } = detail;
-
-      // Assert
-      expect(policyHeadingColor).toBe("var(--jsb-code-comment)");
+      expect(policyCardText).toBe(POLICY_TEXT);
     });
 
     it("should color the comment and the string of policy 2 as the editor does, and the rest as the code text", () => {
@@ -435,42 +579,6 @@ describe("DependencyDetail", () => {
       expect(color).toBe("var(--jsb-code-fg)");
       expect(fontFamily).toBe("var(--jsb-font-mono)");
       expect(whiteSpace).toBe("pre-wrap");
-    });
-
-    it("should sit beside the text and be at most 420 px wide", () => {
-      // Arrange
-      renderInRoot(<DependencyDetail detail={DISALLOWED} onOpen={jest.fn()} />);
-      const detail = new DependencyDetailPom();
-
-      // Act
-      const { columns } = detail;
-
-      // Assert
-      expect(columns).toBe("minmax(0, 1fr) minmax(0, 420px)");
-    });
-
-    it("should head the default as a comment too", () => {
-      // Arrange
-      const policy = {
-        ...(DISALLOWED.policy as NonNullable<
-          DependencyDetailContent["policy"]
-        >),
-        heading: "// default",
-        tokens: [{ kind: "string" as const, text: '"disallow"' }],
-      };
-      renderInRoot(
-        <DependencyDetail
-          detail={{ ...DISALLOWED, policy }}
-          onOpen={jest.fn()}
-        />
-      );
-      const detail = new DependencyDetailPom();
-
-      // Act
-      const { policyCardText } = detail;
-
-      // Assert
-      expect(policyCardText).toBe('// default\n"disallow"');
     });
   });
 

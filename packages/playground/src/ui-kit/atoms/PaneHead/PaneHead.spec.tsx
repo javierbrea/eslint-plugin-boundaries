@@ -69,6 +69,30 @@ describe("PaneHead", () => {
     expect(textTransform).toBe("none");
   });
 
+  it("should draw the head on the color of the navbar of the host, apart from what the pane shows", () => {
+    // Arrange
+    renderInRoot(<PaneHead label="Project" />);
+    const head = new PaneHeadPom({ name: "Project" });
+
+    // Act
+    const { backgroundColor } = head;
+
+    // Assert
+    expect(backgroundColor).toBe("var(--jsb-paper)");
+  });
+
+  it("should set the hint in the muted color, which passes 4.5:1 on the head", () => {
+    // Arrange
+    renderInRoot(<PaneHead label="Project" hint="One path per line" />);
+    const head = new PaneHeadPom({ name: "Project" });
+
+    // Act
+    const { hintColor } = head;
+
+    // Assert
+    expect(hintColor).toBe("var(--jsb-muted)");
+  });
+
   it("should show the label", () => {
     // Arrange
     const head = renderInHost(<PaneHead label="Project" />);

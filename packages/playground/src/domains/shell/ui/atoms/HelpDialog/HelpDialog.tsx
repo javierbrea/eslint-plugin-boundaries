@@ -200,8 +200,8 @@ export function HelpDialog({
             <Icon name="info" />
           </TipIcon>
           <span>
-            The sketch starts with the example of the Quick start. Reset brings
-            it back, and Share copies a link with the whole sketch.
+            The project starts with the example of the Quick start. Reset brings
+            it back, and Share copies a link with the whole project.
           </span>
         </Tip>
       </HelpContent>

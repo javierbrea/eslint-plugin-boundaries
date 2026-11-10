@@ -524,27 +524,27 @@ describe("Dependencies", () => {
       [
         "a file that is not in the tree",
         toNode("src/missing.js", B),
-        '"src/missing.js" is not a file of the sketch.',
+        '"src/missing.js" is not a file of the project.',
       ],
       [
         "a folder as the file",
         toNode("src/pages", B),
-        '"src/pages" is not a file of the sketch.',
+        '"src/pages" is not a file of the project.',
       ],
       [
         "a folder that a file implies as the file",
         toNode("src", B),
-        '"src" is not a file of the sketch.',
+        '"src" is not a file of the project.',
       ],
       [
         "a node target that is not in the tree",
         toNode(A, "src/missing.js"),
-        '"src/missing.js" is not a file of the sketch.',
+        '"src/missing.js" is not a file of the project.',
       ],
       [
         "a folder as the target",
         toNode(A, "src/pages"),
-        '"src/pages" is not a file of the sketch.',
+        '"src/pages" is not a file of the project.',
       ],
       [
         "the file itself as the target",
@@ -565,17 +565,17 @@ describe("Dependencies", () => {
       [
         "a module name that starts with a dot",
         toExternal(A, "./b"),
-        '"./b" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+        '"./b" is not a module name: names do not start with "." or "/". Point to a file of the project instead.',
       ],
       [
         "a module name that is only two dots",
         toExternal(A, ".."),
-        '".." is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+        '".." is not a module name: names do not start with "." or "/". Point to a file of the project instead.',
       ],
       [
         "a module name that starts with a slash",
         toExternal(A, "/src/b"),
-        '"/src/b" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.',
+        '"/src/b" is not a module name: names do not start with "." or "/". Point to a file of the project instead.',
       ],
       [
         "a module name with a double quote",
@@ -960,8 +960,8 @@ describe("Dependencies", () => {
       const targetError = getDependencyError(sketch, target);
 
       // Assert
-      expect(fileError).toBe('"src/missing.js" is not a file of the sketch.');
-      expect(targetError).toBe('"src/gone.js" is not a file of the sketch.');
+      expect(fileError).toBe('"src/missing.js" is not a file of the project.');
+      expect(targetError).toBe('"src/gone.js" is not a file of the project.');
     });
 
     it("should report the syntax before the names", () => {
@@ -986,7 +986,7 @@ describe("Dependencies", () => {
       );
 
       // Assert
-      expect(error).toBe('"src/b.js" is not a file of the sketch.');
+      expect(error).toBe('"src/b.js" is not a file of the project.');
     });
 
     describe("a name that another statement of the file declares", () => {
@@ -1476,7 +1476,7 @@ describe("Dependencies", () => {
         expect(errors).toEqual([
           'The name "x" is used twice in the statement.',
           '"1x" is not a valid name.',
-          '"src/gone.js" is not a file of the sketch.',
+          '"src/gone.js" is not a file of the project.',
         ]);
       });
 
@@ -2139,7 +2139,7 @@ describe("Dependencies", () => {
 
       // Assert
       expect(errors).toEqual([
-        '"src/c.js" is not a file of the sketch.',
+        '"src/c.js" is not a file of the project.',
         "A file cannot depend on itself.",
       ]);
     });

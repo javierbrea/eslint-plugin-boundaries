@@ -33,11 +33,11 @@ const SPECIFIER_KINDS = ["default", "named", "namespace"] as const;
 const MAX_QUOTED_PATH_LENGTH = 80;
 
 const NOT_A_SKETCH =
-  'The data is not a sketch: it must be an object with "config", "tree" and "dependencies".';
+  'The data is not a project: it must be an object with "config", "tree" and "dependencies".';
 
-const TOO_MANY_NODES = `The sketch has more than ${MAX_SKETCH_NODES} files and folders.`;
+const TOO_MANY_NODES = `The project has more than ${MAX_SKETCH_NODES} files and folders.`;
 
-const TOO_MANY_DEPENDENCIES = `The sketch has more than ${MAX_SKETCH_DEPENDENCIES} dependencies.`;
+const TOO_MANY_DEPENDENCIES = `The project has more than ${MAX_SKETCH_DEPENDENCIES} dependencies.`;
 
 /**
  * Writes a path between quotes, as a reason names it. A long path is cut and ends with `…`.
@@ -296,7 +296,7 @@ function readShape(value: unknown): Sketch | string {
     return NOT_A_SKETCH;
   }
 
-  const where = "The sketch";
+  const where = "The project";
   const { config, tree, dependencies } = value;
 
   if (typeof config !== "string") {
@@ -394,7 +394,7 @@ function groupDependencies(
     const error = checker.accept(dependency);
 
     if (error !== undefined) {
-      return `Dependency ${index + 1} cannot be in the sketch. ${error}`;
+      return `Dependency ${index + 1} cannot be in the project. ${error}`;
     }
 
     const sameFile = groups.get(dependency.from) ?? [];

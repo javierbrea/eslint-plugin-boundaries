@@ -408,7 +408,7 @@ describe("FileNode", () => {
       node.addButton.press();
 
       // Assert
-      expect(node.picker.target.checked).toBe("A file of the sketch");
+      expect(node.picker.target.checked).toBe("A file of the project");
       expect(node.picker.file.value).toBe("");
     });
   });

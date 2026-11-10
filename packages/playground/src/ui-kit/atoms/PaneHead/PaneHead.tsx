@@ -6,6 +6,7 @@ import type { PaneHeadProps } from "./PaneHead.types";
 /** Height of the head of a pane in pixels, border included. */
 const HEAD_HEIGHT = 34;
 
+// The heads sit on the color of the host's navbar, so that the frame of the panes reads apart from what they show
 const Head = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -14,6 +15,7 @@ const Head = styled("div")(({ theme }) => ({
   height: HEAD_HEIGHT,
   padding: "0 8px 0 14px",
   borderBottom: "1px solid var(--jsb-line)",
+  backgroundColor: "var(--jsb-paper)",
   color: "var(--jsb-muted)",
   ...theme.typography.paneLabel,
 }));
@@ -36,11 +38,11 @@ const Path = styled("span")(({ theme }) => ({
 
 const Spacer = styled("span")({ flex: 1 });
 
-// Plain text in the head: the letters are not spaced out nor uppercase, and the line height is the head's
+// Plain text in the head: the letters are not spaced out nor uppercase, and the line height is the head's. It is muted and not faint, so that it passes 4.5:1 on the color of the head
 const Hint = styled("span")(({ theme }) => ({
   minWidth: 0,
   overflow: "hidden",
-  color: "var(--jsb-faint)",
+  color: "var(--jsb-muted)",
   ...theme.typography.caption,
   lineHeight: "inherit",
   letterSpacing: 0,

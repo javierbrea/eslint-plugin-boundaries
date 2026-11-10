@@ -574,7 +574,7 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe(
-          "The link is damaged: its data is not a sketch written as JSON."
+          "The link is damaged: its data is not a project written as JSON."
         );
       });
 
@@ -593,7 +593,7 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe(
-          "The link is damaged: its data is not a sketch written as JSON."
+          "The link is damaged: its data is not a project written as JSON."
         );
       });
     });
@@ -611,7 +611,7 @@ describe("sketchHash", () => {
           const error = getError(hashOfJson(json));
 
           // Assert
-          expect(error).toMatch(/^The (data is not a sketch|sketch needs)/);
+          expect(error).toMatch(/^The (data is not a project|project needs)/);
         }
       );
 
@@ -653,7 +653,7 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe(
-          'Dependency 1 cannot be in the sketch. "src/missing.js" is not a file of the sketch.'
+          'Dependency 1 cannot be in the project. "src/missing.js" is not a file of the project.'
         );
       });
     });
@@ -696,7 +696,7 @@ describe("sketchHash", () => {
 
         // Assert
         expect(error).toBe(
-          "The sketch in the link is larger than 4 MiB, which the playground does not load."
+          "The project in the link is larger than 4 MiB, which the playground does not load."
         );
       });
 
@@ -711,7 +711,7 @@ describe("sketchHash", () => {
         expect(reading).toStrictEqual({
           status: "error",
           error:
-            "The sketch in the link is larger than 4 MiB, which the playground does not load.",
+            "The project in the link is larger than 4 MiB, which the playground does not load.",
           tooLarge: true,
         });
       });
@@ -843,7 +843,7 @@ describe("sketchHash", () => {
         const error = getError(hash);
 
         // Assert
-        expect(error).toBe("The sketch has more than 1000 files and folders.");
+        expect(error).toBe("The project has more than 1000 files and folders.");
       });
 
       it("should say that a sketch with more files than it can have is refused for its size", () => {
@@ -863,7 +863,7 @@ describe("sketchHash", () => {
         // Assert
         expect(reading).toStrictEqual({
           status: "error",
-          error: "The sketch has more than 1000 files and folders.",
+          error: "The project has more than 1000 files and folders.",
           tooLarge: true,
         });
       });
@@ -887,7 +887,7 @@ describe("sketchHash", () => {
         const error = getError(hash);
 
         // Assert
-        expect(error).toBe("The sketch has more than 3000 dependencies.");
+        expect(error).toBe("The project has more than 3000 dependencies.");
       });
 
       it("should say that a sketch with more dependencies than it can have is refused for its size", () => {
@@ -911,7 +911,7 @@ describe("sketchHash", () => {
         // Assert
         expect(reading).toStrictEqual({
           status: "error",
-          error: "The sketch has more than 3000 dependencies.",
+          error: "The project has more than 3000 dependencies.",
           tooLarge: true,
         });
       });

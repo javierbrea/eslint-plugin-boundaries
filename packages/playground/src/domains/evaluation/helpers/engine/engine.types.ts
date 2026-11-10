@@ -50,23 +50,94 @@ export type ConfigProblem = {
   readonly source: "parse" | "config";
 };
 
-/** What the playground shows of the description that the plugin gives a file, with the names and the values of the plugin. The engine maps it from `@boundaries/elements`, so that no other code depends on the shape of its descriptions */
-export type FileDescription = {
+/** A parent of an element: the element that contains it, by the pattern of its descriptor */
+export type ParentDescription = {
+  /** The types of the parent, or `null` when no element descriptor gives it any */
+  readonly types: readonly string[] | null;
+  /** The path of the parent, or `null` when it cannot be resolved */
+  readonly path: string | null;
+  /** What the pattern of the parent captured, or `null` when it captured nothing */
+  readonly captured: Readonly<Record<string, string>> | null;
+};
+
+/** What the plugin describes of an entity, with the names and the values of its selectors: a file of the sketch or, as the target of a dependency, an external module. It is every property that an element, a file or a module selector matches, so that a pane can show them all. The engine maps it from `@boundaries/elements`, so that no other code depends on the shape of its descriptions */
+export type EntityDescription = {
+  /** The element that the file belongs to, which an element selector matches */
   readonly element: {
     /** The types of the element of the file, or `null` when no element descriptor matches it */
     readonly types: readonly string[] | null;
-    /** The path of the element, or `null` when no element descriptor matches the file */
+    /** The path of the element, which is the path of the file when the settings ignore it, or `null` when no element descriptor matches the file */
     readonly path: string | null;
+    /** The path of the file inside its element, such as `index.js`, or `null` when no element descriptor matches the file or the settings ignore it */
+    readonly fileInternalPath: string | null;
     /** What the pattern of the element captured, or `null` when it captured nothing */
     readonly captured: Readonly<Record<string, string>> | null;
+    /** The elements that contain it, the closest first, or none when it has no parent or no element descriptor matches the file */
+    readonly parents: readonly ParentDescription[];
+    /** Whether the settings ignore the file, so that nothing else is known of its element */
+    readonly isIgnored: boolean;
+    /** Whether no element descriptor matches the file, which is also so when the settings ignore it and when the entity is a module outside the sketch */
+    readonly isUnknown: boolean;
   };
+  /** The file itself, which a file selector matches */
   readonly file: {
     /** The categories of the file, or `null` when no file descriptor matches it */
     readonly categories: readonly string[] | null;
+    /** The path of the file, or `null` when the entity is a module outside the sketch, which is no file of it */
+    readonly path: string | null;
+    /** What the pattern of the file descriptor captured, or `null` when it captured nothing */
+    readonly captured: Readonly<Record<string, string>> | null;
+    /** Whether the settings ignore the file */
+    readonly isIgnored: boolean;
+    /** Whether no file descriptor matches the file, which is also so when the settings ignore it and when the entity is a module outside the sketch */
+    readonly isUnknown: boolean;
   };
+  /** The module that the entity is, which a module selector matches */
   readonly module: {
     /** Where the module comes from. Every file of the sketch is local, unless the root path leaves it outside with `outsideRootPath` */
     readonly origin: "local" | "external" | "core";
+    /** The base name of an external or core module, such as `react` for `react/jsx-runtime`, or `null` for a local one */
+    readonly source: string | null;
+    /** The path inside an external or core module, such as `jsx-runtime` for `react/jsx-runtime`, or `null` for a local one or when the source is the module itself */
+    readonly internalPath: string | null;
+  };
+};
+
+/** How the elements of a dependency are related, as the `relationship` of a dependency selector names it */
+export type DependencyRelationshipKind =
+  | "internal"
+  | "child"
+  | "descendant"
+  | "sibling"
+  | "parent"
+  | "uncle"
+  | "nephew"
+  | "ancestor";
+
+/** The relationship between the element of a dependency and the element it points to, from the perspective of both */
+export type DependencyRelationship = {
+  /** What the file that has the dependency is to the target, such as `parent` when the target is a child of its element, or `null` when they are not related or the target is not an element */
+  readonly from: DependencyRelationshipKind | null;
+  /** What the target is to the file that has the dependency, such as `child`, or `null` when they are not related or the target is not an element */
+  readonly to: DependencyRelationshipKind | null;
+};
+
+/** What the plugin describes of a dependency, with the names and the values of its selectors: what it points to and the dependency itself. What it comes from is the description of its file, in `Evaluation.files` */
+export type DependencyDescription = {
+  /** What the dependency points to: a file of the sketch, or an external module */
+  readonly to: EntityDescription;
+  /** The dependency itself, which a dependency selector matches */
+  readonly dependency: {
+    /** `value` for an import of a value, `type` for a type-only one, and `typeof` for a `typeof` one */
+    readonly kind: "value" | "type" | "typeof";
+    /** The name of the dependency node that produced it, such as `import`, or `null` when none is given */
+    readonly nodeKind: string | null;
+    /** The source its statement writes, in full */
+    readonly source: string;
+    /** The names it imports or exports, as the plugin reads them from the code, or `null` when none are given */
+    readonly specifiers: readonly string[] | null;
+    /** The relationship between its file and its target */
+    readonly relationship: DependencyRelationship;
   };
 };
 
@@ -171,6 +242,8 @@ export type DependencyResult = {
   readonly ref: DependencyRef;
   /** The source its statement writes, in full: the relative path of the target with its extension and its `index`, or the name of an external module. It is the one passed to `describeDependency` */
   readonly source: string;
+  /** What the plugin describes of it, or `undefined` when the plugin does not read it, because `boundaries/dependency-nodes` leaves its syntax out. It is described whether or not the dependencies are evaluated, with the settings the engine uses */
+  readonly description: DependencyDescription | undefined;
   readonly verdict: DependencyVerdict;
 };
 
@@ -203,7 +276,7 @@ export type Evaluation = {
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
   /** Every file of the tree, by path */
-  readonly files: ReadonlyMap<string, FileDescription>;
+  readonly files: ReadonlyMap<string, EntityDescription>;
   readonly elementTypes: readonly ElementTypeSummary[];
   readonly fileCategories: readonly FileCategorySummary[];
   readonly rules: readonly RuleSummary[];
@@ -218,7 +291,7 @@ export type Evaluation = {
 /** Evaluates sketches, and remembers what it did so that an edit that does not touch the config does not read it again. Each playground has its own, so playgrounds on one page share nothing */
 export type Engine = {
   /**
-   * Evaluates a sketch: reads its config and places the problems in its text, describes every file of its tree as the plugin does, and decides every dependency as the `dependencies` rule does. It is pure and memoized, so evaluating the same sketch object again returns the same evaluation, and a sketch with the same config text as the last one does not read the config again.
+   * Evaluates a sketch: reads its config and places the problems in its text, describes every file of its tree and every dependency that the plugin reads as the plugin does, and decides every dependency as the `dependencies` rule does. It is pure and memoized, so evaluating the same sketch object again returns the same evaluation, and a sketch with the same config text as the last one does not read the config again.
    * @param sketch The sketch to evaluate.
    * @returns What the engine says about the sketch.
    */

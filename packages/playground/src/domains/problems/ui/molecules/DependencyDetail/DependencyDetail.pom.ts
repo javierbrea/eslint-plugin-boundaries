@@ -1,5 +1,6 @@
 import { fireEvent } from "@testing-library/react";
 
+import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
@@ -8,6 +9,8 @@ import type {
   DependencyDetailPiece,
   DependencyDetailTextStyle,
   PolicyCardStyle,
+  PolicyColumnStyle,
+  PolicyLabelStyle,
 } from "./DependencyDetail.types";
 
 /** The selector of the card of the policy, which is the only `pre` of the body. */
@@ -18,16 +21,31 @@ export class DependencyDetailPom extends Pom {
   protected readonly defaultTestId = DEPENDENCY_DETAIL_TEST_ID;
 
   /**
+   * The column of the text: the verdict line, the location and the message.
+   * @returns The first element of the body.
+   */
+  private get textColumn(): HTMLElement {
+    return this.root.firstElementChild as HTMLElement;
+  }
+
+  /**
    * The line that says what the engine decided.
    * @returns The first element of the text column, which holds the icon and the words.
    */
   private get verdictLine(): HTMLElement {
-    return (this.root.firstElementChild as HTMLElement)
-      .firstElementChild as HTMLElement;
+    return this.textColumn.firstElementChild as HTMLElement;
   }
 
   /**
-   * The sentence under the verdict line, when there is one.
+   * The line that says where the dependency is.
+   * @returns The second element of the text column, which holds the file, the line and the source.
+   */
+  private get locationElement(): HTMLElement {
+    return this.textColumn.children[1] as HTMLElement;
+  }
+
+  /**
+   * The sentence under the location, when there is one.
    * @returns The element, or null.
    */
   private get messageElement(): HTMLElement | null {
@@ -35,15 +53,19 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
-   * The facts, each one a label followed by its value.
-   * @returns The elements of the facts, in order.
+   * The column of the policy, which the body has only when a policy decided the dependency.
+   * @returns The second element of the body, or null.
    */
-  private get factElements(): HTMLElement[] {
-    const facts = (this.root.firstElementChild as HTMLElement).children[
-      this.messageElement === null ? 1 : 2
-    ] as HTMLElement;
+  private get policyColumn(): HTMLElement | null {
+    return (this.root.children[1] as HTMLElement | undefined) ?? null;
+  }
 
-    return Array.from(facts.children) as HTMLElement[];
+  /**
+   * The head of the column of the policy: its label, its name and the button.
+   * @returns The first element of the column.
+   */
+  private get policyHead(): HTMLElement {
+    return (this.policyColumn as HTMLElement).firstElementChild as HTMLElement;
   }
 
   /**
@@ -128,36 +150,118 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
-   * The facts about the dependency, as the user reads them.
-   * @returns The text of each fact, such as `kind value`, in order.
+   * What the column of the text says, part by part.
+   * @returns The text of each part, in order: the verdict line, the location and the message when there is one.
    */
-  get facts(): string[] {
-    return this.factElements.map((fact) => fact.textContent);
+  get textParts(): string[] {
+    return (Array.from(this.textColumn.children) as HTMLElement[]).map(
+      (part) => part.textContent
+    );
   }
 
   /**
-   * The color of the value of a fact.
-   * @param label The label of the fact, such as `file`.
-   * @returns The computed color of its value.
+   * Where the dependency is, as the user reads it.
+   * @returns The file, the line and the source, such as `src/modules/checkout/index.js:3 → ../../components/atoms/Button/Button.spec.js`.
    */
-  factValueColor(label: string): string {
-    const fact = this.factElements.find((candidate) =>
-      candidate.textContent.startsWith(`${label} `)
-    ) as HTMLElement;
-
-    return getComputedStyle(fact.querySelector("b") as HTMLElement).color;
+  get locationText(): string {
+    return this.locationElement.textContent;
   }
 
   /**
-   * The text styles of the facts.
-   * @returns The computed color, font family, size and weight of the row of facts.
+   * The line of the dependency in its file.
+   * @returns The position next to the file, such as `:3`.
    */
-  get factsStyle(): DependencyDetailTextStyle {
+  get locationPosition(): string {
+    return (this.locationElement.firstElementChild as HTMLElement).textContent;
+  }
+
+  /**
+   * The color of the line of the dependency, which is not the one of the rest of the location.
+   * @returns The computed value.
+   */
+  get locationPositionColor(): string {
+    return getComputedStyle(
+      this.locationElement.firstElementChild as HTMLElement
+    ).color;
+  }
+
+  /**
+   * The text styles of the location.
+   * @returns The computed color, font family, size and weight of the line.
+   */
+  get locationStyle(): DependencyDetailTextStyle {
     const { color, fontFamily, fontSize, fontWeight } = getComputedStyle(
-      this.factElements[0].parentElement as HTMLElement
+      this.locationElement
     );
 
     return { color, fontFamily, fontSize, fontWeight };
+  }
+
+  /**
+   * Whether the body has the column of the policy.
+   * @returns True when a policy decided the dependency.
+   */
+  get hasPolicyColumn(): boolean {
+    return this.policyColumn !== null;
+  }
+
+  /**
+   * What the head of the column of the policy says, part by part.
+   * @returns The text of each part, in order: the label, the name of the policy and the button, such as `["Policy", "policies[2]", "Open in config"]`. It is empty when the body has no column of the policy.
+   */
+  get policyHeadTexts(): string[] {
+    return this.policyColumn === null
+      ? []
+      : (Array.from(this.policyHead.children) as HTMLElement[]).map(
+          (part) => part.textContent
+        );
+  }
+
+  /**
+   * The text styles of the label of the head of the policy, which is drawn in capitals by its style and not by its text.
+   * @returns The computed color, font family, size, weight, letter spacing and text transform.
+   */
+  get policyLabelStyle(): PolicyLabelStyle {
+    const {
+      color,
+      fontFamily,
+      fontSize,
+      fontWeight,
+      letterSpacing,
+      textTransform,
+    } = getComputedStyle(this.policyHead.children[0]);
+
+    return {
+      color,
+      fontFamily,
+      fontSize,
+      fontWeight,
+      letterSpacing,
+      textTransform,
+    };
+  }
+
+  /**
+   * The text styles of the name of the policy in its head.
+   * @returns The computed color, font family, size and weight.
+   */
+  get policyRefStyle(): DependencyDetailTextStyle {
+    const { color, fontFamily, fontSize, fontWeight } = getComputedStyle(
+      this.policyHead.children[1]
+    );
+
+    return { color, fontFamily, fontSize, fontWeight };
+  }
+
+  /**
+   * How the column of the policy is set apart from the text.
+   * @returns The computed padding on the left and the width, style and color of the border on the left, which is the divider.
+   */
+  get policyColumnStyle(): PolicyColumnStyle {
+    const { paddingLeft, borderLeftWidth, borderLeftStyle, borderLeftColor } =
+      getComputedStyle(this.policyColumn as HTMLElement);
+
+    return { paddingLeft, borderLeftWidth, borderLeftStyle, borderLeftColor };
   }
 
   /**
@@ -185,40 +289,57 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
+   * The arrow that the button that opens the policy draws after its text.
+   * @returns The page object of the icon.
+   */
+  get openPolicyIcon(): IconPom {
+    return this.childPom(IconPom, {
+      root: (this.openPolicyButton as HTMLElement).querySelector<HTMLElement>(
+        "svg"
+      ) as HTMLElement,
+    });
+  }
+
+  /**
+   * How the button that opens the policy is placed in the head.
+   * @returns The computed margin on the left, which takes the button to the end of the head.
+   */
+  get openPolicyMarginLeft(): string {
+    return getComputedStyle(this.openPolicyButton as HTMLElement).marginLeft;
+  }
+
+  /**
+   * The ring that shows the keyboard focus on the button, which jsdom cannot compute: it is read from the rule that applies on keyboard focus.
+   * @returns The declarations of that rule.
+   */
+  get openPolicyFocusStyle(): Record<string, string> {
+    return getStyle(
+      this.openPolicyButton as HTMLElement,
+      `${OWN_CLASS}:focus-visible`
+    );
+  }
+
+  /**
    * The text of the card of the policy.
-   * @returns The heading and the policy as the user reads them, or null when the body has no card.
+   * @returns The policy as the user reads it, or null when the body has no card.
    */
   get policyCardText(): string | null {
     return this.policyCard?.textContent ?? null;
   }
 
   /**
-   * The color of the heading of the card.
-   * @returns The computed color of the comment, or null when the body has no card.
-   */
-  get policyHeadingColor(): string | null {
-    const heading = this.policyCard?.firstElementChild;
-
-    return heading ? getComputedStyle(heading).color : null;
-  }
-
-  /**
    * The policy in the card, piece by piece as the user sees it colored.
-   * @returns The text and the computed color of each piece after the heading and the line break that follows it, in order. The text that is not in an element of its own has the color of the card.
+   * @returns The text and the computed color of each piece, in order. The text that is not in an element of its own has the color of the card.
    */
   get policyPieces(): DependencyDetailPiece[] {
     const card = this.policyCard as HTMLElement;
     const cardColor = getComputedStyle(card).color;
 
-    return Array.from(card.childNodes)
-      .slice(2)
-      .map((node) => ({
-        text: node.textContent as string,
-        color:
-          node instanceof HTMLElement
-            ? getComputedStyle(node).color
-            : cardColor,
-      }));
+    return Array.from(card.childNodes).map((node) => ({
+      text: node.textContent as string,
+      color:
+        node instanceof HTMLElement ? getComputedStyle(node).color : cardColor,
+    }));
   }
 
   /**
@@ -234,11 +355,19 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
-   * How the body is laid out, which says that the card is at most 420 px wide beside the text.
+   * How the body is laid out, which says whether the policy sits beside the text and at most 460 px wide, or the text has the width.
    * @returns The computed `grid-template-columns`.
    */
   get columns(): string {
     return getComputedStyle(this.root).gridTemplateColumns;
+  }
+
+  /**
+   * The space between the columns of the body.
+   * @returns The computed `gap`.
+   */
+  get gap(): string {
+    return getComputedStyle(this.root).gap;
   }
 
   /** Presses the button that opens the policy. */

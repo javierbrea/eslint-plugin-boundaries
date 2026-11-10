@@ -247,7 +247,7 @@ describe("useShareLink", () => {
       expect(writeText).not.toHaveBeenCalled();
       expect(result.current.outcome).toEqual({
         kind: "too-large",
-        reason: "The sketch has more than 1000 files and folders.",
+        reason: "The project has more than 1000 files and folders.",
       });
     });
 

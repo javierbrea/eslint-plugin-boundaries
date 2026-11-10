@@ -121,7 +121,7 @@ function readDependency(
     const candidates = findSourceFiles(files, from, source);
 
     if (candidates.length === 0) {
-      return `"${source}" does not resolve to a file of the sketch.`;
+      return `"${source}" does not resolve to a file of the project.`;
     }
     if (candidates.length > 1) {
       return getAmbiguityReason(source, from, candidates);

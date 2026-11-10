@@ -201,7 +201,7 @@ describe("HelpDialog", () => {
       // Assert
       expect(tips).toEqual([
         "Imports are written with the full relative path of their file, such as ../helpers/format/index.js, and that is the path dependency.source, customSourcePatterns and {{dependency.source}} see. Text mode also reads shorter paths, by a rule of its own and not by the resolvers of your config: with eslint-import-resolver-typescript, ESLint takes ./b.js to a b.ts beside it.",
-        "The sketch starts with the example of the Quick start. Reset brings it back, and Share copies a link with the whole sketch.",
+        "The project starts with the example of the Quick start. Reset brings it back, and Share copies a link with the whole project.",
       ]);
     });
 

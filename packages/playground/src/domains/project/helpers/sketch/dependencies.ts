@@ -168,7 +168,7 @@ function getTargetError(
 
   if (target.kind === "node") {
     if (kindOf(target.path) !== "file") {
-      return `"${target.path}" is not a file of the sketch.`;
+      return `"${target.path}" is not a file of the project.`;
     }
     return target.path === from ? "A file cannot depend on itself." : undefined;
   }
@@ -182,7 +182,7 @@ function getTargetError(
     return "A module name cannot have spaces.";
   }
   if (moduleName.startsWith(".") || moduleName.startsWith("/")) {
-    return `"${moduleName}" is not a module name: names do not start with "." or "/". Point to a file of the sketch instead.`;
+    return `"${moduleName}" is not a module name: names do not start with "." or "/". Point to a file of the project instead.`;
   }
   return /["'\\]/.test(moduleName)
     ? "A module name cannot have quotes or backslashes."
@@ -367,7 +367,7 @@ function getDependencyErrorBy(
   dependency: SketchDependency
 ): string | undefined {
   if (lookups.kindOf(dependency.from) !== "file") {
-    return `"${dependency.from}" is not a file of the sketch.`;
+    return `"${dependency.from}" is not a file of the project.`;
   }
   return (
     getTargetError(lookups.kindOf, dependency) ??

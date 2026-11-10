@@ -26,6 +26,23 @@ const WITH_IGNORED: Sketch = {
   ),
 };
 
+/** The quick-start project whose plugin reads only `require`, so that it does not read the `import` statements of the files */
+const WITH_NOT_READ: Sketch = {
+  ...QUICK_START,
+  config: QUICK_START.config.replace(
+    "settings: {",
+    'settings: {\n    "boundaries/dependency-nodes": ["require"],'
+  ),
+};
+
+/** The position of the import of the test of Button, the 3rd of the dependencies of the file: Button, format, the test of Button and react */
+const BUTTON_SPEC_LINE = 2;
+
+const REACT_LINE = 3;
+
+/** A file with a dependency of its own, for the focus to move to */
+const BUTTON = "src/components/atoms/Button/index.js";
+
 /** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
 type PaneRender = SessionRender & { readonly pane: InspectorPanePom };
 
@@ -61,7 +78,7 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("project");
-      expect(pane.project.title.text).toBe("Sketch");
+      expect(pane.project.title.text).toBe("Project");
       expect(pane.project.count("files")).toBe("6");
     });
 
@@ -135,9 +152,13 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("file");
-      expect(pane.file.title(FILE).isRendered).toBe(true);
-      expect(pane.file.facet("element").isRendered).toBe(true);
-      expect(pane.file.facet("element").entries.types).toBe('[ "module" ]');
+      expect(pane.file.section("from").summary).toBe(FILE);
+      expect(pane.file.section("from").boxes.box("element").isRendered).toBe(
+        true
+      );
+      expect(pane.file.section("from").boxes.box("element").entries.types).toBe(
+        '[ "module" ]'
+      );
     });
 
     it("should count the dependencies of the file in focus and what the engine decided about them", () => {
@@ -148,8 +169,10 @@ describe("InspectorPane", () => {
       act(() => store.open({ kind: "file", path: FILE }));
 
       // Assert
-      expect(pane.file.summary.total).toBe("4 dependencies");
-      expect(pane.file.summary.countTexts.map(({ text }) => text)).toEqual([
+      const { dependencies } = pane.file.section("from");
+
+      expect(dependencies.total).toBe("4 dependencies");
+      expect(dependencies.countTexts.map(({ text }) => text)).toEqual([
         "2",
         "1",
         "1 not checked",
@@ -166,8 +189,10 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("file");
-      expect(pane.file.title(FILE).isRendered).toBe(true);
-      expect(pane.file.summary.total).toBe("4 dependencies");
+      expect(pane.file.section("from").summary).toBe(FILE);
+      expect(pane.file.section("from").dependencies.total).toBe(
+        "4 dependencies"
+      );
     });
 
     it("should describe the file of a dependency that is in focus when no file was open", () => {
@@ -185,10 +210,12 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("file");
-      expect(pane.file.title("src/helpers/format/index.js").isRendered).toBe(
-        true
+      expect(pane.file.section("from").summary).toBe(
+        "src/helpers/format/index.js"
       );
-      expect(pane.file.facet("element").entries.types).toBe('[ "helper" ]');
+      expect(pane.file.section("from").boxes.box("element").entries.types).toBe(
+        '[ "helper" ]'
+      );
     });
 
     it("should describe the renamed file at once, without lagging behind the rename", () => {
@@ -203,10 +230,12 @@ describe("InspectorPane", () => {
       });
 
       // Assert
-      expect(pane.file.title("src/features/checkout/index.js").isRendered).toBe(
+      expect(pane.file.section("from").summary).toBe(
+        "src/features/checkout/index.js"
+      );
+      expect(pane.file.section("from").boxes.box("element").isRendered).toBe(
         true
       );
-      expect(pane.file.facet("element").isRendered).toBe(true);
     });
 
     it("should describe the sketch again when the file in focus is removed", () => {
@@ -219,7 +248,278 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("project");
-      expect(pane.project.title.text).toBe("Sketch");
+      expect(pane.project.title.text).toBe("Project");
+    });
+  });
+
+  describe("a dependency in focus", () => {
+    it("should describe what the dependency points to and the dependency, next to the file", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.sectionNames).toEqual(["from", "to", "dependency"]);
+      expect(pane.file.section("from").summary).toBe(FILE);
+      expect(pane.file.section("to").summary).toBe(
+        "src/components/atoms/Button/Button.spec.js"
+      );
+      expect(pane.file.section("dependency").summary).toBe("line 3");
+    });
+
+    it("should list the properties of the dependency in the section dependency", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+
+      // Assert
+      expect(pane.file.section("dependency").properties.entries.source).toBe(
+        '"../../components/atoms/Button/Button.spec.js"'
+      );
+    });
+
+    it("should describe the external module that the dependency points to", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: REACT_LINE })
+      );
+
+      // Assert
+      expect(pane.file.section("to").summary).toBe("react");
+      expect(
+        pane.file.section("to").boxes.box("element").entries.isUnknown
+      ).toBe("true");
+    });
+
+    it("should say that the plugin does not read a dependency, instead of describing it", () => {
+      // Arrange
+      const { pane, store } = renderPane(WITH_NOT_READ);
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+
+      // Assert
+      expect(pane.file.sectionNames).toEqual(["from"]);
+      expect(pane.file.note.text).toContain(
+        "the plugin never reads this kind of statement"
+      );
+      expect(pane.file.rows.rows).toEqual([
+        { label: "to", text: "src/components/atoms/Button/Button.spec.js" },
+        { label: "dependency", text: "line 3" },
+      ]);
+    });
+
+    it("should describe the other dependency when the focus moves to it", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 1 }));
+
+      // Assert
+      expect(pane.file.section("to").summary).toBe(
+        "src/helpers/format/index.js"
+      );
+      expect(pane.file.section("dependency").summary).toBe("line 2");
+    });
+
+    it("should wait for a line again when the focus goes back to the file", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+
+      // Act
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Assert
+      expect(pane.file.sectionNames).toEqual(["from"]);
+      expect(pane.file.hint).toContain("Click a line of the file");
+    });
+  });
+
+  describe("what the user folded or opened", () => {
+    it("should start with every section and box open but the module boxes", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+
+      // Assert
+      const [from, to] = [pane.file.section("from"), pane.file.section("to")];
+
+      expect([
+        from.isOpen,
+        from.boxes.box("element").isOpen,
+        from.boxes.box("file").isOpen,
+        from.boxes.box("module").isOpen,
+        to.isOpen,
+        to.boxes.box("element").isOpen,
+        to.boxes.box("file").isOpen,
+        to.boxes.box("module").isOpen,
+        pane.file.section("dependency").isOpen,
+      ]).toEqual([true, true, true, false, true, true, true, false, true]);
+    });
+
+    it("should fold and open a box when its header is pressed", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+      const element = pane.file.section("from").boxes.box("element");
+
+      // Act
+      element.toggle();
+      const whileFolded = [element.isOpen, element.summary];
+      element.toggle();
+
+      // Assert
+      expect(whileFolded).toEqual([false, '[ "module" ]']);
+      expect(element.isOpen).toBe(true);
+    });
+
+    it("should keep a box folded after the focus moves to another dependency", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+      pane.file.section("to").boxes.box("element").toggle();
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+
+      // Assert
+      const to = pane.file.section("to");
+
+      expect(to.boxes.box("element").isOpen).toBe(false);
+      expect(to.boxes.box("file").isOpen).toBe(true);
+    });
+
+    it("should keep a box folded after the focus moves to another file", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+      pane.file.section("from").boxes.box("file").toggle();
+      pane.file.section("to").boxes.box("element").toggle();
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: BUTTON, index: 0 }));
+
+      // Assert
+      expect(pane.file.section("from").summary).toBe(BUTTON);
+      expect(pane.file.section("from").boxes.box("file").isOpen).toBe(false);
+      expect(pane.file.section("to").boxes.box("element").isOpen).toBe(false);
+    });
+
+    it("should keep a section folded after the focus moves to another dependency and to another file", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+      pane.file.section("dependency").toggle();
+      pane.file.section("from").toggle();
+
+      // Act
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+      const afterDependency = [
+        pane.file.section("from").isOpen,
+        pane.file.section("dependency").isOpen,
+      ];
+      act(() => store.open({ kind: "dependency", path: BUTTON, index: 0 }));
+
+      // Assert
+      expect(afterDependency).toEqual([false, false]);
+      expect(pane.file.section("from").isOpen).toBe(false);
+      expect(pane.file.section("dependency").isOpen).toBe(false);
+      expect(pane.file.section("to").isOpen).toBe(true);
+    });
+
+    it("should keep a module box that the user opened open after the focus moves", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: BUTTON_SPEC_LINE })
+      );
+      pane.file.section("to").boxes.box("module").toggle();
+
+      // Act
+      act(() =>
+        store.open({ kind: "dependency", path: FILE, index: REACT_LINE })
+      );
+
+      // Assert
+      const moduleBox = pane.file.section("to").boxes.box("module");
+
+      expect(moduleBox.isOpen).toBe(true);
+      expect(moduleBox.entries.origin).toBe('"external"');
+    });
+
+    it("should keep them while the config is in focus, which shows another inspector", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+      pane.file.section("from").boxes.box("element").toggle();
+
+      // Act
+      act(() => store.open({ kind: "config" }));
+      const whileConfig = pane.shown;
+      act(() => store.open({ kind: "file", path: BUTTON }));
+
+      // Assert
+      expect(whileConfig).toBe("config");
+      expect(pane.file.section("from").boxes.box("element").isOpen).toBe(false);
+    });
+
+    it("should keep them while nothing is in focus, which shows the numbers of the project", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+      pane.file.section("from").toggle();
+
+      // Act
+      act(() => store.removeNode(FILE));
+      const whileNothing = pane.shown;
+      act(() => store.open({ kind: "file", path: BUTTON }));
+
+      // Assert
+      expect(whileNothing).toBe("project");
+      expect(pane.file.section("from").isOpen).toBe(false);
+    });
+
+    it("should not keep them in the store", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
+      const before = store.getState();
+
+      // Act
+      pane.file.section("from").boxes.box("module").toggle();
+      pane.file.section("from").toggle();
+
+      // Assert
+      expect(store.getState()).toBe(before);
     });
   });
 

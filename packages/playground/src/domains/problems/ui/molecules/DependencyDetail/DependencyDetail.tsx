@@ -12,13 +12,17 @@ import type { StateTone } from "@/ui-kit/helpers/tone";
 import { DEPENDENCY_DETAIL_TEST_ID } from "./DependencyDetail.constants";
 import type { DependencyDetailProps } from "./DependencyDetail.types";
 
-// The text and the card side by side, the card no wider than 420 px, as the mockup lays them out; the panel has 6 px of padding above, so this adds the rest of the 10 px
-const Root = styled("div")({
+// The text and the policy side by side, the policy no wider than 460 px; with no policy there is only the text, which takes the width. The panel has 6 px of padding above, so this adds the rest of the 10 px
+const Root = styled("div", {
+  shouldForwardProp: (prop) => prop !== "hasPolicy",
+})<{ hasPolicy: boolean }>(({ hasPolicy }) => ({
   display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) minmax(0, 420px)",
+  gridTemplateColumns: hasPolicy
+    ? "minmax(0, 1fr) minmax(0, 460px)"
+    : "minmax(0, 1fr)",
   gap: 20,
   padding: "4px 16px 0",
-});
+}));
 
 const VerdictLine = styled("div", {
   shouldForwardProp: (prop) => prop !== "tone",
@@ -40,42 +44,67 @@ const VerdictText = styled("span", {
   color: STATE_TEXT[tone],
 }));
 
+// The location of the dependency in the words and in the text of the rows of the problem list, with the line apart in the muted color
+const Where = styled("div")(({ theme }) => ({
+  marginTop: 6,
+  color: "var(--jsb-ink)",
+  ...theme.typography.mono,
+  lineHeight: 1.5,
+  // A path or a source without spaces would stretch the column instead of wrapping
+  overflowWrap: "anywhere",
+}));
+
+const Position = styled("span")({ color: "var(--jsb-muted)" });
+
 const Message = styled("p")(({ theme }) => ({
-  margin: "6px 0 8px",
+  margin: "4px 0 0",
   color: "var(--jsb-ink)",
   ...theme.typography.bodyLarge,
 }));
 
-const Facts = styled("div")(({ theme }) => ({
+// The divider is the border of the column, which the grid stretches to the height of the text
+const PolicyColumn = styled("div")({
+  display: "grid",
+  alignContent: "start",
+  gap: 8,
+  minWidth: 0,
+  paddingLeft: 20,
+  borderLeftWidth: "1px",
+  borderLeftStyle: "solid",
+  borderLeftColor: "var(--jsb-line)",
+});
+
+const PolicyHead = styled("div")({
   display: "flex",
-  flexWrap: "wrap",
-  gap: "2px 14px",
+  alignItems: "center",
+  gap: 10,
+  minHeight: 20,
+});
+
+const PolicyLabel = styled("span")(({ theme }) => ({
   color: "var(--jsb-muted)",
+  ...theme.typography.paneLabel,
+}));
+
+const PolicyRef = styled("span")(({ theme }) => ({
+  color: "var(--jsb-ink)",
   ...theme.typography.monoSmall,
-  lineHeight: 1.6,
-  // A path or a module name without spaces would stretch the row instead of wrapping
-  overflowWrap: "anywhere",
-}));
-
-const FactValue = styled("b", {
-  shouldForwardProp: (prop) => prop !== "isNull",
-})<{ isNull: boolean }>(({ theme, isNull }) => ({
   fontWeight: theme.typography.fontWeightMedium,
-  color: isNull ? "var(--jsb-faint)" : "var(--jsb-ink)",
+  lineHeight: 1,
 }));
 
+// The head is a flex row, so the automatic margin takes the button to its end
 const OpenPolicy = styled(ButtonBase)(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
   gap: 4,
-  marginTop: 10,
+  marginLeft: "auto",
   color: "var(--jsb-accent)",
   ...theme.typography.button,
   lineHeight: 1,
 }));
 
 const PolicyCard = styled("pre")(({ theme }) => ({
-  alignSelf: "start",
   margin: 0,
   padding: "10px 12px",
   borderRadius: "var(--jsb-radius)",
@@ -86,8 +115,6 @@ const PolicyCard = styled("pre")(({ theme }) => ({
   whiteSpace: "pre-wrap",
   overflow: "auto",
 }));
-
-const Heading = styled("span")({ color: "var(--jsb-code-comment)" });
 
 const Piece = styled("span", {
   shouldForwardProp: (prop) => prop !== "color",
@@ -120,7 +147,7 @@ function renderPolicy(tokens: PolicyCardContent["tokens"]): ReactNode {
 }
 
 /**
- * The body of the tab of a dependency: what the engine says about it, with the message of the plugin or why it is not checked, the facts that decide it, the button that opens the policy that decided it in the config, and a card with that policy as it is written there, colored as the config editor colors it.
+ * The body of the tab of a dependency, in two columns. The first says what the engine decided, where the dependency is, as the row of its problem says it, and the message of the plugin or why it is not checked. The second, which only a dependency that a policy decided has, names that policy, has the button that opens it in the config and shows it as it is written there, colored as the config editor colors it.
  * @param props DependencyDetail props.
  * @param props.detail What the body draws.
  * @param props.onOpen Called with the target of the button, which opens the policy in the config.
@@ -132,37 +159,34 @@ export function DependencyDetail({
   onOpen,
   testId = DEPENDENCY_DETAIL_TEST_ID,
 }: Readonly<DependencyDetailProps>): ReactNode {
-  const { verdict, message, facts, policy } = detail;
+  const { verdict, message, policy } = detail;
 
   return (
-    <Root data-testid={testId}>
+    <Root data-testid={testId} hasPolicy={policy !== undefined}>
       <div>
         <VerdictLine tone={verdict.tone}>
           <Icon name={verdict.icon} />
           <VerdictText tone={verdict.tone}>{verdict.text}</VerdictText>
         </VerdictLine>
+        <Where>
+          {detail.location.path}
+          <Position>{detail.location.position}</Position>
+          {` → ${detail.location.source}`}
+        </Where>
         {message === undefined ? null : <Message>{message}</Message>}
-        <Facts>
-          {facts.map(({ label, value }) => (
-            <span key={label}>
-              {label}{" "}
-              <FactValue isNull={value === null}>{value ?? "null"}</FactValue>
-            </span>
-          ))}
-        </Facts>
-        {policy === undefined ? null : (
-          <OpenPolicy type="button" onClick={() => onOpen(policy.target)}>
-            Open policy in config
-            <Icon name="arrow" />
-          </OpenPolicy>
-        )}
       </div>
       {policy === undefined ? null : (
-        <PolicyCard>
-          <Heading>{policy.heading}</Heading>
-          {"\n"}
-          {renderPolicy(policy.tokens)}
-        </PolicyCard>
+        <PolicyColumn>
+          <PolicyHead>
+            <PolicyLabel>Policy</PolicyLabel>
+            <PolicyRef>{policy.ref}</PolicyRef>
+            <OpenPolicy type="button" onClick={() => onOpen(policy.target)}>
+              Open in config
+              <Icon name="arrow" />
+            </OpenPolicy>
+          </PolicyHead>
+          <PolicyCard>{renderPolicy(policy.tokens)}</PolicyCard>
+        </PolicyColumn>
       )}
     </Root>
   );

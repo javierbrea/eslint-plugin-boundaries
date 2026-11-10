@@ -1,9 +1,11 @@
-import type { FileDescription } from "@/domains/evaluation/helpers/engine";
+import type { EntityDescription } from "@/domains/evaluation/helpers/engine";
+import { createEntityDescription } from "@/domains/evaluation/helpers/engine/entityDescription.mock";
 
 import {
   getChipLabel,
   getChipParts,
   getFileOptionLabel,
+  getTargetName,
 } from "./dependencyLabels";
 import {
   IMPORT_KIND_OPTIONS,
@@ -16,12 +18,8 @@ import {
  * @param types The types of the element of the file, or `null` when no element descriptor matches it.
  * @returns The description.
  */
-function describeWithTypes(types: readonly string[] | null): FileDescription {
-  return {
-    element: { types, path: null, captured: null },
-    file: { categories: null },
-    module: { origin: "local" },
-  };
+function describeWithTypes(types: readonly string[] | null): EntityDescription {
+  return createEntityDescription({ element: { types } });
 }
 
 describe("dependencyLabels", () => {
@@ -151,6 +149,30 @@ describe("dependencyLabels", () => {
 
       // Assert
       expect(parts).toEqual({ kind: "named", name: "round as r" });
+    });
+  });
+
+  describe("getTargetName", () => {
+    it("should name a file of the sketch by its path", () => {
+      // Act
+      const targetName = getTargetName({
+        kind: "node",
+        path: "src/components/atoms/Button/index.js",
+      });
+
+      // Assert
+      expect(targetName).toBe("src/components/atoms/Button/index.js");
+    });
+
+    it("should name an external module by its name, subpath included", () => {
+      // Act
+      const names = [
+        getTargetName({ kind: "external", name: "react" }),
+        getTargetName({ kind: "external", name: "react/jsx-runtime" }),
+      ];
+
+      // Assert
+      expect(names).toEqual(["react", "react/jsx-runtime"]);
     });
   });
 });

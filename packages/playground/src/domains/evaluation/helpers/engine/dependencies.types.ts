@@ -13,10 +13,11 @@ export type DependenciesInput = {
   readonly rule: EvaluatedRule | undefined;
 };
 
-/** What the rule decides a dependency with */
+/** What the rule describes and decides a dependency with */
 export type DependencyJudgment = {
   readonly settings: SettingsNormalized;
   /** The node kinds whose syntaxes the playground reads, from the built-in selectors of the settings */
   readonly readNodeKinds: ReadonlySet<string>;
-  readonly rule: EvaluatedRule;
+  /** The rule that decides, or `undefined` when no dependency is evaluated */
+  readonly rule: EvaluatedRule | undefined;
 };

@@ -5,6 +5,8 @@ Goal: a "Playground" page under the website guides, "Open in playground" buttons
 
 Issue: #555. Branch `docs/555/playground-guide` from `feat/539/playground`; PR into `feat/539/playground`, title `docs(website): document the playground`, `closes #555`. Changelog: the playground entry under `[Unreleased]` → `Added` of `packages/website/CHANGELOG.md` covers the page; add a short `docs` entry only if the `release` skill needs one per page (it does not today). The PR description lists the pages that got a button.
 
+The playground calls what the user builds a project in every text it shows (decision 21 of the index); the guide does the same, and keeps "sketch" only as a verb.
+
 Read first:
 
 - `documentation-writer` skill (Diátaxis: the guide is a how-to, with a short explanation section), `.agents/rules/docs-authoring.md`, `packages/website/AGENTS.md` (`sidebars.ts` and `versioned_sidebars/version-7.4.1-sidebars.json` hold the navigation). Every change of this phase goes in `docs/` and in the snapshot of the latest release, today `versioned_docs/version-7.4.1/` (`playground.md`, decision 20).
@@ -13,14 +15,14 @@ Read first:
 - RFC #538 "Scope" and "Interface" decision 5 for the limits to state plainly (no real source code, no `node_modules` resolution, the `dependencies` rule only, the config node holds the `settings` and `rules` sub-objects as JSON5).
 - `.github/ISSUE_TEMPLATE/bug_report.md`.
 
-Preconditions: phase 7 merged.
+Preconditions: phase 7 and the two pane pull requests (#637, #638) merged.
 
 ## From phase 6
 
 The words the guide documents are in the code, so the page quotes them from there:
 
 - The verdicts and their reasons: `src/domains/evaluation/ui/helpers/verdictText/` (`policy N`, `default`, `not checked · external`, `not read`, `not evaluated`, and the sentence of each skip reason and of each reason why nothing is evaluated).
-- The picker: the labels in `src/domains/files/ui/helpers/dependencyLabels/` (`A file of the sketch`, `An external module`, the kinds and the imported names), the syntaxes `import`, `export … from`, `require()`, `import()` with what each one holds in the table `SYNTAX_FACTS` of `src/domains/project/helpers/sketch/sketch.constants.ts`, which the picker and the checks of a dependency both read, and the statement forms that text mode reads and writes, in `src/domains/project/helpers/sketch/statements.ts`.
+- The picker: the labels of its targets in `src/domains/files/ui/molecules/DependencyPicker/DependencyPicker.constants.ts` (`A file of the project`, `An external module`), the kinds and the imported names in `src/domains/files/ui/helpers/dependencyLabels/`, the syntaxes `import`, `export … from`, `require()`, `import()` with what each one holds in the table `SYNTAX_FACTS` of `src/domains/project/helpers/sketch/sketch.constants.ts`, which the picker and the checks of a dependency both read, and the statement forms that text mode reads and writes, in `src/domains/project/helpers/sketch/statements.ts`.
 - What differs from running ESLint, for the "Not the same as running ESLint" note:
   - A statement writes its source as the relative path of its target in full, with its extension and its `index` (`getDependencySource` of `src/domains/project/helpers/sketch/statements.ts`), so `dependency.source`, `customSourcePatterns` and `{{dependency.source}}` see that full path. Nothing is resolved from `node_modules`.
   - Text mode also reads short sources with a rule of the playground's own, not with the resolvers of `import/resolver`, which the playground does not read (decision 19 of the plan, `findSourceFiles` in the same file): the file named exactly, else the one that adds a code extension or `/index` and one; a folder source reads only its `index`; several matches are a problem of the line, which asks for the extension.
@@ -41,7 +43,7 @@ In: the guide page and its sidebar entry, the buttons on the chosen docs pages w
 
 ## Steps
 
-1. `packages/website/docs/guides/playground.md`: what the playground is for (two scenarios of the RFC), how to sketch a project (tree, text mode, config node, dependency picker), how to read the results (the three facets, verdicts, the problems panel), how to share a state and use it in an issue, the limits, and a "Not the same as running ESLint" note (resolution, other rules). Screenshots only if the website already hosts docs screenshots; otherwise none (the page links the playground). Add it to the `Guides` category in `sidebars.ts`. The same page goes in `versioned_docs/version-7.4.1/guides/playground.md` and in the `Guides` category of `versioned_sidebars/version-7.4.1-sidebars.json`.
+1. `packages/website/docs/guides/playground.md`: what the playground is for (two scenarios of the RFC), how to sketch a project (tree, text mode, config node, dependency picker), how to read the results (the inspector's `from`, `to` and `dependency` with the properties that selectors match, verdicts, the problems panel), how to share a state and use it in an issue, the limits, and a "Not the same as running ESLint" note (resolution, other rules). Screenshots only if the website already hosts docs screenshots; otherwise none (the page links the playground). Add it to the `Guides` category in `sidebars.ts`. The same page goes in `versioned_docs/version-7.4.1/guides/playground.md` and in the `Guides` category of `versioned_sidebars/version-7.4.1-sidebars.json`.
 2. Buttons: `quick-start.mdx` has one already (phase 7); add one next to the block of each other example of the picker (Overview, the Complete Example of Policies, the `boundaries/dependencies` rule page) and next to any other block of those pages that fits a sketch, with its texts declared as `export const` next to it ("From phase 7"). Each button goes in the page of `docs/` and in the same page of `versioned_docs/version-7.4.1/`, after checking that the block next to it is the same in both. The pages that "From phase 7" lists as left out get none.
 3. `.github/ISSUE_TEMPLATE/bug_report.md`: under the reproduction section, one line asking for a playground link when the bug is about a classification or a verdict.
 4. Run `pnpm nx build website`: no broken link; check the new page under `/docs/` and `/docs/next/` in both themes at 1440 and 390 px with the screenshots script, and open each button from both.
