@@ -55,7 +55,7 @@ In: the guide page and its sidebar entry, the buttons on the chosen docs pages w
 
 ## Hand-offs
 
-- To phase 9: the list of `screenshots/*` branches created by phases 4 to 8, to delete.
+- To phase 11: the list of `screenshots/*` branches created by phases 4 to 8, to delete.
 
 ## Open points
 
