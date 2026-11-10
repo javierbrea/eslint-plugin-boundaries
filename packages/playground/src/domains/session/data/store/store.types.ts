@@ -20,7 +20,9 @@ export type SessionStore = {
   readonly getState: () => SessionState;
   /** Calls a listener after each change, and returns the function that stops calling it. */
   readonly subscribe: (listener: () => void) => () => void;
-  /** Cancels the evaluation that is waiting out its delay, when the instance goes away. */
+  /** Asks for the evaluation of the sketch, unless the evaluation on screen is of it. The provider calls it once it is mounted, and again after a `dispose` when React mounts it again. */
+  readonly start: () => void;
+  /** Cancels the evaluation that is waiting out its delay and stops the evaluator, when the instance goes away. The next edit or `start` asks for an evaluation again. */
   readonly dispose: () => void;
   /** Opens a target: the focus, the tab of the problems panel and the reveal in the config change together. */
   readonly open: (target: Target) => void;

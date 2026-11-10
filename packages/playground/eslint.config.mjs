@@ -193,6 +193,13 @@ const FILES = [
   { pattern: "src/index.ts", category: "package-entry" },
   // The second entry of the package, `@boundaries/playground/share`, which the docs also run in Node.js
   { pattern: "src/share.ts", category: "share-entry" },
+  // The script of a worker, which runs in its own thread: only the URL of the factory that creates the worker names it
+  { pattern: "src/**/*.worker.ts", category: "worker-entry" },
+  // The code that answers the requests of the evaluation worker, which runs in the worker
+  {
+    pattern: "src/domains/evaluation/helpers/evaluator/serveEvaluations.ts",
+    category: "worker-handler",
+  },
   { pattern: "src/**/*.spec.{ts,tsx}", category: "test" },
   // Page objects, the only code that knows how a component is queried and driven in a test
   { pattern: "src/**/*.pom.ts", category: "pom" },
@@ -323,14 +330,61 @@ const POLICIES = [
     message:
       "Only specs import a mock. Production code and page objects never do",
   },
+  {
+    disallow: { to: { file: { categories: "worker-entry" } } },
+    message:
+      "The script of a worker runs in its own thread: only the factory of the worker names it, through new URL, so that what it imports stays out of the page",
+  },
+  // Only the worker creates an engine, so that the evaluation packages load in the worker and never in the page, which asks the evaluator instead
+  {
+    disallow: { dependency: { specifiers: "createEngine" } },
+    message:
+      "Only serveEvaluations, which runs in the worker, creates an engine: the page asks the evaluator of the store for evaluations, so that @boundaries/* stay out of its chunk",
+  },
+  // The engine itself, which defines it
+  {
+    allow: {
+      dependency: {
+        relationship: { to: "internal" },
+        specifiers: "createEngine",
+      },
+    },
+  },
+  {
+    from: { file: { categories: "worker-handler" } },
+    allow: {
+      to: entryOf("helper"),
+      dependency: { specifiers: "createEngine" },
+    },
+  },
+  {
+    disallow: { to: { file: { categories: "worker-handler" } } },
+    message:
+      "serveEvaluations runs in the worker and creates an engine: only the script of the worker imports it",
+  },
+  {
+    from: { file: { categories: "worker-entry" } },
+    allow: { to: { file: { categories: "worker-handler" } } },
+  },
 
-  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, and the share entry, which its own spec proves in Node.js
+  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, the share entry, which its own spec proves in Node.js, and the script of a worker and the code it runs, which their own specs run
   {
     from: { file: { categories: "test" } },
     allow: {
       to: [
         entryOf(ELEMENT_TYPES),
-        { file: { categories: ["pom", "constants", "mock", "share-entry"] } },
+        {
+          file: {
+            categories: [
+              "pom",
+              "constants",
+              "mock",
+              "share-entry",
+              "worker-entry",
+              "worker-handler",
+            ],
+          },
+        },
       ],
     },
   },

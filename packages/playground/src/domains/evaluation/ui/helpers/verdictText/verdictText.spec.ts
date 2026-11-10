@@ -67,6 +67,7 @@ const NOT_CHECKED_INTERNAL: DependencyVerdict = {
   reason: "internal",
 };
 const NOT_EVALUATED: DependencyVerdict = { status: "not-evaluated" };
+const PENDING: DependencyVerdict = { status: "pending" };
 
 /**
  * Builds the summary of a policy.
@@ -117,6 +118,7 @@ describe("VerdictText", () => {
       ["disallowed by a warning", WARNED_BY_POLICY, "warn"],
       ["not checked", NOT_CHECKED_EXTERNAL, "faint"],
       ["not evaluated", NOT_EVALUATED, "faint"],
+      ["not evaluated yet", PENDING, "faint"],
     ])("should color a dependency %s", (_title, verdict, tone) => {
       // Act
       const result = getVerdictTone(verdict);
@@ -135,6 +137,7 @@ describe("VerdictText", () => {
       ["disallowed by a warning", WARNED_BY_POLICY, "warn"],
       ["not checked", NOT_CHECKED_EXTERNAL, "skip"],
       ["not evaluated", NOT_EVALUATED, "skip"],
+      ["not evaluated yet", PENDING, "skip"],
     ])(
       "should draw a dependency %s with the icon %s",
       (_title, verdict, icon) => {
@@ -203,6 +206,7 @@ describe("VerdictText", () => {
         "not checked · not read",
       ],
       ["not evaluated", NOT_EVALUATED, "not evaluated"],
+      ["not evaluated yet", PENDING, "not evaluated yet"],
     ])("should write a dependency %s", (_title, verdict, label) => {
       // Act
       const result = getVerdictLabel(verdict);

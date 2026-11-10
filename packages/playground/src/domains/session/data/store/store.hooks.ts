@@ -3,8 +3,11 @@ import { useContext, useSyncExternalStore } from "react";
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import type {
   ConfigProblem,
+  DependencyResult,
+  EntityDescription,
   Evaluation,
 } from "@/domains/evaluation/helpers/engine";
+import type { EvaluationStatus } from "@/domains/evaluation/helpers/evaluator";
 import type {
   ConfigReveal,
   Focus,
@@ -15,6 +18,7 @@ import type {
 import { SessionContext } from "./sessionContext";
 import type { SessionContextValue } from "./SessionProvider.types";
 import type { SessionState } from "./sessionState.types";
+import { NO_DESCRIPTIONS, NO_PROBLEMS, NO_RESULTS } from "./store.constants";
 import type { SessionStore } from "./store.types";
 
 /**
@@ -79,19 +83,49 @@ export function useConfig(): string {
 }
 
 /**
- * Reads what the engine says about the sketch.
- * @returns The evaluation.
+ * Reads what the engine says about the sketch, or the last evaluation aligned to it while the evaluation of the sketch is behind it (see {@link useEvaluationStatus}).
+ * @returns The evaluation, or `undefined` until the first one arrives.
  */
-export function useEvaluation(): Evaluation {
+export function useEvaluation(): Evaluation | undefined {
   return useSessionSelector((state) => state.evaluation);
 }
 
 /**
+ * Reads how the evaluation on screen stands to the sketch: current, on its way, late, stopped or failed.
+ * @returns The status.
+ */
+export function useEvaluationStatus(): EvaluationStatus {
+  return useSessionSelector((state) => state.evaluationStatus);
+}
+
+/**
  * Reads the problems of the config, which stay the same array while the config text does not change.
- * @returns The problems of the config.
+ * @returns The problems of the config of the evaluation on screen, and none until the first evaluation arrives.
  */
 export function useConfigProblems(): readonly ConfigProblem[] {
-  return useSessionSelector((state) => state.evaluation.problems);
+  return useSessionSelector(
+    (state) => state.evaluation?.problems ?? NO_PROBLEMS
+  );
+}
+
+/**
+ * Reads the verdict of each dependency of the sketch, as the evaluation on screen gives them.
+ * @returns The dependencies of the evaluation, aligned to the sketch, and none until the first evaluation arrives.
+ */
+export function useDependencyResults(): readonly DependencyResult[] {
+  return useSessionSelector(
+    (state) => state.evaluation?.dependencies ?? NO_RESULTS
+  );
+}
+
+/**
+ * Reads how the plugin describes each file of the sketch, as the evaluation on screen gives them.
+ * @returns The descriptions by path, and none until the first evaluation arrives.
+ */
+export function useFileDescriptions(): ReadonlyMap<string, EntityDescription> {
+  return useSessionSelector(
+    (state) => state.evaluation?.files ?? NO_DESCRIPTIONS
+  );
 }
 
 /**

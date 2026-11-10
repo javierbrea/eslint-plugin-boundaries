@@ -2,11 +2,19 @@
 import { act } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
+import { LATE_AFTER } from "@/domains/evaluation/helpers/evaluator";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
-import { renderInSession } from "@/domains/session/data/store/store.mock";
+import {
+  failEvaluation,
+  releaseEvaluation,
+  renderInSession,
+  waitUntilEvaluationIsLate,
+  waitUntilEvaluationStops,
+} from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
 import type { PolicyHighlight } from "@/domains/session/helpers/focus";
+import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { ProblemsPane } from "./ProblemsPane";
@@ -1084,6 +1092,236 @@ describe("ProblemsPane", () => {
         expect(pane.detail.verdictText).toBe("allowed · policy 1");
         expect(pane.panel.tab(/line 3/).icon.pathData).toBe(ICON_PATHS.check);
       });
+    });
+  });
+
+  describe("before the first evaluation", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      holdInlineWorkers();
+    });
+
+    it("should say nothing about the evaluation while it is not late, and show the body in full", () => {
+      // Arrange
+      const { pane } = renderPane(MISTAKES);
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(getTabs(pane)).toEqual(["Project*"]);
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+    });
+
+    it("should not say that the project has no problems, which it does not know yet, and say it once the evaluation arrives", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      waitUntilEvaluationIsLate();
+      const listedBefore = pane.list.isRendered;
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(listedBefore).toBe(false);
+      expect(pane.list.emptyText).toBe("No problems in the project.");
+    });
+
+    it("should say that the project is being evaluated once the evaluation is late, and show the body in full", () => {
+      // Arrange
+      const { pane } = renderPane(MISTAKES);
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual(["Evaluating the project…"]);
+      expect(pane.tabPanel.noticeOpacities).toEqual([1]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+    });
+
+    it("should say that the evaluation was stopped when it takes longer than the limit, and show the body in full", () => {
+      // Arrange
+      const { pane } = renderPane(MISTAKES);
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([
+        "The evaluation took longer than 30 seconds and was stopped. Edit the project to evaluate it again.",
+      ]);
+      expect(pane.tabPanel.noticeOpacities).toEqual([1]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+    });
+
+    it("should say that the evaluation could not run when its worker fails, and show the body in full", () => {
+      // Arrange
+      const { pane } = renderPane(MISTAKES);
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([
+        "The evaluation could not run. Edit the project to try again.",
+      ]);
+      expect(pane.tabPanel.noticeOpacities).toEqual([1]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+    });
+
+    it("should list the problems of the evaluation, and drop the notice, when it arrives", () => {
+      // Arrange
+      const { pane } = renderPane(MISTAKES);
+      waitUntilEvaluationIsLate();
+      const whileLate = pane.tabPanel.noticeTexts;
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(whileLate).toEqual(["Evaluating the project…"]);
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(getTabs(pane)).toEqual(["Project2*"]);
+    });
+  });
+
+  describe("an evaluation that is out of date", () => {
+    /**
+     * Renders the pane with the evaluation of a sketch whose config has mistakes, and then removes a node while the worker holds the request of the new sketch.
+     * @returns The render of the pane.
+     */
+    function renderOutOfDate(): PaneRender {
+      jest.useFakeTimers();
+
+      const render = renderPane(MISTAKES);
+
+      holdInlineWorkers();
+      act(() => render.store.removeNode(FILE));
+      return render;
+    }
+
+    it("should keep the body in full, with no notice, while a newer evaluation is on its way and not late", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+      expect(getTabs(pane)).toEqual(["Project2*"]);
+    });
+
+    it("should fade the body, with no notice, once the evaluation is late", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(pane.tabPanel.bodyOpacity).toBe(0.5);
+      expect(pane.tabPanel.bodyText).toContain("Invalid rule options.");
+    });
+
+    it("should fade the body, and say above it that the evaluation was stopped", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([
+        "The evaluation took longer than 30 seconds and was stopped. Edit the project to evaluate it again.",
+      ]);
+      expect(pane.tabPanel.noticeOpacities).toEqual([1]);
+      expect(pane.tabPanel.bodyOpacity).toBe(0.5);
+    });
+
+    it("should fade the body, and say above it that the evaluation could not run", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(pane.tabPanel.noticeTexts).toEqual([
+        "The evaluation could not run. Edit the project to try again.",
+      ]);
+      expect(pane.tabPanel.noticeOpacities).toEqual([1]);
+      expect(pane.tabPanel.bodyOpacity).toBe(0.5);
+    });
+
+    it("should keep the notes of the tab inside the body, apart from the notice", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.tabPanel.bodyText).toContain(NOTE_TEXT);
+      expect(pane.tabPanel.noticeTexts).not.toContain(NOTE_TEXT);
+      expect(pane.noteCount).toBe(2);
+    });
+
+    it("should fade the body of the file in focus, and keep its tabs in full", () => {
+      // Arrange
+      const { pane, store } = renderOutOfDate();
+      act(() => store.open({ kind: "file", path: FORMAT }));
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(getTabs(pane)).toEqual(["Project2", "format/index.js*"]);
+      expect(pane.tabPanel.bodyOpacity).toBe(0.5);
+      expect(pane.tabs.map((tab) => tab.opacity)).toEqual([1, 1]);
+    });
+
+    it("should show the body in full, and drop the notice, when the evaluation arrives", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+      waitUntilEvaluationIsLate();
+      const whileLate = pane.tabPanel.bodyOpacity;
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(whileLate).toBe(0.5);
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
+    });
+
+    it("should drop the notice of a stopped evaluation and keep the body faded when the sketch is edited again, until the new evaluation arrives", () => {
+      // Arrange
+      const { pane, store } = renderOutOfDate();
+      waitUntilEvaluationStops();
+
+      // Act
+      act(() => store.removeNode(FORMAT));
+      const whileWaiting = [
+        pane.tabPanel.noticeTexts,
+        pane.tabPanel.bodyOpacity,
+      ];
+      releaseEvaluation();
+
+      // Assert
+      expect(whileWaiting).toEqual([[], 0.5]);
+      expect(pane.tabPanel.noticeTexts).toEqual([]);
+      expect(pane.tabPanel.bodyOpacity).toBe(1);
     });
   });
 

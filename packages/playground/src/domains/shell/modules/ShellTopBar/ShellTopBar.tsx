@@ -1,13 +1,16 @@
 import { useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { getEvaluationStatusText } from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import { EXAMPLES } from "@/domains/examples/data/examples";
 import type { Example } from "@/domains/examples/data/examples";
 import { useCurrentExample } from "@/domains/examples/modules/hooks/useCurrentExample";
 import { ExamplePicker } from "@/domains/examples/ui/atoms/ExamplePicker";
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
+import { getFiles } from "@/domains/project/helpers/sketch";
 import {
   useCapabilities,
+  useEvaluationStatus,
   useSessionSelector,
   useSessionStore,
 } from "@/domains/session/data/store";
@@ -21,7 +24,7 @@ import { SHELL_TOP_BAR_TEST_ID } from "./ShellTopBar.constants";
 import type { ShellTopBarProps } from "./ShellTopBar.types";
 
 /**
- * The top bar of the instance: the numbers of the store (how many files and dependencies the sketch has and how many problems), the picker of examples, and Help, Reset and Share. It hands the host the sketch on screen when the user asks to reset or to open an example, and the help is the only thing it keeps, which is whether its dialog is open.
+ * The top bar of the instance: the numbers of the store (how many files and dependencies the sketch has and how many problems, or how the evaluation goes when it is late, stopped or failed), the picker of examples, and Help, Reset and Share. It hands the host the sketch on screen when the user asks to reset or to open an example, and the help is the only thing it keeps, which is whether its dialog is open.
  * @param props ShellTopBar props.
  * @param props.quickStartUrl The URL of the Quick start guide, if the host has one.
  * @param props.onReset Called with the sketch on screen when the user asks to reset it.
@@ -38,10 +41,15 @@ export function ShellTopBar({
   initialFocus,
 }: Readonly<ShellTopBarProps>): ReactNode {
   const store = useSessionStore();
-  const files = useSessionSelector((state) => state.evaluation.files.size);
+  // The numbers of the sketch on screen, which the status shows at once, while the problems come with its evaluation
+  const files = useSessionSelector((state) => getFiles(state.sketch).length);
   const dependencies = useSessionSelector(
-    (state) => state.evaluation.sketch.dependencies.length
+    (state) => state.sketch.dependencies.length
   );
+  const hasEvaluation = useSessionSelector(
+    (state) => state.evaluation !== undefined
+  );
+  const evaluationStatus = useEvaluationStatus();
   const { total, hasErrors, configHasErrors } = useProblemSummary();
   const { editTree, editDependencies, editConfig } = useCapabilities();
   const currentExample = useCurrentExample();
@@ -73,9 +81,10 @@ export function ShellTopBar({
       <TopBar
         files={files}
         dependencies={dependencies}
-        problems={total}
+        problems={hasEvaluation ? total : undefined}
         tone={getCountTone(hasErrors)}
         configHasErrors={configHasErrors}
+        evaluation={getEvaluationStatusText(evaluationStatus)}
         start={
           canOpenExamples ? (
             <ExamplePicker

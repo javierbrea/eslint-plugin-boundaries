@@ -71,8 +71,16 @@ class VerdictPom extends Pom {
   }
 
   /**
+   * How visible the verdict is, which fades while it is of an evaluation that is out of date.
+   * @returns The computed `opacity`: `1`, or `0.5` while it is faded.
+   */
+  get opacity(): string {
+    return getComputedStyle(this.root).opacity;
+  }
+
+  /**
    * The icon of the verdict.
-   * @returns The page object of the icon.
+   * @returns The page object of the icon, which is not rendered when the verdict has none.
    */
   get icon(): IconPom {
     return this.childPom(IconPom);

@@ -4,10 +4,18 @@ import type { RenderResult } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
+import {
+  EVALUATION_TIME_LIMIT,
+  LATE_AFTER,
+} from "@/domains/evaluation/helpers/evaluator";
+import {
+  failInlineWorkers,
+  releaseInlineWorkers,
+} from "@/shared/testing/inlineWorker";
 
 import { SessionProvider } from "./SessionProvider";
 import { EVALUATION_DELAY } from "./store.constants";
-import { useSessionStore } from "./store.hooks";
+import { useSessionSelector, useSessionStore } from "./store.hooks";
 import type { SessionStore } from "./store.types";
 
 /** Everything can be edited, as on the website. */
@@ -97,14 +105,14 @@ export const HOOK_SKETCH: Sketch = {
 export type HookRender<Result> = {
   /** The store that the provider created. */
   readonly store: SessionStore;
-  /** What the hook returned in each render, in order. */
+  /** What the hook returned in each render, in order, from the first one that had an evaluation. The renders before it, which the provider makes before its effect asks for the evaluation of the sketch, are left out, so that the first result is the one of the sketch as the panes show it. */
   readonly results: Result[];
   /** What the hook returned in the last render. */
   readonly result: { readonly current: Result };
 };
 
 /**
- * Renders a hook inside a provider that has a store, so that a spec can drive the store as another pane would.
+ * Renders a hook inside a provider that has a store, so that a spec can drive the store as another pane would. The workers of the specs answer at once, so the evaluation of the sketch has arrived when it returns.
  * @param useHook The hook, or a function that calls several.
  * @param sketch The sketch the store starts from; {@link HOOK_SKETCH} when it is unset.
  * @returns The store and what the hook returned.
@@ -120,7 +128,14 @@ export function renderHookInSession<Result>(
    * @returns Nothing to render.
    */
   function Probe(): null {
-    results.push(useHook());
+    const result = useHook();
+    const isEvaluated = useSessionSelector(
+      (state) => state.evaluation !== undefined
+    );
+
+    if (isEvaluated) {
+      results.push(result);
+    }
     return null;
   }
 
@@ -142,4 +157,32 @@ export function renderHookInSession<Result>(
  */
 export function waitForEvaluation(): void {
   act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
+}
+
+/**
+ * Advances the fake clock until the evaluator that holds a request reports that it is late, inside `act` so that the panes render the status. The spec uses `jest.useFakeTimers()` before it renders, and `holdInlineWorkers()` before the request.
+ */
+export function waitUntilEvaluationIsLate(): void {
+  act(() => jest.advanceTimersByTime(LATE_AFTER));
+}
+
+/**
+ * Advances the fake clock until the evaluator that holds a request stops it for taking too long, inside `act` so that the panes render the status. The spec uses `jest.useFakeTimers()` before it renders, and `holdInlineWorkers()` before the request.
+ */
+export function waitUntilEvaluationStops(): void {
+  act(() => jest.advanceTimersByTime(EVALUATION_TIME_LIMIT));
+}
+
+/**
+ * Makes the workers that hold a request fail, as a script that throws or cannot load, inside `act` so that the panes render the status.
+ */
+export function failEvaluation(): void {
+  act(() => failInlineWorkers());
+}
+
+/**
+ * Lets the workers answer the requests that they hold, inside `act` so that the panes render the evaluation.
+ */
+export function releaseEvaluation(): void {
+  act(() => releaseInlineWorkers());
 }

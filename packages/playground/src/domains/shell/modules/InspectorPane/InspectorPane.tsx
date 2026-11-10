@@ -3,16 +3,26 @@ import type { ReactNode } from "react";
 
 import { ConfigInspector } from "@/domains/config/ui/molecules/ConfigInspector";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import {
+  getEvaluationNote,
+  isEvaluationDimmed,
+} from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import type {
   InspectorOpenPlaces,
   InspectorPlace,
 } from "@/domains/files/ui/helpers/inspectorPlaces";
 import { FileInspector } from "@/domains/files/ui/organisms/FileInspector";
 import { ProjectSummary } from "@/domains/project/ui/molecules/ProjectSummary";
-import { useEvaluation, useFocus, useOpen } from "@/domains/session/data/store";
+import {
+  useEvaluation,
+  useEvaluationStatus,
+  useFocus,
+  useOpen,
+} from "@/domains/session/data/store";
 import { getFocusedPath } from "@/domains/session/helpers/focus";
 import type { Focus, Target } from "@/domains/session/helpers/focus";
 import { InspectorLayout } from "@/domains/shell/ui/templates/InspectorLayout";
+import { Note } from "@/ui-kit/molecules/Note";
 
 import { useOpenPlaces } from "./hooks/useOpenPlaces";
 import { INSPECTOR_PANE_TEST_ID } from "./InspectorPane.constants";
@@ -71,17 +81,31 @@ function InspectorContent({
 }
 
 /**
- * The inspector of the instance: it describes what is in focus, from the evaluation of the store. A file shows how the plugin describes it and, when one of its dependencies is in focus, what that dependency points to and the dependency itself. The config lists its entries, and nothing in focus shows the numbers of the sketch. A row of the config inspector opens the config at its entry. The sections and the boxes that the user folds or opens are kept here, so that they stay as they are while the pane is mounted, whichever file or dependency is in focus.
+ * The inspector of the instance: it describes what is in focus, from the evaluation of the store. A file shows how the plugin describes it and, when one of its dependencies is in focus, what that dependency points to and the dependency itself. The config lists its entries, and nothing in focus shows the numbers of the sketch. A row of the config inspector opens the config at its entry. The sections and the boxes that the user folds or opens are kept here, so that they stay as they are while the pane is mounted, whichever file or dependency is in focus. Before the first evaluation arrives it describes nothing, and says so once the evaluation is late, stopped or failed; afterwards, what it describes fades while the evaluation on screen is out of date and late, stopped or failed.
  * @returns The inspector.
  */
 function InspectorPaneContent(): ReactNode {
   const openNode = useFocus();
   const evaluation = useEvaluation();
+  const evaluationStatus = useEvaluationStatus();
   const openTarget = useOpen();
   const { openPlaces, onToggle } = useOpenPlaces();
 
+  if (evaluation === undefined) {
+    const note = getEvaluationNote(evaluationStatus, false);
+
+    return (
+      <InspectorLayout testId={INSPECTOR_PANE_TEST_ID}>
+        {note === undefined ? null : <Note>{note}</Note>}
+      </InspectorLayout>
+    );
+  }
+
   return (
-    <InspectorLayout testId={INSPECTOR_PANE_TEST_ID}>
+    <InspectorLayout
+      dimmed={isEvaluationDimmed(evaluationStatus)}
+      testId={INSPECTOR_PANE_TEST_ID}
+    >
       <InspectorContent
         focus={openNode}
         evaluation={evaluation}
@@ -93,5 +117,5 @@ function InspectorPaneContent(): ReactNode {
   );
 }
 
-/** The inspector pane. It reads the store, so it renders again only when the focus or the evaluation changes. */
+/** The inspector pane. It reads the store, so it renders again only when the focus, the evaluation or its status changes. */
 export const InspectorPane = memo(InspectorPaneContent);

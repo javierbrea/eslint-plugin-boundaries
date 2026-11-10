@@ -1,4 +1,5 @@
 import type { Sketch } from "@/contract";
+import { alignEvaluation } from "@/domains/evaluation/helpers/alignEvaluation";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type {
   DependencyDescription,
@@ -653,6 +654,56 @@ describe("FileInspector", () => {
 
       // Assert
       expect(summary).toBe("line 4");
+    });
+  });
+
+  describe("a dependency that no evaluation has decided yet in focus", () => {
+    const ADDED_INDEX = 4;
+    const PENDING = alignEvaluation(EVALUATION, {
+      ...QUICK_START,
+      dependencies: [
+        ...QUICK_START.dependencies,
+        {
+          from: FILE,
+          target: { kind: "external", name: "lodash" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [{ kind: "default", name: "lodash" }],
+        },
+      ],
+    });
+
+    it("should read its target and its line in rows", () => {
+      // Arrange
+      const inspector = renderInspector(FILE, {
+        evaluation: PENDING,
+        dependencyIndex: ADDED_INDEX,
+      });
+
+      // Act
+      const { rows, sectionNames } = inspector;
+
+      // Assert
+      expect(sectionNames).toEqual(["from"]);
+      expect(rows.rows).toEqual([
+        { label: "to", text: "lodash" },
+        { label: "dependency", text: "line 5" },
+      ]);
+    });
+
+    it("should not say that the plugin does not read it", () => {
+      // Arrange
+      const inspector = renderInspector(FILE, {
+        evaluation: PENDING,
+        dependencyIndex: ADDED_INDEX,
+      });
+
+      // Act
+      const { isRendered } = inspector.note;
+
+      // Assert
+      expect(isRendered).toBe(false);
+      expect(inspector.hint).toBeNull();
     });
   });
 

@@ -49,7 +49,7 @@ const Remark = styled(Note)({ margin: "4px 0 0 20px" });
 /**
  * What the inspector shows for a file and, when one of its dependencies is in focus, for that dependency. Three sections are named as the keys of a policy. `from` is the open file: its path, how many dependencies it has and what the engine decided about them, and the boxes `element`, `file` and `module` of how the plugin describes it. `to` is what the dependency in focus points to, with the same boxes: its header is the path of the file, or the name of the external module. `dependency` is the dependency itself, with the line of its header, in one box with the properties of a dependency selector. Every section and every box folds, and what is open is the owner's to keep, by place.
  *
- * With no dependency in focus, `to` and `dependency` read a dash and a hint says to click a line. A dependency that the plugin does not read has no description, so `to` and `dependency` read their target and their line, and a note says why the plugin does not check it. A file that the evaluation does not know, such as one that an edit just removed, has its path only.
+ * With no dependency in focus, `to` and `dependency` read a dash and a hint says to click a line. A dependency that the plugin does not read has no description, so `to` and `dependency` read their target and their line, and a note says why the plugin does not check it; a dependency that no evaluation has decided yet reads the same, with no note. A file that the evaluation does not know, such as one that an edit just removed, has its path only.
  * @param props FileInspector props.
  * @param props.path Path of the file in focus.
  * @param props.evaluation What the engine says about the sketch.
@@ -109,7 +109,12 @@ export function FileInspector({
               { label: "dependency", text: line, tone: "muted" },
             ]}
           />
-          <Remark>{getSkipReasonSentence("not-read")}</Remark>
+          {
+            // A dependency that no evaluation has decided yet has no description either, and nothing is known of it
+            result.verdict.status === "pending" ? null : (
+              <Remark>{getSkipReasonSentence("not-read")}</Remark>
+            )
+          }
         </div>
       );
     } else {

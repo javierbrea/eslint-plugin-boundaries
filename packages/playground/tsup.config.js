@@ -1,13 +1,15 @@
 import { defineConfig } from "tsup";
 
-// A library build: tsup keeps the dependencies and peer dependencies as imports, and each host bundles them. `share` is the light second entry of the docs: it reaches only helpers, and with no code splitting its file carries what it needs and imports no React or MUI
+// A library build: tsup keeps the dependencies and peer dependencies as imports, and each host bundles them. `share` is the light second entry of the docs: it reaches only helpers, and with no code splitting its file carries what it needs and imports no React or MUI. `evaluation.worker` is the script of the worker that evaluates sketches: the code of `index` names it as `./evaluation.worker.js` beside itself, and the bundler of each host makes it a chunk of its own, which carries the engine and the `@boundaries/*` packages. It exports nothing, so it has no types
 export default defineConfig({
   entry: {
     index: "src/index.ts",
     share: "src/share.ts",
+    "evaluation.worker":
+      "src/domains/evaluation/helpers/evaluator/evaluation.worker.ts",
   },
   format: ["esm"],
-  dts: true,
+  dts: { entry: { index: "src/index.ts", share: "src/share.ts" } },
   clean: true,
   outDir: "dist",
   platform: "browser",

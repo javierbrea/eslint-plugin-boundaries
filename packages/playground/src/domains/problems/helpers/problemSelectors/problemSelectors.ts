@@ -44,6 +44,13 @@ const NO_CONFIG_PROBLEMS: readonly ConfigProblem[] = [];
 /** No failing dependencies to list: the same array each time, as for the lines of text mode. */
 const NO_FAILING_DEPENDENCIES: readonly FailingDependency[] = [];
 
+/** What the lists read before the first evaluation arrives: no problem of the config and no verdict. */
+const NO_EVALUATION: Omit<ProblemEvaluation, "sketch"> = {
+  problems: NO_CONFIG_PROBLEMS,
+  dependencies: [],
+  notEvaluated: undefined,
+};
+
 /** The failing dependencies per path when there are none: the same map each time, so that a count that changes does not change it. */
 const NO_PATH_COUNTS: ProblemCounts["byPath"] = new Map();
 
@@ -426,7 +433,7 @@ export function getProblemList({
   textProblems,
   highlight,
 }: ProblemListInputs): ProblemListFacts {
-  const { problems, dependencies, notEvaluated } = evaluation;
+  const { problems, dependencies, notEvaluated } = evaluation ?? NO_EVALUATION;
   const failing = getFailingDependencies(dependencies);
 
   if (tab === "sketch" || openNode.kind === "none") {
@@ -451,7 +458,9 @@ export function getProblemList({
   }
 
   const detail =
-    tab === "dependency" && openNode.kind === "dependency"
+    evaluation !== undefined &&
+    tab === "dependency" &&
+    openNode.kind === "dependency"
       ? getDependencyDetail(evaluation, {
           path: openNode.path,
           index: openNode.index,

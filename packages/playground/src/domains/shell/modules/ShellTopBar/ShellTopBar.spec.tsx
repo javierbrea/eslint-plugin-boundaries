@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
+import { LATE_AFTER } from "@/domains/evaluation/helpers/evaluator";
 import {
   EXAMPLES,
   QUICK_START_EXAMPLE,
@@ -9,13 +10,18 @@ import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import {
   ALL_CAPABILITIES,
   NO_CAPABILITIES,
+  failEvaluation,
+  releaseEvaluation,
   renderInSession,
+  waitUntilEvaluationIsLate,
+  waitUntilEvaluationStops,
 } from "@/domains/session/data/store/store.mock";
 import { LONG_LINK_LENGTH } from "@/domains/share/helpers/sketchHash";
 import {
   SHARE_COPIED_DURATION,
   SHARE_LONG_DURATION,
 } from "@/domains/share/modules/hooks/useShareLink";
+import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { ShellTopBar } from "./ShellTopBar";
@@ -196,6 +202,187 @@ describe("ShellTopBar", () => {
     expect(bar.bar.statusText).toBe(
       "6 files · 9 dependencies · config has errors"
     );
+  });
+
+  describe("before the first evaluation", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      holdInlineWorkers();
+    });
+
+    it("should say how many files and dependencies the sketch has, and nothing about the problems", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 9 dependencies");
+      expect(bar.bar.hasProblems).toBe(false);
+      expect(bar.bar.dotColor).toBe("var(--jsb-faint)");
+    });
+
+    it("should count the files and the dependencies again at once after an edit", () => {
+      // Arrange
+      const { bar, store } = renderBar();
+
+      // Act
+      act(() => store.removeDependency({ path: "src/index.js", index: 0 }));
+      const afterDependency = bar.bar.statusText;
+      act(() => store.removeNode("src/modules/checkout/index.js"));
+
+      // Assert
+      expect(afterDependency).toBe("6 files · 8 dependencies");
+      expect(bar.bar.statusText).toBe("5 files · 4 dependencies");
+    });
+
+    it("should say that the project is being evaluated once the evaluation is late", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 9 dependencies · evaluating…");
+      expect(bar.bar.problemsColor).toBe("var(--jsb-muted)");
+      expect(bar.bar.dotColor).toBe("var(--jsb-faint)");
+    });
+
+    it("should say that the evaluation was stopped when it takes longer than the limit", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(bar.bar.statusText).toBe(
+        "6 files · 9 dependencies · evaluation stopped"
+      );
+      expect(bar.bar.problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
+      expect(bar.bar.dotColor).toBe("var(--jsb-warn)");
+    });
+
+    it("should say that the evaluation failed when its worker fails", () => {
+      // Arrange
+      const { bar } = renderBar();
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(bar.bar.statusText).toBe(
+        "6 files · 9 dependencies · evaluation failed"
+      );
+      expect(bar.bar.problemsColor).toBe(
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
+      );
+      expect(bar.bar.dotColor).toBe("var(--jsb-bad)");
+    });
+
+    it("should count the problems when the evaluation arrives", () => {
+      // Arrange
+      const { bar } = renderBar();
+      waitUntilEvaluationIsLate();
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 9 dependencies · 2 problems");
+      expect(bar.bar.dotColor).toBe("var(--jsb-ok)");
+    });
+  });
+
+  describe("an evaluation that is out of date", () => {
+    /**
+     * Renders the bar with the evaluation of the sketch, and then removes a dependency while the worker holds the request of the new sketch.
+     * @returns The page object of the bar and the store.
+     */
+    function renderOutOfDate(): ReturnType<typeof renderBar> {
+      jest.useFakeTimers();
+
+      const render = renderBar();
+
+      holdInlineWorkers();
+      act(() =>
+        render.store.removeDependency({ path: "src/index.js", index: 0 })
+      );
+      return render;
+    }
+
+    it("should count the new sketch at once, and keep saying the problems while the evaluation is not late", () => {
+      // Arrange
+      const { bar } = renderOutOfDate();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 8 dependencies · 2 problems");
+      expect(bar.bar.dotColor).toBe("var(--jsb-ok)");
+    });
+
+    it("should say that the project is being evaluated in place of the problems once the evaluation is late", () => {
+      // Arrange
+      const { bar } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 8 dependencies · evaluating…");
+      expect(bar.bar.dotColor).toBe("var(--jsb-faint)");
+    });
+
+    it("should say that the evaluation was stopped in place of the problems", () => {
+      // Arrange
+      const { bar } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(bar.bar.statusText).toBe(
+        "6 files · 8 dependencies · evaluation stopped"
+      );
+      expect(bar.bar.dotColor).toBe("var(--jsb-warn)");
+    });
+
+    it("should say that the evaluation failed in place of the problems", () => {
+      // Arrange
+      const { bar } = renderOutOfDate();
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(bar.bar.statusText).toBe(
+        "6 files · 8 dependencies · evaluation failed"
+      );
+      expect(bar.bar.dotColor).toBe("var(--jsb-bad)");
+    });
+
+    it("should say the problems again when the evaluation arrives", () => {
+      // Arrange
+      const { bar } = renderOutOfDate();
+      waitUntilEvaluationIsLate();
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(bar.bar.statusText).toBe("6 files · 8 dependencies · 2 problems");
+      expect(bar.bar.dotColor).toBe("var(--jsb-ok)");
+    });
   });
 
   describe("the picker of examples", () => {

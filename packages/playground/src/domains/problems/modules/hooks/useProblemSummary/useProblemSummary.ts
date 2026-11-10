@@ -5,7 +5,7 @@ import type { ProblemSummary } from "@/domains/problems/helpers/problemSelectors
 import { useTextProblems } from "@/domains/problems/modules/hooks/useTextProblems";
 import {
   useConfigProblems,
-  useSessionSelector,
+  useDependencyResults,
 } from "@/domains/session/data/store";
 
 /**
@@ -15,9 +15,7 @@ import {
 export function useProblemSummary(): ProblemSummary {
   const problems = useConfigProblems();
   const textProblems = useTextProblems();
-  const dependencies = useSessionSelector(
-    (state) => state.evaluation.dependencies
-  );
+  const dependencies = useDependencyResults();
 
   return useMemo(
     () => summarizeProblems(problems, textProblems, dependencies),

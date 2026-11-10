@@ -227,6 +227,10 @@ export type DependencyVerdict =
   | {
       /** No dependency of the sketch is evaluated: `Evaluation.notEvaluated` says why */
       readonly status: "not-evaluated";
+    }
+  | {
+      /** No evaluation has decided it yet: it is newer than the evaluation on screen, which `alignEvaluation` gives the dependencies of a newer sketch. The engine never returns it */
+      readonly status: "pending";
     };
 
 /** The verdict of a dependency that the rule disallows, as an error or as a warning */
@@ -269,6 +273,7 @@ export type PolicySummary = {
 
 /** What the engine says about a sketch */
 export type Evaluation = {
+  /** The sketch that was evaluated, whose config text the ranges point into. An evaluation aligned to a newer sketch keeps it, while its dependencies and its files follow the newer sketch */
   readonly sketch: Sketch;
   readonly configParsed: boolean;
   /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node */

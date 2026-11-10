@@ -87,8 +87,8 @@ describe("useProblemCounts", () => {
     // Assert
     const [first, last] = [results[0], results[results.length - 1]];
 
-    expect(last.evaluation.dependencies).not.toBe(
-      first.evaluation.dependencies
+    expect(last.evaluation?.dependencies).not.toBe(
+      first.evaluation?.dependencies
     );
     expect(last.counts).toBe(first.counts);
   });

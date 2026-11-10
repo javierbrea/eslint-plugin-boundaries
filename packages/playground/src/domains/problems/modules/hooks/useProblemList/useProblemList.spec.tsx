@@ -4,6 +4,7 @@ import type {
   DependencyResult,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import type {
   ProblemListFacts,
@@ -264,8 +265,9 @@ describe("useProblemList", () => {
         useProblemList,
         QUICK_START_EXAMPLE.sketch
       );
+      // The engine gives the same ranges for the config of the sketch as the worker does
       const range = getPolicyRange(
-        store.getState().evaluation.dependencies,
+        createEngine().evaluate(QUICK_START_EXAMPLE.sketch).dependencies,
         CHECKOUT,
         2
       );

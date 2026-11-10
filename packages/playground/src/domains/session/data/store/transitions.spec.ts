@@ -1,4 +1,4 @@
-import type { Sketch, SketchDependency } from "@/contract";
+import type { ProjectCapabilities, Sketch, SketchDependency } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type {
   Evaluation,
@@ -62,13 +62,32 @@ const TREE_LOCKED = { ...ALL_CAPABILITIES, editTree: false };
 const CONFIG_LOCKED = { ...ALL_CAPABILITIES, editConfig: false };
 
 /**
+ * Creates the state of an instance whose first evaluation has arrived, as the store keeps it.
+ * @param sketch The sketch.
+ * @param evaluation Its evaluation.
+ * @param capabilities What the user can change.
+ * @returns The state.
+ */
+function createEvaluatedState(
+  sketch: Sketch,
+  evaluation: Evaluation,
+  capabilities: ProjectCapabilities
+): SessionState {
+  return setEvaluation(
+    createSessionState(sketch, capabilities),
+    evaluation,
+    "current"
+  );
+}
+
+/**
  * Creates a session state for the sketch of the spec.
  * @param overrides What differs from the first state.
  * @returns The state.
  */
 function createState(overrides: Partial<SessionState> = {}): SessionState {
   return {
-    ...createSessionState(SKETCH, EVALUATION, ALL_CAPABILITIES),
+    ...createEvaluatedState(SKETCH, EVALUATION, ALL_CAPABILITIES),
     ...overrides,
   };
 }
@@ -156,7 +175,7 @@ function createDependencyState(
   overrides: Partial<SessionState> = {}
 ): SessionState {
   return {
-    ...createSessionState(
+    ...createEvaluatedState(
       DEPENDENCY_SKETCH,
       DEPENDENCY_EVALUATION,
       ALL_CAPABILITIES
@@ -189,14 +208,15 @@ function getEdges(state: SessionState): string[] {
 
 describe("Transitions", () => {
   describe("createSessionState", () => {
-    it("should start with nothing in focus, the tree with every folder open and the sketch tab", () => {
+    it("should start with nothing in focus, the tree with every folder open and the sketch tab, and the evaluation on its way", () => {
       // Act
-      const state = createSessionState(SKETCH, EVALUATION, ALL_CAPABILITIES);
+      const state = createSessionState(SKETCH, ALL_CAPABILITIES);
 
       // Assert
       expect(state).toEqual({
         sketch: SKETCH,
-        evaluation: EVALUATION,
+        evaluation: undefined,
+        evaluationStatus: "pending",
         capabilities: ALL_CAPABILITIES,
         focus: { kind: "none" },
         tab: "sketch",
@@ -212,13 +232,12 @@ describe("Transitions", () => {
       });
     });
 
-    it("should keep the sketch, the evaluation and the capabilities it is given", () => {
+    it("should keep the sketch and the capabilities it is given", () => {
       // Act
-      const state = createSessionState(SKETCH, EVALUATION, TREE_LOCKED);
+      const state = createSessionState(SKETCH, TREE_LOCKED);
 
       // Assert
       expect(state.sketch).toBe(SKETCH);
-      expect(state.evaluation).toBe(EVALUATION);
       expect(state.capabilities).toBe(TREE_LOCKED);
     });
   });
@@ -1742,7 +1761,7 @@ describe("Transitions", () => {
         };
 
         return {
-          ...createSessionState(
+          ...createEvaluatedState(
             sketch,
             createEngine().evaluate(sketch),
             ALL_CAPABILITIES
@@ -2158,7 +2177,7 @@ describe("Transitions", () => {
       // Act
       const selected = selectTab(opened, "sketch");
       const typed = changeConfig(selected, "{ settings: {}, rules: {}, }");
-      const evaluated = setEvaluation(typed, EVALUATION);
+      const evaluated = setEvaluation(typed, EVALUATION, "current");
 
       // Assert
       expect(evaluated.highlight).toBe(opened.highlight);
@@ -2478,7 +2497,7 @@ describe("Transitions", () => {
         const edited = changeConfig(createOpened(), EDITED_CONFIG, MOVED);
 
         // Act
-        const state = setEvaluation(edited, EDITED_EVALUATION);
+        const state = setEvaluation(edited, EDITED_EVALUATION, "current");
 
         // Assert
         expect(state.highlight).toEqual({
@@ -2498,7 +2517,8 @@ describe("Transitions", () => {
         // Act
         const state = setEvaluation(
           changeConfig(before, POLICY_CONFIG, DEFAULT.range),
-          createEngine().evaluate({ ...POLICY_SKETCH })
+          createEngine().evaluate({ ...POLICY_SKETCH }),
+          "current"
         );
 
         // Assert
@@ -2513,7 +2533,7 @@ describe("Transitions", () => {
         });
 
         // Act
-        const state = setEvaluation(edited, EDITED_EVALUATION);
+        const state = setEvaluation(edited, EDITED_EVALUATION, "current");
 
         // Assert
         expect(state.highlight).toEqual({
@@ -2530,14 +2550,16 @@ describe("Transitions", () => {
             ...MOVED,
             from: MOVED.from + 1,
           }),
-          EDITED_EVALUATION
+          EDITED_EVALUATION,
+          "current"
         );
         const restored = changeConfig(lost, EDITED_CONFIG, MOVED);
 
         // Act
         const state = setEvaluation(
           restored,
-          createEngine().evaluate({ ...SKETCH, config: EDITED_CONFIG })
+          createEngine().evaluate({ ...SKETCH, config: EDITED_CONFIG }),
+          "current"
         );
 
         // Assert
@@ -2551,7 +2573,8 @@ describe("Transitions", () => {
         // Act
         const state = setEvaluation(
           edited,
-          createEngine().evaluate({ ...SKETCH, config: "{}" })
+          createEngine().evaluate({ ...SKETCH, config: "{}" }),
+          "current"
         );
 
         // Assert
@@ -2574,7 +2597,7 @@ describe("Transitions", () => {
         });
 
         // Act
-        const state = setEvaluation(edited, behind);
+        const state = setEvaluation(edited, behind, "current");
 
         // Assert
         expect(state.evaluation).toBe(behind);
@@ -2589,7 +2612,8 @@ describe("Transitions", () => {
         // Act
         const state = setEvaluation(
           before,
-          createEngine().evaluate({ ...POLICY_SKETCH })
+          createEngine().evaluate({ ...POLICY_SKETCH }),
+          "current"
         );
 
         // Assert
@@ -2600,7 +2624,8 @@ describe("Transitions", () => {
         // Act
         const state = setEvaluation(
           createOpened({ highlight: undefined }),
-          createEngine().evaluate({ ...POLICY_SKETCH })
+          createEngine().evaluate({ ...POLICY_SKETCH }),
+          "current"
         );
 
         // Assert
@@ -3784,7 +3809,7 @@ describe("Transitions", () => {
       const sketch: Sketch = { ...SKETCH, dependencies };
 
       return {
-        ...createSessionState(
+        ...createEvaluatedState(
           sketch,
           createEngine().evaluate(sketch),
           ALL_CAPABILITIES
@@ -4764,26 +4789,67 @@ describe("Transitions", () => {
   });
 
   describe("setEvaluation", () => {
-    it("should keep a new evaluation", () => {
+    it("should keep a new evaluation and its status", () => {
       // Arrange
       const evaluation = createEngine().evaluate({ ...SKETCH, config: "{}" });
 
       // Act
-      const state = setEvaluation(createState(), evaluation);
+      const state = setEvaluation(createState(), evaluation, "pending");
 
       // Assert
       expect(state.evaluation).toBe(evaluation);
+      expect(state.evaluationStatus).toBe("pending");
     });
 
-    it("should return the same state when the evaluation is the one it has", () => {
+    it("should return the same state when the evaluation and the status are the ones it has", () => {
       // Arrange
       const before = createState();
 
       // Act
-      const state = setEvaluation(before, EVALUATION);
+      const state = setEvaluation(before, EVALUATION, "current");
 
       // Assert
       expect(state).toBe(before);
+    });
+
+    it("should keep a new status of the same evaluation", () => {
+      // Arrange
+      const before = createState();
+
+      // Act
+      const state = setEvaluation(before, EVALUATION, "late");
+
+      // Assert
+      expect(state.evaluation).toBe(EVALUATION);
+      expect(state.evaluationStatus).toBe("late");
+    });
+
+    it("should keep no evaluation with a new status, before the first one arrives", () => {
+      // Arrange
+      const before = createSessionState(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      const state = setEvaluation(before, undefined, "stopped");
+
+      // Assert
+      expect(state.evaluation).toBeUndefined();
+      expect(state.evaluationStatus).toBe("stopped");
+    });
+
+    it("should keep the highlight as it is when only the status changes, though the policies of the evaluation would place it elsewhere", () => {
+      // Arrange
+      const highlight = {
+        range: RANGE,
+        policy: 7,
+        dependency: { path: "src/index.js", index: 0 },
+      };
+      const before = createState({ highlight });
+
+      // Act
+      const state = setEvaluation(before, EVALUATION, "late");
+
+      // Assert
+      expect(state.highlight).toBe(highlight);
     });
   });
 });

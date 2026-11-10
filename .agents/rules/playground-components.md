@@ -13,6 +13,7 @@ How the files of `packages/playground/src` are organized and written. The layers
 - An element is one folder with an `index.ts` that only re-exports its public API, values and types: `export { X } from "./X";`, `export type { XProps } from "./X.types";`. No logic, no `export *`, no import.
 - A component file and a component element are PascalCase (`ProjectTree/ProjectTree.tsx`, `store/SessionProvider.tsx`). Every other element and file is camelCase (`helpers/sketch/tree.ts`), and hooks are `useX`.
 - Sibling files of `<name>`: `<name>.types.ts` (exported types, see `.agents/rules/typescript-conventions.md`), `<name>.constants.ts`, `<name>.hooks.ts` (the React hooks of a `data` element), `<name>.pom.ts`, `<name>.spec.ts(x)` and `<name>.mock.ts(x)`. An element that holds several modules keeps one camelCase file per module (`helpers/engine/parseConfig.ts`).
+- The script of a web worker is a `*.worker.ts` file of the element that creates the worker. No production file imports it: only the `new URL` of the factory names it (lint-enforced).
 - The only subfolders inside an element are a module's own hooks: `modules/<Name>/hooks/<useX>/`, for a hook that only that module uses. A hook a second module needs moves to `modules/hooks/<useX>/` of the domain.
 
 ## Components

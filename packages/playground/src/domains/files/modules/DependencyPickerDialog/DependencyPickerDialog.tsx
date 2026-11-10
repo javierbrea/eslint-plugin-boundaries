@@ -9,6 +9,7 @@ import {
 } from "@/domains/project/helpers/sketch";
 import {
   useAddDependency,
+  useFileDescriptions,
   useReplaceDependency,
   useSessionSelector,
   useTree,
@@ -33,7 +34,7 @@ export function DependencyPickerDialog({
   onClose,
 }: Readonly<DependencyPickerDialogProps>): ReactNode {
   const tree = useTree();
-  const descriptions = useSessionSelector((state) => state.evaluation.files);
+  const descriptions = useFileDescriptions();
   const initial = useSessionSelector((state) =>
     index === undefined
       ? undefined
