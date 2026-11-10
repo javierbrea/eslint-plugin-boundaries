@@ -19,12 +19,13 @@ type Page = {
 
 /**
  * Renders the dialog inside the root of the playground, where its theme is.
- * @param changes What differs from an open dialog that links to the guide.
+ * @param changes What differs from an open dialog that links to the playground guide and to the Quick start.
  * @returns The page object of the dialog, its props and the function that updates it.
  */
 function renderDialog(changes: Partial<HelpDialogProps> = {}): Page {
   const props: HelpDialogProps = {
     isOpen: true,
+    guideUrl: "/docs/guides/playground",
     quickStartUrl: "/docs/quick-start",
     onClose: jest.fn(),
     onExited: jest.fn(),
@@ -244,47 +245,151 @@ describe("HelpDialog", () => {
   });
 
   describe("footer", () => {
-    it("should link to the Quick start, with an arrow, before the button that closes it", () => {
+    it("should link to the playground guide and to the Quick start, each with an arrow", () => {
       // Arrange
-      const { dialog } = renderDialog({ quickStartUrl: "/docs/quick-start" });
+      const { dialog } = renderDialog({
+        guideUrl: "/docs/guides/playground",
+        quickStartUrl: "/docs/quick-start",
+      });
 
       // Act
-      const { hasGuideLink, guideLinkText, guideLinkHref, footerTexts } =
-        dialog;
+      const { playgroundGuideLink, quickStartLink } = dialog;
 
       // Assert
-      expect(hasGuideLink).toBe(true);
-      expect(guideLinkText).toBe("Read the Quick start");
-      expect(guideLinkHref).toBe("/docs/quick-start");
-      expect(dialog.guideLinkIcon.pathData).toBe(ICON_PATHS.arrow);
-      expect(footerTexts).toEqual(["Read the Quick start", "Got it"]);
+      expect(playgroundGuideLink.href).toBe("/docs/guides/playground");
+      expect(playgroundGuideLink.icon.pathData).toBe(ICON_PATHS.arrow);
+      expect(quickStartLink.href).toBe("/docs/quick-start");
+      expect(quickStartLink.icon.pathData).toBe(ICON_PATHS.arrow);
     });
 
-    it("should draw the link in the accent, also under the pointer where a host would underline it", () => {
+    it("should draw the playground guide first, then the Quick start, and then the button that closes it", () => {
       // Arrange
       const { dialog } = renderDialog();
 
       // Act
-      const { guideLinkColor, guideLinkHover } = dialog;
+      const { footerTexts } = dialog;
 
       // Assert
-      expect(guideLinkColor).toBe("var(--jsb-accent)");
-      expect(guideLinkHover).toEqual({
-        color: "var(--jsb-accent)",
-        textDecoration: "none",
-      });
+      expect(footerTexts).toEqual([
+        "Read the playground guide",
+        "Read the Quick start",
+        "Got it",
+      ]);
     });
 
-    it("should draw no link without the URL of the Quick start", () => {
+    it("should link only to the Quick start, with an arrow, before the button that closes it, without the URL of the guide", () => {
+      // Arrange
+      const { dialog } = renderDialog({
+        guideUrl: undefined,
+        quickStartUrl: "/docs/quick-start",
+      });
+
+      // Act
+      const { playgroundGuideLink, quickStartLink, footerTexts } = dialog;
+
+      // Assert
+      expect(quickStartLink.isRendered).toBe(true);
+      expect(quickStartLink.href).toBe("/docs/quick-start");
+      expect(quickStartLink.icon.pathData).toBe(ICON_PATHS.arrow);
+      expect(playgroundGuideLink.isRendered).toBe(false);
+      expect(footerTexts).toEqual(["Read the Quick start", "Got it"]);
+    });
+
+    it("should link only to the playground guide, with an arrow, before the button that closes it, without the URL of the Quick start", () => {
+      // Arrange
+      const { dialog } = renderDialog({
+        guideUrl: "/docs/guides/playground",
+        quickStartUrl: undefined,
+      });
+
+      // Act
+      const { playgroundGuideLink, quickStartLink, footerTexts } = dialog;
+
+      // Assert
+      expect(playgroundGuideLink.isRendered).toBe(true);
+      expect(playgroundGuideLink.href).toBe("/docs/guides/playground");
+      expect(playgroundGuideLink.icon.pathData).toBe(ICON_PATHS.arrow);
+      expect(quickStartLink.isRendered).toBe(false);
+      expect(footerTexts).toEqual(["Read the playground guide", "Got it"]);
+    });
+
+    it("should draw each link in the accent, also under the pointer where a host would underline it", () => {
+      // Arrange
+      const { dialog } = renderDialog();
+
+      // Act
+      const links = [dialog.playgroundGuideLink, dialog.quickStartLink];
+
+      // Assert
+      expect(links.map((link) => link.color)).toEqual([
+        "var(--jsb-accent)",
+        "var(--jsb-accent)",
+      ]);
+      expect(links.map((link) => link.hover)).toEqual([
+        { color: "var(--jsb-accent)", textDecoration: "none" },
+        { color: "var(--jsb-accent)", textDecoration: "none" },
+      ]);
+    });
+
+    it("should draw no link without the URL of the guide and the one of the Quick start", () => {
+      // Arrange
+      const { dialog } = renderDialog({
+        guideUrl: undefined,
+        quickStartUrl: undefined,
+      });
+
+      // Act
+      const { playgroundGuideLink, quickStartLink, footerTexts } = dialog;
+
+      // Assert
+      expect(playgroundGuideLink.isRendered).toBe(false);
+      expect(quickStartLink.isRendered).toBe(false);
+      expect(footerTexts).toEqual(["Got it"]);
+    });
+
+    it("should leave the button at the right edge when there are two links: only the last one takes the free space", () => {
+      // Arrange
+      const { dialog } = renderDialog();
+
+      // Act
+      const { playgroundGuideLink, quickStartLink } = dialog;
+
+      // Assert
+      expect(playgroundGuideLink.takesFreeSpace).toBe(false);
+      expect(quickStartLink.takesFreeSpace).toBe(true);
+    });
+
+    it("should leave the button at the right edge when the playground guide is the only link", () => {
       // Arrange
       const { dialog } = renderDialog({ quickStartUrl: undefined });
 
       // Act
-      const { hasGuideLink, footerTexts } = dialog;
+      const { takesFreeSpace } = dialog.playgroundGuideLink;
 
       // Assert
-      expect(hasGuideLink).toBe(false);
-      expect(footerTexts).toEqual(["Got it"]);
+      expect(takesFreeSpace).toBe(true);
+    });
+
+    it("should leave the button at the right edge when the Quick start is the only link", () => {
+      // Arrange
+      const { dialog } = renderDialog({ guideUrl: undefined });
+
+      // Act
+      const { takesFreeSpace } = dialog.quickStartLink;
+
+      // Assert
+      expect(takesFreeSpace).toBe(true);
+    });
+
+    it("should put 20 px between its elements and no other room before them", () => {
+      // Arrange
+      const { dialog } = renderDialog();
+
+      // Act
+      const { footerSpacing } = dialog;
+
+      // Assert
+      expect(footerSpacing).toEqual({ gap: "20px", siblingMargin: undefined });
     });
 
     it("should close with a contained button", () => {

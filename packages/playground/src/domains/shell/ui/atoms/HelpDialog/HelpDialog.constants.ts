@@ -8,8 +8,11 @@ export const HELP_DIALOG_LEAD =
 /** The label of the button that closes the dialog. */
 export const HELP_DIALOG_CLOSE_LABEL = "Got it";
 
-/** The label of the link to the guide. */
-export const HELP_DIALOG_GUIDE_LABEL = "Read the Quick start";
+/** The label of the link to the playground guide. */
+export const HELP_DIALOG_PLAYGROUND_GUIDE_LABEL = "Read the playground guide";
+
+/** The label of the link to the Quick start guide. */
+export const HELP_DIALOG_QUICK_START_LABEL = "Read the Quick start";
 
 /** The width of the dialog in pixels. */
 export const HELP_DIALOG_WIDTH = 540;

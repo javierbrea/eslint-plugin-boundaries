@@ -10,6 +10,8 @@ A clear and concise description of what the bug is.
 **To Reproduce**
 Steps to reproduce the behavior
 
+If the bug is about how a file is classified or whether a dependency is allowed, please reproduce it in the [playground](https://www.jsboundaries.dev/playground/) and paste the link that its Share button copies.
+
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 

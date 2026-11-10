@@ -120,6 +120,7 @@ const sidebars: SidebarsConfig = {
         "guides/oxlint-integration",
         "guides/custom-resolvers",
         "guides/debugging",
+        "guides/playground",
       ],
     },
     {

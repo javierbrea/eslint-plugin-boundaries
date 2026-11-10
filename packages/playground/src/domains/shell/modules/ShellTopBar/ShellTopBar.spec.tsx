@@ -828,11 +828,44 @@ describe("ShellTopBar", () => {
       bar.actions.pressHelp();
 
       // Assert
-      expect(bar.help.hasGuideLink).toBe(true);
-      expect(bar.help.guideLinkHref).toBe("/docs/quick-start");
+      expect(bar.help.quickStartLink.isRendered).toBe(true);
+      expect(bar.help.quickStartLink.href).toBe("/docs/quick-start");
+      expect(bar.help.playgroundGuideLink.isRendered).toBe(false);
     });
 
-    it("should draw no link without the URL of the Quick start", () => {
+    it("should link to the playground guide when the host gives its URL", () => {
+      // Arrange
+      const { bar } = renderBar(
+        createProps({ guideUrl: "/docs/guides/playground" })
+      );
+
+      // Act
+      bar.actions.pressHelp();
+
+      // Assert
+      expect(bar.help.playgroundGuideLink.isRendered).toBe(true);
+      expect(bar.help.playgroundGuideLink.href).toBe("/docs/guides/playground");
+      expect(bar.help.quickStartLink.isRendered).toBe(false);
+    });
+
+    it("should link to the playground guide and to the Quick start when the host gives both URLs", () => {
+      // Arrange
+      const { bar } = renderBar(
+        createProps({
+          guideUrl: "/docs/guides/playground",
+          quickStartUrl: "/docs/quick-start",
+        })
+      );
+
+      // Act
+      bar.actions.pressHelp();
+
+      // Assert
+      expect(bar.help.playgroundGuideLink.href).toBe("/docs/guides/playground");
+      expect(bar.help.quickStartLink.href).toBe("/docs/quick-start");
+    });
+
+    it("should draw no link without the URL of the playground guide and the one of the Quick start", () => {
       // Arrange
       const { bar } = renderBar();
 
@@ -840,7 +873,8 @@ describe("ShellTopBar", () => {
       bar.actions.pressHelp();
 
       // Assert
-      expect(bar.help.hasGuideLink).toBe(false);
+      expect(bar.help.playgroundGuideLink.isRendered).toBe(false);
+      expect(bar.help.quickStartLink.isRendered).toBe(false);
     });
 
     it("should close with the button of the dialog, and give the keyboard focus back to Help", async () => {

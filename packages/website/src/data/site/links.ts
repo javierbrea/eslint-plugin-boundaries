@@ -6,6 +6,9 @@ export const DOCS_QUICK_START = "/docs/quick-start/";
 /** Page of the playground. */
 export const PLAYGROUND = "/playground/";
 
+/** Guide of the docs that explains how to use the playground, which the help of the playground links to. */
+export const DOCS_PLAYGROUND_GUIDE = "/docs/guides/playground/";
+
 /** Overview page of the docs. */
 export const DOCS_OVERVIEW = "/docs/overview/";
 

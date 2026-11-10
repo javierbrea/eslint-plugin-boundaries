@@ -119,7 +119,8 @@
         "guides/monorepo-setup",
         "guides/oxlint-integration",
         "guides/custom-resolvers",
-        "guides/debugging"
+        "guides/debugging",
+        "guides/playground"
       ]
     },
     {

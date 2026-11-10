@@ -2231,7 +2231,34 @@ describe("Shell", () => {
       shell.topBar.actions.pressHelp();
 
       // Assert
-      expect(shell.topBar.help.guideLinkHref).toBe("/docs/quick-start");
+      expect(shell.topBar.help.quickStartLink.href).toBe("/docs/quick-start");
+      expect(shell.topBar.help.playgroundGuideLink.isRendered).toBe(false);
+    });
+
+    it("should link the help to the playground guide that the host gives", () => {
+      // Arrange
+      const { shell } = renderShell({ guideUrl: "/docs/guides/playground" });
+
+      // Act
+      shell.topBar.actions.pressHelp();
+
+      // Assert
+      expect(shell.topBar.help.playgroundGuideLink.href).toBe(
+        "/docs/guides/playground"
+      );
+      expect(shell.topBar.help.quickStartLink.isRendered).toBe(false);
+    });
+
+    it("should draw no link in the help when the host gives no URL", () => {
+      // Arrange
+      const { shell } = renderShell();
+
+      // Act
+      shell.topBar.actions.pressHelp();
+
+      // Assert
+      expect(shell.topBar.help.playgroundGuideLink.isRendered).toBe(false);
+      expect(shell.topBar.help.quickStartLink.isRendered).toBe(false);
     });
   });
 });

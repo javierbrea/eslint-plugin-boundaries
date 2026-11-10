@@ -13,7 +13,7 @@ import {
 } from "../src";
 
 const source = new SketchSource(QUICK_START_EXAMPLE.sketch);
-// The hash of the URL keeps the sketch, as on the website, so Share and Reset work. The harness has no Quick start page, so it passes no `quickStartUrl` and the help draws no link
+// The hash of the URL keeps the sketch, as on the website, so Share and Reset work. The harness has no docs pages, so it passes no `guideUrl` or `quickStartUrl` and the help draws no link
 const store = new HashStore();
 
 /**

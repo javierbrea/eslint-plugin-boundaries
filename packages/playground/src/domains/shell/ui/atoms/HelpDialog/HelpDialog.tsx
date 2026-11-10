@@ -12,8 +12,9 @@ import { Icon } from "@/ui-kit/atoms/Icon";
 
 import {
   HELP_DIALOG_CLOSE_LABEL,
-  HELP_DIALOG_GUIDE_LABEL,
   HELP_DIALOG_LEAD,
+  HELP_DIALOG_PLAYGROUND_GUIDE_LABEL,
+  HELP_DIALOG_QUICK_START_LABEL,
   HELP_DIALOG_TITLE,
   HELP_DIALOG_WIDTH,
 } from "./HelpDialog.constants";
@@ -109,11 +110,12 @@ const Code = styled("code")(({ theme }) => ({
   verticalAlign: "baseline",
 }));
 
+// The links come first, left to right, and the last one takes the free space, so that Got it stays at the right edge whatever links there are. A link is the only `a` of the actions, so the last of its type is the last link
 const GuideLink = styled(Link)(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
-  marginRight: "auto",
+  "&:last-of-type": { marginRight: "auto" },
   color: "var(--jsb-accent)",
   ...theme.typography.button,
   lineHeight: "normal",
@@ -122,10 +124,14 @@ const GuideLink = styled(Link)(({ theme }) => ({
   "&:hover": { color: "var(--jsb-accent)", textDecoration: "none" },
 }));
 
+// The spacing that MUI puts before each action is 8 px, which is too little between two links, so the actions carry their own gap
+const Actions = styled(DialogActions)({ gap: 20 });
+
 /**
- * The help of the playground: what it does, in three steps, and two notes that the steps do not cover, with a link to the Quick start guide when the host has one. It is a dialog, so it never opens by itself and it traps the focus while it is open.
+ * The help of the playground: what it does, in three steps, and two notes that the steps do not cover, with a link to the playground guide and another to the Quick start guide, each when the host has its URL. It is a dialog, so it never opens by itself and it traps the focus while it is open.
  * @param props HelpDialog props.
  * @param props.isOpen Whether the dialog is open.
+ * @param props.guideUrl The URL of the playground guide, if the host has one.
  * @param props.quickStartUrl The URL of the Quick start guide, if the host has one.
  * @param props.onClose Called when the user closes the dialog.
  * @param props.onExited Called when the dialog is gone from the page after it closed.
@@ -133,6 +139,7 @@ const GuideLink = styled(Link)(({ theme }) => ({
  */
 export function HelpDialog({
   isOpen,
+  guideUrl,
   quickStartUrl,
   onClose,
   onExited,
@@ -205,17 +212,23 @@ export function HelpDialog({
           </span>
         </Tip>
       </HelpContent>
-      <DialogActions>
+      <Actions disableSpacing>
+        {guideUrl === undefined ? null : (
+          <GuideLink href={guideUrl} underline="none">
+            {HELP_DIALOG_PLAYGROUND_GUIDE_LABEL}
+            <Icon name="arrow" />
+          </GuideLink>
+        )}
         {quickStartUrl === undefined ? null : (
           <GuideLink href={quickStartUrl} underline="none">
-            {HELP_DIALOG_GUIDE_LABEL}
+            {HELP_DIALOG_QUICK_START_LABEL}
             <Icon name="arrow" />
           </GuideLink>
         )}
         <Button variant="contained" onClick={onClose}>
           {HELP_DIALOG_CLOSE_LABEL}
         </Button>
-      </DialogActions>
+      </Actions>
     </WideDialog>
   );
 }

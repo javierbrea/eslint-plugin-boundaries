@@ -16,6 +16,8 @@ keywords:
   - import restrictions
 ---
 
+import OpenInPlayground from "@site/src/components/OpenInPlayground";
+
 # dependencies
 
 > Enforce dependency constraints in your project.
@@ -264,6 +266,119 @@ These examples use aliases for the `src/helpers`, `src/components`, and `src/mod
 :::
 
 ## Examples
+
+export const playgroundConfig = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*", capture: ["family"] },
+      { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+      { type: "module", pattern: "modules/*", capture: ["elementName"] },
+    ],
+    "boundaries/files": [
+      // any spec file is categorized as "test"
+      { pattern: "**/*.spec.js", category: "test" },
+      // any file under src/helpers/ is categorized as "util"
+      { pattern: "src/helpers/**/*.js", category: "util" },
+      // files under src/helpers/permissions/ are additionally categorized as "internal"
+      { pattern: "src/helpers/permissions/**/*.js", category: "internal" },
+    ],
+  },
+  rules: {
+    "boundaries/dependencies": [2, {
+      // disallow all local imports by default
+      default: "disallow",
+      policies: [
+        {
+          // from helper elements
+          from: { element: { type: "helper" } },
+          allow: {
+            to: {
+              element: { type: "helper" },
+              // allow only files categorized as "util" and not "internal" (array query)
+              file: { categories: { anyOf: ["util"], noneOf: ["internal"] } },
+            },
+            // allow only importing value, not type (TypeScript only)
+            dependency: { kind: "value" },
+          },
+        },
+        {
+          // from component elements
+          from: { element: { type: "component" } },
+          allow: {
+            to: [
+              // allow importing components of the same family
+              { element: { type: "component", captured: { family: "{{ from.element.captured.family }}" } } },
+              // allow importing the sort.js file of any helper
+              { element: { type: "helper", fileInternalPath: "sort.js" } },
+            ],
+          },
+        },
+        {
+          // from components with captured family "molecules"
+          from: { element: { type: "component", captured: { family: "molecules" } } },
+          allow: {
+            // allow importing components with captured family "atoms"
+            to: { element: { type: "component", captured: { family: "atoms" } } },
+          },
+        },
+        {
+          // from modules
+          from: { element: { type: "module" } },
+          // allow importing helpers, components, and modules
+          allow: {
+            to: { element: { type: ["helper", "component", "module"] } },
+          },
+        },
+        {
+          // from any element
+          from: { element: { type: "*" } },
+          // disallow importing files categorized as "test" (file selector)
+          disallow: {
+            to: { file: { categories: "test" } },
+          },
+        },
+      ],
+    }],
+  },
+}
+`;
+
+export const playgroundProject = `eslint.config.js
+src/components/atoms/atom-a/AtomA.js
+  import MoleculeA from "../../molecules/molecule-a/index.js";
+  import { roleHasPermissions } from "../../../helpers/permissions/roles.js";
+  import ModuleA from "../../../modules/module-a/index.js";
+  import { sortDescending } from "../../../helpers/data/sort.spec.js";
+  import AtomB from "../atom-b/index.js";
+  import { someSorter } from "../../../helpers/data/sort.js";
+src/components/atoms/atom-a/index.js
+src/components/atoms/atom-b/AtomB.js
+src/components/atoms/atom-b/index.js
+src/components/molecules/molecule-a/index.js
+src/components/molecules/molecule-a/MoleculeA.js
+  import AtomA from "../../atoms/atom-a/index.js";
+src/components/molecules/molecule-b/index.js
+src/components/molecules/molecule-b/MoleculeB.js
+src/helpers/data/parse.js
+src/helpers/data/sort.js
+  import { roleHasPermissions } from "../permissions/roles.js";
+src/helpers/data/sort.spec.js
+src/helpers/permissions/roles.js
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import ModuleA from "../../modules/module-a/index.js";
+  import { someParser } from "../data/parse.js";
+src/modules/module-a/index.js
+src/modules/module-a/ModuleA.js
+  import { someParser } from "../../helpers/data/parse.js";
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import ModuleB from "../module-b/index.js";
+src/modules/module-b/index.js
+src/modules/module-b/ModuleB.js
+`;
+
+Try the project structure, the settings and the Configuration Example of this page in the playground, with the imports of the examples below. The playground writes each import with the full relative path of its file instead of the aliases of the page, and leaves out the type import, because the files of the page are JavaScript.
+
+<OpenInPlayground config={playgroundConfig} project={playgroundProject} />
 
 ### Incorrect
 

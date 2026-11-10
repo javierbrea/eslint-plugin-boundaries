@@ -7,7 +7,9 @@ export type ShellTopBarFocus = "examples" | "reset";
 
 /** Props of {@link ShellTopBar}. What the bar asks of the host comes as callbacks, and the ones that replace the sketch get the sketch that is on screen, so that the host can tell whether the replacement would lose the edits. */
 export type ShellTopBarProps = {
-  /** The URL of the Quick start guide, which the help links to. The help draws no link without it. */
+  /** The URL of the playground guide, which the help links to. The help draws no link to it without it. */
+  readonly guideUrl?: string;
+  /** The URL of the Quick start guide, which the help links to. The help draws no link to it without it. */
   readonly quickStartUrl?: string;
   /** Called when the user asks to reset the sketch, with the sketch on screen. */
   readonly onReset: (sketch: Sketch) => void;
