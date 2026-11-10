@@ -6,6 +6,7 @@ import {
   EXAMPLES,
   QUICK_START_EXAMPLE,
 } from "@/domains/examples/data/examples";
+import { MAX_SKETCH_NODES } from "@/domains/project/helpers/sketch/sketch.constants";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import {
   ALL_CAPABILITIES,
@@ -17,10 +18,8 @@ import {
   waitUntilEvaluationStops,
 } from "@/domains/session/data/store/store.mock";
 import { LONG_LINK_LENGTH } from "@/domains/share/helpers/sketchHash";
-import {
-  SHARE_COPIED_DURATION,
-  SHARE_LONG_DURATION,
-} from "@/domains/share/modules/hooks/useShareLink";
+import { SHARE_COPIED_DURATION } from "@/domains/share/modules/hooks/useShareLink";
+import type { MakeLink } from "@/domains/share/modules/hooks/useShareLink";
 import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
@@ -47,6 +46,38 @@ const SHORT_LINK = "https://example.com/playground/#v=1&s=abc";
 const LONG_LINK = `https://example.com/playground/#v=1&s=${"a".repeat(
   LONG_LINK_LENGTH
 )}`;
+
+/**
+ * Makes a sketch with the number of files given and nothing else.
+ * @param fileCount How many files.
+ * @returns The sketch.
+ */
+function createSketchOfFiles(fileCount: number): Sketch {
+  return {
+    config: QUICK_START.config,
+    tree: Array.from({ length: fileCount }, (_, index) => ({
+      path: `src/f${index}.js`,
+      kind: "file",
+    })),
+    dependencies: [],
+  };
+}
+
+/** A sketch with one file more than a link can hold, which no link would open. */
+const TOO_LARGE_SKETCH = createSketchOfFiles(MAX_SKETCH_NODES + 1);
+
+/** A sketch that the reader of links refuses for another cause: a path that ends with a space. */
+const INVALID_SKETCH: Sketch = {
+  config: QUICK_START.config,
+  tree: [{ path: "src/a.js ", kind: "file" }],
+  dependencies: [],
+};
+
+/** How long a spec lets pass to see that a dialog does not close by itself, which is far more than anything the share waits for. */
+const A_MINUTE = 60_000;
+
+/** How long a spec lets pass after that for a dialog that closed to fade out and be gone, which is far more than its transition takes. */
+const TIME_TO_BE_GONE = 1000;
 
 /**
  * Builds the props of a bar that cannot share, with a spy for each callback.
@@ -107,11 +138,11 @@ function stubClipboard(
 }
 
 /**
- * Finds the timers that keep the message of a link that was copied, among the ones the window was asked to start.
+ * Finds the timers that keep the confirmation of a link that was copied, among the ones the window was asked to start.
  * @param setTimeoutSpy The spy of `window.setTimeout`.
- * @returns The ids of the timers that last as long as that message.
+ * @returns The ids of the timers that last as long as that confirmation.
  */
-function findMessageTimers(
+function findConfirmationTimers(
   setTimeoutSpy: jest.SpyInstance<number, Parameters<typeof setTimeout>>
 ): number[] {
   return setTimeoutSpy.mock.calls.flatMap(([, delay], index) =>
@@ -119,6 +150,165 @@ function findMessageTimers(
       ? [setTimeoutSpy.mock.results[index].value as number]
       : []
   );
+}
+
+/** What Share and the region beside it say. */
+type ShareFace = {
+  /** What a user reads on Share. */
+  readonly visibleText: string;
+  /** What the region says to screen readers. */
+  readonly announced: string;
+};
+
+/** What Share and its region say before a copy, and once its confirmation is over. */
+const SHARE_AT_REST: ShareFace = { visibleText: "Share", announced: "" };
+
+/** What Share and its region say while they confirm a copy. */
+const SHARE_COPIED: ShareFace = {
+  visibleText: "Copied",
+  announced: "Link copied",
+};
+
+/**
+ * Reads what Share and the region beside it say.
+ * @param bar The page object of the bar.
+ * @returns The text of Share and the text of the region.
+ */
+function readShare(bar: ShellTopBarPom): ShareFace {
+  return {
+    visibleText: bar.actions.share.visibleText,
+    announced: bar.actions.announcement.text,
+  };
+}
+
+/** What the button that copies the link again and the region of the dialog say. */
+type CopyAgainFace = {
+  /** What a user reads on the button. */
+  readonly visibleText: string;
+  /** Whether the button draws its confirmation in place of its label. */
+  readonly isShowingCopied: boolean;
+  /** What the region of the dialog says to screen readers. */
+  readonly announced: string;
+};
+
+/**
+ * Reads what the button that copies the link again and the region of the dialog say.
+ * @param bar The page object of the bar, with the dialog of a link that could not be copied open.
+ * @returns The text of the button, whether it confirms, and the text of the region.
+ */
+function readCopyAgain(bar: ShellTopBarPom): CopyAgainFace {
+  const { copyButton, announcement } = bar.shareDialog;
+
+  return {
+    visibleText: copyButton.visibleText,
+    isShowingCopied: copyButton.isShowingCopied,
+    announced: announcement.text,
+  };
+}
+
+/**
+ * Presses Share and lets the share end, which is when the link is made and copied or refused.
+ * @param bar The page object of the bar.
+ */
+async function pressShare(bar: ShellTopBarPom): Promise<void> {
+  await act(async () => {
+    bar.actions.pressShare();
+  });
+}
+
+/**
+ * Lets time pass inside `act`, so that the timers of the bar run.
+ * @param milliseconds How much time passes.
+ */
+function pass(milliseconds: number): void {
+  act(() => {
+    jest.advanceTimersByTime(milliseconds);
+  });
+}
+
+/** A share that ends in a notice: what the host and the clipboard do, and the sketch on screen. */
+type NoticeCase = {
+  /** The kind of the notice, as the hook names it. */
+  readonly kind: string;
+  /** The title of the dialog that tells it. */
+  readonly title: string;
+  /** What the host does when it is asked for the link. */
+  readonly makeLink: MakeLink;
+  /** The sketch on screen. */
+  readonly sketch: Sketch;
+  /** Whether the clipboard refuses the link. */
+  readonly clipboardRefuses: boolean;
+};
+
+const LONG_CASE: NoticeCase = {
+  kind: "long",
+  title: "Long link copied",
+  makeLink: () => Promise.resolve(LONG_LINK),
+  sketch: QUICK_START,
+  clipboardRefuses: false,
+};
+
+const NOT_COPIED_CASE: NoticeCase = {
+  kind: "not-copied",
+  title: "The link could not be copied",
+  makeLink: () => Promise.resolve(SHORT_LINK),
+  sketch: QUICK_START,
+  clipboardRefuses: true,
+};
+
+const NOT_MADE_CASE: NoticeCase = {
+  kind: "not-made",
+  title: "The link could not be made",
+  makeLink: () => Promise.reject(new Error("no link")),
+  sketch: QUICK_START,
+  clipboardRefuses: false,
+};
+
+const TOO_LARGE_CASE: NoticeCase = {
+  kind: "too-large",
+  title: "The project is too large for a link",
+  makeLink: () => Promise.resolve(SHORT_LINK),
+  sketch: TOO_LARGE_SKETCH,
+  clipboardRefuses: false,
+};
+
+const INVALID_CASE: NoticeCase = {
+  kind: "invalid",
+  title: "The project cannot be shared",
+  makeLink: () => Promise.resolve(SHORT_LINK),
+  sketch: INVALID_SKETCH,
+  clipboardRefuses: false,
+};
+
+const NOTICE_CASES: readonly NoticeCase[] = [
+  LONG_CASE,
+  NOT_COPIED_CASE,
+  NOT_MADE_CASE,
+  TOO_LARGE_CASE,
+  INVALID_CASE,
+];
+
+/**
+ * Renders the bar in a share that ends in a notice, and presses Share.
+ * @param noticeCase What the host, the clipboard and the sketch do.
+ * @param noticeCase.makeLink
+ * @param noticeCase.sketch
+ * @param noticeCase.clipboardRefuses
+ * @returns The page object of the bar, once the share ended.
+ */
+async function renderNotice({
+  makeLink,
+  sketch,
+  clipboardRefuses,
+}: NoticeCase): Promise<ShellTopBarPom> {
+  if (clipboardRefuses) {
+    stubClipboard(() => Promise.reject(new Error("denied")));
+  }
+
+  const { bar } = renderBar(createProps({ makeLink }), { sketch });
+
+  await pressShare(bar);
+  return bar;
 }
 
 describe("ShellTopBar", () => {
@@ -603,10 +793,10 @@ describe("ShellTopBar", () => {
 
       // Assert
       expect(hasShare).toBe(false);
-      expect(bar.actions.message.isRendered).toBe(false);
+      expect(bar.actions.announcement.isRendered).toBe(false);
     });
 
-    it("should be there with a way to make the link, with its message before Help", () => {
+    it("should be there with a way to make the link, with its region after it", () => {
       // Arrange
       const { bar } = renderBar(
         createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
@@ -616,10 +806,24 @@ describe("ShellTopBar", () => {
       const { parts } = bar.actions;
 
       // Assert
-      expect(parts).toEqual(["message", "Help", "Reset", "Share"]);
+      expect(parts).toEqual(["Help", "Reset", "Share", "announcement"]);
     });
 
-    it("should copy the link of the sketch on screen, which is the edited one, and say so", async () => {
+    it("should say nothing and open no dialog before it is pressed", () => {
+      // Arrange
+      const { bar } = renderBar(
+        createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
+      );
+
+      // Act
+      const share = readShare(bar);
+
+      // Assert
+      expect(share).toEqual(SHARE_AT_REST);
+      expect(bar.shareDialog.isRendered).toBe(false);
+    });
+
+    it("should copy the link of the sketch on screen, which is the edited one, and confirm it on Share and in the region, with no dialog", async () => {
       // Arrange
       const writeText = stubClipboard();
       const makeLink = jest.fn((_sketch: Sketch) =>
@@ -630,116 +834,17 @@ describe("ShellTopBar", () => {
       act(() => store.removeNode("src/index.js"));
 
       // Act
-      await act(async () => {
-        bar.actions.pressShare();
-      });
+      await pressShare(bar);
 
       // Assert
       expect(makeLink).toHaveBeenCalledWith(store.getState().sketch);
+      expect(writeText).toHaveBeenCalledTimes(1);
       expect(writeText).toHaveBeenCalledWith(SHORT_LINK);
-      expect(bar.actions.message.text).toBe("Link copied");
-      expect(bar.actions.message.color).toBe("var(--jsb-muted)");
-      expect(bar.actions.message.checkColor).toBe("var(--jsb-ok)");
+      expect(readShare(bar)).toEqual(SHARE_COPIED);
+      expect(bar.shareDialog.isRendered).toBe(false);
     });
 
-    it("should say that a long link is long, in the color of warnings", async () => {
-      // Arrange
-      const { bar } = renderBar(
-        createProps({ makeLink: () => Promise.resolve(LONG_LINK) })
-      );
-
-      // Act
-      await act(async () => {
-        bar.actions.pressShare();
-      });
-
-      // Assert
-      expect(bar.actions.message.text).toBe(
-        "Long link copied: some apps may cut it"
-      );
-      expect(bar.actions.message.color).toBe(
-        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
-      );
-    });
-
-    it("should say that the link could not be copied when the store cannot make it, in the color of errors", async () => {
-      // Arrange
-      const { bar } = renderBar(
-        createProps({ makeLink: () => Promise.reject(new Error("no link")) })
-      );
-
-      // Act
-      await act(async () => {
-        bar.actions.pressShare();
-      });
-
-      // Assert
-      expect(bar.actions.message.text).toBe("The link could not be copied");
-      expect(bar.actions.message.color).toBe(
-        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
-      );
-    });
-
-    it("should say that the link could not be copied when the clipboard refuses it", async () => {
-      // Arrange
-      stubClipboard(() => Promise.reject(new Error("denied")));
-
-      const { bar } = renderBar(
-        createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
-      );
-
-      // Act
-      await act(async () => {
-        bar.actions.pressShare();
-      });
-
-      // Assert
-      expect(bar.actions.message.text).toBe("The link could not be copied");
-    });
-
-    it.each<[string, string, number, string]>([
-      ["short", SHORT_LINK, SHARE_COPIED_DURATION, "Link copied"],
-      [
-        "long",
-        LONG_LINK,
-        SHARE_LONG_DURATION,
-        "Long link copied: some apps may cut it",
-      ],
-    ])(
-      "should keep the message of a %s link for its time, and then say nothing",
-      async (_name, link, duration, text) => {
-        // Arrange
-        jest.useFakeTimers();
-
-        const { bar } = renderBar(
-          createProps({ makeLink: () => Promise.resolve(link) })
-        );
-
-        // Act
-        await act(async () => {
-          bar.actions.pressShare();
-        });
-
-        const shown = bar.actions.message.text;
-
-        act(() => {
-          jest.advanceTimersByTime(duration - 1);
-        });
-
-        const justBefore = bar.actions.message.text;
-
-        act(() => {
-          jest.advanceTimersByTime(1);
-        });
-
-        // Assert
-        expect(shown).toBe(text);
-        expect(justBefore).toBe(text);
-        expect(bar.actions.message.text).toBe("");
-      }
-    );
-
-    it("should start the message again when it is pressed again", async () => {
+    it("should confirm the copy for exactly the time of a confirmation, and then say Share again, with nothing announced", async () => {
       // Arrange
       jest.useFakeTimers();
 
@@ -747,26 +852,49 @@ describe("ShellTopBar", () => {
         createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
       );
 
-      await act(async () => {
-        bar.actions.pressShare();
-      });
-      act(() => {
-        jest.advanceTimersByTime(SHARE_COPIED_DURATION - 500);
-      });
-
       // Act
-      await act(async () => {
-        bar.actions.pressShare();
-      });
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
+      await pressShare(bar);
+
+      const shown = readShare(bar);
+
+      pass(SHARE_COPIED_DURATION - 1);
+
+      const justBefore = readShare(bar);
+
+      pass(1);
 
       // Assert
-      expect(bar.actions.message.text).toBe("Link copied");
+      expect(shown).toEqual(SHARE_COPIED);
+      expect(justBefore).toEqual(SHARE_COPIED);
+      expect(readShare(bar)).toEqual(SHARE_AT_REST);
+      expect(bar.shareDialog.isRendered).toBe(false);
     });
 
-    it("should stop the timer of the message when the instance is gone", async () => {
+    it("should start the confirmation again when Share is pressed again", async () => {
+      // Arrange
+      jest.useFakeTimers();
+
+      const { bar } = renderBar(
+        createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
+      );
+
+      await pressShare(bar);
+      pass(SHARE_COPIED_DURATION - 500);
+
+      // Act
+      await pressShare(bar);
+      pass(SHARE_COPIED_DURATION - 1);
+
+      const justBefore = readShare(bar);
+
+      pass(1);
+
+      // Assert
+      expect(justBefore).toEqual(SHARE_COPIED);
+      expect(readShare(bar)).toEqual(SHARE_AT_REST);
+    });
+
+    it("should stop the timer of the confirmation when the instance is gone", async () => {
       // Arrange
       jest.useFakeTimers();
 
@@ -776,11 +904,11 @@ describe("ShellTopBar", () => {
         createProps({ makeLink: () => Promise.resolve(SHORT_LINK) })
       );
 
-      await act(async () => {
-        bar.actions.pressShare();
-      });
+      await pressShare(bar);
 
-      const timers = findMessageTimers(setTimeoutSpy);
+      const timers = findConfirmationTimers(setTimeoutSpy);
+
+      clearTimeoutSpy.mockClear();
 
       // Act
       unmount();
@@ -788,6 +916,247 @@ describe("ShellTopBar", () => {
       // Assert
       expect(timers).toHaveLength(1);
       expect(clearTimeoutSpy).toHaveBeenCalledWith(timers[0]);
+    });
+  });
+
+  describe("the dialog of a share that has something to tell", () => {
+    it.each(NOTICE_CASES)(
+      "should open the dialog of the $kind notice with its title, and leave Share as it was",
+      async (noticeCase) => {
+        // Arrange
+        const bar = await renderNotice(noticeCase);
+
+        // Act
+        const { shareDialog } = bar;
+
+        // Assert
+        expect(shareDialog.isRendered).toBe(true);
+        expect(shareDialog.title).toBe(noticeCase.title);
+        expect(shareDialog.isDialogNamed(noticeCase.title)).toBe(true);
+        expect(readShare(bar)).toEqual(SHARE_AT_REST);
+      }
+    );
+
+    it("should copy the link of a long one, and tell how long it is", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+
+      // Act
+      const bar = await renderNotice(LONG_CASE);
+
+      // Assert
+      expect(writeText).toHaveBeenCalledWith(LONG_LINK);
+      expect(bar.shareDialog.text).toContain(
+        `${LONG_LINK.length.toLocaleString("en-US")} characters`
+      );
+      expect(bar.shareDialog.link.isRendered).toBe(false);
+    });
+
+    it("should ask the host for no link and copy nothing, when no link could open the sketch", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const makeLink = jest.fn((_sketch: Sketch) =>
+        Promise.resolve(SHORT_LINK)
+      );
+
+      // Act
+      const bar = await renderNotice({ ...TOO_LARGE_CASE, makeLink });
+
+      // Assert
+      expect(makeLink).not.toHaveBeenCalled();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(bar.shareDialog.text).toContain("1,000 files and folders");
+    });
+
+    it("should give the reason of the reader of links, and copy nothing, when the sketch is refused for another cause", async () => {
+      // Arrange
+      const writeText = stubClipboard();
+      const makeLink = jest.fn((_sketch: Sketch) =>
+        Promise.resolve(SHORT_LINK)
+      );
+
+      // Act
+      const bar = await renderNotice({ ...INVALID_CASE, makeLink });
+
+      // Assert
+      expect(makeLink).not.toHaveBeenCalled();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(bar.shareDialog.reason.text).toBe(
+        '"src/a.js " cannot be in the tree. A path cannot end with a space.'
+      );
+    });
+
+    it.each(NOTICE_CASES)(
+      "should not close the dialog of the $kind notice by itself when time passes",
+      async (noticeCase) => {
+        // Arrange
+        jest.useFakeTimers();
+
+        const bar = await renderNotice(noticeCase);
+
+        // Act
+        pass(A_MINUTE);
+        pass(TIME_TO_BE_GONE);
+
+        // Assert
+        expect(bar.shareDialog.isRendered).toBe(true);
+        expect(bar.shareDialog.title).toBe(noticeCase.title);
+      }
+    );
+
+    it.each<[string, NoticeCase, (bar: ShellTopBarPom) => void]>([
+      [
+        "Got it",
+        NOT_MADE_CASE,
+        (bar) => bar.shareDialog.button("Got it").press(),
+      ],
+      [
+        "Close",
+        NOT_COPIED_CASE,
+        (bar) => bar.shareDialog.button("Close").press(),
+      ],
+      ["the Escape key", NOT_MADE_CASE, (bar) => bar.shareDialog.pressEscape()],
+      [
+        "a click outside it",
+        NOT_MADE_CASE,
+        (bar) => bar.shareDialog.clickBackdrop(),
+      ],
+    ])(
+      "should close with %s, and give the keyboard focus back to Share once it is gone",
+      async (_how, noticeCase, closeDialog) => {
+        // Arrange
+        const bar = await renderNotice(noticeCase);
+        const focusedWhileOpen = bar.actions.share.isFocused;
+
+        // Act
+        closeDialog(bar);
+        await bar.shareDialog.waitUntilGone();
+
+        // Assert
+        expect(focusedWhileOpen).toBe(false);
+        expect(bar.actions.share.isFocused).toBe(true);
+      }
+    );
+
+    it("should confirm a plain copy on Share, with no dialog, when it is pressed after a notice was closed", async () => {
+      // Arrange
+      const bar = await renderNotice(NOT_COPIED_CASE);
+
+      bar.shareDialog.button("Close").press();
+      await bar.shareDialog.waitUntilGone();
+      stubClipboard();
+
+      // Act
+      await pressShare(bar);
+
+      // Assert
+      expect(readShare(bar)).toEqual(SHARE_COPIED);
+      expect(bar.shareDialog.isRendered).toBe(false);
+    });
+
+    it("should open the dialog again with the title of the notice of a later share", async () => {
+      // Arrange
+      const makeLink = jest
+        .fn<ReturnType<MakeLink>, Parameters<MakeLink>>()
+        .mockRejectedValueOnce(new Error("no link"))
+        .mockResolvedValue(LONG_LINK);
+      const { bar } = renderBar(createProps({ makeLink }));
+
+      await pressShare(bar);
+
+      const firstTitle = bar.shareDialog.title;
+
+      bar.shareDialog.button("Got it").press();
+      await bar.shareDialog.waitUntilGone();
+
+      // Act
+      await pressShare(bar);
+
+      // Assert
+      expect(firstTitle).toBe("The link could not be made");
+      expect(bar.shareDialog.isRendered).toBe(true);
+      expect(bar.shareDialog.title).toBe("Long link copied");
+    });
+  });
+
+  describe("the dialog of a link that could not be copied", () => {
+    it("should show the link in a field, with Close and Copy link, and say Copy link before the user presses it", async () => {
+      // Arrange
+      const bar = await renderNotice(NOT_COPIED_CASE);
+
+      // Act
+      const { shareDialog } = bar;
+
+      // Assert
+      expect(shareDialog.link.value).toBe(SHORT_LINK);
+      expect(shareDialog.buttonNames).toEqual(["Close", "Copy link"]);
+      expect(shareDialog.copyButton.isShowingLabel).toBe(true);
+      expect(shareDialog.announcement.text).toBe("");
+    });
+
+    it("should copy the same link when Copy link is pressed with a working clipboard, and confirm it on the button and in the region of the dialog", async () => {
+      // Arrange
+      const bar = await renderNotice(NOT_COPIED_CASE);
+      const writeText = stubClipboard();
+
+      // Act
+      await act(async () => {
+        bar.shareDialog.copyButton.press();
+      });
+
+      // Assert
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith(SHORT_LINK);
+      expect(readCopyAgain(bar)).toEqual({
+        visibleText: "Copied",
+        isShowingCopied: true,
+        announced: "Link copied",
+      });
+      expect(readShare(bar)).toEqual(SHARE_AT_REST);
+      expect(bar.shareDialog.isRendered).toBe(true);
+    });
+
+    it("should confirm the copy for exactly the time of a confirmation, and then say Copy link again, with nothing announced", async () => {
+      // Arrange
+      jest.useFakeTimers();
+
+      const bar = await renderNotice(NOT_COPIED_CASE);
+
+      stubClipboard();
+      await act(async () => {
+        bar.shareDialog.copyButton.press();
+      });
+
+      const shown = bar.shareDialog.announcement.text;
+
+      pass(SHARE_COPIED_DURATION - 1);
+
+      const justBefore = bar.shareDialog.copyButton.isShowingCopied;
+
+      // Act
+      pass(1);
+
+      // Assert
+      expect(shown).toBe("Link copied");
+      expect(justBefore).toBe(true);
+      expect(bar.shareDialog.copyButton.isShowingLabel).toBe(true);
+      expect(bar.shareDialog.copyButton.visibleText).toBe("Copy link");
+      expect(bar.shareDialog.announcement.text).toBe("");
+    });
+
+    it("should not confirm anything when the clipboard refuses the link again", async () => {
+      // Arrange
+      const bar = await renderNotice(NOT_COPIED_CASE);
+
+      // Act
+      await act(async () => {
+        bar.shareDialog.copyButton.press();
+      });
+
+      // Assert
+      expect(bar.shareDialog.copyButton.isShowingLabel).toBe(true);
+      expect(bar.shareDialog.announcement.text).toBe("");
+      expect(bar.shareDialog.isRendered).toBe(true);
     });
   });
 

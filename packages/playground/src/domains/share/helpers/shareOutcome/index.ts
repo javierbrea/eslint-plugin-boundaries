@@ -1,2 +1,6 @@
 export { getCopiedOutcome, getRefusedOutcome } from "./shareOutcome";
-export type { ShareOutcome, ShareRefusal } from "./shareOutcome.types";
+export type {
+  ShareNotice,
+  ShareOutcome,
+  ShareRefusal,
+} from "./shareOutcome.types";

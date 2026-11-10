@@ -55,7 +55,7 @@ describe("ShareOutcome", () => {
       const outcome = getCopiedOutcome(link);
 
       // Assert
-      expect(outcome).toBe("copied");
+      expect(outcome).toStrictEqual({ kind: "copied" });
     });
 
     it("should say that the link was copied when it has the longest length that is not long", () => {
@@ -66,7 +66,7 @@ describe("ShareOutcome", () => {
       const outcome = getCopiedOutcome(link);
 
       // Assert
-      expect(outcome).toBe("copied");
+      expect(outcome).toStrictEqual({ kind: "copied" });
     });
 
     it("should say that the link is long when it has one character more", () => {
@@ -77,7 +77,44 @@ describe("ShareOutcome", () => {
       const outcome = getCopiedOutcome(link);
 
       // Assert
-      expect(outcome).toBe("long");
+      expect(outcome).toStrictEqual({
+        kind: "long",
+        length: LONG_LINK_LENGTH + 1,
+        maxLength: LONG_LINK_LENGTH,
+      });
+    });
+
+    it("should tell 8192 characters apart from 8193, which is the length from which a link is long", () => {
+      // Arrange
+      const notLong = "a".repeat(8192);
+      const long = "a".repeat(8193);
+
+      // Act
+      const notLongOutcome = getCopiedOutcome(notLong);
+      const longOutcome = getCopiedOutcome(long);
+
+      // Assert
+      expect(notLongOutcome).toStrictEqual({ kind: "copied" });
+      expect(longOutcome).toStrictEqual({
+        kind: "long",
+        length: 8193,
+        maxLength: 8192,
+      });
+    });
+
+    it("should tell the length of the link, and not the one above which it is long, when it is much longer", () => {
+      // Arrange
+      const link = "a".repeat(20000);
+
+      // Act
+      const outcome = getCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toStrictEqual({
+        kind: "long",
+        length: 20000,
+        maxLength: 8192,
+      });
     });
   });
 
@@ -117,7 +154,7 @@ describe("ShareOutcome", () => {
       expect(refusal).toBeUndefined();
     });
 
-    it("should say that the sketch is too large when it has one file more than a link can hold", () => {
+    it("should say that the sketch is too large, with the most files that a link can hold, when it has one file more", () => {
       // Arrange
       const sketch = createSketch(MAX_SKETCH_NODES + 1, 0);
 
@@ -125,9 +162,10 @@ describe("ShareOutcome", () => {
       const refusal = getRefusedOutcome(sketch);
 
       // Assert
-      expect(refusal).toEqual({
+      expect(refusal).toStrictEqual({
         kind: "too-large",
-        reason: "The project has more than 1000 files and folders.",
+        limit: "nodes",
+        max: 1000,
       });
     });
 
@@ -143,13 +181,14 @@ describe("ShareOutcome", () => {
       const refusal = getRefusedOutcome(sketch);
 
       // Assert
-      expect(refusal).toEqual({
+      expect(refusal).toStrictEqual({
         kind: "too-large",
-        reason: "The project has more than 1000 files and folders.",
+        limit: "nodes",
+        max: 1000,
       });
     });
 
-    it("should say that the sketch is too large when it has one dependency more than a link can hold", () => {
+    it("should say that the sketch is too large, with the most dependencies that a link can hold, when it has one dependency more", () => {
       // Arrange
       const sketch = createSketch(
         MAX_SKETCH_NODES,
@@ -160,9 +199,10 @@ describe("ShareOutcome", () => {
       const refusal = getRefusedOutcome(sketch);
 
       // Assert
-      expect(refusal).toEqual({
+      expect(refusal).toStrictEqual({
         kind: "too-large",
-        reason: "The project has more than 3000 dependencies.",
+        limit: "dependencies",
+        max: 3000,
       });
     });
 
@@ -177,7 +217,7 @@ describe("ShareOutcome", () => {
       expect(refusal).toBeUndefined();
     });
 
-    it("should say that the sketch is too large when its JSON has one byte more than a link can hold", () => {
+    it("should say that the sketch is too large, with the most bytes that a link can hold, when its JSON has one byte more", () => {
       // Arrange
       const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES + 1);
 
@@ -185,10 +225,10 @@ describe("ShareOutcome", () => {
       const refusal = getRefusedOutcome(sketch);
 
       // Assert
-      expect(refusal).toEqual({
+      expect(refusal).toStrictEqual({
         kind: "too-large",
-        reason:
-          "The project in the link is larger than 4 MiB, which the playground does not load.",
+        limit: "bytes",
+        max: 4194304,
       });
     });
 

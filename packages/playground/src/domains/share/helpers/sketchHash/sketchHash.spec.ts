@@ -700,7 +700,7 @@ describe("sketchHash", () => {
         );
       });
 
-      it("should say that the sketch is refused for its size when its JSON has one byte more", () => {
+      it("should say that the sketch is refused for the size of its JSON when it has one byte more", () => {
         // Arrange
         const sketch = createSketchOfBytes(MAX_SKETCH_JSON_BYTES + 1);
 
@@ -712,7 +712,7 @@ describe("sketchHash", () => {
           status: "error",
           error:
             "The project in the link is larger than 4 MiB, which the playground does not load.",
-          tooLarge: true,
+          tooLarge: "bytes",
         });
       });
 
@@ -864,7 +864,7 @@ describe("sketchHash", () => {
         expect(reading).toStrictEqual({
           status: "error",
           error: "The project has more than 1000 files and folders.",
-          tooLarge: true,
+          tooLarge: "nodes",
         });
       });
 
@@ -912,7 +912,7 @@ describe("sketchHash", () => {
         expect(reading).toStrictEqual({
           status: "error",
           error: "The project has more than 3000 dependencies.",
-          tooLarge: true,
+          tooLarge: "dependencies",
         });
       });
 

@@ -15,14 +15,16 @@ export function getInsertedRules(): CSSRule[] {
 }
 
 /**
- * Collects what the CSS rules of the playground declare for an element: its own Emotion class, or a selector built around it. jsdom cannot tell whether an element is hovered or has a keyboard focus ring, so a spec reads the rule instead of the computed style.
+ * Collects what the CSS rules of the playground declare for an element: its own Emotion class, or a selector built around it. jsdom cannot tell whether an element is hovered, has a keyboard focus ring or is under a media query such as `prefers-reduced-motion`, so a spec reads the rule instead of the computed style.
  * @param element The element that carries the class.
  * @param selector The selector to read, with {@link OWN_CLASS} where the class goes. It is the class alone by default.
+ * @param media The condition of the media query whose rules are read, such as `(prefers-reduced-motion: reduce)`. It reads the rules that are not inside a media query by default.
  * @returns The declarations of the rules with that selector in the order they were inserted, so the last one of each property is the one that wins.
  */
 export function getStyle(
   element: Element,
-  selector: string = OWN_CLASS
+  selector: string = OWN_CLASS,
+  media?: string
 ): Record<string, string> {
   const selectors = Array.from(element.classList)
     .filter(
@@ -32,7 +34,17 @@ export function getStyle(
     .map((className) => selector.replace(OWN_CLASS, `.${className}`));
   const declarations: Record<string, string> = {};
 
-  getInsertedRules().forEach((rule) => {
+  const rules =
+    media === undefined
+      ? getInsertedRules()
+      : getInsertedRules()
+          .filter(
+            (rule): rule is CSSMediaRule =>
+              rule instanceof CSSMediaRule && rule.conditionText === media
+          )
+          .flatMap((rule) => Array.from(rule.cssRules));
+
+  rules.forEach((rule) => {
     if (rule instanceof CSSStyleRule && selectors.includes(rule.selectorText)) {
       Array.from(rule.style).forEach((property) => {
         declarations[property] = rule.style.getPropertyValue(property);

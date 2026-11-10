@@ -416,8 +416,11 @@ export function readSketch(value: unknown): SketchReadResult {
   const shape = readShape(value);
 
   if (typeof shape === "string") {
-    return shape === TOO_MANY_NODES || shape === TOO_MANY_DEPENDENCIES
-      ? { error: shape, tooLarge: true }
+    if (shape === TOO_MANY_NODES) {
+      return { error: shape, tooLarge: "nodes" };
+    }
+    return shape === TOO_MANY_DEPENDENCIES
+      ? { error: shape, tooLarge: "dependencies" }
       : { error: shape };
   }
 

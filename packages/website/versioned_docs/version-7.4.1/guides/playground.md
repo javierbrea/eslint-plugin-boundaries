@@ -154,12 +154,13 @@ A row opens what it points to: a problem of the config opens the config at its p
 
 `Share`, in the top bar, copies a link to the playground. The part of the link after `#` holds the whole project, compressed: its config, its files and its dependencies. A browser does not send that part of a URL to the server, so the project is never uploaded: it travels inside the link. The address bar holds the project too, a moment after each edit, so reloading the page keeps it.
 
-The message next to the button says how it went:
+When the link is copied and is short enough for any app, the button reads `Copied` for a moment. Otherwise a dialog says what happened:
 
-- `Link copied`.
-- `Long link copied: some apps may cut it`, for a link of more than 8,192 characters. Check that the link you pasted opens the project.
-- `The project is too large for a link`, with the reason, for a project with more than 1,000 files and folders, more than 3,000 dependencies, or more than 4 MiB once written as JSON. Nothing is copied.
-- `The link could not be copied`, when the browser refuses access to the clipboard.
+- `Long link copied`, for a link of more than 8,192 characters: some apps cut links that long when they are pasted, so check that the link you pasted opens the whole project.
+- `The link could not be copied`, when the browser refuses access to the clipboard. The dialog shows the link, selected, to copy it by hand, and `Copy link` tries again.
+- `The link could not be made`, when the page fails to make the link. The project stays on screen: try again.
+- `The project is too large for a link`, for a project with more than 1,000 files and folders, more than 3,000 dependencies, or more than 4 MiB once written as JSON. Nothing is copied.
+- `The project cannot be shared`, with the reason, for a project that the playground would refuse when it opens the link. Nothing is copied.
 
 A link that cannot be read shows why, with a `Reset` button.
 

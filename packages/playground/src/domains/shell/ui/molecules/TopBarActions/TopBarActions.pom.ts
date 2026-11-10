@@ -1,15 +1,31 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 
-import { ShareMessagePom } from "@/domains/share/ui/atoms/ShareMessage/ShareMessage.pom";
+import { CopiedAnnouncementPom } from "@/domains/share/ui/atoms/CopiedAnnouncement/CopiedAnnouncement.pom";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
+import { CopyButtonPom } from "@/ui-kit/molecules/CopyButton/CopyButton.pom";
 
 import {
   HELP_BUTTON_LABEL,
   RESET_BUTTON_LABEL,
-  SHARE_BUTTON_LABEL,
+  SHARE_BUTTON_TEST_ID,
   TOP_BAR_ACTIONS_TEST_ID,
 } from "./TopBarActions.constants";
+
+/**
+ * What assistive technology reads in a node: its text, without the parts of it that are hidden from assistive technology.
+ * @param node The node, such as a button.
+ * @returns The text that a screen reader reads.
+ */
+function readText(node: Node): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent ?? "";
+  }
+
+  return node instanceof Element && node.getAttribute("aria-hidden") === "true"
+    ? ""
+    : Array.from(node.childNodes).map(readText).join("");
+}
 
 /** The style of a button that a spec reads: how it is sized and colored. */
 type ButtonLook = {
@@ -44,7 +60,7 @@ class TooltipPom extends Pom {
   }
 }
 
-/** Page object of the actions at the end of the top bar. Its root is a box that takes no room of its own, so its buttons are found within it by their names. */
+/** Page object of the actions at the end of the top bar. Its root is a box that takes no room of its own, so its buttons are found within it by their names, except Share, which is a copy button that it finds by its test id. */
 export class TopBarActionsPom extends Pom {
   protected readonly defaultTestId = TOP_BAR_ACTIONS_TEST_ID;
 
@@ -69,11 +85,19 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
-   * The message that says how the last share went.
-   * @returns The page object of the message, which is not rendered when the actions cannot share.
+   * The button that shares the sketch, which is not rendered when the actions cannot share.
+   * @returns The page object of the copy button.
    */
-  get message(): ShareMessagePom {
-    return this.childPom(ShareMessagePom);
+  get share(): CopyButtonPom {
+    return this.childPom(CopyButtonPom, { testId: SHARE_BUTTON_TEST_ID });
+  }
+
+  /**
+   * The live region that tells screen readers that the link was copied, which is not rendered when the actions cannot share.
+   * @returns The page object of the announcement.
+   */
+  get announcement(): CopiedAnnouncementPom {
+    return this.childPom(CopiedAnnouncementPom);
   }
 
   /**
@@ -85,20 +109,20 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
-   * The parts of the actions in the order they are drawn: the message when there is one, and the buttons by their names.
-   * @returns What each element that the actions place says: `message` for the live region, and the accessible name of a button.
+   * The parts of the actions in the order they are drawn: the buttons by their names, and the live region after them when there is one.
+   * @returns What each element that the actions place says: `announcement` for the live region, and for a button its `aria-label` or the text that assistive technology reads in it, which leaves out the confirmation of Share.
    */
   get parts(): string[] {
     return Array.from(this.root.children).map((element) =>
       element.getAttribute("role") === "status"
-        ? "message"
-        : (element.getAttribute("aria-label") ?? element.textContent)
+        ? "announcement"
+        : (element.getAttribute("aria-label") ?? readText(element))
     );
   }
 
   /**
-   * How much each button shrinks when there is not room for the actions in the bar, which is none: the message is the part that gives way.
-   * @returns The computed `flex-shrink` of Help, Reset and Share, in the order they are drawn.
+   * How much each button shrinks when there is not room for the actions in the bar, which is none: the buttons keep their size.
+   * @returns The computed `flex-shrink` of Help, Reset and, when the actions can share, Share, in the order they are drawn.
    */
   get buttonShrinks(): string[] {
     return this.scope
@@ -111,10 +135,7 @@ export class TopBarActionsPom extends Pom {
    * @returns True when there is one.
    */
   get hasShare(): boolean {
-    return (
-      this.scope.queryAllByRole("button", { name: SHARE_BUTTON_LABEL }).length >
-      0
-    );
+    return this.share.isRendered;
   }
 
   /**
@@ -172,7 +193,7 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
-   * How a text button, such as Reset, or a contained one, such as Share, is drawn.
+   * How a button that is a plain MUI button, such as Reset, is drawn. Share is a copy button, which has its own page object.
    * @param label The label of the button.
    * @returns `outlined`, `contained` or `text`, from the class MUI gives the button, or null when it has none of them.
    */
@@ -185,7 +206,7 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
-   * The icon of a button that has an icon before its label.
+   * The icon of a plain MUI button that has an icon before its label, such as Reset.
    * @param label The label of the button.
    * @returns The page object of the icon.
    */
@@ -238,6 +259,6 @@ export class TopBarActionsPom extends Pom {
 
   /** Presses the share button. */
   pressShare(): void {
-    fireEvent.click(this.button(SHARE_BUTTON_LABEL));
+    this.share.press();
   }
 }
