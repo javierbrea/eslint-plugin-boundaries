@@ -8,7 +8,7 @@ import type {
 } from "@/domains/evaluation/helpers/engine";
 import type { StateTone } from "@/ui-kit/helpers/tone";
 
-import type { VerdictIcon } from "./verdictText.types";
+import type { DecidedVerdict, VerdictIcon } from "./verdictText.types";
 
 /** How each skip reason is called next to a verdict. The reasons that are not here are written as they are */
 const SKIP_REASON_LABELS: Readonly<Partial<Record<SkipReason, string>>> = {
@@ -73,9 +73,9 @@ export function getVerdictTone(verdict: DependencyVerdict): StateTone {
 /**
  * Picks the icon of a verdict.
  * @param verdict What the engine says about a dependency.
- * @returns `check` for an allowed dependency, `cross` for a disallowed one, `warn` when the rule is a warning, and `skip` for one that is not checked, not evaluated or not evaluated yet.
+ * @returns `check` for an allowed dependency, `cross` for a disallowed one, `warn` when the rule is a warning, and `skip` for one that is not checked or not evaluated.
  */
-export function getVerdictIcon(verdict: DependencyVerdict): VerdictIcon {
+export function getVerdictIcon(verdict: DecidedVerdict): VerdictIcon {
   if (verdict.status === "allowed") {
     return "check";
   }
@@ -109,14 +109,11 @@ export function getSkipReasonLabel(reason: SkipReason): string {
 /**
  * Writes a verdict as the file pane shows it after the icon.
  * @param verdict What the engine says about a dependency.
- * @returns The policy that decided, as `getPolicyName` writes it, for an allowed or a disallowed dependency; `not checked · <reason>` for one that is not checked; `not evaluated yet` for one that no evaluation has decided yet; and `not evaluated` otherwise.
+ * @returns The policy that decided, as `getPolicyName` writes it, for an allowed or a disallowed dependency; `not checked · <reason>` for one that is not checked; and `not evaluated` otherwise.
  */
-export function getVerdictLabel(verdict: DependencyVerdict): string {
+export function getVerdictLabel(verdict: DecidedVerdict): string {
   if (verdict.status === "allowed" || verdict.status === "disallowed") {
     return getPolicyName(verdict.policy);
-  }
-  if (verdict.status === "pending") {
-    return "not evaluated yet";
   }
   return verdict.status === "not-checked"
     ? `not checked · ${getSkipReasonLabel(verdict.reason)}`

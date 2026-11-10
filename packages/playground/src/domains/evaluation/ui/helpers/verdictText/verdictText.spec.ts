@@ -20,17 +20,18 @@ import {
   getVerdictTone,
 } from "./verdictText";
 import { VERDICT_ICON_LABELS } from "./verdictText.constants";
+import type { DecidedVerdict } from "./verdictText.types";
 
 const RANGE: TextRange = { from: 10, to: 20, line: 3, column: 5 };
 
 const POLICY_2: PolicyRef = { index: 2, range: RANGE };
 const DEFAULT: PolicyRef = { index: null, range: RANGE };
 
-const ALLOWED_BY_POLICY: DependencyVerdict = {
+const ALLOWED_BY_POLICY: DecidedVerdict = {
   status: "allowed",
   policy: POLICY_2,
 };
-const ALLOWED_BY_DEFAULT: DependencyVerdict = {
+const ALLOWED_BY_DEFAULT: DecidedVerdict = {
   status: "allowed",
   policy: DEFAULT,
 };
@@ -58,15 +59,15 @@ const WARNED_BY_POLICY: DisallowedVerdict = {
   message: "Not allowed",
   level: "warning",
 };
-const NOT_CHECKED_EXTERNAL: DependencyVerdict = {
+const NOT_CHECKED_EXTERNAL: DecidedVerdict = {
   status: "not-checked",
   reason: "not-local",
 };
-const NOT_CHECKED_INTERNAL: DependencyVerdict = {
+const NOT_CHECKED_INTERNAL: DecidedVerdict = {
   status: "not-checked",
   reason: "internal",
 };
-const NOT_EVALUATED: DependencyVerdict = { status: "not-evaluated" };
+const NOT_EVALUATED: DecidedVerdict = { status: "not-evaluated" };
 const PENDING: DependencyVerdict = { status: "pending" };
 
 /**
@@ -129,7 +130,7 @@ describe("VerdictText", () => {
   });
 
   describe("getVerdictIcon", () => {
-    it.each<[string, DependencyVerdict, string]>([
+    it.each<[string, DecidedVerdict, string]>([
       ["allowed by a policy", ALLOWED_BY_POLICY, "check"],
       ["allowed by the default", ALLOWED_BY_DEFAULT, "check"],
       ["disallowed by an error", DISALLOWED_BY_POLICY, "cross"],
@@ -137,7 +138,6 @@ describe("VerdictText", () => {
       ["disallowed by a warning", WARNED_BY_POLICY, "warn"],
       ["not checked", NOT_CHECKED_EXTERNAL, "skip"],
       ["not evaluated", NOT_EVALUATED, "skip"],
-      ["not evaluated yet", PENDING, "skip"],
     ])(
       "should draw a dependency %s with the icon %s",
       (_title, verdict, icon) => {
@@ -184,7 +184,7 @@ describe("VerdictText", () => {
   });
 
   describe("getVerdictLabel", () => {
-    it.each<[string, DependencyVerdict, string]>([
+    it.each<[string, DecidedVerdict, string]>([
       ["allowed by a policy", ALLOWED_BY_POLICY, "policy 2"],
       ["allowed by the default", ALLOWED_BY_DEFAULT, "default"],
       ["disallowed by a policy", DISALLOWED_BY_POLICY, "policy 2"],
@@ -206,7 +206,6 @@ describe("VerdictText", () => {
         "not checked · not read",
       ],
       ["not evaluated", NOT_EVALUATED, "not evaluated"],
-      ["not evaluated yet", PENDING, "not evaluated yet"],
     ])("should write a dependency %s", (_title, verdict, label) => {
       // Act
       const result = getVerdictLabel(verdict);

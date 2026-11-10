@@ -93,7 +93,7 @@ describe("dependencyDetail", () => {
     describe("a dependency that the rule disallows", () => {
       it("should say disallowed with the policy, in the tone and with the icon of an error, and give the message of the plugin", () => {
         // Act
-        const detail = toDependencyDetail(createFacts());
+        const detail = toDependencyDetail(createFacts(), undefined);
 
         // Assert
         expect(detail.verdict).toEqual({
@@ -114,7 +114,8 @@ describe("dependencyDetail", () => {
               ...DISALLOWED,
               policy: { index: null, range: DEFAULT_RANGE },
             },
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -124,7 +125,8 @@ describe("dependencyDetail", () => {
       it("should use the icon and the tone of a warning when the rule is one", () => {
         // Act
         const detail = toDependencyDetail(
-          createFacts({ verdict: { ...DISALLOWED, level: "warning" } })
+          createFacts({ verdict: { ...DISALLOWED, level: "warning" } }),
+          undefined
         );
 
         // Assert
@@ -145,7 +147,8 @@ describe("dependencyDetail", () => {
               message: "The message failed.",
             },
             policy: undefined,
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -164,7 +167,8 @@ describe("dependencyDetail", () => {
               status: "allowed",
               policy: { index: 1, range: POLICY_RANGE },
             },
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -184,7 +188,8 @@ describe("dependencyDetail", () => {
               status: "allowed",
               policy: { index: null, range: DEFAULT_RANGE },
             },
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -199,7 +204,8 @@ describe("dependencyDetail", () => {
           createFacts({
             verdict: { status: "not-checked", reason: "not-local" },
             policy: undefined,
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -220,7 +226,8 @@ describe("dependencyDetail", () => {
           createFacts({
             verdict: { status: "not-checked", reason: "internal" },
             policy: undefined,
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -235,7 +242,8 @@ describe("dependencyDetail", () => {
           createFacts({
             verdict: { status: "not-evaluated" },
             policy: undefined,
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -249,10 +257,59 @@ describe("dependencyDetail", () => {
       });
     });
 
+    describe("a dependency that no evaluation has decided yet", () => {
+      it("should draw no icon and no words, faint, with no message and no policy, while it shows no verdict", () => {
+        // Act
+        const detail = toDependencyDetail(
+          createFacts({ verdict: { status: "pending" }, policy: undefined }),
+          undefined
+        );
+
+        // Assert
+        expect(detail.verdict).toEqual({
+          icon: undefined,
+          tone: "faint",
+          text: "",
+        });
+        expect(detail.message).toBeUndefined();
+        expect(detail.policy).toBeUndefined();
+      });
+
+      it("should say what the pending verdict shows, faint, once it shows something", () => {
+        // Act
+        const detail = toDependencyDetail(
+          createFacts({ verdict: { status: "pending" }, policy: undefined }),
+          { icon: "skip", label: "evaluating…" }
+        );
+
+        // Assert
+        expect(detail.verdict).toEqual({
+          icon: "skip",
+          tone: "faint",
+          text: "evaluating…",
+        });
+      });
+
+      it("should not use the pending verdict for a dependency that an evaluation decided", () => {
+        // Act
+        const detail = toDependencyDetail(createFacts(), {
+          icon: "skip",
+          label: "evaluating…",
+        });
+
+        // Assert
+        expect(detail.verdict).toEqual({
+          icon: "cross",
+          tone: "bad",
+          text: "disallowed · policy 2",
+        });
+      });
+    });
+
     describe("where the dependency is", () => {
       it("should give the file that has it, its line after a colon and the source its statement writes", () => {
         // Act
-        const detail = toDependencyDetail(createFacts());
+        const detail = toDependencyDetail(createFacts(), undefined);
 
         // Assert
         expect(detail.location).toEqual({
@@ -265,7 +322,8 @@ describe("dependencyDetail", () => {
       it("should number the line from 1 whatever the index of the dependency", () => {
         // Act
         const detail = toDependencyDetail(
-          createFacts({ ref: { path: "src/index.js", index: 0 } })
+          createFacts({ ref: { path: "src/index.js", index: 0 } }),
+          undefined
         );
 
         // Assert
@@ -284,7 +342,10 @@ describe("dependencyDetail", () => {
         "should give it for a dependency that is %s too",
         (_title, verdict) => {
           // Act
-          const detail = toDependencyDetail(createFacts({ verdict }));
+          const detail = toDependencyDetail(
+            createFacts({ verdict }),
+            undefined
+          );
 
           // Assert
           expect(detail.location).toEqual({
@@ -299,7 +360,7 @@ describe("dependencyDetail", () => {
     describe("the policy", () => {
       it("should be named by the index of the policy, hold its text in pieces and open the config at its range from the dependency", () => {
         // Act
-        const { policy } = toDependencyDetail(createFacts());
+        const { policy } = toDependencyDetail(createFacts(), undefined);
 
         // Assert
         expect(policy).toEqual({
@@ -323,7 +384,8 @@ describe("dependencyDetail", () => {
               range: DEFAULT_RANGE,
               tokens: [{ kind: "string", text: '"disallow"' }],
             },
-          })
+          }),
+          undefined
         );
 
         // Assert
@@ -348,7 +410,8 @@ describe("dependencyDetail", () => {
               range: POLICY_RANGE,
               tokens: [{ kind: "punctuation", text: "{}" }],
             },
-          })
+          }),
+          undefined
         );
 
         // Assert

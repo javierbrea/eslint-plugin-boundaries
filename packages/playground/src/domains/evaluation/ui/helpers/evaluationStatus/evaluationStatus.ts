@@ -10,6 +10,19 @@ import {
   STOPPED_NOTE,
   STOPPED_STATUS,
 } from "./evaluationStatus.constants";
+import type { PendingVerdict } from "./evaluationStatus.types";
+
+/** What a dependency that no evaluation has decided yet shows while the evaluation is late. One object, so that what depends on it is not made again while it does not change */
+const EVALUATING_VERDICT: PendingVerdict = {
+  icon: "skip",
+  label: EVALUATING_STATUS,
+};
+
+/** What a dependency that no evaluation has decided yet shows when the evaluation stopped or failed. One object, as {@link EVALUATING_VERDICT} */
+const NOT_EVALUATED_VERDICT: PendingVerdict = {
+  icon: "skip",
+  label: NOT_EVALUATED_LABEL,
+};
 
 /**
  * Tells whether the panes dim what the evaluation on screen says, because it is of an older sketch and has been for long enough to be seen. They do not dim it while a newer evaluation is on its way and not late, which is most of the time just after an edit, so that nothing flickers.
@@ -67,17 +80,17 @@ export function getEvaluationStatusText(
 }
 
 /**
- * Writes what the line of a dependency that no evaluation has decided yet says in place of a verdict.
+ * Writes what a dependency that no evaluation has decided yet shows in place of a verdict, wherever a verdict shows: the line of the file pane, the dependency tab and the icon of its tab.
  * @param evaluationStatus How the evaluation on screen stands to the sketch.
- * @returns `evaluating…` while the evaluation is late, `not evaluated` when it stopped or failed, and `undefined` otherwise, when the line shows no verdict yet: a usual evaluation arrives before anyone could read it.
+ * @returns The `skip` icon with `evaluating…` while the evaluation is late, with `not evaluated` when it stopped or failed, and `undefined` otherwise, when the dependency shows no verdict yet: a usual evaluation arrives before anyone could read it. Each answer is always the same object.
  */
-export function getPendingVerdictLabel(
+export function getPendingVerdict(
   evaluationStatus: EvaluationStatus
-): string | undefined {
+): PendingVerdict | undefined {
   if (evaluationStatus === "late") {
-    return EVALUATING_STATUS;
+    return EVALUATING_VERDICT;
   }
   return evaluationStatus === "stopped" || evaluationStatus === "failed"
-    ? NOT_EVALUATED_LABEL
+    ? NOT_EVALUATED_VERDICT
     : undefined;
 }

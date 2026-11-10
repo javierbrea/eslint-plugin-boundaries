@@ -1,3 +1,4 @@
+export type { PendingVerdict } from "./evaluationStatus.types";
 export {
   EVALUATING_NOTE,
   EVALUATING_STATUS,
@@ -10,6 +11,6 @@ export {
 export {
   getEvaluationNote,
   getEvaluationStatusText,
-  getPendingVerdictLabel,
+  getPendingVerdict,
   isEvaluationDimmed,
 } from "./evaluationStatus";

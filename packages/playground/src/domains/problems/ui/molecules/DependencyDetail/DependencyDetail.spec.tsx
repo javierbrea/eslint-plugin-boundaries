@@ -63,6 +63,50 @@ describe("DependencyDetail", () => {
       expect(verdictIcon.isHidden).toBe(true);
     });
 
+    it("should draw no icon and no words while the dependency shows no verdict yet, and still say where it is", () => {
+      // Arrange
+      renderInRoot(
+        <DependencyDetail
+          detail={{
+            ...NOT_CHECKED,
+            verdict: { icon: undefined, tone: "faint", text: "" },
+            message: undefined,
+          }}
+          onOpen={jest.fn()}
+        />
+      );
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { verdictText, verdictIcon, locationText } = detail;
+
+      // Assert
+      expect(verdictText).toBe("");
+      expect(verdictIcon.isRendered).toBe(false);
+      expect(locationText).toBe(`${CHECKOUT}:4 → react`);
+    });
+
+    it("should keep the height of one line of its text, so that the body does not move when a verdict comes into an empty line", () => {
+      // Arrange
+      renderInRoot(
+        <DependencyDetail
+          detail={{
+            ...NOT_CHECKED,
+            verdict: { icon: undefined, tone: "faint", text: "" },
+            message: undefined,
+          }}
+          onOpen={jest.fn()}
+        />
+      );
+      const detail = new DependencyDetailPom();
+
+      // Act
+      const { verdictMinHeight } = detail;
+
+      // Assert
+      expect(verdictMinHeight).toBe("1.4em");
+    });
+
     it.each<[DependencyDetailContent["verdict"], string, string, string]>([
       [
         DISALLOWED.verdict,

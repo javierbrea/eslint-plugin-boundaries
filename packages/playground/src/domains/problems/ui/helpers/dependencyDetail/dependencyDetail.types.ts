@@ -6,11 +6,11 @@ import type { StateTone } from "@/ui-kit/helpers/tone";
 
 /** The verdict line of the dependency tab: the icon, the color and the words of what the engine says. */
 export type VerdictLineContent = {
-  /** The icon of the verdict. */
-  readonly icon: VerdictIcon;
+  /** The icon of the verdict, or `undefined` while the dependency shows no verdict yet. */
+  readonly icon: VerdictIcon | undefined;
   /** The color of the icon and of the words. */
   readonly tone: StateTone;
-  /** What the engine says, such as `disallowed · policy 2` or `not checked · external`. */
+  /** What the engine says, such as `disallowed · policy 2` or `not checked · external`, or an empty text while the dependency shows no verdict yet. */
   readonly text: string;
 };
 

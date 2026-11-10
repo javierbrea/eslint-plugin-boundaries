@@ -447,7 +447,7 @@ describe("problemItems", () => {
 
     it("should give no tabs for no facts", () => {
       // Act
-      const tabs = toProblemsTabs([]);
+      const tabs = toProblemsTabs([], undefined);
 
       // Assert
       expect(tabs).toEqual([]);
@@ -455,7 +455,7 @@ describe("problemItems", () => {
 
     it("should label the tab of the sketch, count its problems and tone the badge by its errors", () => {
       // Act
-      const tabs = toProblemsTabs([SKETCH_TAB]);
+      const tabs = toProblemsTabs([SKETCH_TAB], undefined);
 
       // Assert
       expect(tabs).toEqual([
@@ -465,9 +465,10 @@ describe("problemItems", () => {
 
     it("should tone the badge of a tab without errors as a warning", () => {
       // Act
-      const tabs = toProblemsTabs([
-        { ...SKETCH_TAB, badge: { count: 3, hasErrors: false } },
-      ]);
+      const tabs = toProblemsTabs(
+        [{ ...SKETCH_TAB, badge: { count: 3, hasErrors: false } }],
+        undefined
+      );
 
       // Assert
       expect(tabs).toEqual([
@@ -477,14 +478,17 @@ describe("problemItems", () => {
 
     it("should label the tab of the config with its path in mono, with its own count and tone", () => {
       // Act
-      const tabs = toProblemsTabs([
-        SKETCH_TAB,
-        {
-          id: "node",
-          subject: { kind: "config" },
-          badge: { count: 2, hasErrors: false },
-        },
-      ]);
+      const tabs = toProblemsTabs(
+        [
+          SKETCH_TAB,
+          {
+            id: "node",
+            subject: { kind: "config" },
+            badge: { count: 2, hasErrors: false },
+          },
+        ],
+        undefined
+      );
 
       // Assert
       expect(tabs).toEqual([
@@ -501,13 +505,16 @@ describe("problemItems", () => {
 
     it("should name the tab of the file by its folder and its name in mono, without a count", () => {
       // Act
-      const tabs = toProblemsTabs([
-        SKETCH_TAB,
-        {
-          id: "node",
-          subject: { kind: "file", path: "src/modules/checkout/index.js" },
-        },
-      ]);
+      const tabs = toProblemsTabs(
+        [
+          SKETCH_TAB,
+          {
+            id: "node",
+            subject: { kind: "file", path: "src/modules/checkout/index.js" },
+          },
+        ],
+        undefined
+      );
 
       // Assert
       expect(tabs).toEqual([
@@ -520,13 +527,16 @@ describe("problemItems", () => {
 
     it("should label the tab of a file with the count of its failing dependencies", () => {
       // Act
-      const tabs = toProblemsTabs([
-        {
-          id: "node",
-          subject: { kind: "file", path: "src/modules/checkout/index.js" },
-          badge: { count: 1, hasErrors: true },
-        },
-      ]);
+      const tabs = toProblemsTabs(
+        [
+          {
+            id: "node",
+            subject: { kind: "file", path: "src/modules/checkout/index.js" },
+            badge: { count: 1, hasErrors: true },
+          },
+        ],
+        undefined
+      );
 
       // Assert
       expect(tabs).toEqual([
@@ -588,7 +598,7 @@ describe("problemItems", () => {
         "should be `line 3` in mono with the icon and the tone of a dependency that is %s, and no count",
         (_title, verdict, icon, iconTone) => {
           // Act
-          const [tab] = toProblemsTabs([dependencyTab(2, verdict)]);
+          const [tab] = toProblemsTabs([dependencyTab(2, verdict)], undefined);
 
           // Assert
           expect(tab).toEqual({
@@ -603,17 +613,61 @@ describe("problemItems", () => {
 
       it("should number the line from 1", () => {
         // Act
-        const [tab] = toProblemsTabs([
-          dependencyTab(0, { status: "not-evaluated" }),
-        ]);
+        const [tab] = toProblemsTabs(
+          [dependencyTab(0, { status: "not-evaluated" })],
+          undefined
+        );
 
         // Assert
         expect(tab.label).toBe("line 1");
       });
 
+      it("should draw no icon for a dependency that no evaluation has decided yet while it shows no verdict", () => {
+        // Act
+        const [tab] = toProblemsTabs(
+          [dependencyTab(2, { status: "pending" })],
+          undefined
+        );
+
+        // Assert
+        expect(tab).toEqual({ id: "dependency", label: "line 3", mono: true });
+      });
+
+      it("should draw the icon of the pending verdict, faint, for a dependency that no evaluation has decided yet once it shows one", () => {
+        // Act
+        const [tab] = toProblemsTabs(
+          [dependencyTab(2, { status: "pending" })],
+          {
+            icon: "skip",
+            label: "not evaluated",
+          }
+        );
+
+        // Assert
+        expect(tab).toEqual({
+          id: "dependency",
+          label: "line 3",
+          mono: true,
+          icon: "skip",
+          iconTone: "faint",
+        });
+      });
+
+      it("should not use the pending verdict for a dependency that an evaluation decided", () => {
+        // Act
+        const [tab] = toProblemsTabs(
+          [dependencyTab(2, failing(CHECKOUT, 2).verdict)],
+          { icon: "skip", label: "evaluating…" }
+        );
+
+        // Assert
+        expect(tab.icon).toBe("cross");
+        expect(tab.iconTone).toBe("bad");
+      });
+
       it("should draw no icon for a dependency that the evaluation does not know", () => {
         // Act
-        const [tab] = toProblemsTabs([dependencyTab(2)]);
+        const [tab] = toProblemsTabs([dependencyTab(2)], undefined);
 
         // Assert
         expect(tab).toEqual({ id: "dependency", label: "line 3", mono: true });
@@ -650,7 +704,7 @@ describe("problemItems", () => {
 
     it("should list the problems of the config and then the lines of text under the sketch", () => {
       // Act
-      const content = toProblemListContent(SKETCH_FACTS);
+      const content = toProblemListContent(SKETCH_FACTS, undefined);
 
       // Assert
       expect(content.items.map(({ key }) => key)).toEqual([
@@ -663,10 +717,13 @@ describe("problemItems", () => {
 
     it("should list the failing dependencies after the problems of the config and the lines of text, with the file of each", () => {
       // Act
-      const content = toProblemListContent({
-        ...SKETCH_FACTS,
-        dependencies: [failing(CHECKOUT, 2), failing("src/index.js", 0)],
-      });
+      const content = toProblemListContent(
+        {
+          ...SKETCH_FACTS,
+          dependencies: [failing(CHECKOUT, 2), failing("src/index.js", 0)],
+        },
+        undefined
+      );
 
       // Assert
       expect(content.items.map(({ key }) => key)).toEqual([
@@ -680,10 +737,13 @@ describe("problemItems", () => {
 
     it("should list the problems of the config alone under the config", () => {
       // Act
-      const content = toProblemListContent({
-        ...CONFIG_FACTS,
-        configProblems: [INVALID_OPTIONS, IGNORED_DESCRIPTORS],
-      });
+      const content = toProblemListContent(
+        {
+          ...CONFIG_FACTS,
+          configProblems: [INVALID_OPTIONS, IGNORED_DESCRIPTORS],
+        },
+        undefined
+      );
 
       // Assert
       expect(content.items.map(({ key }) => key)).toEqual([
@@ -696,7 +756,7 @@ describe("problemItems", () => {
 
     it("should open each problem of the config at its range", () => {
       // Act
-      const content = toProblemListContent(SKETCH_FACTS);
+      const content = toProblemListContent(SKETCH_FACTS, undefined);
 
       // Assert
       expect(content.items[0].target).toEqual({
@@ -707,10 +767,13 @@ describe("problemItems", () => {
 
     it("should open no line of text", () => {
       // Act
-      const content = toProblemListContent({
-        ...SKETCH_FACTS,
-        configProblems: [],
-      });
+      const content = toProblemListContent(
+        {
+          ...SKETCH_FACTS,
+          configProblems: [],
+        },
+        undefined
+      );
 
       // Assert
       expect(content.items[0].target).toBeUndefined();
@@ -718,12 +781,15 @@ describe("problemItems", () => {
 
     it("should open the dependency of a failing dependency", () => {
       // Act
-      const content = toProblemListContent({
-        ...SKETCH_FACTS,
-        configProblems: [],
-        textProblems: [],
-        dependencies: [failing(CHECKOUT, 2)],
-      });
+      const content = toProblemListContent(
+        {
+          ...SKETCH_FACTS,
+          configProblems: [],
+          textProblems: [],
+          dependencies: [failing(CHECKOUT, 2)],
+        },
+        undefined
+      );
 
       // Assert
       expect(content.items[0].target).toEqual({
@@ -735,14 +801,17 @@ describe("problemItems", () => {
 
     it("should say that nothing is listed for a file", () => {
       // Act
-      const content = toProblemListContent({
-        subject: { kind: "file", path: "src/index.js" },
-        configProblems: [],
-        textProblems: [],
-        dependencies: [],
-        notEvaluated: undefined,
-        highlight: undefined,
-      });
+      const content = toProblemListContent(
+        {
+          subject: { kind: "file", path: "src/index.js" },
+          configProblems: [],
+          textProblems: [],
+          dependencies: [],
+          notEvaluated: undefined,
+          highlight: undefined,
+        },
+        undefined
+      );
 
       // Assert
       expect(content).toEqual({
@@ -755,14 +824,17 @@ describe("problemItems", () => {
 
     it("should list the failing dependencies of a file without the file, starting at the line", () => {
       // Act
-      const content = toProblemListContent({
-        subject: { kind: "file", path: CHECKOUT },
-        configProblems: [],
-        textProblems: [],
-        dependencies: [failing(CHECKOUT, 2)],
-        notEvaluated: undefined,
-        highlight: undefined,
-      });
+      const content = toProblemListContent(
+        {
+          subject: { kind: "file", path: CHECKOUT },
+          configProblems: [],
+          textProblems: [],
+          dependencies: [failing(CHECKOUT, 2)],
+          notEvaluated: undefined,
+          highlight: undefined,
+        },
+        undefined
+      );
 
       // Assert
       expect(content.items).toHaveLength(1);
@@ -795,10 +867,13 @@ describe("problemItems", () => {
       "should say why dependencies are not evaluated when the reason is %s",
       (reason, sentence) => {
         // Act
-        const content = toProblemListContent({
-          ...SKETCH_FACTS,
-          notEvaluated: reason,
-        });
+        const content = toProblemListContent(
+          {
+            ...SKETCH_FACTS,
+            notEvaluated: reason,
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([sentence]);
@@ -808,10 +883,13 @@ describe("problemItems", () => {
     describe("the note about the highlighted policy", () => {
       it("should say which policy is highlighted and where it came from, after saying there are no problems in the config, in one note", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          highlight: HIGHLIGHT,
-        });
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            highlight: HIGHLIGHT,
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -822,13 +900,16 @@ describe("problemItems", () => {
 
       it("should say it for the default", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          highlight: {
-            policy: null,
-            dependency: { path: "src/index.js", index: 0 },
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            highlight: {
+              policy: null,
+              dependency: { path: "src/index.js", index: 0 },
+            },
           },
-        });
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -838,11 +919,14 @@ describe("problemItems", () => {
 
       it("should say only which policy is highlighted when the config has problems, which the rows list", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          configProblems: [INVALID_OPTIONS],
-          highlight: HIGHLIGHT,
-        });
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            configProblems: [INVALID_OPTIONS],
+            highlight: HIGHLIGHT,
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -854,10 +938,13 @@ describe("problemItems", () => {
 
       it("should leave the number out when no policy of the evaluation starts at the highlighted range", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          highlight: { ...HIGHLIGHT, policy: undefined },
-        });
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            highlight: { ...HIGHLIGHT, policy: undefined },
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -868,11 +955,14 @@ describe("problemItems", () => {
 
       it("should leave the number out after the problems of the config too", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          configProblems: [INVALID_OPTIONS],
-          highlight: { ...HIGHLIGHT, policy: undefined },
-        });
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            configProblems: [INVALID_OPTIONS],
+            highlight: { ...HIGHLIGHT, policy: undefined },
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -882,11 +972,14 @@ describe("problemItems", () => {
 
       it("should come after the note about dependencies that are not evaluated", () => {
         // Act
-        const content = toProblemListContent({
-          ...CONFIG_FACTS,
-          notEvaluated: "rule-off",
-          highlight: HIGHLIGHT,
-        });
+        const content = toProblemListContent(
+          {
+            ...CONFIG_FACTS,
+            notEvaluated: "rule-off",
+            highlight: HIGHLIGHT,
+          },
+          undefined
+        );
 
         // Assert
         expect(content.notes).toEqual([
@@ -909,7 +1002,7 @@ describe("problemItems", () => {
 
       it("should give its body in place of rows and notes", () => {
         // Act
-        const content = toProblemListContent(DETAIL);
+        const content = toProblemListContent(DETAIL, undefined);
 
         // Assert
         expect(content.items).toEqual([]);
@@ -923,7 +1016,7 @@ describe("problemItems", () => {
         const [row] = getDependencyProblemItems([failing(CHECKOUT, 2)], true);
 
         // Act
-        const content = toProblemListContent(DETAIL);
+        const content = toProblemListContent(DETAIL, undefined);
 
         // Assert
         expect(content.detail?.location).toEqual({
@@ -936,7 +1029,7 @@ describe("problemItems", () => {
 
       it("should give no body for the other lists", () => {
         // Act
-        const content = toProblemListContent(SKETCH_FACTS);
+        const content = toProblemListContent(SKETCH_FACTS, undefined);
 
         // Assert
         expect(content.detail).toBeUndefined();

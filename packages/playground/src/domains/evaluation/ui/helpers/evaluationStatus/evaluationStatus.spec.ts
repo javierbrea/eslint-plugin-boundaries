@@ -6,9 +6,10 @@ import {
 import {
   getEvaluationNote,
   getEvaluationStatusText,
-  getPendingVerdictLabel,
+  getPendingVerdict,
   isEvaluationDimmed,
 } from "./evaluationStatus";
+import type { PendingVerdict } from "./evaluationStatus.types";
 
 /** What the panes say when the evaluation took longer than the limit, which names it in seconds */
 const STOPPED_TEXT = `The evaluation took longer than ${EVALUATION_TIME_LIMIT / 1000} seconds and was stopped. Edit the project to evaluate it again.`;
@@ -84,19 +85,31 @@ describe("evaluationStatus", () => {
     );
   });
 
-  describe("getPendingVerdictLabel", () => {
-    it.each<[EvaluationStatus, string | undefined]>([
+  describe("getPendingVerdict", () => {
+    it.each<[EvaluationStatus, PendingVerdict | undefined]>([
       ["current", undefined],
       ["pending", undefined],
-      ["late", "evaluating…"],
-      ["stopped", "not evaluated"],
-      ["failed", "not evaluated"],
-    ])("should write for the status %s: %s", (evaluationStatus, expected) => {
+      ["late", { icon: "skip", label: "evaluating…" }],
+      ["stopped", { icon: "skip", label: "not evaluated" }],
+      ["failed", { icon: "skip", label: "not evaluated" }],
+    ])("should write for the status %s: %j", (evaluationStatus, expected) => {
       // Act
-      const label = getPendingVerdictLabel(evaluationStatus);
+      const verdict = getPendingVerdict(evaluationStatus);
 
       // Assert
-      expect(label).toBe(expected);
+      expect(verdict).toEqual(expected);
     });
+
+    it.each<EvaluationStatus>(["late", "stopped", "failed"])(
+      "should give the same object each time for the status %s, so that what depends on it is not made again",
+      (evaluationStatus) => {
+        // Act
+        const first = getPendingVerdict(evaluationStatus);
+        const second = getPendingVerdict(evaluationStatus);
+
+        // Assert
+        expect(second).toBe(first);
+      }
+    );
   });
 });

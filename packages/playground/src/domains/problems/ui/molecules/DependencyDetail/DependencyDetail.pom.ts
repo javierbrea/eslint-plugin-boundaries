@@ -93,6 +93,14 @@ export class DependencyDetailPom extends Pom {
   }
 
   /**
+   * The least height of the verdict line, which keeps it one line tall while it says nothing.
+   * @returns The computed value.
+   */
+  get verdictMinHeight(): string {
+    return getComputedStyle(this.verdictLine).minHeight;
+  }
+
+  /**
    * The color of the verdict line, which is the one that its icon takes.
    * @returns The computed value.
    */

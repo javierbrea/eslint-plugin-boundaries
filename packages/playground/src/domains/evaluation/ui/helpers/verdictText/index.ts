@@ -1,5 +1,5 @@
 export { VERDICT_ICON_LABELS } from "./verdictText.constants";
-export type { VerdictIcon } from "./verdictText.types";
+export type { DecidedVerdict, VerdictIcon } from "./verdictText.types";
 export {
   getNotEvaluatedSentence,
   getPolicyName,

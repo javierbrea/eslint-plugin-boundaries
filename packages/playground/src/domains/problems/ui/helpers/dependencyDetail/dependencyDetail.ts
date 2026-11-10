@@ -1,3 +1,4 @@
+import type { PendingVerdict } from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import {
   getPolicyName,
   getSkipReasonSentence,
@@ -19,13 +20,22 @@ import type {
  * Writes the verdict line: what the engine says about the dependency, with the policy that decided it.
  * @param result The dependency with its verdict.
  * @param result.verdict
- * @returns The icon, the tone and the words: `allowed · policy 1`, `disallowed · default`, `not checked · external` or `not evaluated`.
+ * @param pendingVerdict What a dependency that no evaluation has decided yet shows, as `getPendingVerdict` writes it.
+ * @returns The icon, the tone and the words: `allowed · policy 1`, `disallowed · default`, `not checked · external` or `not evaluated`. A dependency that no evaluation has decided yet has the icon and the words of `pendingVerdict`, and none while it is `undefined`, as its line in the file pane.
  */
-function getVerdictLine({
-  verdict,
-}: DependencyDetailFacts["result"]): VerdictLineContent {
+function getVerdictLine(
+  { verdict }: DependencyDetailFacts["result"],
+  pendingVerdict: PendingVerdict | undefined
+): VerdictLineContent {
   let text: string;
 
+  if (verdict.status === "pending") {
+    return {
+      icon: pendingVerdict?.icon,
+      tone: getVerdictTone(verdict),
+      text: pendingVerdict?.label ?? "",
+    };
+  }
   if (verdict.status === "allowed") {
     text = `allowed · ${getPolicyName(verdict.policy)}`;
   } else if (verdict.status === "disallowed") {
@@ -86,13 +96,15 @@ function getPolicyCard({
 /**
  * Turns the facts of the dependency in focus into what the body of its tab draws.
  * @param facts The facts, as `getProblemList` returns them.
+ * @param pendingVerdict What a dependency that no evaluation has decided yet shows, as `getPendingVerdict` writes it.
  * @returns The verdict line, where the dependency is, the message and the policy that decided it.
  */
 export function toDependencyDetail(
-  facts: DependencyDetailFacts
+  facts: DependencyDetailFacts,
+  pendingVerdict: PendingVerdict | undefined
 ): DependencyDetailContent {
   return {
-    verdict: getVerdictLine(facts.result),
+    verdict: getVerdictLine(facts.result, pendingVerdict),
     location: getDependencyLocation(facts.result.ref, facts.result.source),
     message: getMessage(facts.result),
     policy: getPolicyCard(facts),

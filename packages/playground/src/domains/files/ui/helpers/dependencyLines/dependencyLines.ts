@@ -1,7 +1,7 @@
 import type { DependencyResult } from "@/domains/evaluation/helpers/engine";
 import type { EvaluationStatus } from "@/domains/evaluation/helpers/evaluator";
 import {
-  getPendingVerdictLabel,
+  getPendingVerdict,
   isEvaluationDimmed,
 } from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import {
@@ -32,15 +32,15 @@ export function getDependencyLines(
     const tokens = toStatementTokens(dependency, source);
 
     if (verdict.status === "pending") {
-      const label = getPendingVerdictLabel(evaluationStatus);
+      const pending = getPendingVerdict(evaluationStatus);
 
       return {
         id,
         tokens,
-        icon: label === undefined ? undefined : "skip",
+        icon: pending?.icon,
         iconLabel: undefined,
-        tone: "faint",
-        label: label ?? "",
+        tone: getVerdictTone(verdict),
+        label: pending?.label ?? "",
         hint: undefined,
         dimmed,
       };

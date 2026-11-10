@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import {
   getEvaluationNote,
+  getPendingVerdict,
   isEvaluationDimmed,
 } from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import { useProblemList } from "@/domains/problems/modules/hooks/useProblemList";
@@ -45,11 +46,16 @@ function ProblemsPaneContent(): ReactNode {
     (state) => state.evaluation !== undefined
   );
   const evaluationNote = getEvaluationNote(evaluationStatus, hasEvaluation);
+  // The same object while what it shows does not change, which is across most edits
+  const pendingVerdict = getPendingVerdict(evaluationStatus);
   // Memoized on the facts, so the tabs and the rows keep their references while the facts do not change
-  const tabs = useMemo(() => toProblemsTabs(tabFacts), [tabFacts]);
+  const tabs = useMemo(
+    () => toProblemsTabs(tabFacts, pendingVerdict),
+    [tabFacts, pendingVerdict]
+  );
   const { items, empty, notes, detail } = useMemo(
-    () => toProblemListContent(listFacts),
-    [listFacts]
+    () => toProblemListContent(listFacts, pendingVerdict),
+    [listFacts, pendingVerdict]
   );
 
   return (

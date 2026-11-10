@@ -33,6 +33,8 @@ const VerdictLine = styled("div", {
   ...theme.typography.monoLarge,
   fontWeight: theme.typography.fontWeightMedium,
   lineHeight: 1.4,
+  // One line even while the verdict shows nothing yet, so that what comes under it does not move when the verdict arrives
+  minHeight: "1.4em",
   // The icon is a shape and keeps the token
   color: TONE_COLORS[tone],
 }));
@@ -165,7 +167,7 @@ export function DependencyDetail({
     <Root data-testid={testId} hasPolicy={policy !== undefined}>
       <div>
         <VerdictLine tone={verdict.tone}>
-          <Icon name={verdict.icon} />
+          {verdict.icon === undefined ? null : <Icon name={verdict.icon} />}
           <VerdictText tone={verdict.tone}>{verdict.text}</VerdictText>
         </VerdictLine>
         <Where>

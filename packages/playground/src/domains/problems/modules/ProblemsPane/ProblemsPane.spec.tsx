@@ -1190,6 +1190,95 @@ describe("ProblemsPane", () => {
     });
   });
 
+  describe("a dependency that no evaluation has decided yet", () => {
+    /** The tab of the dependency that {@link renderPending} adds after the four of the file. */
+    const ADDED_TAB = "line 5";
+
+    /**
+     * Renders the pane with the evaluation of the quick start, and then adds a dependency to a file while the worker holds the request of the new sketch. Adding it puts it in focus.
+     * @returns The render of the pane.
+     */
+    function renderPending(): PaneRender {
+      jest.useFakeTimers();
+
+      const render = renderPane(FULL_QUICK_START);
+
+      holdInlineWorkers();
+      act(() =>
+        render.store.addDependency({
+          from: FILE,
+          target: { kind: "external", name: "lodash" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        })
+      );
+      return render;
+    }
+
+    it("should draw no verdict in its tab and no icon on the tab while the evaluation is not late, as its line in the file pane", () => {
+      // Arrange
+      const { pane } = renderPending();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(getTabs(pane)).toEqual([
+        "Project2",
+        "checkout/index.js1",
+        `${ADDED_TAB}*`,
+      ]);
+      expect(pane.panel.tab(ADDED_TAB).icon.isRendered).toBe(false);
+      expect(pane.detail.verdictText).toBe("");
+      expect(pane.detail.verdictIcon.isRendered).toBe(false);
+      expect(pane.detail.locationText).toBe(`${FILE}:5 → lodash`);
+    });
+
+    it("should say that it is being evaluated once the evaluation is late, with the faint icon of a skipped verdict in its tab too", () => {
+      // Arrange
+      const { pane } = renderPending();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.detail.verdictText).toBe("evaluating…");
+      expect(pane.detail.verdictIcon.pathData).toBe(ICON_PATHS.skip);
+      expect(pane.panel.tab(ADDED_TAB).icon.pathData).toBe(ICON_PATHS.skip);
+      expect(pane.panel.tab(ADDED_TAB).icon.wrapperStyle.color).toBe(
+        "var(--jsb-faint)"
+      );
+    });
+
+    it("should say that it was not evaluated when the evaluation is stopped", () => {
+      // Arrange
+      const { pane } = renderPending();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.detail.verdictText).toBe("not evaluated");
+      expect(pane.panel.tab(ADDED_TAB).icon.pathData).toBe(ICON_PATHS.skip);
+    });
+
+    it("should say its verdict when the evaluation arrives", () => {
+      // Arrange
+      const { pane } = renderPending();
+      waitUntilEvaluationIsLate();
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(pane.detail.verdictText).toBe("not checked · external");
+      expect(pane.panel.tab(ADDED_TAB).icon.pathData).toBe(ICON_PATHS.skip);
+    });
+  });
+
   describe("an evaluation that is out of date", () => {
     /**
      * Renders the pane with the evaluation of a sketch whose config has mistakes, and then removes a node while the worker holds the request of the new sketch.
