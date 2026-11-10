@@ -1569,6 +1569,38 @@ describe("Playground", () => {
       );
     });
 
+    it("should start a new example with the default folds of the inspector", async () => {
+      // Arrange
+      const { playground } = renderPlayground(
+        new SketchSource(SOURCE_SKETCH),
+        new MemoryStore(QUICK_START_EXAMPLE.sketch)
+      );
+      await playground.waitForStatus("6 files ·");
+      playground.project.click("src/modules/checkout/index.js");
+      const before = playground.shell.inspector.file.section("from");
+      // The module box opens before `from` folds, because folding `from` removes its boxes
+      before.boxes.box("module").toggle();
+      before.toggle();
+
+      // Act
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick(EXAMPLES[1].title);
+      await waitForPickerText(playground, `Example ${EXAMPLES[1].title}`);
+      playground.topBar.picker.open();
+      playground.topBar.picker.pick(QUICK_START_EXAMPLE.title);
+      await waitForPickerText(
+        playground,
+        `Example ${QUICK_START_EXAMPLE.title}`
+      );
+      playground.project.click("src/modules/checkout/index.js");
+
+      // Assert
+      const after = playground.shell.inspector.file.section("from");
+
+      expect(after.isOpen).toBe(true);
+      expect(after.boxes.box("module").isOpen).toBe(false);
+    });
+
     it("should not offer the examples when the source cannot edit the tree, the dependencies and the config", async () => {
       // Act
       const { playground } = renderPlayground(
