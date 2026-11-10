@@ -1,6 +1,11 @@
 import { memo, useMemo } from "react";
 import type { ReactNode } from "react";
 
+import {
+  getEvaluationNote,
+  getPendingVerdict,
+  isEvaluationDimmed,
+} from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import { useProblemList } from "@/domains/problems/modules/hooks/useProblemList";
 import { useProblemTabs } from "@/domains/problems/modules/hooks/useProblemTabs";
 import { useShownTab } from "@/domains/problems/modules/hooks/useShownTab";
@@ -13,8 +18,10 @@ import { ProblemList } from "@/domains/problems/ui/molecules/ProblemList";
 import { ProblemNote } from "@/domains/problems/ui/molecules/ProblemNote";
 import { ProblemsPanel } from "@/domains/problems/ui/molecules/ProblemsPanel";
 import {
+  useEvaluationStatus,
   useOpen,
   useProblemsCollapsed,
+  useSessionSelector,
   useSelectTab,
   useSetProblemsCollapsed,
 } from "@/domains/session/data/store";
@@ -23,7 +30,7 @@ import type { ProblemsTabId } from "@/domains/session/helpers/focus";
 import { PROBLEMS_PANE_TEST_ID } from "./ProblemsPane.constants";
 
 /**
- * The problems pane: the panel with a tab for the sketch, one for the node in focus and one for the dependency in focus, and what the tab that shows has: notes and problems, or the body of the dependency. A row opens what it points at, and so does the button that opens the policy of a dependency.
+ * The problems pane: the panel with a tab for the sketch, one for the node in focus and one for the dependency in focus, and what the tab that shows has: notes and problems, or the body of the dependency. A row opens what it points at, and so does the button that opens the policy of a dependency. While the evaluation on screen is out of date and late, stopped or failed, the body fades, and a note above it says when the evaluation stopped or failed, or that the first one is late; before the first evaluation, an empty list says nothing.
  * @returns The pane, as tall as its container.
  */
 function ProblemsPaneContent(): ReactNode {
@@ -34,11 +41,21 @@ function ProblemsPaneContent(): ReactNode {
   const selectTab = useSelectTab();
   const setProblemsCollapsed = useSetProblemsCollapsed();
   const openTarget = useOpen();
+  const evaluationStatus = useEvaluationStatus();
+  const hasEvaluation = useSessionSelector(
+    (state) => state.evaluation !== undefined
+  );
+  const evaluationNote = getEvaluationNote(evaluationStatus, hasEvaluation);
+  // The same object while what it shows does not change, which is across most edits
+  const pendingVerdict = getPendingVerdict(evaluationStatus);
   // Memoized on the facts, so the tabs and the rows keep their references while the facts do not change
-  const tabs = useMemo(() => toProblemsTabs(tabFacts), [tabFacts]);
+  const tabs = useMemo(
+    () => toProblemsTabs(tabFacts, pendingVerdict),
+    [tabFacts, pendingVerdict]
+  );
   const { items, empty, notes, detail } = useMemo(
-    () => toProblemListContent(listFacts),
-    [listFacts]
+    () => toProblemListContent(listFacts, pendingVerdict),
+    [listFacts, pendingVerdict]
   );
 
   return (
@@ -48,6 +65,12 @@ function ProblemsPaneContent(): ReactNode {
       onSelect={selectTab}
       collapsed={collapsed}
       onCollapsedChange={setProblemsCollapsed}
+      notice={
+        evaluationNote === undefined ? undefined : (
+          <ProblemNote>{evaluationNote}</ProblemNote>
+        )
+      }
+      dimmed={hasEvaluation && isEvaluationDimmed(evaluationStatus)}
       testId={PROBLEMS_PANE_TEST_ID}
     >
       {detail === undefined ? (
@@ -55,7 +78,12 @@ function ProblemsPaneContent(): ReactNode {
           {notes.map((note) => (
             <ProblemNote key={note}>{note}</ProblemNote>
           ))}
-          <ProblemList items={items} empty={empty} onOpen={openTarget} />
+          <ProblemList
+            items={items}
+            // Before the first evaluation the list cannot say that there are no problems
+            empty={hasEvaluation ? empty : undefined}
+            onOpen={openTarget}
+          />
         </>
       ) : (
         <DependencyDetail detail={detail} onOpen={openTarget} />

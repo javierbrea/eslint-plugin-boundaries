@@ -1,12 +1,19 @@
 import { act, renderHook } from "@testing-library/react";
 import { useState } from "react";
 
+import { LATE_AFTER } from "@/domains/evaluation/helpers/evaluator";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import type { getDependencyLines } from "@/domains/files/ui/helpers/dependencyLines";
+import type {
+  getDependencyLines,
+  DependencyLine,
+} from "@/domains/files/ui/helpers/dependencyLines";
+import type { SessionStore } from "@/domains/session/data/store";
 import {
   renderHookInSession,
+  renderInSession,
   waitForEvaluation,
 } from "@/domains/session/data/store/store.mock";
+import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
 
 import { useDependencyLines } from "./useDependencyLines";
 
@@ -242,5 +249,82 @@ describe("useDependencyLines", () => {
     // Assert
     expect(results).toHaveLength(2);
     expect(results[1].lines).toBe(results[0].lines);
+  });
+
+  describe("before the first evaluation", () => {
+    /**
+     * Renders the hook with the workers held, so that the evaluation of the quick start has not arrived when it returns.
+     * @returns The store and the lines of each render.
+     */
+    function renderHeld(): {
+      store: SessionStore;
+      results: (readonly DependencyLine[])[];
+    } {
+      const results: (readonly DependencyLine[])[] = [];
+
+      /**
+       * Reads the lines of the checkout module.
+       * @returns Nothing to render.
+       */
+      function Probe(): null {
+        results.push(useDependencyLines(CHECKOUT));
+        return null;
+      }
+
+      holdInlineWorkers();
+      const { store } = renderInSession(<Probe />, { sketch: QUICK_START });
+
+      return { store, results };
+    }
+
+    it("should give the statements of the file with no verdict yet", () => {
+      // Act
+      const { results } = renderHeld();
+
+      // Assert
+      const lines = results[results.length - 1];
+
+      expect(readLines(lines)).toEqual([
+        'import { Button } from "../../components/atoms/Button/index.js"; ',
+        'import { format } from "../../helpers/format/index.js"; ',
+        'import { renderButton } from "../../components/atoms/Button/Button.spec.js"; ',
+        'import React from "react"; ',
+      ]);
+      expect(lines.map(({ icon }) => icon)).toEqual([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]);
+    });
+
+    it("should say that the evaluation runs once it is late", () => {
+      // Arrange
+      const { results } = renderHeld();
+
+      // Act
+      act(() => jest.advanceTimersByTime(LATE_AFTER));
+
+      // Assert
+      expect(results[results.length - 1].map(({ label }) => label)).toEqual([
+        "evaluating…",
+        "evaluating…",
+        "evaluating…",
+        "evaluating…",
+      ]);
+    });
+
+    it("should not build the lines again while the dependencies of the sketch do not change", () => {
+      // Arrange
+      const { store } = renderHeld();
+      const built = spy.mock.calls.length;
+
+      // Act
+      act(() => store.open({ kind: "config" }));
+      act(() => store.selectTab("sketch"));
+
+      // Assert
+      expect(spy).toHaveBeenCalledTimes(built);
+    });
   });
 });

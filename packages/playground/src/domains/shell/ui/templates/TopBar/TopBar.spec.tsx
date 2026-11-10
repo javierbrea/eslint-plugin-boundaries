@@ -103,6 +103,177 @@ describe("TopBar", () => {
       expect(problemsText).toBe("config has errors");
       expect(statusText).not.toContain("2 problems");
     });
+
+    it("should say what the caller says about the evaluation instead of counting the problems", () => {
+      // Arrange
+      const { bar } = renderBar({
+        problems: 2,
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+
+      // Act
+      const { statusText, problemsText } = bar;
+
+      // Assert
+      expect(statusText).toBe("6 files · 9 dependencies · evaluating…");
+      expect(problemsText).toBe("evaluating…");
+      expect(statusText).not.toContain("2 problems");
+    });
+
+    it("should say what the caller says about the evaluation instead of that the config has errors", () => {
+      // Arrange
+      const { bar } = renderBar({
+        configHasErrors: true,
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
+      });
+
+      // Act
+      const { statusText, problemsText } = bar;
+
+      // Assert
+      expect(statusText).toBe("6 files · 9 dependencies · evaluation stopped");
+      expect(problemsText).toBe("evaluation stopped");
+      expect(statusText).not.toContain("config has errors");
+    });
+
+    it("should say only the files and the dependencies before the problems are known", () => {
+      // Arrange
+      const { bar } = renderBar({ problems: undefined });
+
+      // Act
+      const { statusText, hasProblems } = bar;
+
+      // Assert
+      expect(statusText).toBe("6 files · 9 dependencies");
+      expect(hasProblems).toBe(false);
+    });
+
+    it("should say that the config has errors before the problems are known", () => {
+      // Arrange
+      const { bar } = renderBar({ problems: undefined, configHasErrors: true });
+
+      // Act
+      const { statusText, problemsText } = bar;
+
+      // Assert
+      expect(statusText).toBe("6 files · 9 dependencies · config has errors");
+      expect(problemsText).toBe("config has errors");
+    });
+
+    it("should say what the caller says about the evaluation before the problems are known", () => {
+      // Arrange
+      const { bar } = renderBar({
+        problems: undefined,
+        evaluation: { text: "evaluation failed", tone: "bad", announce: true },
+      });
+
+      // Act
+      const { statusText, problemsText } = bar;
+
+      // Assert
+      expect(statusText).toBe("6 files · 9 dependencies · evaluation failed");
+      expect(problemsText).toBe("evaluation failed");
+    });
+
+    it("should say the problems again when the caller stops saying anything about the evaluation", () => {
+      // Arrange
+      const { bar, update } = renderBar({
+        problems: 2,
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+
+      // Act
+      update({ evaluation: undefined });
+
+      // Assert
+      expect(bar.statusText).toBe("6 files · 9 dependencies · 2 problems");
+    });
+  });
+
+  describe("the announcement", () => {
+    it("should announce what the caller asks it to, and hide the same text on screen from screen readers, so that they hear it once", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
+      });
+
+      // Act
+      const { announcement, isProblemsHidden, statusText } = bar;
+
+      // Assert
+      expect(announcement).toBe("evaluation stopped");
+      expect(isProblemsHidden).toBe(true);
+      expect(statusText).toBe("6 files · 9 dependencies · evaluation stopped");
+    });
+
+    it("should announce nothing about the evaluation when the caller does not ask it, and leave the text on screen to screen readers", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+
+      // Act
+      const { announcement, isProblemsHidden } = bar;
+
+      // Assert
+      expect(announcement).toBe("");
+      expect(isProblemsHidden).toBe(false);
+    });
+
+    it.each<[string, Partial<TopBarProps>]>([
+      ["the problems", { problems: 2 }],
+      ["that the config has errors", { configHasErrors: true }],
+    ])("should announce nothing when it says %s", (_title, props) => {
+      // Arrange
+      const { bar } = renderBar(props);
+
+      // Act
+      const { announcement, isProblemsHidden } = bar;
+
+      // Assert
+      expect(announcement).toBe("");
+      expect(isProblemsHidden).toBe(false);
+    });
+
+    it("should be in the bar before it says anything, so that screen readers pick up what comes into it", () => {
+      // Arrange
+      const { bar, update } = renderBar({ problems: undefined });
+      const before = bar.announcement;
+
+      // Act
+      update({
+        evaluation: { text: "evaluation failed", tone: "bad", announce: true },
+      });
+
+      // Assert
+      expect(before).toBe("");
+      expect(bar.announcement).toBe("evaluation failed");
+    });
+
+    it("should not be drawn", () => {
+      // Arrange
+      const { bar } = renderBar({
+        evaluation: {
+          text: "evaluation stopped",
+          tone: "warn",
+          announce: true,
+        },
+      });
+
+      // Act
+      const { isAnnouncementDrawn } = bar;
+
+      // Assert
+      expect(isAnnouncementDrawn).toBe(false);
+    });
   });
 
   describe("colors", () => {
@@ -155,6 +326,106 @@ describe("TopBar", () => {
       // Assert
       expect(ok).toBe("var(--jsb-ok)");
       expect(bad).toBe("var(--jsb-bad)");
+    });
+
+    it("should draw the problems in the color of their tone until the caller says something about the evaluation", () => {
+      // Arrange
+      const { bar, update } = renderBar({ problems: 2, tone: "warn" });
+
+      // Act
+      const { problemsColor: counted } = bar;
+      update({
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+      const { problemsColor: evaluating } = bar;
+
+      // Assert
+      expect(counted).toBe(
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))"
+      );
+      expect(evaluating).toBe("var(--jsb-muted)");
+    });
+
+    it.each<["ok" | "bad" | "warn" | "faint", string, string]>([
+      [
+        "ok",
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))",
+        "var(--jsb-ok)",
+      ],
+      [
+        "bad",
+        "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))",
+        "var(--jsb-bad)",
+      ],
+      [
+        "warn",
+        "color-mix(in srgb, var(--jsb-warn) 85%, var(--jsb-ink))",
+        "var(--jsb-warn)",
+      ],
+      ["faint", "var(--jsb-muted)", "var(--jsb-faint)"],
+    ])(
+      "should draw what the caller says about the evaluation, and the dot, in the color of the tone %s",
+      (tone, textColor, dotColor) => {
+        // Arrange
+        const { bar } = renderBar({
+          problems: 2,
+          evaluation: { text: "evaluating…", tone, announce: false },
+        });
+
+        // Act
+        const { problemsColor, dotColor: dot } = bar;
+
+        // Assert
+        expect(problemsColor).toBe(textColor);
+        expect(dot).toBe(dotColor);
+      }
+    );
+
+    it("should draw the dot in the color of the evaluation, and not red, while the config has errors", () => {
+      // Arrange
+      const { bar } = renderBar({
+        configHasErrors: true,
+        evaluation: { text: "evaluating…", tone: "faint", announce: false },
+      });
+
+      // Act
+      const { dotColor } = bar;
+
+      // Assert
+      expect(dotColor).toBe("var(--jsb-faint)");
+    });
+
+    it("should draw an ok dot whatever the number of problems", () => {
+      // Arrange
+      const { bar } = renderBar({ problems: 2, tone: "bad" });
+
+      // Act
+      const { dotColor } = bar;
+
+      // Assert
+      expect(dotColor).toBe("var(--jsb-ok)");
+    });
+
+    it("should draw a faint dot before the problems are known", () => {
+      // Arrange
+      const { bar } = renderBar({ problems: undefined });
+
+      // Act
+      const { dotColor } = bar;
+
+      // Assert
+      expect(dotColor).toBe("var(--jsb-faint)");
+    });
+
+    it("should draw a red dot while the config has errors, also before the problems are known", () => {
+      // Arrange
+      const { bar } = renderBar({ problems: undefined, configHasErrors: true });
+
+      // Act
+      const { dotColor } = bar;
+
+      // Assert
+      expect(dotColor).toBe("var(--jsb-bad)");
     });
 
     it("should hide the dot from assistive technology", () => {
@@ -232,7 +503,7 @@ describe("TopBar", () => {
   });
 
   describe("props", () => {
-    it("should not pass the color or the failing state to the DOM", () => {
+    it("should not pass the color or the tone to the DOM", () => {
       // Arrange
       const { bar } = renderBar({ problems: 1 });
 

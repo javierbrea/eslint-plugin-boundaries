@@ -31,7 +31,8 @@ function getLines(
   sketch: Sketch = QUICK_START
 ): DependencyLine[] {
   return getDependencyLines(
-    evaluate(sketch).dependencies.filter(({ ref }) => ref.path === path)
+    evaluate(sketch).dependencies.filter(({ ref }) => ref.path === path),
+    "current"
   );
 }
 
@@ -82,8 +83,34 @@ function renderLines(
 }
 
 describe("DependencyLines", () => {
+  beforeEach(() => {
+    // React logs a prop that a styled part leaks to the DOM as an attribute it does not know, once for each name, so every test of the file watches for it
+    jest.spyOn(console, "error").mockReturnValue(undefined);
+  });
+
   afterEach(() => {
+    const logged = [...jest.mocked(console.error).mock.calls];
+
     jest.useRealTimers();
+    jest.mocked(console.error).mockRestore();
+
+    if (logged.length > 0) {
+      throw new Error(`React logged to the console: ${JSON.stringify(logged)}`);
+    }
+  });
+
+  // React logs a leaked prop once for each name, so the test that looks for it runs before any other test of the file renders the component
+  describe("props", () => {
+    it("should not pass the dimmed state of a verdict to the DOM", () => {
+      // Arrange
+      renderLines({ lines: LINES.map((line) => ({ ...line, dimmed: true })) });
+
+      // Act
+      const logged = jest.mocked(console.error).mock.calls;
+
+      // Assert
+      expect(logged).toEqual([]);
+    });
   });
 
   describe("the list", () => {
@@ -376,6 +403,140 @@ describe("DependencyLines", () => {
 
       // Assert
       expect(list.tooltip.isRendered).toBe(false);
+    });
+  });
+
+  describe("a verdict that is out of date", () => {
+    it("should show the verdicts in full when none of the lines is dimmed", () => {
+      // Arrange
+      const { list } = renderLines();
+
+      // Act
+      const opacities = list.lines.map(({ verdict }) => verdict.opacity);
+
+      // Assert
+      expect(opacities).toEqual(["1", "1", "1", "1"]);
+    });
+
+    it("should fade the verdict of the lines that are dimmed, and no other", () => {
+      // Arrange
+      const { list } = renderLines({
+        lines: [
+          LINES[0],
+          { ...LINES[1], dimmed: true },
+          LINES[2],
+          { ...LINES[3], dimmed: true },
+        ],
+      });
+
+      // Act
+      const opacities = list.lines.map(({ verdict }) => verdict.opacity);
+
+      // Assert
+      expect(opacities).toEqual(["1", "0.5", "1", "0.5"]);
+    });
+
+    it("should keep what the faded verdict says", () => {
+      // Arrange
+      const { list } = renderLines({
+        lines: LINES.map((line) => ({ ...line, dimmed: true })),
+      });
+
+      // Act
+      const verdicts = list.lines.map(({ verdict }) => [
+        verdict.text,
+        verdict.color,
+        verdict.opacity,
+      ]);
+
+      // Assert
+      expect(verdicts).toEqual([
+        ["policy 1", "var(--jsb-code-string)", "0.5"],
+        ["policy 1", "var(--jsb-code-string)", "0.5"],
+        ["policy 2", "var(--jsb-code-error)", "0.5"],
+        ["not checked · external", "var(--jsb-code-comment)", "0.5"],
+      ]);
+    });
+
+    it("should show the verdict in full again when the line is no longer dimmed", () => {
+      // Arrange
+      const { list, update } = renderLines({
+        lines: LINES.map((line) => ({ ...line, dimmed: true })),
+      });
+      const whileDimmed = list.line(0).verdict.opacity;
+
+      // Act
+      update({ lines: LINES });
+
+      // Assert
+      expect(whileDimmed).toBe("0.5");
+      expect(list.line(0).verdict.opacity).toBe("1");
+    });
+  });
+
+  describe("a line with no verdict yet", () => {
+    /** The line of a dependency that no evaluation has decided yet, before it is late. */
+    const UNDECIDED: DependencyLine = {
+      ...LINES[0],
+      icon: undefined,
+      iconLabel: undefined,
+      tone: "faint",
+      label: "",
+      hint: undefined,
+    };
+
+    it("should draw no icon and no text where the verdict goes", () => {
+      // Arrange
+      const { list } = renderLines({ lines: [UNDECIDED] });
+
+      // Act
+      const { verdict } = list.line(0);
+
+      // Assert
+      expect(verdict.icon.isRendered).toBe(false);
+      expect(verdict.text).toBe("");
+    });
+
+    it("should keep the statement of the line and the verdicts of the other lines", () => {
+      // Arrange
+      const { list } = renderLines({ lines: [UNDECIDED, ...LINES.slice(1)] });
+
+      // Act
+      const { lineTexts } = list;
+
+      // Assert
+      expect(lineTexts).toEqual([
+        '1import { Button } from "../../components/atoms/Button/index.js";',
+        '2import { format } from "../../helpers/format/index.js";policy 1',
+        '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
+        '4import React from "react";not checked · external',
+      ]);
+    });
+
+    it("should draw the verdict with its icon once the line says that it is evaluating", () => {
+      // Arrange
+      const { list } = renderLines({
+        lines: [{ ...UNDECIDED, icon: "skip", label: "evaluating…" }],
+      });
+
+      // Act
+      const { verdict } = list.line(0);
+
+      // Assert
+      expect(verdict.text).toBe("evaluating…");
+      expect(verdict.icon.pathData).toBe(ICON_PATHS.skip);
+      expect(verdict.color).toBe("var(--jsb-code-comment)");
+    });
+
+    it("should not be a tab stop, as it has no sentence to explain", () => {
+      // Arrange
+      const { list } = renderLines({ lines: [UNDECIDED] });
+
+      // Act
+      const { isTabStop } = list.line(0).verdict;
+
+      // Assert
+      expect(isTabStop).toBe(false);
     });
   });
 

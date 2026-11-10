@@ -2,6 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { ProjectCapabilities } from "@/contract";
+import {
+  holdInlineWorkers,
+  releaseInlineWorkers,
+} from "@/shared/testing/inlineWorker";
 
 import {
   useAddDependency,
@@ -12,7 +16,10 @@ import {
   useClosedFolders,
   useConfig,
   useConfigProblems,
+  useDependencyResults,
   useEvaluation,
+  useEvaluationStatus,
+  useFileDescriptions,
   useFocus,
   useOpen,
   usePickedFolder,
@@ -80,6 +87,9 @@ describe("store hooks", () => {
       ["useTree", useTree],
       ["useConfig", useConfig],
       ["useEvaluation", useEvaluation],
+      ["useEvaluationStatus", useEvaluationStatus],
+      ["useDependencyResults", useDependencyResults],
+      ["useFileDescriptions", useFileDescriptions],
       ["useConfigProblems", useConfigProblems],
       ["useFocus", useFocus],
       ["useView", useView],
@@ -335,9 +345,9 @@ describe("store hooks", () => {
       waitForEvaluation();
 
       // Assert
-      expect(first.sketch).toBe(HOOK_SKETCH);
+      expect(first?.sketch).toBe(HOOK_SKETCH);
       expect(duringDelay).toBe(first);
-      expect(result.current.sketch.config).toBe("{}");
+      expect(result.current?.sketch.config).toBe("{}");
     });
 
     it("should read the problems of the config, which follow the evaluation", () => {
@@ -363,6 +373,113 @@ describe("store hooks", () => {
 
       // Assert
       expect(results).toHaveLength(1);
+    });
+  });
+
+  describe("the slices of the evaluation", () => {
+    /** What the probe reads in one render. */
+    type EvaluationSlices = {
+      evaluation: ReturnType<typeof useEvaluation>;
+      evaluationStatus: ReturnType<typeof useEvaluationStatus>;
+      problems: ReturnType<typeof useConfigProblems>;
+      results: ReturnType<typeof useDependencyResults>;
+      descriptions: ReturnType<typeof useFileDescriptions>;
+      /** Read so that the probe renders again when the focus changes */
+      focus: ReturnType<typeof useFocus>;
+    };
+
+    /**
+     * Renders a probe that reads the slices of the evaluation in each render, with the workers held, so that the evaluation of the sketch has not arrived when it returns.
+     * @returns The store and what the probe read in each render.
+     */
+    function renderHeld(): { store: SessionStore; seen: EvaluationSlices[] } {
+      const seen: EvaluationSlices[] = [];
+
+      /**
+       * Reads the slices.
+       * @returns Nothing to render.
+       */
+      function Probe(): null {
+        seen.push({
+          evaluation: useEvaluation(),
+          evaluationStatus: useEvaluationStatus(),
+          problems: useConfigProblems(),
+          results: useDependencyResults(),
+          descriptions: useFileDescriptions(),
+          focus: useFocus(),
+        });
+        return null;
+      }
+
+      holdInlineWorkers();
+      const { store } = renderInSession(<Probe />, { sketch: HOOK_SKETCH });
+
+      return { store, seen };
+    }
+
+    it("should read no evaluation, a pending status and no problems, verdicts or descriptions before the first evaluation arrives", () => {
+      // Act
+      const { seen } = renderHeld();
+
+      // Assert
+      const last = seen[seen.length - 1];
+
+      expect(last.evaluation).toBeUndefined();
+      expect(last.evaluationStatus).toBe("pending");
+      expect(last.problems).toEqual([]);
+      expect(last.results).toEqual([]);
+      expect(last.descriptions.size).toBe(0);
+    });
+
+    it("should read the same empty values in each render before the first evaluation, so that the panes that read them do not render again for nothing", () => {
+      // Arrange
+      const { store, seen } = renderHeld();
+      const before = seen[seen.length - 1];
+
+      // Act
+      act(() => store.open({ kind: "config" }));
+
+      // Assert
+      const after = seen[seen.length - 1];
+
+      expect(after).not.toBe(before);
+      expect(after.problems).toBe(before.problems);
+      expect(after.results).toBe(before.results);
+      expect(after.descriptions).toBe(before.descriptions);
+    });
+
+    it("should read the evaluation of the sketch, current, once it arrives", () => {
+      // Arrange
+      const { seen } = renderHeld();
+
+      // Act
+      act(() => releaseInlineWorkers());
+
+      // Assert
+      const { evaluation, evaluationStatus } = seen[seen.length - 1];
+
+      expect(evaluation?.sketch).toBe(HOOK_SKETCH);
+      expect(evaluationStatus).toBe("current");
+    });
+
+    it("should read the problems, the verdicts and the descriptions of the evaluation once it arrives", () => {
+      // Arrange
+      const { seen } = renderHeld();
+
+      // Act
+      act(() => releaseInlineWorkers());
+
+      // Assert
+      const { evaluation, problems, results, descriptions } =
+        seen[seen.length - 1];
+
+      expect(problems).toBe(evaluation?.problems);
+      expect(results).toBe(evaluation?.dependencies);
+      expect(descriptions).toBe(evaluation?.files);
+      expect(Array.from(descriptions.keys())).toEqual([
+        "src/helpers/format.js",
+        "src/index.js",
+      ]);
     });
   });
 

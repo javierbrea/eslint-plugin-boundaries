@@ -8,7 +8,7 @@ import type {
 } from "@/domains/evaluation/helpers/engine";
 import type { StateTone } from "@/ui-kit/helpers/tone";
 
-import type { VerdictIcon } from "./verdictText.types";
+import type { DecidedVerdict, VerdictIcon } from "./verdictText.types";
 
 /** How each skip reason is called next to a verdict. The reasons that are not here are written as they are */
 const SKIP_REASON_LABELS: Readonly<Partial<Record<SkipReason, string>>> = {
@@ -58,7 +58,7 @@ const ACTION_LABELS: Readonly<Record<PolicySummary["action"], string>> = {
 /**
  * Picks the color of a verdict.
  * @param verdict What the engine says about a dependency.
- * @returns `ok` for an allowed dependency, `bad` for a disallowed one, `warn` when the rule is a warning, and `faint` for one that is not checked or not evaluated.
+ * @returns `ok` for an allowed dependency, `bad` for a disallowed one, `warn` when the rule is a warning, and `faint` for one that is not checked, not evaluated or not evaluated yet.
  */
 export function getVerdictTone(verdict: DependencyVerdict): StateTone {
   if (verdict.status === "allowed") {
@@ -75,7 +75,7 @@ export function getVerdictTone(verdict: DependencyVerdict): StateTone {
  * @param verdict What the engine says about a dependency.
  * @returns `check` for an allowed dependency, `cross` for a disallowed one, `warn` when the rule is a warning, and `skip` for one that is not checked or not evaluated.
  */
-export function getVerdictIcon(verdict: DependencyVerdict): VerdictIcon {
+export function getVerdictIcon(verdict: DecidedVerdict): VerdictIcon {
   if (verdict.status === "allowed") {
     return "check";
   }
@@ -111,7 +111,7 @@ export function getSkipReasonLabel(reason: SkipReason): string {
  * @param verdict What the engine says about a dependency.
  * @returns The policy that decided, as `getPolicyName` writes it, for an allowed or a disallowed dependency; `not checked · <reason>` for one that is not checked; and `not evaluated` otherwise.
  */
-export function getVerdictLabel(verdict: DependencyVerdict): string {
+export function getVerdictLabel(verdict: DecidedVerdict): string {
   if (verdict.status === "allowed" || verdict.status === "disallowed") {
     return getPolicyName(verdict.policy);
   }

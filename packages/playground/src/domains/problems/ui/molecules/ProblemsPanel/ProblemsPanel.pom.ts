@@ -18,6 +18,20 @@ const TOGGLE_NAME = new RegExp(
   `^(${COLLAPSE_PROBLEMS_LABEL}|${EXPAND_PROBLEMS_LABEL})$`
 );
 
+/**
+ * How visible an element is, as the page draws it: its own opacity times those of the elements that hold it, where an element that sets none counts as fully visible.
+ * @param element The element.
+ * @returns A number from 0, invisible, to 1, in full.
+ */
+function getVisibleOpacity(element: Element): number {
+  const own = getComputedStyle(element).opacity;
+  const opacity = own === "" ? 1 : Number(own);
+
+  return element.parentElement === null
+    ? opacity
+    : opacity * getVisibleOpacity(element.parentElement);
+}
+
 /** Page object of a tab of the problems panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the tabs within its parent, the one named by the `name` option (a string or a pattern, matched against the accessible name, such as `Project 2 problems`) when it is set, and the `index` and `containing` options pick among them. */
 class ProblemsTabPom extends Pom {
   protected readonly defaultTestId = "";
@@ -59,6 +73,14 @@ class ProblemsTabPom extends Pom {
    */
   get isSelected(): boolean {
     return this.root.getAttribute("aria-selected") === "true";
+  }
+
+  /**
+   * How visible the tab is, which does not fade with the body of the panel.
+   * @returns The opacity, from 0 to 1, of the tab and of what holds it.
+   */
+  get opacity(): number {
+    return getVisibleOpacity(this.root);
   }
 
   /**
@@ -165,6 +187,42 @@ class ProblemsTabPanelPom extends Pom {
    */
   get text(): string {
     return this.root.textContent;
+  }
+
+  /**
+   * What the tab panel holds under its notice: the body of the tab, which is the last element of the tab panel.
+   * @returns The text of the body, without the notice.
+   */
+  get bodyText(): string {
+    return (this.root.lastElementChild as Element).textContent;
+  }
+
+  /**
+   * How visible the body of the tab is, which fades while what it shows is out of date.
+   * @returns The opacity, from 0 to 1, of the body and of what holds it.
+   */
+  get bodyOpacity(): number {
+    return getVisibleOpacity(this.root.lastElementChild as Element);
+  }
+
+  /**
+   * What the tab panel says above the body, in order: the elements before it, which are the notice that the panel was given.
+   * @returns The text of each element above the body; empty when the panel has no notice.
+   */
+  get noticeTexts(): string[] {
+    return Array.from(this.root.children)
+      .slice(0, -1)
+      .map((element) => element.textContent);
+  }
+
+  /**
+   * How visible each element of the notice is.
+   * @returns The opacity, from 0 to 1, of each element above the body and of what holds it, in order.
+   */
+  get noticeOpacities(): number[] {
+    return Array.from(this.root.children)
+      .slice(0, -1)
+      .map((element) => getVisibleOpacity(element));
   }
 
   /**

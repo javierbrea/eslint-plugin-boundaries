@@ -33,6 +33,14 @@ export class InspectorLayoutPom extends Pom {
   }
 
   /**
+   * How visible the content is, which fades while what it describes is out of date.
+   * @returns The computed `opacity` of the content, which is the last child of the layout: `1`, or `0.5` while it is faded.
+   */
+  get contentOpacity(): string {
+    return getComputedStyle(this.root.lastElementChild as Element).opacity;
+  }
+
+  /**
    * The head of the pane, which is the first child of the layout.
    * @returns The page object of the head.
    */

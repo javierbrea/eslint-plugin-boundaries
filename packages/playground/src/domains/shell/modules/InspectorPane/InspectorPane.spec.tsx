@@ -3,10 +3,18 @@ import { act } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
+import { LATE_AFTER } from "@/domains/evaluation/helpers/evaluator";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
-import { renderInSession } from "@/domains/session/data/store/store.mock";
+import {
+  failEvaluation,
+  releaseEvaluation,
+  renderInSession,
+  waitUntilEvaluationIsLate,
+  waitUntilEvaluationStops,
+} from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
 
 import { InspectorPane } from "./InspectorPane";
 import { InspectorPanePom } from "./InspectorPane.pom";
@@ -609,6 +617,188 @@ describe("InspectorPane", () => {
       expect(store.getState().reveal?.range).toEqual(
         evaluate(QUICK_START).policies[2].range
       );
+    });
+  });
+
+  describe("before the first evaluation", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      holdInlineWorkers();
+    });
+
+    it("should describe nothing and say nothing while the evaluation is not late", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(pane.layout.isComplementaryNamed("Inspector")).toBe(true);
+      expect(pane.hasInspector).toBe(false);
+      expect(pane.note.isRendered).toBe(false);
+      expect(pane.layout.contentOpacity).toBe("1");
+    });
+
+    it("should say that the project is being evaluated once the evaluation is late", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.note.text).toBe("Evaluating the project…");
+      expect(pane.hasInspector).toBe(false);
+      expect(pane.layout.contentOpacity).toBe("1");
+    });
+
+    it("should say that the evaluation was stopped when it takes longer than the limit", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.note.text).toBe(
+        "The evaluation took longer than 30 seconds and was stopped. Edit the project to evaluate it again."
+      );
+      expect(pane.hasInspector).toBe(false);
+      expect(pane.layout.contentOpacity).toBe("1");
+    });
+
+    it("should say that the evaluation could not run when its worker fails", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(pane.note.text).toBe(
+        "The evaluation could not run. Edit the project to try again."
+      );
+      expect(pane.hasInspector).toBe(false);
+      expect(pane.layout.contentOpacity).toBe("1");
+    });
+
+    it("should describe the project, and drop the note, when the evaluation arrives", () => {
+      // Arrange
+      const { pane } = renderPane();
+      waitUntilEvaluationIsLate();
+      const whileLate = pane.note.text;
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(whileLate).toBe("Evaluating the project…");
+      expect(pane.note.isRendered).toBe(false);
+      expect(pane.shown).toBe("project");
+      expect(pane.project.count("files")).toBe("6");
+    });
+  });
+
+  describe("an evaluation that is out of date", () => {
+    /**
+     * Renders the pane with the evaluation of the sketch, and then removes a node while the worker holds the request of the new sketch.
+     * @returns The render of the pane.
+     */
+    function renderOutOfDate(): PaneRender {
+      jest.useFakeTimers();
+
+      const render = renderPane();
+
+      holdInlineWorkers();
+      act(() => render.store.removeNode(FILE));
+      return render;
+    }
+
+    it("should describe the new sketch in full while the evaluation is on its way and not late", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+
+      // Assert
+      expect(pane.shown).toBe("project");
+      expect(pane.project.count("files")).toBe("5");
+      expect(pane.layout.contentOpacity).toBe("1");
+    });
+
+    it("should fade what it describes once the evaluation is late, and keep describing it", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.layout.contentOpacity).toBe("0.5");
+      expect(pane.shown).toBe("project");
+      expect(pane.project.count("files")).toBe("5");
+      expect(pane.note.isRendered).toBe(false);
+    });
+
+    it("should fade it when the evaluation was stopped", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationStops();
+
+      // Assert
+      expect(pane.layout.contentOpacity).toBe("0.5");
+      expect(pane.shown).toBe("project");
+      expect(pane.note.isRendered).toBe(false);
+    });
+
+    it("should fade it when the evaluation could not run", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+
+      // Act
+      failEvaluation();
+
+      // Assert
+      expect(pane.layout.contentOpacity).toBe("0.5");
+      expect(pane.shown).toBe("project");
+      expect(pane.note.isRendered).toBe(false);
+    });
+
+    it("should fade the file in focus too", () => {
+      // Arrange
+      const { pane, store } = renderOutOfDate();
+      act(() => store.open({ kind: "file", path: BUTTON }));
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(pane.shown).toBe("file");
+      expect(pane.file.section("from").summary).toBe(BUTTON);
+      expect(pane.layout.contentOpacity).toBe("0.5");
+    });
+
+    it("should show it in full again when the evaluation arrives", () => {
+      // Arrange
+      const { pane } = renderOutOfDate();
+      waitUntilEvaluationIsLate();
+      const whileLate = pane.layout.contentOpacity;
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(whileLate).toBe("0.5");
+      expect(pane.layout.contentOpacity).toBe("1");
+      expect(pane.project.count("files")).toBe("5");
     });
   });
 });

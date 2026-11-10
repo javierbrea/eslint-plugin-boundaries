@@ -7,7 +7,7 @@ import type { ElementType, ReactNode } from "react";
 
 import { Statement } from "@/domains/files/ui/atoms/Statement";
 import { Icon } from "@/ui-kit/atoms/Icon";
-import { FOCUS_RING } from "@/ui-kit/helpers/theme";
+import { DIMMED, FOCUS_RING, UNDIMMED } from "@/ui-kit/helpers/theme";
 import type { StateTone } from "@/ui-kit/helpers/tone";
 
 import {
@@ -98,7 +98,10 @@ const ActionButton = styled(IconButton)({
 });
 
 // In its own column, so that it stays at the end of the line when the line has no actions
-const Verdict = styled("span")<{ tone: StateTone }>(({ theme, tone }) => ({
+const Verdict = styled("span", {
+  shouldForwardProp: (prop) => prop !== "tone" && prop !== "dimmed",
+})<{ tone: StateTone; dimmed: boolean }>(({ theme, tone, dimmed }) => ({
+  ...(dimmed ? DIMMED : UNDIMMED),
   gridColumn: 4,
   display: "inline-flex",
   alignItems: "center",
@@ -200,9 +203,12 @@ export function DependencyLines({
             <Tooltip title={line.hint ?? ""} describeChild>
               <Verdict
                 tone={line.tone}
+                dimmed={line.dimmed}
                 tabIndex={line.hint === undefined ? undefined : 0}
               >
-                <Icon name={line.icon} label={line.iconLabel} />
+                {line.icon === undefined ? null : (
+                  <Icon name={line.icon} label={line.iconLabel} />
+                )}
                 {line.label}
               </Verdict>
             </Tooltip>

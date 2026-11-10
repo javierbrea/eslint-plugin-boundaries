@@ -1,9 +1,14 @@
 import { act, render, screen as view } from "@testing-library/react";
+import { StrictMode } from "react";
 import type { ReactNode } from "react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import type { Engine } from "@/domains/evaluation/helpers/engine";
+import {
+  holdInlineWorkers,
+  releaseInlineWorkers,
+} from "@/shared/testing/inlineWorker";
 
 import { SessionProvider } from "./SessionProvider";
 import { EVALUATION_DELAY } from "./store.constants";
@@ -199,6 +204,45 @@ describe("SessionProvider", () => {
     });
   });
 
+  describe("evaluation", () => {
+    it("should ask for the evaluation of the sketch once it is mounted", () => {
+      // Act
+      const { store } = renderProvider();
+
+      // Assert
+      expect(getEvaluate()).toHaveBeenCalledTimes(1);
+      expect(store.getState().evaluation?.sketch).toBe(SKETCH);
+      expect(store.getState().evaluationStatus).toBe("current");
+    });
+
+    it("should evaluate the sketch when React mounts it twice, as in strict mode, though the first mount stopped the worker it started", () => {
+      // Arrange
+      const seen: Seen = { stores: [], capabilities: [] };
+
+      holdInlineWorkers();
+      render(
+        <StrictMode>
+          <SessionProvider
+            initialSketch={SKETCH}
+            capabilities={ALL_CAPABILITIES}
+            onSketchChange={jest.fn()}
+          >
+            <Pane seen={seen} />
+          </SessionProvider>
+        </StrictMode>
+      );
+
+      // Act
+      act(() => releaseInlineWorkers());
+
+      // Assert
+      const store = seen.stores[seen.stores.length - 1];
+
+      expect(store.getState().evaluation?.sketch).toBe(SKETCH);
+      expect(store.getState().evaluationStatus).toBe("current");
+    });
+  });
+
   describe("capabilities", () => {
     it("should give the capabilities of the host", () => {
       // Act
@@ -377,7 +421,23 @@ describe("SessionProvider", () => {
       // Assert
       expect(jest.getTimerCount()).toBe(0);
       expect(getEvaluate()).not.toHaveBeenCalled();
-      expect(store.getState().evaluation.sketch).toBe(SKETCH);
+      expect(store.getState().evaluation?.sketch).toBe(SKETCH);
+    });
+
+    it("should stop the evaluation that runs, so that it never arrives", () => {
+      // Arrange
+      const { store, unmount } = renderProvider();
+
+      holdInlineWorkers();
+      act(() => store.removeNode("src/index.js"));
+
+      // Act
+      unmount();
+      releaseInlineWorkers();
+
+      // Assert
+      expect(store.getState().evaluation?.sketch).toBe(SKETCH);
+      expect(store.getState().evaluationStatus).toBe("pending");
     });
 
     it("should not report a sketch after it unmounted", () => {

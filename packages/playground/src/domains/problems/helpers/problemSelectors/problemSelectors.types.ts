@@ -93,8 +93,8 @@ export type ProblemListInputs = {
   readonly tab: ProblemsTabId;
   /** What is in focus. */
   readonly openNode: Focus;
-  /** What the engine says about the sketch. */
-  readonly evaluation: ProblemEvaluation;
+  /** What the engine says about the sketch, or `undefined` before the first evaluation arrives. */
+  readonly evaluation: ProblemEvaluation | undefined;
   /** The lines of text mode that could not be read. */
   readonly textProblems: readonly TextProblem[];
   /** The policy that the user opened from a dependency, if any. */

@@ -105,7 +105,9 @@ function decisionOf(
   if (verdict.status === "not-checked") {
     return verdict.reason;
   }
-  return verdict.status === "not-evaluated" ? undefined : verdict.policy?.index;
+  return verdict.status === "not-evaluated" || verdict.status === "pending"
+    ? undefined
+    : verdict.policy?.index;
 }
 
 /**

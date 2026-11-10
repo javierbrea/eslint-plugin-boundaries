@@ -74,6 +74,35 @@ function Controlled(props: Readonly<PanelProps>): ReactNode {
 }
 
 describe("ProblemsPanel", () => {
+  beforeEach(() => {
+    // React logs a prop that a styled part leaks to the DOM as an attribute it does not know, once for each name, so every test of the file watches for it
+    jest.spyOn(console, "error").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    const logged = [...jest.mocked(console.error).mock.calls];
+
+    jest.mocked(console.error).mockRestore();
+
+    if (logged.length > 0) {
+      throw new Error(`React logged to the console: ${JSON.stringify(logged)}`);
+    }
+  });
+
+  // React logs a leaked prop once for each name, so the test that looks for it runs before any other test of the file renders the component
+  describe("props", () => {
+    it("should not pass the dimmed state to the DOM", () => {
+      // Arrange
+      render(<ProblemsPanel {...createProps({ dimmed: true })} />);
+
+      // Act
+      const logged = jest.mocked(console.error).mock.calls;
+
+      // Assert
+      expect(logged).toEqual([]);
+    });
+  });
+
   describe("head", () => {
     it("should label the panel Problems", () => {
       // Arrange
@@ -569,6 +598,121 @@ describe("ProblemsPanel", () => {
       // Assert
       expect(note.text).toBe("Dependencies are not evaluated.");
       expect(onOpen).toHaveBeenCalledWith({ kind: "config" });
+    });
+  });
+
+  describe("notice", () => {
+    it("should draw what the pane says above the body, and not inside it", () => {
+      // Arrange
+      render(
+        <ProblemsPanel
+          {...createProps({
+            notice: <Note>The evaluation was stopped.</Note>,
+          })}
+        />
+      );
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { noticeTexts, bodyText } = panel.tabPanel();
+
+      // Assert
+      expect(noticeTexts).toEqual(["The evaluation was stopped."]);
+      expect(bodyText).toBe("Body of the tab");
+    });
+
+    it("should draw nothing above the body without a notice", () => {
+      // Arrange
+      render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { noticeTexts } = panel.tabPanel();
+
+      // Assert
+      expect(noticeTexts).toEqual([]);
+    });
+
+    it("should not fade the notice while the body is faded", () => {
+      // Arrange
+      render(
+        <ProblemsPanel
+          {...createProps({
+            notice: <Note>The evaluation was stopped.</Note>,
+            dimmed: true,
+          })}
+        />
+      );
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { noticeOpacities, bodyOpacity } = panel.tabPanel();
+
+      // Assert
+      expect(noticeOpacities).toEqual([1]);
+      expect(bodyOpacity).toBe(0.5);
+    });
+
+    it("should not draw it while the panel is collapsed", () => {
+      // Arrange
+      render(
+        <ProblemsPanel
+          {...createProps({
+            collapsed: true,
+            notice: <Note>The evaluation was stopped.</Note>,
+          })}
+        />
+      );
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { isRendered } = new NotePom();
+
+      // Assert
+      expect(isRendered).toBe(false);
+      expect(panel.tabPanel().isRendered).toBe(false);
+    });
+  });
+
+  describe("dimmed", () => {
+    it("should show the body in full when it is not told that it is out of date", () => {
+      // Arrange
+      render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { bodyOpacity } = panel.tabPanel();
+
+      // Assert
+      expect(bodyOpacity).toBe(1);
+    });
+
+    it("should fade the body while it is out of date, and show it in full when it is up to date again", () => {
+      // Arrange
+      const { rerender } = render(
+        <ProblemsPanel {...createProps({ dimmed: true })} />
+      );
+      const panel = new ProblemsPanelPom();
+      const whileOutOfDate = panel.tabPanel().bodyOpacity;
+
+      // Act
+      rerender(<ProblemsPanel {...createProps({ dimmed: false })} />);
+
+      // Assert
+      expect(whileOutOfDate).toBe(0.5);
+      expect(panel.tabPanel().bodyOpacity).toBe(1);
+    });
+
+    it("should keep the tabs and the head in full while the body is faded", () => {
+      // Arrange
+      render(<ProblemsPanel {...createProps({ dimmed: true })} />);
+      const panel = new ProblemsPanelPom();
+
+      // Act
+      const { tabs } = panel;
+
+      // Assert
+      expect(tabs.map((tab) => tab.opacity)).toEqual([1, 1, 1]);
     });
   });
 

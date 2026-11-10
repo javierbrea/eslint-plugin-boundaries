@@ -1,3 +1,5 @@
+import { within } from "@testing-library/react";
+
 import { Pom } from "@/shared/testing/pom";
 
 import { TOP_BAR_TEST_ID } from "./TopBar.constants";
@@ -5,8 +7,8 @@ import { TOP_BAR_TEST_ID } from "./TopBar.constants";
 /** What the text of the status starts with: the number of files. */
 const STATUS_PATTERN = /^\d+ files? ·/;
 
-/** The attributes that the styled parts of the bar use as props and must not leave in the DOM. The `failing` prop is not here: React drops a boolean on an attribute it does not know, so only the console of the spec shows a leak of it. */
-const PROP_ATTRIBUTES = ["color"] as const;
+/** The attributes that the styled parts of the bar use as props and must not leave in the DOM. */
+const PROP_ATTRIBUTES = ["color", "tone"] as const;
 
 /** Page object of the top bar. It finds its root by the test id of the bar, or by the `testId` option when a component that is the bar gives it another. A component that is the bar can also give it its root with the `root` option. */
 export class TopBarPom extends Pom {
@@ -38,7 +40,7 @@ export class TopBarPom extends Pom {
   }
 
   /**
-   * The element that says how many problems there are, or that the config has errors: the last element of the text of the status.
+   * The element that says how many problems there are, that the config has errors, or how the evaluation goes: the last element of the text of the status.
    * @returns The element.
    * @throws When the text of the status has no element at its end.
    */
@@ -60,6 +62,14 @@ export class TopBarPom extends Pom {
    */
   private get status(): HTMLElement {
     return this.label.parentElement as HTMLElement;
+  }
+
+  /**
+   * The live region of the status, which screen readers announce and the bar does not draw.
+   * @returns The element.
+   */
+  private get announcementRegion(): HTMLElement {
+    return within(this.status).getByRole("status");
   }
 
   /**
@@ -113,15 +123,49 @@ export class TopBarPom extends Pom {
   }
 
   /**
-   * What the status says about the problems.
-   * @returns The text of the count of problems, or `config has errors`.
+   * Whether the status says anything after the number of dependencies, which it does not before the problems are known.
+   * @returns True when the text of the status has an element at its end.
+   */
+  get hasProblems(): boolean {
+    return this.label.lastElementChild !== null;
+  }
+
+  /**
+   * What the status says after the number of dependencies, in place of which the caller may say how the evaluation goes.
+   * @returns The text of the count of problems, `config has errors`, or what the caller says about the evaluation.
    */
   get problemsText(): string {
     return this.problems.textContent;
   }
 
   /**
-   * The color of what the status says about the problems.
+   * Whether what the status says after the number of dependencies is hidden from assistive technology, which hears it from the live region instead.
+   * @returns True when its `aria-hidden` attribute is `true`.
+   */
+  get isProblemsHidden(): boolean {
+    return this.problems.getAttribute("aria-hidden") === "true";
+  }
+
+  /**
+   * What the live region of the status holds, which a screen reader announces when it changes.
+   * @returns Its text, empty when it says nothing.
+   */
+  get announcement(): string {
+    return this.announcementRegion.textContent;
+  }
+
+  /**
+   * Whether the live region of the status is drawn, which it must not be: the text on screen is beside it.
+   * @returns True when it is not absolutely positioned or not clipped, as a visually hidden element is.
+   */
+  get isAnnouncementDrawn(): boolean {
+    const { clipPath, position } = getComputedStyle(this.announcementRegion);
+
+    return clipPath !== "inset(50%)" || position !== "absolute";
+  }
+
+  /**
+   * The color of what the status says after the number of dependencies.
    * @returns The computed value.
    */
   get problemsColor(): string {

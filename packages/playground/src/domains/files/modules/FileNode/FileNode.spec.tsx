@@ -2,13 +2,20 @@ import { act } from "@testing-library/react";
 import { Profiler as RenderProfiler } from "react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
+import { LATE_AFTER } from "@/domains/evaluation/helpers/evaluator";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import {
   NO_CAPABILITIES,
+  failEvaluation,
+  releaseEvaluation,
   renderInSession,
   waitForEvaluation,
+  waitUntilEvaluationIsLate,
+  waitUntilEvaluationStops,
 } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
+import { holdInlineWorkers } from "@/shared/testing/inlineWorker";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import { FileNode } from "./FileNode";
@@ -30,6 +37,14 @@ const CHECKOUT_LINES = [
   '2import { format } from "../../helpers/format/index.js";policy 1',
   '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";policy 2',
   '4import React from "react";not checked · external',
+];
+
+/** The four lines of the same file before any evaluation decides them: the statements, with no verdict. */
+const CHECKOUT_STATEMENTS = [
+  '1import { Button } from "../../components/atoms/Button/index.js";',
+  '2import { format } from "../../helpers/format/index.js";',
+  '3import { renderButton } from "../../components/atoms/Button/Button.spec.js";',
+  '4import React from "react";',
 ];
 
 /** What {@link renderNode} returns: the render of the session, the page object of the node and the spy of the renders. */
@@ -215,6 +230,270 @@ describe("FileNode", () => {
       expect(node.lines.lineTexts[0]).toBe(
         '1import { Button } from "../../components/atoms/Button/index.js";default'
       );
+    });
+  });
+
+  describe("before the first evaluation", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      holdInlineWorkers();
+    });
+
+    it("should show the statements of the sketch with an empty verdict, in full, while the evaluation is not late", () => {
+      // Arrange
+      const { node } = renderNode();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+      const { lines } = node.lines;
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual(CHECKOUT_STATEMENTS);
+      expect(lines.map(({ verdict }) => verdict.icon.isRendered)).toEqual([
+        false,
+        false,
+        false,
+        false,
+      ]);
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual([
+        "1",
+        "1",
+        "1",
+        "1",
+      ]);
+    });
+
+    it("should let the line in focus be chosen, though no verdict is there to explain", () => {
+      // Arrange
+      const { node, store } = renderNode();
+
+      // Act
+      node.lines.line(1).click();
+
+      // Assert
+      expect(store.getState().focus).toEqual({
+        kind: "dependency",
+        path: FILE,
+        index: 1,
+      });
+      expect(node.lines.line(1).isSelected).toBe(true);
+    });
+
+    it("should say that each dependency is being evaluated once the evaluation is late, with the verdicts faded", () => {
+      // Arrange
+      const { node } = renderNode();
+
+      // Act
+      waitUntilEvaluationIsLate();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(lines.map(({ verdict }) => verdict.text)).toEqual(
+        Array.from({ length: 4 }, () => "evaluating…")
+      );
+      expect(lines.map(({ verdict }) => verdict.icon.pathData)).toEqual(
+        Array.from({ length: 4 }, () => ICON_PATHS.skip)
+      );
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 4 }, () => "0.5")
+      );
+    });
+
+    it("should say that each dependency was not evaluated when the evaluation is stopped", () => {
+      // Arrange
+      const { node } = renderNode();
+
+      // Act
+      waitUntilEvaluationStops();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(lines.map(({ verdict }) => verdict.text)).toEqual(
+        Array.from({ length: 4 }, () => "not evaluated")
+      );
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 4 }, () => "0.5")
+      );
+    });
+
+    it("should say that each dependency was not evaluated when the evaluation could not run", () => {
+      // Arrange
+      const { node } = renderNode();
+
+      // Act
+      failEvaluation();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(lines.map(({ verdict }) => verdict.text)).toEqual(
+        Array.from({ length: 4 }, () => "not evaluated")
+      );
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 4 }, () => "0.5")
+      );
+    });
+
+    it("should show the verdicts of the engine, in full, when the evaluation arrives", () => {
+      // Arrange
+      const { node } = renderNode();
+      waitUntilEvaluationIsLate();
+
+      // Act
+      releaseEvaluation();
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual(CHECKOUT_LINES);
+      expect(node.lines.lines.map(({ verdict }) => verdict.opacity)).toEqual([
+        "1",
+        "1",
+        "1",
+        "1",
+      ]);
+    });
+  });
+
+  describe("an evaluation that is out of date", () => {
+    /** The line that {@link renderOutOfDate} adds after the four of the file. */
+    const ADDED_LINE = '5import "lodash";';
+
+    /**
+     * Renders the node with the evaluation of the sketch, and then adds a dependency to the file while the worker holds the request of the new sketch.
+     * @returns The render of the node.
+     */
+    function renderOutOfDate(): NodeRender {
+      jest.useFakeTimers();
+
+      const render = renderNode();
+
+      holdInlineWorkers();
+      act(() =>
+        render.store.addDependency({
+          from: FILE,
+          target: { kind: "external", name: "lodash" },
+          syntax: "import",
+          importKind: "value",
+          specifiers: [],
+        })
+      );
+      return render;
+    }
+
+    it("should show the dependency that the evaluation has not decided with an empty verdict, and keep the others, in full", () => {
+      // Arrange
+      const { node } = renderOutOfDate();
+
+      // Act
+      act(() => {
+        jest.advanceTimersByTime(LATE_AFTER - 1);
+      });
+      const { lines } = node.lines;
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual([...CHECKOUT_LINES, ADDED_LINE]);
+      expect(lines[4].verdict.icon.isRendered).toBe(false);
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 5 }, () => "1")
+      );
+    });
+
+    it("should say that the new dependency is being evaluated once the evaluation is late, and fade every verdict", () => {
+      // Arrange
+      const { node } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationIsLate();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual([
+        ...CHECKOUT_LINES,
+        `${ADDED_LINE}evaluating…`,
+      ]);
+      expect(lines[4].verdict.icon.pathData).toBe(ICON_PATHS.skip);
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 5 }, () => "0.5")
+      );
+    });
+
+    it("should say that the new dependency was not evaluated when the evaluation is stopped, and keep fading the others", () => {
+      // Arrange
+      const { node } = renderOutOfDate();
+
+      // Act
+      waitUntilEvaluationStops();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual([
+        ...CHECKOUT_LINES,
+        `${ADDED_LINE}not evaluated`,
+      ]);
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 5 }, () => "0.5")
+      );
+    });
+
+    it("should say that the new dependency was not evaluated when the evaluation could not run, and keep fading the others", () => {
+      // Arrange
+      const { node } = renderOutOfDate();
+
+      // Act
+      failEvaluation();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(node.lines.lineTexts).toEqual([
+        ...CHECKOUT_LINES,
+        `${ADDED_LINE}not evaluated`,
+      ]);
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 5 }, () => "0.5")
+      );
+    });
+
+    it("should show the verdict of the new dependency, and every verdict in full, when the evaluation arrives", () => {
+      // Arrange
+      const { node } = renderOutOfDate();
+      waitUntilEvaluationIsLate();
+
+      // Act
+      releaseEvaluation();
+      const { lines } = node.lines;
+
+      // Assert
+      expect(lines[4].verdict.text).toBe("not checked · external");
+      expect(lines.map(({ verdict }) => verdict.opacity)).toEqual(
+        Array.from({ length: 5 }, () => "1")
+      );
+    });
+
+    it("should fade the verdicts that stay while the evaluation of a removed dependency is late, and keep what they say", () => {
+      // Arrange
+      jest.useFakeTimers();
+      const { node, store } = renderNode();
+      holdInlineWorkers();
+      act(() => store.removeDependency({ path: FILE, index: 2 }));
+      const whileOnItsWay = node.lines.lines.map(
+        ({ verdict }) => verdict.opacity
+      );
+
+      // Act
+      waitUntilEvaluationIsLate();
+
+      // Assert
+      expect(whileOnItsWay).toEqual(["1", "1", "1"]);
+      expect(node.lines.lineTexts).toEqual([
+        CHECKOUT_LINES[0],
+        CHECKOUT_LINES[1],
+        '3import React from "react";not checked · external',
+      ]);
+      expect(node.lines.lines.map(({ verdict }) => verdict.opacity)).toEqual([
+        "0.5",
+        "0.5",
+        "0.5",
+      ]);
     });
   });
 

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { getProblemTabs } from "@/domains/problems/helpers/problemSelectors";
 import type { ProblemTabFacts } from "@/domains/problems/helpers/problemSelectors";
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
-import { useFocus, useSessionSelector } from "@/domains/session/data/store";
+import { useFocus, useDependencyResults } from "@/domains/session/data/store";
 
 /**
  * Reads the facts of the tabs of the problems panel.
@@ -12,9 +12,7 @@ import { useFocus, useSessionSelector } from "@/domains/session/data/store";
 export function useProblemTabs(): readonly ProblemTabFacts[] {
   const openNode = useFocus();
   const summary = useProblemSummary();
-  const dependencies = useSessionSelector(
-    (state) => state.evaluation.dependencies
-  );
+  const dependencies = useDependencyResults();
 
   return useMemo(
     () => getProblemTabs(openNode, summary, dependencies),

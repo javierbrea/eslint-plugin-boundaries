@@ -3,6 +3,7 @@ import type {
   Evaluation,
   TextRange,
 } from "@/domains/evaluation/helpers/engine";
+import type { EvaluationStatus } from "@/domains/evaluation/helpers/evaluator";
 import {
   CONFIG_PATH,
   addDependency as addSketchDependency,
@@ -66,20 +67,19 @@ const NONE_CLOSED: ReadonlySet<string> = new Set();
 const NEW_NAMES = { file: "new-file.js", folder: "new-folder" } as const;
 
 /**
- * Creates the state an instance starts with: the sketch and its evaluation, with nothing in focus, the project as a tree with every folder open, and the problems panel open on the sketch.
+ * Creates the state an instance starts with: the sketch, whose evaluation is on its way, with nothing in focus, the project as a tree with every folder open, and the problems panel open on the sketch.
  * @param sketch The sketch to start from.
- * @param evaluation What the engine says about it.
  * @param capabilities What the user can change in the project.
  * @returns The first state.
  */
 export function createSessionState(
   sketch: Sketch,
-  evaluation: Evaluation,
   capabilities: ProjectCapabilities
 ): SessionState {
   return {
     sketch,
-    evaluation,
+    evaluation: undefined,
+    evaluationStatus: "pending",
     capabilities,
     focus: NO_FOCUS,
     tab: "sketch",
@@ -1053,23 +1053,31 @@ export function setProblemsCollapsed(
 }
 
 /**
- * Keeps a new evaluation of the sketch. When it is the evaluation of the config text the sketch has, the highlighted policy is found again in it, by where the range of the highlight starts: the policies may have moved or changed index since the highlight was set, and the note names the index of the evaluation. While the evaluation is behind the text, which is the delay of the store after the last keystroke, the highlight keeps the index it had.
+ * Keeps the evaluation on screen and how it stands to the sketch. When a new evaluation is of the config text the sketch has, the highlighted policy is found again in it, by where the range of the highlight starts: the policies may have moved or changed index since the highlight was set, and the note names the index of the evaluation. While the evaluation is behind the text, such as during the delay of the store after the last keystroke, the highlight keeps the index it had.
  * @param state The state before.
- * @param evaluation What the engine says about the sketch.
- * @returns The state after.
+ * @param evaluation The evaluation on screen: the evaluation of the sketch, or the last one aligned to the sketch, or `undefined` while there is none.
+ * @param evaluationStatus How the evaluation stands to the sketch.
+ * @returns The state after, or the same state when both are as they were.
  */
 export function setEvaluation(
   state: SessionState,
-  evaluation: Evaluation
+  evaluation: Evaluation | undefined,
+  evaluationStatus: EvaluationStatus
 ): SessionState {
-  if (evaluation === state.evaluation) {
+  if (
+    evaluation === state.evaluation &&
+    evaluationStatus === state.evaluationStatus
+  ) {
     return state;
   }
 
   return {
     ...state,
     evaluation,
+    evaluationStatus,
     highlight:
+      evaluation !== undefined &&
+      evaluation !== state.evaluation &&
       evaluation.sketch.config === state.sketch.config
         ? findHighlightPolicy(state.highlight, evaluation.policies)
         : state.highlight,

@@ -10,3 +10,15 @@ export const FOCUS_RING = "2px solid var(--jsb-accent)";
 /** Hover over a row or a toggle: the soft accent, fainter than a selection */
 export const HOVER_BACKGROUND =
   "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
+
+/** The style of a region whose content is out of date: it fades, and comes back when the content is up to date. */
+export const DIMMED = {
+  opacity: 0.5,
+  transition: "opacity 120ms ease-out",
+} as const;
+
+/** The style of the same region while its content is up to date, which `DIMMED` fades from. */
+export const UNDIMMED = {
+  opacity: 1,
+  transition: DIMMED.transition,
+} as const;

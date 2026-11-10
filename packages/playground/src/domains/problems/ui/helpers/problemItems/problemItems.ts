@@ -1,4 +1,8 @@
-import type { ConfigProblem } from "@/domains/evaluation/helpers/engine";
+import type {
+  ConfigProblem,
+  DependencyVerdict,
+} from "@/domains/evaluation/helpers/engine";
+import type { PendingVerdict } from "@/domains/evaluation/ui/helpers/evaluationStatus";
 import {
   getNotEvaluatedSentence,
   getVerdictIcon,
@@ -150,21 +154,42 @@ function getSubjectLabel(subject: ProblemSubject): string {
 }
 
 /**
+ * Picks the icon of the tab of a dependency.
+ * @param verdict What the engine says about the dependency, or `undefined` when the evaluation does not know it.
+ * @param pendingVerdict What a dependency that no evaluation has decided yet shows, as `getPendingVerdict` writes it.
+ * @returns The icon and the tone of the verdict, and none when the evaluation does not know the dependency. A dependency that no evaluation has decided yet has the icon of `pendingVerdict`, and none while it is `undefined`, as its line in the file pane.
+ */
+function getVerdictTabIcon(
+  verdict: DependencyVerdict | undefined,
+  pendingVerdict: PendingVerdict | undefined
+): Pick<ProblemsTab<ProblemsTabId>, "icon" | "iconTone"> {
+  if (verdict === undefined) {
+    return {};
+  }
+  if (verdict.status === "pending") {
+    return pendingVerdict === undefined
+      ? {}
+      : { icon: pendingVerdict.icon, iconTone: getVerdictTone(verdict) };
+  }
+  return { icon: getVerdictIcon(verdict), iconTone: getVerdictTone(verdict) };
+}
+
+/**
  * Turns the facts of the tabs of the problems panel into the tabs it draws.
  * @param tabFacts The facts of the tabs, as `getProblemTabs` returns them.
+ * @param pendingVerdict What a dependency that no evaluation has decided yet shows, as `getPendingVerdict` writes it.
  * @returns One tab for each fact, in the same order. The tab of the sketch is in the sans font and the others in mono; a tab that counts has a badge in the tone of its errors, and the tab of a dependency has the icon and the tone of its verdict instead.
  */
 export function toProblemsTabs(
-  tabFacts: readonly ProblemTabFacts[]
+  tabFacts: readonly ProblemTabFacts[],
+  pendingVerdict: PendingVerdict | undefined
 ): ProblemsTab<ProblemsTabId>[] {
   return tabFacts.map(({ id, subject, badge, verdict }) => {
     const tab: ProblemsTab<ProblemsTabId> = {
       id,
       label: getSubjectLabel(subject),
       ...(subject.kind === "sketch" ? {} : { mono: true }),
-      ...(verdict === undefined
-        ? {}
-        : { icon: getVerdictIcon(verdict), iconTone: getVerdictTone(verdict) }),
+      ...getVerdictTabIcon(verdict, pendingVerdict),
     };
 
     return badge === undefined
@@ -201,17 +226,19 @@ function getHighlightSentence({ policy, dependency }: HighlightFacts): string {
 /**
  * Turns the facts of what the tab that shows lists into what the list draws.
  * @param listFacts The facts of the list, as `getProblemList` returns them.
+ * @param pendingVerdict What a dependency that no evaluation has decided yet shows, as `getPendingVerdict` writes it.
  * @returns For the sketch, a file and the config, the rows and what to say when there are none, with the notes above them: why no dependency is evaluated, and which policy is highlighted, which says there are no problems in the config first when it has none. For a dependency, its body. The rows are the problems of the config first, then the lines of text mode, then the failing dependencies.
  */
 export function toProblemListContent(
-  listFacts: ProblemListFacts
+  listFacts: ProblemListFacts,
+  pendingVerdict: PendingVerdict | undefined
 ): ProblemListContent {
   if ("result" in listFacts) {
     return {
       items: [],
       empty: undefined,
       notes: [],
-      detail: toDependencyDetail(listFacts),
+      detail: toDependencyDetail(listFacts, pendingVerdict),
     };
   }
 

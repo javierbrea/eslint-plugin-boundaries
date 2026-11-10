@@ -19,6 +19,10 @@ export type ProblemsPanelProps<Id extends string> = {
   readonly onCollapsedChange: (collapsed: boolean) => void;
   /** The body of the selected tab: notes and problem lists. It is not drawn while the panel is collapsed. */
   readonly children: ReactNode;
+  /** What the body says above the rest, such as that the evaluation stopped: it never fades. */
+  readonly notice?: ReactNode;
+  /** Whether the body under the notice is out of date, such as while a newer evaluation runs: it fades. Unset, it does not. */
+  readonly dimmed?: boolean;
   /** The test id of the root element. It is the one of the panel when it is unset, and a module that is this panel gives it its own. */
   readonly testId?: string;
 };

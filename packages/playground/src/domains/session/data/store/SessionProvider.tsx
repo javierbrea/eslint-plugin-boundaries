@@ -38,8 +38,11 @@ export function SessionProvider({
   );
   const reportedRef = useRef(sketch);
 
-  // An evaluation that waits out its delay must not run once the instance is gone
-  useEffect(() => () => store.dispose(), [store]);
+  // The evaluator starts its worker once the instance is mounted, never in a render, and stops it when the instance goes away. React mounts an instance twice in development, so the store can start again after it was disposed
+  useEffect(() => {
+    store.start();
+    return () => store.dispose();
+  }, [store]);
 
   // A callback that changes between renders must not report the same sketch again
   useEffect(() => {

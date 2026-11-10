@@ -1,5 +1,6 @@
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import type { EvaluationStatus } from "@/domains/evaluation/helpers/evaluator";
 import type { DependencyRef } from "@/domains/project/helpers/sketch";
 import type {
   ConfigReveal,
@@ -45,8 +46,10 @@ export type TextAnchors = {
 export type SessionState = {
   /** The sketch being edited. It is replaced by a new one after each edit. */
   readonly sketch: Sketch;
-  /** What the engine says about the sketch, or about the one before it while an edit of the config waits out the delay. */
-  readonly evaluation: Evaluation;
+  /** What the engine says about the sketch, or the last evaluation of an older one, aligned to the sketch (`alignEvaluation`), while the evaluation of the sketch is on its way, waits out the delay of an edit of the config, or was stopped. `undefined` until the first evaluation arrives. */
+  readonly evaluation: Evaluation | undefined;
+  /** How the evaluation stands to the sketch. */
+  readonly evaluationStatus: EvaluationStatus;
   /** What the user can change in the project. The host gives them with the sketch, and they do not change for the life of the instance: an edit that they do not allow leaves the state as it was. */
   readonly capabilities: ProjectCapabilities;
   /** What is in focus. */

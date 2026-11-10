@@ -16,7 +16,8 @@ const FRAME_LABEL = "Pane under test";
 const LINES = getDependencyLines(
   createEngine()
     .evaluate(QUICK_START_EXAMPLE.sketch)
-    .dependencies.filter(({ ref }) => ref.path === PATH)
+    .dependencies.filter(({ ref }) => ref.path === PATH),
+  "current"
 );
 
 /** What {@link renderPane} returns: the props it rendered the pane with, and its page object. */

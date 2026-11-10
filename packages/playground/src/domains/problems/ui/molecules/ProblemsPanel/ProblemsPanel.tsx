@@ -10,7 +10,7 @@ import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
-import { FOCUS_RING } from "@/ui-kit/helpers/theme";
+import { DIMMED, FOCUS_RING, UNDIMMED } from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 
 import {
@@ -56,13 +56,18 @@ const Chevron = styled("span", {
   transform: turned ? "rotate(180deg)" : undefined,
 }));
 
+// The rows of a tab fade while what they show is out of date, and the notice above them does not
+const Rows = styled("div", {
+  shouldForwardProp: (prop) => prop !== "dimmed",
+})<{ dimmed: boolean }>(({ dimmed }) => (dimmed ? DIMMED : UNDIMMED));
+
 const TabPanel = styled("div")({
   flex: 1,
   minHeight: 0,
   overflow: "auto",
   padding: "6px 0 10px",
-  // A note above a list sits 4 px from its first row, as in the mockup
-  "& > [role='note'] + *": { marginTop: 4 },
+  // A note above a list sits 4 px from its first row, as in the mockup, and so do the rows under the notice
+  "& > [role='note'] + *, & > * > [role='note'] + *": { marginTop: 4 },
   // The panel scrolls, so it takes the keyboard even when it holds nothing to focus
   "&:focus-visible": { outline: FOCUS_RING, outlineOffset: -2 },
 });
@@ -131,6 +136,8 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsPanelTab }>): ReactNode {
  * @param props.collapsed Whether only the head shows.
  * @param props.onCollapsedChange Called with what the user asks for when they press the collapse button.
  * @param props.children The body of the selected tab.
+ * @param props.notice What the body says above the rest, which never fades, such as that the evaluation stopped.
+ * @param props.dimmed Whether the body under the notice is out of date, which fades it.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The panel, as tall as its container.
  */
@@ -141,6 +148,8 @@ export function ProblemsPanel<Id extends string>({
   collapsed,
   onCollapsedChange,
   children,
+  notice,
+  dimmed = false,
   testId = PROBLEMS_PANEL_TEST_ID,
 }: Readonly<ProblemsPanelProps<Id>>): ReactNode {
   const prefix = useId();
@@ -203,7 +212,8 @@ export function ProblemsPanel<Id extends string>({
           aria-labelledby={getTabElementId(prefix, selected)}
           tabIndex={0}
         >
-          {children}
+          {notice}
+          <Rows dimmed={dimmed}>{children}</Rows>
         </TabPanel>
       )}
     </Panel>

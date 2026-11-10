@@ -193,6 +193,13 @@ const FILES = [
   { pattern: "src/index.ts", category: "package-entry" },
   // The second entry of the package, `@boundaries/playground/share`, which the docs also run in Node.js
   { pattern: "src/share.ts", category: "share-entry" },
+  // The script of a worker, which runs in its own thread: only the URL of the factory that creates the worker names it
+  { pattern: "src/**/*.worker.ts", category: "worker-entry" },
+  // The code that answers the requests of the evaluation worker, which runs in the worker
+  {
+    pattern: "src/domains/evaluation/helpers/evaluator/serveEvaluations.ts",
+    category: "worker-handler",
+  },
   { pattern: "src/**/*.spec.{ts,tsx}", category: "test" },
   // Page objects, the only code that knows how a component is queried and driven in a test
   { pattern: "src/**/*.pom.ts", category: "pom" },
@@ -218,6 +225,23 @@ const externalModule = (source) => ({
 const elementNamed = (domainName, names, types = UI_TYPES) => ({
   element: { type: types, captured: { domain: domainName, name: names } },
 });
+
+// The engine, which imports the evaluation packages: only the worker may take a value from it
+const ENGINE = elementNamed("evaluation", "engine", "helper");
+
+// The entry of the engine
+const ENGINE_ENTRY = {
+  element: { ...ENGINE.element, fileInternalPath: "index.ts" },
+  file: { categories: "entry" },
+};
+
+// The types that the matrix lets import a helper, which may take `tokenizeConfig` from the engine
+const HELPER_IMPORTERS = Object.keys(LAYER_TARGETS).filter((type) =>
+  LAYER_TARGETS[type].includes("helper")
+);
+
+const ENGINE_MESSAGE =
+  "Only serveEvaluations, which runs in the worker, creates an engine: the page asks the evaluator of the store for evaluations, and takes from the engine only its types, with import type, and tokenizeConfig, so that @boundaries/* stay out of its chunk";
 
 const POLICIES = [
   // An element may always import itself. Restrictions on test, page object and mock files come after and override this
@@ -308,6 +332,38 @@ const POLICIES = [
     allow: { to: { module: { origin: "external" } } },
   },
 
+  // Only the worker creates an engine, so that the evaluation packages load in the worker and never in the page, which asks the evaluator instead. A value of the engine is denied whatever the syntax that brings it (a dynamic import, a namespace import, a re-export), except a named import of `tokenizeConfig` alone, which loads none of them; its types are allowed. These policies come before the ones of test support, which override them, and reopen nothing that the matrix denies
+  {
+    disallow: { to: ENGINE, dependency: { kind: "value" } },
+    message: ENGINE_MESSAGE,
+  },
+  {
+    from: { element: { type: HELPER_IMPORTERS } },
+    allow: {
+      to: ENGINE_ENTRY,
+      dependency: {
+        kind: "value",
+        nodeKind: "import",
+        specifiers: "tokenizeConfig",
+      },
+    },
+  },
+  {
+    disallow: {
+      to: ENGINE,
+      dependency: { kind: "value", specifiers: "!tokenizeConfig" },
+    },
+    message: ENGINE_MESSAGE,
+  },
+  // The engine itself, which defines it, and the code that the worker runs
+  {
+    allow: { to: ENGINE, dependency: { relationship: { to: "internal" } } },
+  },
+  {
+    from: { file: { categories: "worker-handler" } },
+    allow: { to: ENGINE_ENTRY },
+  },
+
   // Test, page object and mock files are test support: nothing imports them unless a policy below allows it
   {
     disallow: { to: { file: { categories: "test" } } },
@@ -323,14 +379,39 @@ const POLICIES = [
     message:
       "Only specs import a mock. Production code and page objects never do",
   },
+  {
+    disallow: { to: { file: { categories: "worker-entry" } } },
+    message:
+      "The script of a worker runs in its own thread: only the factory of the worker names it, through new URL, so that what it imports stays out of the page",
+  },
+  {
+    disallow: { to: { file: { categories: "worker-handler" } } },
+    message:
+      "serveEvaluations runs in the worker and creates an engine: only the script of the worker imports it",
+  },
+  {
+    from: { file: { categories: "worker-entry" } },
+    allow: { to: { file: { categories: "worker-handler" } } },
+  },
 
-  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, and the share entry, which its own spec proves in Node.js
+  // A spec may import the entry of any element, which includes the testing support, the page objects, constants and mocks that it drives, by file, the share entry, which its own spec proves in Node.js, and the script of a worker and the code it runs, which their own specs run
   {
     from: { file: { categories: "test" } },
     allow: {
       to: [
         entryOf(ELEMENT_TYPES),
-        { file: { categories: ["pom", "constants", "mock", "share-entry"] } },
+        {
+          file: {
+            categories: [
+              "pom",
+              "constants",
+              "mock",
+              "share-entry",
+              "worker-entry",
+              "worker-handler",
+            ],
+          },
+        },
       ],
     },
   },
