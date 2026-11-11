@@ -27,6 +27,7 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 | `support/cspell-config` | `cspell-config` | `@boundaries/repo-cspell-config` | Shared cspell config every project's `cspell.config.*` composes |
 | `test/eslint-plugin-e2e` | `eslint-plugin-e2e` | (not published) | Plain-Node end-to-end suite against the built plugin |
 | `test/browser-e2e` | `browser-e2e` | (not published) | Runs scenarios of the built `elements`, `config` and `policies` in Chromium, Firefox and WebKit with Playwright and requires each browser to return the Node.js result |
+| `test/website-e2e` | `website-e2e` | (not published) | Sanity suite of the production build of `website` and its playground, in Chromium at a desktop and a narrow viewport, through the Playwright page objects of `playground` and `website` |
 
 ## Dependency graph and direction
 
@@ -34,6 +35,7 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 - **`support/eslint-config` and `support/cspell-config` are depended on by every project** via `implicitDependencies` in each `project.json`, and via each project's own `lint`/`check:spell` target depending on that support package's `eslint:config`/`cspell:config` target.
 - **`website build → playground build → policies / config / elements build`.** The website bundles the built `playground` into the lazy chunk of `/playground/`, with the script of its evaluation worker, which carries `config`, `policies` and `elements`, in chunks of their own that only the worker loads, and its light `/share` entry into the docs pages that link to the playground, and every target of both that needs a build depends on these builds only, so that only their `lint` builds `eslint-plugin`. The peer dependencies that `website` provides are in `packages/playground/AGENTS.md` ("Stack").
 - **`website build:playwright → playground build:playwright`.** The website's Playwright page objects, exported by `website/playwright`, extend the base of `@boundaries/playground/playwright`, so its `build:playwright`, `check:types` and `lint` depend on the playground's `build:playwright`, and no `build` depends on a `build:playwright`.
+- **`website-e2e test:e2e → website build, playground and website build:playwright`.** The suite serves the production build of the site and reaches it only through the two `./playwright` entries, consumed with `workspace:`; its `lint` and `check:types` depend on the two `build:playwright` only.
 - **`website` is downstream of `eslint-plugin`** conceptually (it documents the plugin's current API and versions its docs alongside plugin releases) and lints its own `src/` with it, so its `lint` builds `eslint-plugin` first — keep `packages/website/docs/rules/` in sync with `eslint-plugin` changes manually.
 - Run `pnpm nx graph` to see the live dependency graph rather than trusting this table if it's unclear whether it's stale.
 

@@ -13,8 +13,15 @@ This private project is the sanity suite of the website and the playground: it o
 
 | Spec | Project | What it checks |
 |---|---|---|
+| `test/website.spec.ts` | `desktop` | The navbar leads from the home to the docs, and the docs sidebar to the Quick start. Below 997 px both move into a menu, which the page objects do not describe. |
+| `test/website.spec.ts` | both | `/this-page-does-not-exist/` answers 404 with the 404 page of the site, whose link leads back to the docs; `/` and `/docs/quick-start/` hydrate without an error; none of these pages starts a web worker. |
+| `test/playground.spec.ts` | `desktop` | `/playground/` without a hash opens the Quick start example, whose tree, status and problems agree; a file opened from the tree is the one the node pane and the inspector describe; the example picker opens another example and writes it to the hash; Help opens, links to the playground guide and closes; Reset brings the Quick start back; a reload keeps the project. |
+| `test/open-in-playground.spec.ts` | `desktop` | The Open in playground button of the Quick start opens its project, after a client-side navigation and when its link is pasted into the address bar of the open playground, and not the example that the page showed before. |
+| `test/share.spec.ts` | `desktop` | Share reads `Copied`, and the copied link opens the same project and config in a browser context with empty storage. |
 | `test/playground-chunk.spec.ts` | `narrow` | `/playground/` shows the desktop-only note, renders no playground, starts no web worker and never requests the chunk of the playground. |
 | `test/playground-chunk.spec.ts` | `desktop` | The control of the test above: on a wide screen the same detection finds the chunk, and the page starts one web worker. |
+
+The playground keeps the last project in memory, per page document, never in the storage of the browser. So a spec that needs a project the page remembers picks another example on the same page and then navigates without loading a document, which `documentLoads` checks. It waits for the project to reach the hash before it leaves.
 
 Every test also fails on a console error or a page error. The errors of requests to `api.github.com` and `api.npmjs.org` (the live stats of the site fall back to static values when they fail) and the 404 status of the document of `/this-page-does-not-exist/`, which the specs visit to see the 404 page, are the only ones left out.
 
@@ -46,7 +53,7 @@ pnpm exec playwright test test/playground-chunk.spec.ts --project=narrow
 
 ## Adding a spec
 
-1. Add `test/<name>.spec.ts`. Import `test` and `expect` from `./fixtures`, and reach the page through the page objects the fixtures give, such as `playgroundPage`. A spec holds no locator, selector or fixed wait: `eslint.config.js` fails them.
+1. Add `test/<name>.spec.ts`. Import `test` and `expect` from `./fixtures`, and reach the page through the page objects the fixtures give, such as `playgroundPage`, `navbar` or `docItem`. Open another tab or a fresh browser context with `openPlaygroundTab` or `openPlaygroundInFreshContext`, which return the page object of the page they open. Steps that several specs share, made of page object calls, go in `test/support/`, such as `test/support/playground.ts`. A spec holds no locator, selector or fixed wait: `eslint.config.js` fails them.
 2. Name the test after what the user sees. Tag it `{ tag: "@desktop" }` when it needs the panes of the playground, or `{ tag: "@narrow" }` when it needs the narrow page.
 3. A page that a spec visits is reached with `page.goto("/path/")`. Wait for what settles through a waiting method of a page object or `expect.poll` over a value getter of one.
 
