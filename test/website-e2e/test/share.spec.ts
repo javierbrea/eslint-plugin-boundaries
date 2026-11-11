@@ -39,9 +39,7 @@ test.describe("sharing the playground", () => {
       const received = await openPlaygroundInFreshContext(link);
       await waitUntilProjectShown(received.playground);
 
-      expect(await received.playground.topBar.picker.text).toBe(
-        `Example ${title}`
-      );
+      expect(await received.playground.topBar.picker.title).toBe(title);
       expect(await readProject(received.playground)).toEqual(shared);
     }
   );

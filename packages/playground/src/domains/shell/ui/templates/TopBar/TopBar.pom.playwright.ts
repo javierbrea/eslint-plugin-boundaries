@@ -8,9 +8,16 @@ import { TOP_BAR_TEST_ID } from "./TopBar.constants";
 /** What the text of the status starts with: the number of files. */
 const STATUS_PATTERN = /^\d+ files? ·/;
 
-/** What the text of the status is once the problems are counted: the numbers of the project, with how many problems it has. Any other end, such as `evaluating…` or `config has errors`, is not a count. */
+/** What the text of the status is once the problems are counted: the numbers of the project, with how many problems it has, as its groups. Any other end, such as `evaluating…` or `config has errors`, is not a count. */
 const COUNTED_STATUS_PATTERN =
-  /^\d+ files? · \d+ (?:dependency|dependencies) · \d+ problems?$/;
+  /^(\d+) files? · (\d+) (?:dependency|dependencies) · (\d+) problems?$/;
+
+/** The numbers that the status counts once the problems are known. */
+type TopBarCounts = {
+  readonly files: number;
+  readonly dependencies: number;
+  readonly problems: number;
+};
 
 /** Page object of the top bar, in a browser. It finds its root by the test id of the bar, or by the `testId` option when a component that is the bar gives it another. A component that is the bar can also give it its root with the `root` option. */
 export class TopBarPom extends Pom {
@@ -30,6 +37,29 @@ export class TopBarPom extends Pom {
    */
   get statusText(): Promise<string> {
     return this.readText(this.label);
+  }
+
+  /**
+   * The numbers that the status counts once the problems are known. It reads once and does not wait: a spec reads it after `waitUntilEvaluated`.
+   * @returns A promise of the numbers of files, dependencies and problems.
+   * @throws When the status does not count the problems, such as while it reads `evaluating…` or when the bar is not in the page.
+   */
+  get counts(): Promise<TopBarCounts> {
+    return this.statusText.then((text) => {
+      const match = COUNTED_STATUS_PATTERN.exec(text);
+
+      if (match === null) {
+        throw new Error(
+          `${this.constructor.name} found no count of the problems in the status "${text}"`
+        );
+      }
+
+      return {
+        files: Number(match[1]),
+        dependencies: Number(match[2]),
+        problems: Number(match[3]),
+      };
+    });
   }
 
   // pom-parity: the evaluation runs in a web worker, so only a browser sees a project on screen whose verdicts have not arrived yet; jsdom answers before a spec reads

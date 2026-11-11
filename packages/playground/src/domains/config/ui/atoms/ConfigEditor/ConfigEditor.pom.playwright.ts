@@ -33,8 +33,8 @@ export class ConfigEditorPom extends Pom {
 
   /**
    * The text of the editor, as the user would copy it: the whole document, which CodeMirror holds in its state. The DOM holds only some of the lines of a document longer than the pane, so it is not whole there: the Overview example draws 36 of its 49 lines when its config opens. It reads the view that CodeMirror keeps on its content element, which is not public API of CodeMirror: if a new version moves it, this getter throws, and it is the only place to update. It reads once and does not wait.
-   * @returns A promise of the whole document, which is empty when the editor is not in the page.
-   * @throws When the editor is in the page and its content element keeps no view of CodeMirror.
+   * @returns A promise of the whole document.
+   * @throws When the editor is not in the page, as its jsdom sibling does, so that two reads of no editor never compare equal, or when its content element keeps no view of CodeMirror.
    */
   get text(): Promise<string> {
     return this.root
@@ -46,13 +46,16 @@ export class ConfigEditorPom extends Pom {
         )
       )
       .then(([text]) => {
+        if (text === undefined) {
+          throw new Error(`${this.constructor.name} found no editor`);
+        }
         if (text === null) {
           throw new Error(
             `${this.constructor.name} found no CodeMirror view in its content element`
           );
         }
 
-        return text ?? "";
+        return text;
       });
   }
 }

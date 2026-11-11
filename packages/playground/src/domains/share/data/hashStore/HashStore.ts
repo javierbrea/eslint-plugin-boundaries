@@ -7,7 +7,7 @@ import { HASH_STORE_WRITE_DELAY } from "./HashStore.constants";
 type PendingWrite = {
   /** The timer that runs the write after the delay */
   readonly timer: number;
-  /** Runs the write at once, as the timer and `pagehide` do. It writes nothing when the page is no longer the one that scheduled the write */
+  /** Runs the write at once, as the timer and `pagehide` do. It writes nothing when the page is no longer the one that scheduled the write, or when the hash holds another link by then */
   readonly run: () => void;
 };
 

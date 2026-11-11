@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
-- chore(#640): The playground page marks its desktop-only note and its loading box with test ids, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
+- chore(#640): The playground page marks its desktop-only note and its loading box with test ids, the 404 page marks its content, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
 
 ### Fixed
 

@@ -59,11 +59,19 @@ export class ExamplePickerPom extends Pom {
   }
 
   /**
-   * Everything the button says. It reads once and does not wait.
-   * @returns A promise of the label and the name of the current example, such as `Example Quick start`, or the label alone when the sketch is none of the examples.
+   * The name of the current example, which the button says after its label, the first element of the button. It reads once and does not wait.
+   * @returns A promise of the name, such as `Quick start`, which is empty when the sketch is none of the examples or the button is not in the page.
    */
-  get text(): Promise<string> {
-    return this.readText().then((text) => text.trim());
+  get title(): Promise<string> {
+    return this.root
+      .evaluateAll((buttons) =>
+        buttons.map((button) =>
+          button.textContent
+            .slice(button.firstElementChild?.textContent.length ?? 0)
+            .trim()
+        )
+      )
+      .then(([title]) => title ?? "");
   }
 
   /**

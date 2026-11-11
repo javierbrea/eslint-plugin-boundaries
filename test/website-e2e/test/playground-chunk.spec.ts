@@ -10,7 +10,7 @@ test.describe("the chunk of the playground", () => {
       await page.goto(PLAYGROUND_PATH);
 
       await playgroundPage.waitForNote();
-      // The loading box leaves once the browser has rendered the page, which on a narrow screen renders no playground. The chunk is requested when the playground renders, so a chunk that arrives is already requested by now
+      // The loading box leaves once the browser has rendered the page, which on a narrow screen renders no playground. The site requests the chunk when it renders the playground, so a render that requests it has done so by now. The check reads what the page requested up to here: a request made later, such as on a timer, is not seen
       await playgroundPage.waitUntilLoadingBoxGone();
 
       expect(await scripts.urlsHolding(PLAYGROUND_CHUNK_MARKER)).toEqual([]);

@@ -1,6 +1,5 @@
 import { expect, test } from "./fixtures";
 import {
-  parseStatus,
   pickAnotherExample,
   PROJECT_HASH,
   QUICK_START,
@@ -21,11 +20,9 @@ test.describe("the playground page", () => {
       await page.goto(PLAYGROUND_PATH);
       await waitUntilProjectShown(playground);
 
-      const counts = parseStatus(await playground.statusText);
+      const counts = await playground.topBar.bar.counts;
 
-      expect(await playground.topBar.picker.text).toBe(
-        `Example ${QUICK_START}`
-      );
+      expect(await playground.topBar.picker.title).toBe(QUICK_START);
       expect(counts.files).toBeGreaterThan(0);
       expect(await playground.project.tree.filePaths).toHaveLength(
         counts.files
@@ -80,7 +77,7 @@ test.describe("the playground page", () => {
 
       const title = await pickAnotherExample(playground);
 
-      expect(await playground.topBar.picker.text).toBe(`Example ${title}`);
+      expect(await playground.topBar.picker.title).toBe(title);
       expect(await playground.project.tree.filePaths).not.toEqual(files);
       expect(await playground.statusText).not.toBe(quickStart);
       // The store writes the project to the hash a moment after the last change
@@ -90,9 +87,7 @@ test.describe("the playground page", () => {
       const reopened = await openPlaygroundInFreshContext(page.url());
       await waitUntilProjectShown(reopened.playground);
 
-      expect(await reopened.playground.topBar.picker.text).toBe(
-        `Example ${title}`
-      );
+      expect(await reopened.playground.topBar.picker.title).toBe(title);
     }
   );
 
@@ -151,9 +146,7 @@ test.describe("the playground page", () => {
       await playground.topBar.actions.pressReset();
 
       // An example that nobody edited is replaced at once, with no confirmation
-      await expect
-        .poll(() => playground.topBar.picker.text)
-        .toBe(`Example ${QUICK_START}`);
+      await expect.poll(() => playground.topBar.picker.title).toBe(QUICK_START);
       await playground.topBar.bar.waitUntilEvaluated();
       expect(await playground.statusText).toBe(quickStartStatus);
       expect(await readProject(playground)).toEqual(quickStart);
@@ -176,7 +169,7 @@ test.describe("the playground page", () => {
       await page.reload();
       await waitUntilProjectShown(playground);
 
-      expect(await playground.topBar.picker.text).toBe(`Example ${title}`);
+      expect(await playground.topBar.picker.title).toBe(title);
       expect(await readProject(playground)).toEqual(project);
     }
   );

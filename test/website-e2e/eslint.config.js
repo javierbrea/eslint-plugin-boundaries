@@ -18,7 +18,15 @@ const SPEC_IMPORT_LIMIT = {
     "A spec imports `test` and `expect` from `./fixtures`, never from Playwright: the fixtures fail the test on a console error or a page error.",
 };
 
-// The `patterns` of `no-restricted-imports` cover the static imports and the re-exports with a source. A dynamic `import()` and a `require()` are covered by the same limits as syntax
+// Only the fixtures take `test` from Playwright. A support file that hands it, or a `test` it extends, to a spec would run the spec without the `pageErrors` fixture
+const PLAYWRIGHT_TEST_LIMIT = {
+  name: "@playwright/test",
+  importNames: ["test"],
+  message:
+    "Only `test/fixtures.ts` takes `test` from Playwright: a spec takes it from `./fixtures`, which fail the test on a console error or a page error.",
+};
+
+// The `patterns` of `no-restricted-imports` cover the static imports and the re-exports with a source. A dynamic `import()` and a `require()` whose source is a string are covered by the same limits as syntax
 const importLimits = (limits) => ({
   patterns: limits,
   syntax: limits.flatMap(({ regex, message }) => {
@@ -91,7 +99,7 @@ const TEST_RESTRICTED_SYNTAX = [
 export default [
   ...config,
   typescriptConfig,
-  // A later config replaces the options of a rule, so each one repeats the guards of the ones above and adds its own: no file of the project waits with a fixed wait, on a selector or on the network, and imports workspace packages only by their Playwright entries; a test file holds no locator or selector; a spec never imports Playwright
+  // A later config replaces the options of a rule, so each one repeats the guards of the ones above and adds its own: no file of the project waits with a fixed wait, on a selector or on the network, and imports workspace packages only by their Playwright entries; a test file holds no locator or selector, and only the fixtures take `test` from Playwright; a spec never imports Playwright
   createFixedWaitConfig(["**/*.{js,cjs,mjs,ts}"], PROJECT_IMPORTS.syntax),
   createFixedWaitConfig(
     ["test/**/*.ts"],
@@ -107,6 +115,16 @@ export default [
       "no-restricted-imports": [
         "error",
         { patterns: PROJECT_IMPORTS.patterns },
+      ],
+    },
+  },
+  {
+    files: ["test/**/*.ts"],
+    ignores: ["test/fixtures.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { paths: [PLAYWRIGHT_TEST_LIMIT], patterns: PROJECT_IMPORTS.patterns },
       ],
     },
   },

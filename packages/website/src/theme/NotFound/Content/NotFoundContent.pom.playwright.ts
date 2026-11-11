@@ -1,22 +1,15 @@
 import { Pom } from "@boundaries/playground/playwright";
-import type { Locator } from "@playwright/test";
 
 import { LinkPom } from "../../Link/Link.pom.playwright";
+
+import { NOT_FOUND_CONTENT_TEST_ID } from "./NotFoundContent.constants";
 
 /** The text of the link of the 404 page to the docs, which is its accessible name: its arrow is an image that is hidden from assistive technology. */
 const DOCS_LINK_LABEL = "Go to the docs";
 
-/** Page object of the content of the 404 page, in a browser, which the site swizzles as `NotFound/Content`: its root is the `main` landmark, the only one of the page. */
+/** Page object of the content of the 404 page, in a browser, which the site swizzles as `NotFound/Content`: its root is the `main` landmark of the page, which carries the test id of the content. */
 export class NotFoundContentPom extends Pom {
-  protected readonly defaultTestId = "";
-
-  /**
-   * Finds the root as the `main` landmark of the page.
-   * @returns The locator of the root element.
-   */
-  protected findRoot(): Locator {
-    return this.pickMatch(this.searchBase.getByRole("main"));
-  }
+  protected readonly defaultTestId = NOT_FOUND_CONTENT_TEST_ID;
 
   /**
    * The title of the page, which is its level 1 heading. It reads once and does not wait.

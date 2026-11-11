@@ -10,13 +10,6 @@ export type ProjectOnScreen = {
   readonly config: string;
 };
 
-/** The numbers that the status of the top bar says. */
-export type ProjectCounts = {
-  readonly files: number;
-  readonly dependencies: number;
-  readonly problems: number;
-};
-
 /** The name of the example that the playground opens when its URL has no hash. */
 export const QUICK_START = "Quick start";
 
@@ -25,29 +18,6 @@ export const PROJECT_HASH = /^#v=1&s=.{20,}/;
 
 /** What the link of an Open in playground button looks like: the path of the playground, and the hash that holds the project. */
 const OPEN_LINK_PATTERN = /^\/playground\/#v=1&s=.{20,}/;
-
-const STATUS_PATTERN =
-  /^(\d+) files? · (\d+) (?:dependency|dependencies) · (\d+) problems?$/;
-
-/**
- * Reads the numbers of a status that counts the problems.
- * @param status The text of the status of the top bar, such as `6 files · 9 dependencies · 2 problems`.
- * @returns The numbers.
- * @throws When the text is not a status that counts the problems, such as `evaluating…`.
- */
-export function parseStatus(status: string): ProjectCounts {
-  const match = STATUS_PATTERN.exec(status);
-
-  if (!match) {
-    throw new Error(`The status "${status}" does not count the problems`);
-  }
-
-  return {
-    files: Number(match[1]),
-    dependencies: Number(match[2]),
-    problems: Number(match[3]),
-  };
-}
 
 /**
  * Waits for the playground to show a project whose evaluation has arrived. It is for a playground that has just mounted, such as one that a visit or a client-side navigation opened.
@@ -107,8 +77,10 @@ export async function pickAnotherExample(
   await picker.waitUntilClosed();
   // The example mounts a new shell: until the picker names it, the status is still the one of the old project, which `waitUntilEvaluated` would take for the new one
   await expect
-    .poll(() => picker.text, { message: `${title} is not the current example` })
-    .toBe(`Example ${title}`);
+    .poll(() => picker.title, {
+      message: `${title} is not the current example`,
+    })
+    .toBe(title);
   await playground.topBar.bar.waitUntilEvaluated();
 
   return title;

@@ -1,4 +1,5 @@
 import { ExamplePickerPom } from "@/domains/examples/ui/atoms/ExamplePicker/ExamplePicker.pom.playwright";
+import { HELP_DIALOG_TITLE } from "@/domains/shell/ui/atoms/HelpDialog/HelpDialog.constants";
 import { HelpDialogPom } from "@/domains/shell/ui/atoms/HelpDialog/HelpDialog.pom.playwright";
 import { TopBarActionsPom } from "@/domains/shell/ui/molecules/TopBarActions/TopBarActions.pom.playwright";
 import { TopBarPom } from "@/domains/shell/ui/templates/TopBar/TopBar.pom.playwright";
@@ -35,10 +36,13 @@ export class ShellTopBarPom extends Pom {
   }
 
   /**
-   * The help dialog, which is rendered in an overlay outside the bar and not until Help opens it.
+   * The help dialog, which is rendered in an overlay outside the bar and not until Help opens it. It is found by its title, so that another dialog, such as the confirmation of Reset, is not taken for it.
    * @returns The page object of the dialog.
    */
   get help(): HelpDialogPom {
-    return this.childPom(HelpDialogPom, { portal: true });
+    return this.childPom(HelpDialogPom, {
+      portal: true,
+      name: HELP_DIALOG_TITLE,
+    });
   }
 }

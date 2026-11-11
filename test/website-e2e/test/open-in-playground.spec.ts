@@ -69,14 +69,14 @@ test.describe("the Open in playground button of the Quick start guide", () => {
       const visit = await openPlaygroundTab(link);
       await waitUntilProjectShown(visit.playground);
       const expected = await readProject(visit.playground);
-      const expectedExample = await visit.playground.topBar.picker.text;
+      const expectedExample = await visit.playground.topBar.picker.title;
       const expectedStatus = await visit.playground.statusText;
       await page.goto(PLAYGROUND_PATH);
       await waitUntilProjectShown(playground);
       await pickAnotherExample(playground);
       const remembered = await readProject(playground);
       expect(remembered).not.toEqual(expected);
-      // A write that is still pending when the link arrives would put the example back in the URL
+      // The link arrives once the store has written the example, so that no write is pending then: the unit tests of `HashStore` cover a link that arrives while one is
       await expect.poll(() => new URL(page.url()).hash).toMatch(PROJECT_HASH);
 
       const documentsBefore = documentLoads.paths;
@@ -87,7 +87,7 @@ test.describe("the Open in playground button of the Quick start guide", () => {
       // A document that the browser loaded would be a new playground with an empty store, which shows the link whatever the open one does with it
       expect(documentLoads.paths).toEqual(documentsBefore);
       await expect
-        .poll(() => playground.topBar.picker.text)
+        .poll(() => playground.topBar.picker.title)
         .toBe(expectedExample);
       await expect.poll(() => playground.statusText).toBe(expectedStatus);
       expect(await readProject(playground)).toEqual(expected);

@@ -12,6 +12,8 @@ const NARROW_VIEWPORT = { width: 390, height: 844 };
 // Chromium only: the browsers of the packages are covered by `test/browser-e2e`
 export default defineConfig({
   testDir: "test",
+  // Only the files that `eslint.config.js` holds to the rules of a spec: the default also runs `.test.ts`, `.spec.js`, `.spec.mts` and other extensions, which lint does not check as specs or skips
+  testMatch: "**/*.spec.ts",
   // One tsconfig for every file the runner loads. Without it, Playwright looks up the closest one of each file, and the entry of the site, `packages/website/dist-playwright`, finds the tsconfig of the site, whose `"baseUrl": null` its loader cannot read
   tsconfig: "./tsconfig.json",
   fullyParallel: true,

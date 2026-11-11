@@ -27,3 +27,10 @@ export type TopBarProps = {
   /** The test id of the root element, in place of the default one: the component that is the bar gives its own. */
   readonly testId?: string;
 };
+
+/** The numbers that the status of the bar counts once the problems are known, as its page objects read them. */
+export type TopBarCounts = {
+  readonly files: number;
+  readonly dependencies: number;
+  readonly problems: number;
+};
