@@ -81,13 +81,13 @@ const Detail = styled("small")(({ theme }) => ({
 const SectionLabel = styled("h3")(({ theme }) => ({
   margin: "4px 0 0",
   ...theme.typography.paneLabel,
-  color: "var(--jsb-faint)",
+  color: "var(--jsb-muted)",
 }));
 
 const None = styled("p")(({ theme }) => ({
   margin: 0,
   ...theme.typography.monoSmall,
-  color: "var(--jsb-faint)",
+  color: "var(--jsb-muted)",
 }));
 
 /** Props of {@link RowList}. */

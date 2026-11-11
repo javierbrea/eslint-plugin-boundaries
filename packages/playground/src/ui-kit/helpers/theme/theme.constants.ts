@@ -24,7 +24,7 @@ export const VISUALLY_HIDDEN = {
   whiteSpace: "nowrap",
 } as const;
 
-/** The style of a region whose content is out of date: it fades, and comes back when the content is up to date. */
+/** The style of a region whose content is out of date: it fades, and comes back when the content is up to date. While it is faded, its text is below 4.5:1: the fade was kept on purpose over cues that keep the contrast, such as a grayscale. */
 export const DIMMED = {
   opacity: 0.5,
   transition: "opacity 120ms ease-out",

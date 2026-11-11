@@ -89,8 +89,8 @@ export function FileInspector({
       <div>
         <InspectorRows
           rows={[
-            { label: "to", text: NO_DEPENDENCY_TEXT, tone: "faint" },
-            { label: "dependency", text: NO_DEPENDENCY_TEXT, tone: "faint" },
+            { label: "to", text: NO_DEPENDENCY_TEXT, tone: "muted" },
+            { label: "dependency", text: NO_DEPENDENCY_TEXT, tone: "muted" },
           ]}
         />
         <Hint>{NO_DEPENDENCY_HINT}</Hint>

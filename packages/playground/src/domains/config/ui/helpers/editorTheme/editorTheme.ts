@@ -50,8 +50,9 @@ const UNDERLINE = {
 const ACTIVE_LINE = "color-mix(in srgb, var(--jsb-code-fg) 5%, transparent)";
 const SELECTION =
   "color-mix(in srgb, var(--jsb-code-keyword) 32%, transparent)";
+// No more than 10%, so that the comments and the line numbers of a highlighted line keep 4.5:1 on the code of the light scheme
 const HIGHLIGHT =
-  "color-mix(in srgb, var(--jsb-code-keyword) 13%, transparent)";
+  "color-mix(in srgb, var(--jsb-code-keyword) 10%, transparent)";
 
 /**
  * The theme of the editor: a code area on `--jsb-code` with the lint gutter, the problems and their tooltip. Every color is a token of the host. It is dark in both color schemes, as the file pane is. CodeMirror builds the theme when this module loads, before any MUI theme exists, so the text reads the type scale as constants and not through `theme.typography`.

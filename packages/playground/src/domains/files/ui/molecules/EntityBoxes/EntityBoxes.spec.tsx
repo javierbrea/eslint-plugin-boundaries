@@ -182,7 +182,7 @@ describe("EntityBoxes", () => {
       const types = element.valueColor("types");
 
       // Assert
-      expect(captured).toBe("var(--jsb-faint)");
+      expect(captured).toBe("var(--jsb-muted)");
       expect(types).not.toBe(captured);
     });
   });

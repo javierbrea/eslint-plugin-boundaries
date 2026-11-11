@@ -301,7 +301,7 @@ describe("FileInspector", () => {
       const path = element.valueColor("path");
 
       // Assert
-      expect(captured).toBe("var(--jsb-faint)");
+      expect(captured).toBe("var(--jsb-muted)");
       expect(types).not.toBe(captured);
       expect(path).not.toBe(captured);
     });
@@ -332,7 +332,7 @@ describe("FileInspector", () => {
   });
 
   describe("no dependency in focus", () => {
-    it("should read a dash under to and dependency, in the faint color", () => {
+    it("should read a dash under to and dependency, in the muted color", () => {
       // Arrange
       const { rows } = renderInspector(FILE);
 
@@ -345,7 +345,7 @@ describe("FileInspector", () => {
         { label: "to", text: "—" },
         { label: "dependency", text: "—" },
       ]);
-      expect(colors).toEqual(["var(--jsb-faint)", "var(--jsb-faint)"]);
+      expect(colors).toEqual(["var(--jsb-muted)", "var(--jsb-muted)"]);
     });
 
     it("should say how to describe a dependency, in a dashed hint under them", () => {
@@ -541,7 +541,7 @@ describe("FileInspector", () => {
 
       // Assert
       expect(indents).toEqual(["0px", "14px", "14px"]);
-      expect(colors).toEqual(["var(--jsb-ink)", "var(--jsb-faint)"]);
+      expect(colors).toEqual(["var(--jsb-ink)", "var(--jsb-muted)"]);
     });
 
     it("should frame the properties of the dependency in a box of its own, which has no title", () => {

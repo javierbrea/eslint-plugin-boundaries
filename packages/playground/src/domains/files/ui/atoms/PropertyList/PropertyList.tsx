@@ -38,11 +38,11 @@ const Value = styled("dd", {
 })<{ isNull: boolean }>(({ isNull }) => ({
   margin: 0,
   overflowWrap: "anywhere",
-  color: isNull ? "var(--jsb-faint)" : undefined,
+  color: isNull ? "var(--jsb-muted)" : undefined,
 }));
 
 /**
- * Lists properties as their key in the muted color over a column of values, formatted as JSON with `null` in the faint color. A value wraps anywhere instead of widening the pane. An entry with no value leaves its value cell empty, and the nested entries after it are indented.
+ * Lists properties as their key in the muted color over a column of values, formatted as JSON with `null` in the muted color. A value wraps anywhere instead of widening the pane. An entry with no value leaves its value cell empty, and the nested entries after it are indented.
  * @param props PropertyList props.
  * @param props.entries The properties to list.
  * @param props.isFramed Whether to draw a frame around the list.
