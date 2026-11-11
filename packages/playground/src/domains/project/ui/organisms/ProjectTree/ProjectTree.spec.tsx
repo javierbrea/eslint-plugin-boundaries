@@ -367,7 +367,7 @@ describe("ProjectTree", () => {
       expect(targetTag).toBe("target");
       expect(targetStyle).toEqual({
         outline: "1px dashed var(--jsb-accent)",
-        "outline-offset": "-1px",
+        outlineOffset: "-1px",
       });
     });
 
