@@ -850,6 +850,114 @@ describe("HashStore", () => {
       });
     });
 
+    describe("when the hash becomes another link before the write", () => {
+      it("should not overwrite the link that the host came back to, such as the one of a docs button", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+        window.history.pushState({}, "", `${PAGE}${hashOf(SECOND)}`);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.pathname).toBe(PAGE);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should let the next load return the sketch of that link", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        window.history.pushState({}, "", DOCS);
+        window.history.pushState({}, "", `${PAGE}${hashOf(SECOND)}`);
+        jest.advanceTimersByTime(500);
+
+        // Act
+        const sketch = await store.load();
+
+        // Assert
+        expect(sketch).toStrictEqual(SECOND);
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should not overwrite a link that replaced the hash on the same page, such as one pasted in the address bar", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        setUrl(`${PAGE}${hashOf(SECOND)}`);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should not overwrite a link that it cannot read, so that the next load gives its reason", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        setUrl(`${PAGE}#v=2&s=abc`);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.hash).toBe("#v=2&s=abc");
+      });
+
+      it("should not overwrite the link when the page is hidden", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        setUrl(`${PAGE}${hashOf(SECOND)}`);
+
+        // Act
+        window.dispatchEvent(new Event("pagehide"));
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should still write over the link that the store itself wrote last", async () => {
+        // Arrange
+        const store = createStore();
+
+        await store.save(FIRST);
+        jest.advanceTimersByTime(500);
+        await store.save(SECOND);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+
+      it("should still write over the link that the store last read", async () => {
+        // Arrange
+        setUrl(`${PAGE}${hashOf(FIRST)}`);
+
+        const store = createStore();
+
+        await store.load();
+        await store.save(SECOND);
+
+        // Act
+        jest.advanceTimersByTime(500);
+
+        // Assert
+        expect(window.location.hash).toBe(hashOf(SECOND));
+      });
+    });
+
     it("should keep the path and the query of the page, and the state of the history entry", async () => {
       // Arrange
       const routerState = { key: "abc123", usr: { from: "docs" } };
