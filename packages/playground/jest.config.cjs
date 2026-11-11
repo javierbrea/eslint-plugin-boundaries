@@ -9,11 +9,13 @@ module.exports = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected.
-  // Barrels only re-export (lint-enforced), and page objects, mocks and shared test helpers are test support
+  // Barrels only re-export (lint-enforced), and page objects, mocks and shared test helpers are test support. The Playwright files (page objects, their base and the `./playwright` entry) run in Node.js inside the Playwright runner, which Jest never loads
   collectCoverageFrom: [
     "src/**",
     "!src/**/index.ts",
     "!src/**/*.pom.ts",
+    "!src/**/*.playwright.ts",
+    "!src/playwright.ts",
     "!src/**/*.mock.{ts,tsx}",
     "!src/shared/testing/**",
   ],

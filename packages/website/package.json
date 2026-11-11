@@ -2,9 +2,17 @@
   "name": "website",
   "version": "7.4.1",
   "private": true,
+  "exports": {
+    "./playwright": {
+      "types": "./dist-playwright/playwright.d.mts",
+      "import": "./dist-playwright/playwright.mjs"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "eslint": "eslint",
     "build": "docusaurus build",
+    "build:playwright": "tsup --config tsup.playwright.config.js && node ../../scripts/check-bundle-imports.js dist-playwright --allow @playwright/test --allow @boundaries/playground/playwright",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "check:types": "tsc --noEmit",
@@ -45,6 +53,7 @@
     "@types/react": "19.3.0",
     "baseline-browser-mapping": "2.11.34",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "tsup": "8.5.1",
     "typescript": "5.9.3"
   },
   "browserslist": {

@@ -1,0 +1,2 @@
+// The `website/playwright` entry: the Playwright page objects of the site's own components and pages, which extend the base of `@boundaries/playground/playwright`. It runs in Node.js, inside the Playwright runner, and never in the site: nothing in the site imports it, and its build imports nothing but `@playwright/test` and `@boundaries/playground/playwright`. A page object is exported from here, by file
+export { PlaygroundPagePom } from "./pages/playground.pom.playwright";

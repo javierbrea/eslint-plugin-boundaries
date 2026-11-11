@@ -8,6 +8,10 @@ import type { ReactNode } from "react";
 import { useMediaQuery } from "../components/motion/useMediaQuery";
 import { DOCS_PLAYGROUND_GUIDE, DOCS_QUICK_START } from "../data/site/links";
 
+import {
+  PLAYGROUND_PAGE_LOADING_TEST_ID,
+  PLAYGROUND_PAGE_NOTE_TEST_ID,
+} from "./playground.constants";
 import styles from "./playground.module.css";
 
 const LEAD =
@@ -47,7 +51,11 @@ const LazyPlayground = lazy(async () => {
  */
 function Loading(): ReactNode {
   return (
-    <div className={styles.loading} aria-busy="true">
+    <div
+      className={styles.loading}
+      aria-busy="true"
+      data-testid={PLAYGROUND_PAGE_LOADING_TEST_ID}
+    >
       Loading the playground…
     </div>
   );
@@ -91,7 +99,7 @@ export default function PlaygroundPage(): ReactNode {
           Playground
         </Heading>
         {/* Both are in the server render, and CSS shows the one that fits the screen, so nothing moves when the page loads */}
-        <p className={styles.note}>
+        <p className={styles.note} data-testid={PLAYGROUND_PAGE_NOTE_TEST_ID}>
           The playground needs a wider screen. Open this page on a desktop
           browser to use it.
         </p>
