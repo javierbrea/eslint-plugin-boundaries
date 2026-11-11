@@ -53,7 +53,7 @@ pnpm exec playwright test test/playground-chunk.spec.ts --project=narrow
 
 ## Adding a spec
 
-1. Add `test/<name>.spec.ts`. Import `test` and `expect` from `./fixtures`, and reach the page through the page objects the fixtures give, such as `playgroundPage`, `navbar` or `docItem`. Open another tab or a fresh browser context with `openPlaygroundTab` or `openPlaygroundInFreshContext`, which return the page object of the page they open. Steps that several specs share, made of page object calls, go in `test/support/`, such as `test/support/playground.ts`. A spec holds no locator, selector or fixed wait: `eslint.config.js` fails them.
+1. Add `test/<name>.spec.ts`. Import `test` and `expect` from `./fixtures`, and reach the page through the page objects the fixtures give, such as `playgroundPage`, `navbar` or `docItem`. Open another tab or a fresh browser context with `openPlaygroundTab` or `openPlaygroundInFreshContext`, which return the page object of the page they open. Steps that several specs share, made of page object calls, go in `test/support/`, such as `test/support/playground.ts`. No file of `test/` holds a locator, selector or fixed wait, no spec imports `@playwright/test`, and no file imports the playground or the site other than through their `./playwright` entries: `eslint.config.js` fails them.
 2. Name the test after what the user sees. Tag it `{ tag: "@desktop" }` when it needs the panes of the playground, or `{ tag: "@narrow" }` when it needs the narrow page.
 3. A page that a spec visits is reached with `page.goto("/path/")`. Wait for what settles through a waiting method of a page object or `expect.poll` over a value getter of one.
 

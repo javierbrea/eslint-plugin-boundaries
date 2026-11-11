@@ -12,7 +12,7 @@ The browser specs of `test/website-e2e` reach the page only through Playwright p
 ## Where a page object goes
 
 - A component of `packages/playground` that a browser spec reaches has `X.pom.playwright.ts` beside its jsdom `X.pom.ts` (`.agents/rules/playground-testing.md`), with the same class names and a subset of their public members.
-- A page object of `packages/website` lives beside the component or page it describes, as `X.pom.playwright.ts`, and has no jsdom sibling; one under `src/pages/` stays out of the routes as `packages/website/AGENTS.md` says. A part that Docusaurus renders and the site does not swizzle, such as the navbar, gets its page object where a swizzle would put it, `src/theme/<Component>/<Component>.pom.playwright.ts`, in a folder with no `index` file, which replaces no component.
+- A page object of `packages/website` lives beside the component or page it describes, as `X.pom.playwright.ts`, and has no jsdom sibling; one under `src/pages/` or `src/theme/` stays clear of the files that Docusaurus turns into routes or components, as `packages/website/AGENTS.md` says. A component that Docusaurus renders and the site does not own, such as the navbar or `@docusaurus/Link`, gets its page object in `src/theme/<Component>/<Component>.pom.playwright.ts`.
 - Each page object is exported by file from the `src/playwright.ts` of its package: `@boundaries/playground/playwright` and `website/playwright`.
 - `build:playwright` builds each entry into `dist-playwright/`, apart from the production build, and `scripts/check-bundle-imports.js` fails it when the output imports anything but `@playwright/test`, plus `@boundaries/playground/playwright` in the website.
 
@@ -33,17 +33,18 @@ The browser specs of `test/website-e2e` reach the page only through Playwright p
 
 ## Values and waits
 
-- A value getter returns a promise, reads once and never waits, such as `isRendered`. It reads through `readText` and `readAttribute` of the base, `count()`, `allTextContents()` or `evaluateAll()`, never through a locator method that waits for its element, such as `textContent()`, `getAttribute()` or `inputValue()`.
+- A value getter returns a promise, reads once and never waits, such as `isRendered`. It reads through methods that do not wait for their element, such as `readText` and `readAttribute` of the base, `count()`, `isVisible()` or `evaluateAll()`, never through one that does, such as `textContent()`, `getAttribute()` or `inputValue()`.
 - A method that waits for a state uses a web-first assertion on a locator, `locator.waitFor()` or `expect.poll` over value getters. A spec waits the same way, through a waiting method of a page object or `expect.poll` over a value getter.
-- A fixed wait (`waitForTimeout`), a wait on a selector or a function (`waitForSelector`, `waitForFunction`) and the `networkidle` load state are lint errors in every Playwright file, through `createFixedWaitConfig` of `support/eslint-config`.
+- A fixed wait (`waitForTimeout`, or a sleep through `setTimeout`, `setInterval` or `node:timers`), a wait on a selector or a function (`waitForSelector`, `waitForFunction`) and the `networkidle` load state are lint errors in every Playwright file and every file of `test/website-e2e`, through `createFixedWaitConfig` of `support/eslint-config`.
 - A test that passes only on retry is a defect to fix where it is nondeterministic, never a reason for another retry, a longer timeout or a wait. CI retries once only to keep a trace.
 
 ## Specs
 
 - A spec of `test/website-e2e/test/` imports `test` and `expect` from `test/fixtures.ts`, never from `@playwright/test`. The fixtures give the root page objects and the records of what the pages do, such as the scripts they request and the web workers they start.
-- A spec drives the page itself (`goto`, `reload`, `addInitScript`) but never queries it: no locator, selector or DOM query. A component that a spec needs without a page object gets one beside it in the same change. Lint recognizes a page by the name of the variable that holds it (`page`, `popup` or a name ending in `Page`), so a page object held in such a variable has no member named like a page method.
+- A file of `test/website-e2e` imports, of the workspace packages, only `@boundaries/playground/playwright` and `website/playwright`, never by a relative path: its `lint` and `check:types` build those two entries and nothing else.
+- A file of `test/website-e2e/test/` (a spec, the fixtures or a support file) drives the page (`goto`, `reload`, `addInitScript`) but never queries it: no locator, selector or DOM query. A component that a spec needs without a page object gets one beside it in the same change. Lint recognizes a page by the name of the variable that holds it (`page`, `popup` or a name ending in `Page`), so a page object held in such a variable has no member named like a page method.
 - A spec opens another tab or a context with empty storage through a fixture that returns the page object of the page it opened, never as a `Page` of its own.
-- A spec follows a link of the site through the `follow()` of its page object, which waits for the page to hydrate, so that the router of the site makes the navigation. A spec that claims a page logs no error waits for the hydration first.
+- A spec follows a link of the site through the `follow()` of a website link page object, which waits for the page to hydrate, so that the router of the site makes the navigation. A spec that claims a page logs no error waits for the hydration first.
 - The `pageErrors` fixture fails every test on a console error or a page error. An error the site makes on purpose is excused in `test/support/page-errors.ts`, never in a spec.
 - A spec that needs the panes of the playground is tagged `{ tag: "@desktop" }`, and one that needs the narrow page `{ tag: "@narrow" }`; `playwright.config.ts` skips each in the other project, and an untagged spec runs in both.
 - Every assertion can fail: a spec that checks that something does not happen has a control that sees it happen under the opposite condition, and one that checks that a project came from a link starts from a state where another project would show instead.
