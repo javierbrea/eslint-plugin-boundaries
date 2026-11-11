@@ -13,7 +13,6 @@ module.exports = createConfig({
     "labelledby",
     "menuitemradio",
     "momoa",
-    "networkidle",
     "noreferrer",
   ],
   // Misspelled on purpose in the tests of the problems panel: the mockup's config problem is a typo of `disallow`

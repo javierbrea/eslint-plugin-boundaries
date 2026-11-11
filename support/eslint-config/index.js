@@ -307,6 +307,38 @@ export function createBrowserConfig(hint) {
   };
 }
 
+// A fixed wait or a wait on a selector or on the network makes a spec slow or flaky: a Playwright page object waits for what it needs with a web-first assertion on a locator, `locator.waitFor()` or `expect.poll`
+const FIXED_WAIT_MESSAGE =
+  "Wait with a web-first assertion on a locator, locator.waitFor() or expect.poll, never with a fixed wait, a selector or the network.";
+
+/**
+ * Returns the config of the Playwright files that never wait with a fixed wait (`waitForTimeout`), on a selector or a function (`waitForSelector`, `waitForFunction`) or on the network (the `networkidle` load state).
+ * @param {string[]} files The globs of the Playwright files.
+ * @param {{ selector: string, message: string }[]} [extraRestrictedSyntax] More `no-restricted-syntax` entries for the same files. A later config object replaces the options of a rule instead of merging them, so a config that restricts more syntax in some of these files passes its entries here, to a call of its own for those files.
+ * @returns {object} The config.
+ */
+export function createFixedWaitConfig(files, extraRestrictedSyntax = []) {
+  return {
+    files,
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        ...["waitForTimeout", "waitForSelector", "waitForFunction"].map(
+          (property) => ({ property, message: FIXED_WAIT_MESSAGE })
+        ),
+      ],
+      "no-restricted-syntax": [
+        "error",
+        ...[
+          "Literal[value='networkidle']",
+          "TemplateElement[value.cooked='networkidle']",
+        ].map((selector) => ({ selector, message: FIXED_WAIT_MESSAGE })),
+        ...extraRestrictedSyntax,
+      ],
+    },
+  };
+}
+
 // Rules of the sonarjs recommended config that the "Sonar way comprehensive" profile of the SonarCloud projects does not run
 const SONARJS_RULES_NOT_IN_SONARCLOUD = [
   "argument-type",

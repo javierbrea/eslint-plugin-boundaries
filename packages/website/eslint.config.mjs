@@ -1,14 +1,11 @@
 import boundaries from "eslint-plugin-boundaries";
 
 import config, {
+  createFixedWaitConfig,
   jestConfig,
   reactConfig,
   reactHooksConfig,
 } from "../../support/eslint-config/index.js";
-
-// A fixed wait or a wait on a selector or on the network makes a spec slow or flaky: a Playwright page object waits for what it needs with a web-first assertion on a locator, `locator.waitFor()` or `expect.poll`
-const FIXED_WAIT_MESSAGE =
-  "Wait with a web-first assertion on a locator, locator.waitFor() or expect.poll, never with a fixed wait, a selector or the network.";
 
 // The Playwright page objects of the site and the `./playwright` entry that exports them. They run in Node.js, inside the Playwright runner, and never in the site
 const PLAYWRIGHT_FILES = ["src/playwright.ts", "src/**/*.playwright.ts"];
@@ -79,24 +76,7 @@ export default [
     },
   },
   // The Playwright files never wait with a fixed wait, on a selector or on the network
-  {
-    files: PLAYWRIGHT_FILES,
-    rules: {
-      "no-restricted-properties": [
-        "error",
-        ...["waitForTimeout", "waitForSelector", "waitForFunction"].map(
-          (property) => ({ property, message: FIXED_WAIT_MESSAGE })
-        ),
-      ],
-      "no-restricted-syntax": [
-        "error",
-        ...[
-          "Literal[value='networkidle']",
-          "TemplateElement[value.cooked='networkidle']",
-        ].map((selector) => ({ selector, message: FIXED_WAIT_MESSAGE })),
-      ],
-    },
-  },
+  createFixedWaitConfig(PLAYWRIGHT_FILES),
   // The site's own layering, enforced with the workspace eslint-plugin-boundaries
   {
     files: ["src/**/*.{ts,tsx}"],

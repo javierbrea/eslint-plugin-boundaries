@@ -468,6 +468,15 @@ importers:
         specifier: 9.39.5
         version: 9.39.5(jiti@1.21.7)
 
+  test/website-e2e:
+    dependencies:
+      '@boundaries/playground':
+        specifier: workspace:*
+        version: link:../../packages/playground
+      website:
+        specifier: workspace:*
+        version: link:../../packages/website
+
 packages:
 
   '@11ty/gray-matter@1.0.0':
