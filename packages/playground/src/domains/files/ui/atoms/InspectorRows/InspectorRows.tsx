@@ -10,7 +10,6 @@ import type {
 const TONE_COLORS: Readonly<Record<InspectorRowTone, string>> = {
   ink: "var(--jsb-ink)",
   muted: "var(--jsb-muted)",
-  faint: "var(--jsb-faint)",
 };
 
 const List = styled("ul")({ margin: 0, padding: 0, listStyle: "none" });

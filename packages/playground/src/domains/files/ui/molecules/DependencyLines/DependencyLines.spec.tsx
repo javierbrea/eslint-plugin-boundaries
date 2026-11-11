@@ -620,7 +620,7 @@ describe("DependencyLines", () => {
       expect(selected).toEqual([false, false, false, false]);
     });
 
-    it("should highlight the line in focus with a bar on its left, as a code area does", () => {
+    it("should highlight the line in focus with 66% of the line color of a code area and a bar on its left", () => {
       // Arrange
       const { list } = renderLines({ selectedIndex: 2 });
 
@@ -629,9 +629,11 @@ describe("DependencyLines", () => {
       const other = list.line(1);
 
       // Assert
-      expect(backgroundColor).toBe("var(--jsb-code-line)");
+      expect(backgroundColor).toBe(
+        "color-mix(in srgb, var(--jsb-code-line) 66%, transparent)"
+      );
       expect(boxShadow).toBe("inset 2px 0 0 var(--jsb-code-keyword)");
-      expect(other.backgroundColor).not.toBe("var(--jsb-code-line)");
+      expect(other.backgroundColor).not.toBe(backgroundColor);
       expect(other.boxShadow).toBe("");
     });
 
@@ -643,7 +645,9 @@ describe("DependencyLines", () => {
       const { hoverStyle } = list.line(0);
 
       // Assert
-      expect(hoverStyle["background-color"]).toBe("var(--jsb-code-line)");
+      expect(hoverStyle["background-color"]).toBe(
+        "color-mix(in srgb, var(--jsb-code-line) 66%, transparent)"
+      );
     });
   });
 

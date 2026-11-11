@@ -208,7 +208,7 @@ describe("editorTheme", () => {
       }
     );
 
-    it("should mark the highlighted lines with 13% of the keyword color, and a 3 px bar on the first gutter", () => {
+    it("should mark the highlighted lines with 10% of the keyword color, and a 3 px bar on the first gutter", () => {
       // Arrange
       const css = mountAndReadCss();
 
@@ -224,7 +224,7 @@ describe("editorTheme", () => {
 
       // Assert
       expect(lines).toContain(
-        "color-mix(in srgb, var(--jsb-code-keyword) 13%, transparent)"
+        "color-mix(in srgb, var(--jsb-code-keyword) 10%, transparent)"
       );
       expect(bar).toContain("inset 3px 0 0 var(--jsb-code-keyword)");
     });

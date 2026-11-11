@@ -54,7 +54,7 @@ export class CountBadgePom extends Pom {
   }
 
   /**
-   * The color of the count, which is the one of its tone.
+   * The color of the count, which is the one of its tone mixed with the ink.
    * @returns The computed value.
    */
   get color(): string {

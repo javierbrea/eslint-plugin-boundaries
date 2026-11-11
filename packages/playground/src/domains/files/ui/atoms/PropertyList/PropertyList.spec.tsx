@@ -47,12 +47,12 @@ describe("PropertyList", () => {
     ]);
   });
 
-  it("should draw a null value in the faint color, apart from the others", () => {
+  it("should draw a null value in the muted color, apart from the other values", () => {
     // Arrange
     const list = renderList({ entries: ENTRIES });
 
     // Act
-    const faint = list.valueColor("fileInternalPath");
+    const nullColor = list.valueColor("fileInternalPath");
     const others = [
       list.valueColor("types"),
       list.valueColor("path"),
@@ -60,8 +60,8 @@ describe("PropertyList", () => {
     ];
 
     // Assert
-    expect(faint).toBe("var(--jsb-faint)");
-    expect(others).not.toContain(faint);
+    expect(nullColor).toBe("var(--jsb-muted)");
+    expect(others).not.toContain(nullColor);
   });
 
   it("should draw the keys in the muted color", () => {

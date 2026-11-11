@@ -58,10 +58,10 @@ describe("CountBadge", () => {
   });
 
   it.each([
-    ["bad", "var(--jsb-bad)"],
-    ["warn", "var(--jsb-warn)"],
+    ["bad", "color-mix(in srgb, var(--jsb-bad) 70%, var(--jsb-ink))"],
+    ["warn", "color-mix(in srgb, var(--jsb-warn) 70%, var(--jsb-ink))"],
   ] as const)(
-    "should draw the count in the color of the %s tone",
+    "should draw the count in the color of the %s tone mixed with the ink, which keeps 4.5:1 on the badge",
     (tone, expected) => {
       // Arrange
       render(<CountBadge count={3} tone={tone} label="3 problems" />);

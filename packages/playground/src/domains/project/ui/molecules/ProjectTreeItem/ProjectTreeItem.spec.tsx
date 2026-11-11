@@ -11,6 +11,7 @@ import {
   getProjectItems,
 } from "@/domains/project/ui/helpers/projectItems";
 import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
+import { COUNT_BADGE_TEXT_COLORS } from "@/ui-kit/atoms/CountBadge/CountBadge.constants";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 
 import { ProjectTreeItem } from "./ProjectTreeItem";
@@ -288,8 +289,8 @@ describe("ProjectTreeItem", () => {
       const folder = item("src").row.badge().color;
 
       // Assert
-      expect(file).toBe("var(--jsb-bad)");
-      expect(folder).toBe("var(--jsb-bad)");
+      expect(file).toBe(COUNT_BADGE_TEXT_COLORS.bad);
+      expect(folder).toBe(COUNT_BADGE_TEXT_COLORS.bad);
     });
 
     it("should draw the failures of a file in the color of warnings, with a triangle in place of the cross and its name not in red, when all of them are warnings", () => {
@@ -308,7 +309,7 @@ describe("ProjectTreeItem", () => {
       const { row } = item("src/index.js");
 
       // Assert
-      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.badge().color).toBe(COUNT_BADGE_TEXT_COLORS.warn);
       expect(row.iconPaths).toEqual([ICON_PATHS.warn]);
       expect(row.failureColor).toBe("var(--jsb-warn)");
       expect(row.isBad).toBe(false);
@@ -350,7 +351,7 @@ describe("ProjectTreeItem", () => {
         "color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))"
       );
       expect(failing.failureColor).toBe("var(--jsb-bad)");
-      expect(failing.badge().color).toBe("var(--jsb-bad)");
+      expect(failing.badge().color).toBe(COUNT_BADGE_TEXT_COLORS.bad);
       expect(folder.nameColor).toBe("var(--jsb-muted)");
     });
 
@@ -367,7 +368,7 @@ describe("ProjectTreeItem", () => {
       const { row } = item("src");
 
       // Assert
-      expect(row.badge().color).toBe("var(--jsb-warn)");
+      expect(row.badge().color).toBe(COUNT_BADGE_TEXT_COLORS.warn);
       expect(row.isBad).toBe(false);
     });
 

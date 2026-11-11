@@ -5,6 +5,7 @@ import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors"
 import type { getProjectItems } from "@/domains/project/ui/helpers/projectItems";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import type { CountBadge } from "@/ui-kit/atoms/CountBadge";
+import { COUNT_BADGE_TEXT_COLORS } from "@/ui-kit/atoms/CountBadge/CountBadge.constants";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 
@@ -145,7 +146,7 @@ describe("ProjectTree", () => {
       expect(folderRow.badge("2 failing dependencies").count).toBe("2");
       expect(folderRow.badgeNames).toEqual(["2 failing dependencies"]);
       expect(fileBadge.count).toBe("1");
-      expect(fileBadge.color).toBe("var(--jsb-bad)");
+      expect(fileBadge.color).toBe(COUNT_BADGE_TEXT_COLORS.bad);
     });
 
     it("should mark a file with failures with its name in red and a cross", () => {
@@ -220,8 +221,8 @@ describe("ProjectTree", () => {
       const warn = badge.color;
 
       // Assert
-      expect(red).toBe("var(--jsb-bad)");
-      expect(warn).toBe("var(--jsb-warn)");
+      expect(red).toBe(COUNT_BADGE_TEXT_COLORS.bad);
+      expect(warn).toBe(COUNT_BADGE_TEXT_COLORS.warn);
     });
   });
 

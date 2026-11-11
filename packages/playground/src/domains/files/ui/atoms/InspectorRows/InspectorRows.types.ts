@@ -1,5 +1,5 @@
-/** The color of the text of a row: the ink of a path, the muted of what is not one, and the faint of a placeholder. */
-export type InspectorRowTone = "ink" | "muted" | "faint";
+/** The color of the text of a row: the ink of a path, and the muted of what is not one, such as a placeholder. */
+export type InspectorRowTone = "ink" | "muted";
 
 /** A row of the inspector that has nothing to fold. */
 export type InspectorRow = {

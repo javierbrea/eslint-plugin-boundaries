@@ -6,6 +6,7 @@ import type { ProblemItem } from "@/domains/problems/ui/helpers/problemItems";
 import { ProblemList } from "@/domains/problems/ui/molecules/ProblemList";
 import { ProblemListPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
+import { COUNT_BADGE_TEXT_COLORS } from "@/ui-kit/atoms/CountBadge/CountBadge.constants";
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { Note } from "@/ui-kit/molecules/Note";
@@ -190,7 +191,7 @@ describe("ProblemsPanel", () => {
       const { color } = panel.tab("Project 3 problems").badge;
 
       // Assert
-      expect(color).toBe("var(--jsb-warn)");
+      expect(color).toBe(COUNT_BADGE_TEXT_COLORS.warn);
     });
 
     it("should draw the count as bad when the tab has no tone", () => {
@@ -205,7 +206,7 @@ describe("ProblemsPanel", () => {
       const { color } = panel.tab("Project 3 problems").badge;
 
       // Assert
-      expect(color).toBe("var(--jsb-bad)");
+      expect(color).toBe(COUNT_BADGE_TEXT_COLORS.bad);
     });
 
     it.each([

@@ -424,7 +424,8 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
     styleOverrides: {
       root: {
         padding: 0,
-        color: "var(--jsb-faint)",
+        // The ring is the only sign of a radio that is not checked, so it takes the muted color, which passes the 3:1 of the outline of a control, and not the faint one
+        color: "var(--jsb-muted)",
         "&.Mui-checked": { color: "var(--jsb-accent)" },
         // The focus is on the input inside the radio, so the ring cannot use :focus-visible
         "&.Mui-focusVisible": {

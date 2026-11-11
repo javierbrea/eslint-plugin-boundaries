@@ -5,7 +5,7 @@ import { InspectorRowsPom } from "./InspectorRows.pom";
 import type { InspectorRowsProps } from "./InspectorRows.types";
 
 const ROWS: InspectorRowsProps["rows"] = [
-  { label: "to", text: "—", tone: "faint" },
+  { label: "to", text: "—", tone: "muted" },
   { label: "dependency", text: "line 3", tone: "muted" },
   { label: "from", text: "src/modules/checkout/index.js", tone: "ink" },
 ];
@@ -58,7 +58,7 @@ describe("InspectorRows", () => {
 
     // Assert
     expect(colors).toEqual([
-      "var(--jsb-faint)",
+      "var(--jsb-muted)",
       "var(--jsb-muted)",
       "var(--jsb-ink)",
     ]);

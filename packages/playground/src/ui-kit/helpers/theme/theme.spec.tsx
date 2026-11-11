@@ -1301,7 +1301,7 @@ describe("the widgets of MUI", () => {
   });
 
   describe("radio", () => {
-    it("should be the small radio, with no padding around its ring, which is faint until it is checked", () => {
+    it("should be the small radio, with no padding around its ring, which is muted until it is checked", () => {
       // Arrange
       renderInRoot(<Radio slotProps={{ input: { "aria-label": "Option" } }} />);
       const radio = view
@@ -1314,7 +1314,7 @@ describe("the widgets of MUI", () => {
 
       // Assert
       expect(radio.classList).toContain("MuiRadio-sizeSmall");
-      expect(style).toMatchObject({ padding: "0", color: "var(--jsb-faint)" });
+      expect(style).toMatchObject({ padding: "0", color: "var(--jsb-muted)" });
       expect(checked.color).toBe("var(--jsb-accent)");
     });
 

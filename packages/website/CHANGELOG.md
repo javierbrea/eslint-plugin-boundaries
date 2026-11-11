@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser, evaluated in a background thread that never blocks the page. A link keeps the whole project, to share it or to open it from the docs, and a new Playground guide explains how to use it.
 
+### Changed
+
+- chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
+
 ### Fixed
 
 - docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
@@ -21,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports.
 - docs: The `boundaries/dependencies`, `boundaries/entry-point` and `boundaries/external` rule pages document the `policies` option, with `rules` as its deprecated alias, and their sample error messages are the ones ESLint prints with the configuration of each page.
 - docs: The rule pages name the Policies page in their links to its Message Templating section, and the `boundaries/no-private` page says that its message is customized with its `message` option.
+- fix(#634): The dimension label of the home drawing has enough contrast to read in both themes.
 
 ## [7.4.1] - 2026-11-02
 

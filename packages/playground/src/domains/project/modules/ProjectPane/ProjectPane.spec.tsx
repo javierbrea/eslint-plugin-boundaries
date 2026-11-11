@@ -16,6 +16,7 @@ import type {
   ProjectView,
   Target,
 } from "@/domains/session/helpers/focus";
+import { COUNT_BADGE_TEXT_COLORS } from "@/ui-kit/atoms/CountBadge/CountBadge.constants";
 
 import { ProjectPane } from "./ProjectPane";
 import { ProjectPanePom } from "./ProjectPane.pom";
@@ -451,7 +452,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(badge.count).toBe("2");
-      expect(badge.color).toBe("var(--jsb-bad)");
+      expect(badge.color).toBe(COUNT_BADGE_TEXT_COLORS.bad);
     });
 
     it("should show the problems of the config in the warning color when it has no errors", () => {
@@ -464,7 +465,7 @@ describe("ProjectPane", () => {
       const badge = pane.item("eslint.config.js").row.badge("1 problem");
 
       // Assert
-      expect(badge.color).toBe("var(--jsb-warn)");
+      expect(badge.color).toBe(COUNT_BADGE_TEXT_COLORS.warn);
     });
 
     it("should draw no badge when the config has no problems", () => {
