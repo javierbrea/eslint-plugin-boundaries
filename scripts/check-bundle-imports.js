@@ -5,7 +5,7 @@
  *
  * Usage: `node scripts/check-bundle-imports.js <outputDir> [--allow <specifier>]...`, for example `node ../../scripts/check-bundle-imports.js dist-playwright --allow @playwright/test`.
  *
- * It reads every `.js`, `.mjs`, `.cjs`, `.d.ts`, `.d.mts` and `.d.cts` file under the output folder, and reports the specifier of every `import` and `export ... from` declaration, `import x = require()`, dynamic `import()`, `require()` call (or `__require()`, which esbuild writes in place of it when it bundles a CommonJS module), `import("x")` type, `/// <reference types="x" />` directive and `/// <reference path="x" />` directive. A specifier passes when it is relative and stays inside the output folder, or when it is one of the allowed specifiers or a subpath of one (allowing `@playwright/test` allows `@playwright/test/reporter`). Everything else fails: any other bare specifier, a `node:` builtin that is not allowed, an absolute path, a relative path that leaves the folder, and a dynamic `import()` or `require()` whose specifier is not a string literal, since it cannot be checked. The path of a `/// <reference path="x" />` is always a file path, relative to the file that holds it with or without a leading `./`, so it passes only when it stays inside the folder, and it is never matched with the allowed specifiers.
+ * It reads every `.js`, `.mjs`, `.cjs`, `.d.ts`, `.d.mts` and `.d.cts` file under the output folder, and reports the specifier of every `import` and `export ... from` declaration, `import x = require()`, dynamic `import()`, `require()` call (or `__require()`, which esbuild writes in place of it when it bundles a CommonJS module), `import("x")` type, `/// <reference types="x" />` directive and `/// <reference path="x" />` directive. A specifier passes when it is relative and stays inside the output folder, or when it is exactly one of the allowed specifiers as the build writes it: a subpath such as `@playwright/test/reporter` needs its own `--allow`, and tsup writes a builtin without `node:`, so `node:fs` is allowed as `fs`. Everything else fails: any other bare specifier or builtin, an absolute path, a relative path that leaves the folder, and a dynamic `import()` or `require()` whose specifier is not a string literal, since it cannot be checked. The path of a `/// <reference path="x" />` is always a file path, relative to the file that holds it with or without a leading `./`, so it passes only when it stays inside the folder, and it is never matched with the allowed specifiers.
  *
  * Each problem is written to stderr as `path:line: message`, relative to the working directory, and the exit code is 1. A missing folder, a folder with no file to check and a bad argument also fail, with the exit code 1 for the first two and 2 for the last.
  */
@@ -184,20 +184,6 @@ function collectReferences(file, text) {
 }
 
 /**
- * Whether a specifier is one of the allowed ones or a subpath of one.
- * @param {string} specifier The specifier of an import.
- * @param {string[]} allowed The allowed specifiers.
- * @returns {boolean} True when it is allowed.
- */
-function isAllowed(specifier, allowed) {
-  return allowed.some(
-    (allowedSpecifier) =>
-      specifier === allowedSpecifier ||
-      specifier.startsWith(`${allowedSpecifier}/`)
-  );
-}
-
-/**
  * Whether a specifier is relative and stays inside the output folder.
  * @param {string} specifier The specifier of an import.
  * @param {string} file The absolute path of the file that holds it.
@@ -214,7 +200,11 @@ function isInside(specifier, file, outputDir) {
     path.resolve(path.dirname(file), specifier)
   );
 
-  return !relative.startsWith("..") && !path.isAbsolute(relative);
+  return (
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
 }
 
 /**
@@ -244,7 +234,7 @@ function checkFile(file, outputDir, allowed) {
 
       if (
         isInside(target, file, outputDir) ||
-        (!isPath && isAllowed(specifier, allowed))
+        (!isPath && allowed.includes(specifier))
       ) {
         return [];
       }
@@ -324,8 +314,10 @@ function main(args) {
     return 1;
   }
 
+  const checked = files.length === 1 ? "1 file" : `${files.length} files`;
+
   process.stdout.write(
-    `${display(outputDir)}: ${files.length} files checked, they import only: ${importable}\n`
+    `${display(outputDir)}: ${checked} checked, importing only: ${importable}\n`
   );
   return 0;
 }

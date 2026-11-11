@@ -13,7 +13,7 @@
  *
  * A difference that is intended is marked with a whole-line `// pom-parity: <reason>` comment on the line right above the member, above its TSDoc block when it has one (the comment goes before the first line of the member, TSDoc included). A marker without a reason is a problem of its own and marks nothing.
  *
- * The script only parses the files, so it needs neither a program nor a type checker, and it assumes that they have no syntax errors, which `check:types` and `lint` report. Each problem is written to stderr as `path:line: message`, relative to the working directory, and the exit code is 1. A folder with no Playwright page object passes; a missing or unreadable folder does not.
+ * The script only parses the files, so it needs neither a program nor a type checker, and it assumes that they have no syntax errors, which `check:types` and `lint` report. Each problem is written to stderr as `path:line: message`, relative to the working directory, and the exit code is 1. A folder with no Playwright page object passes; a missing or unreadable folder fails with the exit code 1, and a bad argument with 2.
  */
 
 import fs from "node:fs";
@@ -212,7 +212,7 @@ function collectPageObjects({ sourceFile }) {
  * Returns the name of a class member, or undefined for a name that is not public by its syntax (`#private`) or a member that has none.
  * @param {ts.PropertyName | ts.BindingName | undefined} nameNode The name node of the member.
  * @param {ts.SourceFile} sourceFile The source file of the member, which the nodes of a parse with no parent pointers cannot find by themselves.
- * @returns {string | undefined} The name, which for a computed name is its source text in brackets.
+ * @returns {string | undefined} The name, which for a computed name that is not a literal is its source text in brackets.
  */
 function memberName(nameNode, sourceFile) {
   if (nameNode === undefined || ts.isPrivateIdentifier(nameNode)) {
@@ -220,7 +220,11 @@ function memberName(nameNode, sourceFile) {
   }
 
   if (ts.isComputedPropertyName(nameNode)) {
-    return `[${nameNode.expression.getText(sourceFile)}]`;
+    const { expression } = nameNode;
+
+    return ts.isStringLiteralLike(expression) || ts.isNumericLiteral(expression)
+      ? expression.text
+      : `[${expression.getText(sourceFile)}]`;
   }
 
   return ts.isIdentifier(nameNode) ||
@@ -764,18 +768,23 @@ function successLine(srcArg, fileCount, classCount) {
     return `check-pom-parity: no *${PLAYWRIGHT_SUFFIX} file in "${srcArg}", nothing to check.`;
   }
 
-  return `check-pom-parity: ${pluralize(fileCount, "Playwright page object file", "Playwright page object files")} (${pluralize(classCount, "class", "classes")}) match their jsdom siblings.`;
+  const verb =
+    fileCount === 1
+      ? "matches its jsdom sibling"
+      : "match their jsdom siblings";
+
+  return `check-pom-parity: ${pluralize(fileCount, "Playwright page object file", "Playwright page object files")} (${pluralize(classCount, "class", "classes")}) ${verb}.`;
 }
 
 /**
  * Runs the check and prints its result.
  * @param {string[]} args The arguments after the script: the source folder.
- * @returns {number} The exit code: 0 when the page objects match, 1 otherwise.
+ * @returns {number} The exit code: 0 when the page objects match, 2 for a bad argument and 1 otherwise.
  */
 function main(args) {
   if (args.length !== 1) {
     console.error("Usage: node check-pom-parity.js <srcDir>");
-    return 1;
+    return 2;
   }
 
   const [srcArg] = args;

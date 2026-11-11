@@ -92,11 +92,11 @@
     },
     "check:pom-parity": {
       "cache": true,
-      // It parses the page objects with the root script, so only they and the script invalidate it
+      // It parses the page objects with the root script, and the base classes of the jsdom ones that it resolves, which may live in any source file
       "inputs": [
         "sharedGlobals",
-        "{projectRoot}/src/**/*.pom.ts",
-        "{projectRoot}/src/**/*.pom.playwright.ts",
+        "{projectRoot}/src/**/*.ts",
+        "!{projectRoot}/src/**/*.spec.ts",
         "{projectRoot}/package.json",
         "{workspaceRoot}/scripts/check-pom-parity.js"
       ]
