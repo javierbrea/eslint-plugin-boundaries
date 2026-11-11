@@ -27,7 +27,7 @@ The browser specs reach the page only through Playwright page objects, which the
 
 ## Parity with the jsdom page object
 
-- `check:pom-parity` of `playground` (`scripts/check-pom-parity.js`, part of its `check:all`) fails when an `X.pom.playwright.ts` has no `X.pom.ts` beside it, when the two export different page object class names, or when a Playwright class declares a public member that the jsdom class of the same name does not declare. Members are compared by name, since the Playwright ones are async, and inherited members are not compared.
+- `check:pom-parity` of `playground` (`scripts/check-pom-parity.js`, part of its `check:all`) fails when an `X.pom.playwright.ts` has no `X.pom.ts` beside it, when the two export different page object class names, when a Playwright class and the jsdom class of the same name extend different classes, or when the Playwright class declares a public member that the jsdom class lacks, declared or inherited. Members are compared by name, since the Playwright ones are async, and what a Playwright class inherits is not compared.
 - A member that only a browser can have is marked by a `// pom-parity: <reason>` line right above it, above its TSDoc block, with the reason.
 
 ## Values and waits
