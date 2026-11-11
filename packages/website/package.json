@@ -51,7 +51,7 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/sora": "5.3.0",
     "@types/react": "19.3.0",
-    "baseline-browser-mapping": "2.11.34",
+    "baseline-browser-mapping": "2.11.35",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
     "tsup": "8.5.1",
     "typescript": "5.9.3"
