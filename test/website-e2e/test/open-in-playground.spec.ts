@@ -54,7 +54,13 @@ test.describe("the Open in playground button of the Quick start guide", () => {
   test(
     "opens the same project when its link is visited in the address bar of the open playground, not the example on screen",
     { tag: "@desktop" },
-    async ({ page, playgroundPage, docItem, openPlaygroundTab }) => {
+    async ({
+      page,
+      playgroundPage,
+      docItem,
+      documentLoads,
+      openPlaygroundTab,
+    }) => {
       const { playground } = playgroundPage;
       await page.goto(QUICK_START_PATH);
       await expect.poll(() => docItem.title).toBe("Quick Start");
@@ -73,9 +79,13 @@ test.describe("the Open in playground button of the Quick start guide", () => {
       // A write that is still pending when the link arrives would put the example back in the URL
       await expect.poll(() => new URL(page.url()).hash).toMatch(PROJECT_HASH);
 
+      const documentsBefore = documentLoads.paths;
+
       // The URL differs from the one of the page only in its hash, so the browser loads no document: the open playground hears the change while its store still holds the example
       await page.goto(link);
 
+      // A document that the browser loaded would be a new playground with an empty store, which shows the link whatever the open one does with it
+      expect(documentLoads.paths).toEqual(documentsBefore);
       await expect
         .poll(() => playground.topBar.picker.text)
         .toBe(expectedExample);

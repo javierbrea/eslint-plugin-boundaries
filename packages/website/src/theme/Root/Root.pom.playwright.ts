@@ -15,17 +15,7 @@ export class RootPom extends Pom {
   }
 
   /**
-   * Whether the browser has hydrated the page, as Docusaurus says in the `data-has-hydrated` attribute of `html`, which the server render writes as `false`. It reads once and does not wait.
-   * @returns A promise of true when the attribute is `true`.
-   */
-  get isHydrated(): Promise<boolean> {
-    return this.readAttribute("data-has-hydrated").then(
-      (hydrated) => hydrated === "true"
-    );
-  }
-
-  /**
-   * Waits for the browser to hydrate the page, which is also the moment after which it logs the errors of the hydration. A client-side navigation keeps the page hydrated, and a document that loads is hydrated again.
+   * Waits for the browser to hydrate the page, as Docusaurus says in the `data-has-hydrated` attribute of `html`, which the server render writes as `false`. It is also the moment after which it logs the errors of the hydration. A client-side navigation keeps the page hydrated, and a document that loads is hydrated again.
    * @returns A promise that settles when the page has hydrated, and rejects when it has not before the timeout of the assertions.
    */
   async waitUntilHydrated(): Promise<void> {

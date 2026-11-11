@@ -24,7 +24,7 @@ export class TopBarActionsPom extends Pom {
   }
 
   /**
-   * The help button, which a spec reads while the help is open, when MUI hides the rest of the page from assistive technology. The button keeps its name then, because the name is an `aria-label`.
+   * The help button, which is found while the help is open too, when MUI hides the rest of the page from assistive technology. The button keeps its name then, because the name is an `aria-label`.
    * @returns The locator of the button.
    */
   private get helpButton(): Locator {
@@ -41,16 +41,6 @@ export class TopBarActionsPom extends Pom {
    */
   get share(): CopyButtonPom {
     return this.childPom(CopyButtonPom, { testId: SHARE_BUTTON_TEST_ID });
-  }
-
-  /**
-   * Whether the help button looks pressed, which tells that the help is open. It reads once and does not wait.
-   * @returns A promise of true when its `aria-pressed` attribute is `true`.
-   */
-  get isHelpPressed(): Promise<boolean> {
-    return this.readAttribute("aria-pressed", this.helpButton).then(
-      (pressed) => pressed === "true"
-    );
   }
 
   /** Presses the help button. */

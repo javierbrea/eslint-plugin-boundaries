@@ -24,23 +24,6 @@ export class ProjectTreePom extends Pom {
     return this.childPom(ProjectTreeItemPom).count;
   }
 
-  /**
-   * The paths of the nodes the tree shows, which are the config, the folders and the files: the tree lists a folder as an item of its own, and lists the items inside it only while it is open. A project opens with every folder open, so it lists every node until the user closes a folder. It reads once and does not wait.
-   * @returns A promise of the path of each item, in the order they are drawn: the config first, and each folder before the items inside it.
-   */
-  get itemPaths(): Promise<string[]> {
-    return this.itemCount.then(async (count) => {
-      const paths = await Promise.all(
-        Array.from(
-          { length: count },
-          (_, index) => this.childPom(ProjectTreeItemPom, { index }).path
-        )
-      );
-
-      return paths.filter((path): path is string => path !== null);
-    });
-  }
-
   // pom-parity: a browser spec compares the files that the user sees with those of an example, and no jsdom spec needs them apart from the folders and the config
   /**
    * The paths of the files that the tree shows, without the config and the folders: the files of the open folders. A project opens with every folder open, so it lists every file until the user closes a folder. It reads once and does not wait.

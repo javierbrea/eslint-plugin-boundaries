@@ -26,14 +26,6 @@ class CopyButtonFacePom extends Pom {
   }
 
   /**
-   * Whether the face is drawn. It reads once and does not wait.
-   * @returns A promise of true when it is fully opaque.
-   */
-  get isShown(): Promise<boolean> {
-    return this.opacity.then((opacity) => opacity === "1");
-  }
-
-  /**
    * Whether the face is gone from sight. It reads once and does not wait.
    * @returns A promise of true when it is fully transparent.
    */
@@ -68,28 +60,6 @@ export class CopyButtonPom extends Pom {
    */
   get copiedFace(): CopyButtonFacePom {
     return this.childPom(CopyButtonFacePom, { index: 1 });
-  }
-
-  /**
-   * Whether the button confirms the copy: the confirmation is drawn and the label is gone. It reads once and does not wait, and it is false while the faces swap.
-   * @returns A promise of true when the face with the check shows and the face with the label does not.
-   */
-  get isShowingCopied(): Promise<boolean> {
-    return Promise.all([
-      this.copiedFace.isShown,
-      this.labelFace.isConcealed,
-    ]).then(([copiedShown, labelConcealed]) => copiedShown && labelConcealed);
-  }
-
-  /**
-   * Whether the button says what it does: the label is drawn and the confirmation is gone. It reads once and does not wait, and it is false while the faces swap.
-   * @returns A promise of true when the face with the label shows and the face with the check does not.
-   */
-  get isShowingLabel(): Promise<boolean> {
-    return Promise.all([
-      this.labelFace.isShown,
-      this.copiedFace.isConcealed,
-    ]).then(([labelShown, copiedConcealed]) => labelShown && copiedConcealed);
   }
 
   /**

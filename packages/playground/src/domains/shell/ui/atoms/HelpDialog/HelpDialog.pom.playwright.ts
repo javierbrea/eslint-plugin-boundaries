@@ -6,7 +6,6 @@ import { Pom } from "@/shared/testing/pom/pom.playwright";
 import {
   HELP_DIALOG_CLOSE_LABEL,
   HELP_DIALOG_PLAYGROUND_GUIDE_LABEL,
-  HELP_DIALOG_QUICK_START_LABEL,
 } from "./HelpDialog.constants";
 
 /** Page object of a link of the footer of the help dialog, a part of the dialog: the page object of the dialog builds it, so it is exported only as a type. It has no test id: it finds the element with the role `link` whose accessible name is the `name` option, within the dialog. */
@@ -59,14 +58,6 @@ export class HelpDialogPom extends Pom {
   }
 
   /**
-   * The title of the dialog. It reads once and does not wait.
-   * @returns A promise of the text of its heading, which is empty when the dialog is not in the page.
-   */
-  get title(): Promise<string> {
-    return this.readText(this.root.getByRole("heading"));
-  }
-
-  /**
    * The link to the playground guide, which is the first one of the footer.
    * @returns The page object of the link, which is not rendered when the dialog has no URL of the guide.
    */
@@ -74,14 +65,6 @@ export class HelpDialogPom extends Pom {
     return this.childPom(GuideLinkPom, {
       name: HELP_DIALOG_PLAYGROUND_GUIDE_LABEL,
     });
-  }
-
-  /**
-   * The link to the Quick start, which is the second one of the footer, or the first when there is no guide.
-   * @returns The page object of the link, which is not rendered when the dialog has no URL of the Quick start.
-   */
-  get quickStartLink(): GuideLinkPom {
-    return this.childPom(GuideLinkPom, { name: HELP_DIALOG_QUICK_START_LABEL });
   }
 
   /** Presses the button that closes the dialog. */

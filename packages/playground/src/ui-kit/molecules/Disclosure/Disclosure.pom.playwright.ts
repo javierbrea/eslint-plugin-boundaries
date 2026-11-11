@@ -47,31 +47,10 @@ export class DisclosurePom extends Pom {
   }
 
   /**
-   * The name of what the disclosure folds. It reads once and does not wait.
-   * @returns A promise of the text of the label, which is empty when the disclosure is not in the page.
-   */
-  get label(): Promise<string> {
-    return this.readText(
-      this.root.locator(":scope > :first-child > :nth-child(2)")
-    );
-  }
-
-  /**
    * The text after the label, such as the path that the section `from` of the file inspector has. It reads once and does not wait.
    * @returns A promise of the text of the summary, or null when the disclosure has none or is not in the page.
    */
   get summary(): Promise<string | null> {
     return this.summaryElement.allTextContents().then(([text]) => text ?? null);
-  }
-
-  /**
-   * Whether the body is shown, as `aria-expanded` says it. It reads once and does not wait.
-   * @returns A promise of true when the header says it is expanded.
-   */
-  get isOpen(): Promise<boolean> {
-    return this.readAttribute(
-      "aria-expanded",
-      this.root.locator(":scope > :first-child")
-    ).then((expanded) => expanded === "true");
   }
 }

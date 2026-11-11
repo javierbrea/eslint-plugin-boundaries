@@ -25,35 +25,11 @@ export class TopBarPom extends Pom {
   }
 
   /**
-   * The element that says how many problems there are, that the config has errors, or how the evaluation goes: the last element of the text of the status.
-   * @returns The locator of the element, which resolves to nothing when the text has none.
-   */
-  private get problems(): Locator {
-    return this.label.locator(":scope > :last-child");
-  }
-
-  /**
    * Everything the status says. It reads once and does not wait.
    * @returns A promise of the text of the status, such as `6 files · 9 dependencies · 2 problems`, or an empty string while the bar is not in the page.
    */
   get statusText(): Promise<string> {
     return this.readText(this.label);
-  }
-
-  /**
-   * Whether the status says anything after the number of dependencies, which it does not before the first evaluation arrives. It reads once and does not wait.
-   * @returns A promise of true when the text of the status has an element at its end.
-   */
-  get hasProblems(): Promise<boolean> {
-    return this.problems.count().then((count) => count > 0);
-  }
-
-  /**
-   * What the status says after the number of dependencies, in place of which the caller may say how the evaluation goes. It reads once and does not wait.
-   * @returns A promise of the text of the count of problems, `config has errors`, or what the caller says about the evaluation, such as `evaluating…`, `evaluation stopped` or `evaluation failed`; empty when the status says none.
-   */
-  get problemsText(): Promise<string> {
-    return this.readText(this.problems);
   }
 
   // pom-parity: the evaluation runs in a web worker, so only a browser sees a project on screen whose verdicts have not arrived yet; jsdom answers before a spec reads

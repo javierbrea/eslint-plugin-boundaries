@@ -28,26 +28,10 @@ export class PaneHeadPom extends Pom {
   }
 
   /**
-   * The name of the pane. It reads once and does not wait.
-   * @returns A promise of the text of the label, which is empty when the head is not in the page.
-   */
-  get label(): Promise<string> {
-    return this.readText(this.root.locator(":scope > :first-child"));
-  }
-
-  /**
    * The path of what the pane shows, such as the path of the open file. It reads once and does not wait.
    * @returns A promise of the text of the path, or null when the head has none or is not in the page.
    */
   get path(): Promise<string | null> {
     return this.pathElement.allTextContents().then(([text]) => text ?? null);
-  }
-
-  /**
-   * Whether the head shows a path. It reads once and does not wait.
-   * @returns A promise of true when the head has a path.
-   */
-  get hasPath(): Promise<boolean> {
-    return this.pathElement.count().then((count) => count > 0);
   }
 }

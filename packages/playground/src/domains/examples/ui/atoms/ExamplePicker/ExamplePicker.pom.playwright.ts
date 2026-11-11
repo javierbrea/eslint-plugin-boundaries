@@ -28,16 +28,6 @@ class ExampleListPom extends Pom {
   }
 
   /**
-   * The example that the list marks as the current one, for assistive technology. It reads once and does not wait.
-   * @returns A promise of the text of the items that are checked, which is a single one when the sketch is an example and none when it is not.
-   */
-  get checkedTitles(): Promise<string[]> {
-    return this.root
-      .getByRole("menuitemradio", { checked: true })
-      .allTextContents();
-  }
-
-  /**
    * Picks an example.
    * @param title The name of the example, such as `Quick start`.
    */
@@ -77,16 +67,6 @@ export class ExamplePickerPom extends Pom {
   }
 
   /**
-   * Whether the list is open, as the button says. It reads once and does not wait.
-   * @returns A promise of true when the button announces that it has opened its list.
-   */
-  get isExpanded(): Promise<boolean> {
-    return this.readAttribute("aria-expanded").then(
-      (expanded) => expanded === "true"
-    );
-  }
-
-  /**
    * Whether the list is on screen. It reads once and does not wait.
    * @returns A promise of true when the list is in the page.
    */
@@ -100,14 +80,6 @@ export class ExamplePickerPom extends Pom {
    */
   get titles(): Promise<string[]> {
     return this.list.titles;
-  }
-
-  /**
-   * The examples that the list marks as the current one for assistive technology. It reads once and does not wait.
-   * @returns A promise of the text of the items that are checked, which is empty while the list is not open.
-   */
-  get checkedTitles(): Promise<string[]> {
-    return this.list.checkedTitles;
   }
 
   /** Presses the button, which opens the list. */

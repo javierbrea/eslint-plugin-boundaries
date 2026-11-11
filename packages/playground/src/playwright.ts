@@ -22,7 +22,6 @@ export { TopBarActionsPom } from "@/domains/shell/ui/molecules/TopBarActions/Top
 export { ShellLayoutPom } from "@/domains/shell/ui/templates/ShellLayout/ShellLayout.pom.playwright";
 export { TopBarPom } from "@/domains/shell/ui/templates/TopBar/TopBar.pom.playwright";
 export { Pom } from "@/shared/testing/pom/pom.playwright";
-export { ConfirmDialogPom } from "@/ui-kit/atoms/ConfirmDialog/ConfirmDialog.pom.playwright";
 export { CountBadgePom } from "@/ui-kit/atoms/CountBadge/CountBadge.pom.playwright";
 export { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom.playwright";
 export { CopyButtonPom } from "@/ui-kit/molecules/CopyButton/CopyButton.pom.playwright";

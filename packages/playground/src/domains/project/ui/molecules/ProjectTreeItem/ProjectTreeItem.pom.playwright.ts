@@ -2,30 +2,11 @@ import type { Locator } from "@playwright/test";
 
 import { Pom } from "@/shared/testing/pom/pom.playwright";
 
-import {
-  DELETE_ACTION_LABEL,
-  PROJECT_TREE_ITEM_TEST_ID,
-  RENAME_ACTION_LABEL,
-} from "./ProjectTreeItem.constants";
+import { PROJECT_TREE_ITEM_TEST_ID } from "./ProjectTreeItem.constants";
 
-/** Page object of a button of the actions of a row, a part of the row: the page object of the item builds it, so it is exported only as a type. It has no test id: it finds the button by its accessible name, the `name` option, within its parent. */
+/** Page object of a button of the actions of a row, a part of the row, exported only as a type. No browser spec reaches it: it exists because the jsdom page object exports a class of this name, which `check:pom-parity` requires of this file too. */
 class RowActionPom extends Pom {
   protected readonly defaultTestId = "";
-
-  /** @inheritdoc */
-  protected findRoot(): Locator {
-    return this.pickMatch(
-      this.searchBase.getByRole("button", {
-        name: this.requireName(),
-        exact: true,
-      })
-    );
-  }
-
-  /** Presses the button. */
-  async press(): Promise<void> {
-    await this.root.click();
-  }
 }
 
 /** Page object of the row of an item, a part of the item: the page object of the item builds it, so it is exported only as a type. It has no test id: its root is the first element of its parent, which is the item. The row holds the chevron, the name, and at the end the actions and the badge, and not the items inside a folder. */
@@ -91,21 +72,6 @@ export class ProjectTreeItemPom extends Pom {
   }
 
   /**
-   * The path that the item was found by, which names its actions: a path that is read from the page cannot name them, since a getter that reads is asynchronous.
-   * @returns The `name` option.
-   * @throws When the item was found without a path.
-   */
-  private requirePath(): string {
-    const { name: path } = this.options;
-
-    if (typeof path !== "string") {
-      throw new Error(`${this.constructor.name} needs a path as its "name"`);
-    }
-
-    return path;
-  }
-
-  /**
    * The path of the node the item shows, read from its own row and not from the items inside it. It reads once and does not wait.
    * @returns A promise of the title of its name, or null when the item has none or is not in the page.
    */
@@ -122,49 +88,11 @@ export class ProjectTreeItemPom extends Pom {
   }
 
   /**
-   * The button of the row that starts the rename.
-   * @returns The page object of the button, which is not rendered for the config, or while nodes cannot be edited.
-   * @throws When the item was found without a path.
-   */
-  get renameAction(): RowActionPom {
-    return this.childPom(RowActionPom, {
-      name: `${RENAME_ACTION_LABEL} ${this.requirePath()}`,
-    });
-  }
-
-  /**
-   * The button of the row that removes the node.
-   * @returns The page object of the button, which is not rendered for the config, or while nodes cannot be edited.
-   * @throws When the item was found without a path.
-   */
-  get deleteAction(): RowActionPom {
-    return this.childPom(RowActionPom, {
-      name: `${DELETE_ACTION_LABEL} ${this.requirePath()}`,
-    });
-  }
-
-  /**
    * What kind of node the item shows. It reads once and does not wait.
    * @returns A promise of the `data-kind` attribute: `config`, `file` or `folder`, or null when the item is not in the page.
    */
   get kind(): Promise<string | null> {
     return this.readAttribute("data-kind");
-  }
-
-  /**
-   * Whether the tree view selects the item. It reads once and does not wait.
-   * @returns A promise of the `aria-selected` attribute: `true` for the selected item and `false` for the others, or null when the item cannot be selected or is not in the page.
-   */
-  get ariaSelected(): Promise<string | null> {
-    return this.readAttribute("aria-selected");
-  }
-
-  /**
-   * Whether the folder shows the items inside it. It reads once and does not wait.
-   * @returns A promise of the `aria-expanded` attribute: `true` for an open folder and `false` for a closed one, or null when the item holds no other items or is not in the page.
-   */
-  get ariaExpanded(): Promise<string | null> {
-    return this.readAttribute("aria-expanded");
   }
 }
 

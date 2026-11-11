@@ -67,9 +67,9 @@ test.describe("the playground page", () => {
   );
 
   test(
-    "the example picker loads another example and changes the hash of the URL",
+    "the example picker loads another example and writes it to the hash of the URL",
     { tag: "@desktop" },
-    async ({ page, playgroundPage }) => {
+    async ({ page, playgroundPage, openPlaygroundInFreshContext }) => {
       const { playground } = playgroundPage;
 
       await page.goto(PLAYGROUND_PATH);
@@ -77,7 +77,6 @@ test.describe("the playground page", () => {
 
       const quickStart = await playground.statusText;
       const files = await playground.project.tree.filePaths;
-      const hash = new URL(page.url()).hash;
 
       const title = await pickAnotherExample(playground);
 
@@ -86,7 +85,14 @@ test.describe("the playground page", () => {
       expect(await playground.statusText).not.toBe(quickStart);
       // The store writes the project to the hash a moment after the last change
       await expect.poll(() => new URL(page.url()).hash).toMatch(PROJECT_HASH);
-      expect(new URL(page.url()).hash).not.toBe(hash);
+
+      // A browser that has no storage of this page opens the example that the hash holds, which is not the one that opens with no hash
+      const reopened = await openPlaygroundInFreshContext(page.url());
+      await waitUntilProjectShown(reopened.playground);
+
+      expect(await reopened.playground.topBar.picker.text).toBe(
+        `Example ${title}`
+      );
     }
   );
 
