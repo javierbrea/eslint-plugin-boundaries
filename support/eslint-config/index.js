@@ -57,6 +57,7 @@ export const ignores = {
     ".husky/**",
     "pnpm-lock.yaml",
     "**/dist/**",
+    "**/dist-playwright/**",
     "build/**",
     "reports/**",
     ".stryker-tmp/**",

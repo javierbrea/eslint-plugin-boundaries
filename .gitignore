@@ -90,6 +90,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+# Playwright page objects build (build:playwright), which `dist` does not match
+dist-playwright
 
 # Gatsby files
 .cache/

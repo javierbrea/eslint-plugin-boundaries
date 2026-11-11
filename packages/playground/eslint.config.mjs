@@ -205,6 +205,10 @@ const FILES = [
   { pattern: "src/**/*.pom.ts", category: "pom" },
   { pattern: "src/**/*.mock.{ts,tsx}", category: "mock" },
   { pattern: "src/**/*.constants.ts", category: "constants" },
+  // The Playwright page objects and their base, every `*.playwright.ts` file, as the builds, the coverage and the wait guards take them. They run in Node.js, inside the Playwright runner, and form their own family beside the jsdom page objects
+  { pattern: "src/**/*.playwright.ts", category: "playwright" },
+  // The third entry of the package, `@boundaries/playground/playwright`, which exports that family
+  { pattern: "src/playwright.ts", category: "playwright-entry" },
 ];
 
 // -----------------------------------------------------------------------------
@@ -239,6 +243,12 @@ const ENGINE_ENTRY = {
 const HELPER_IMPORTERS = Object.keys(LAYER_TARGETS).filter((type) =>
   LAYER_TARGETS[type].includes("helper")
 );
+
+// The Playwright page objects with their base, and the entry that exports them. Every dependency has a module with one of these three origins, so the selector matches any dependency, which the layer matrix of the element that holds the file would otherwise allow, such as React or a component
+const PLAYWRIGHT_CATEGORIES = ["playwright", "playwright-entry"];
+const PLAYWRIGHT_ANYTHING = {
+  to: { module: { origin: ["local", "external", "core"] } },
+};
 
 const ENGINE_MESSAGE =
   "Only serveEvaluations, which runs in the worker, creates an engine: the page asks the evaluator of the store for evaluations, and takes from the engine only its types, with import type, and tokenizeConfig, so that @boundaries/* stay out of its chunk";
@@ -379,6 +389,36 @@ const POLICIES = [
     message:
       "Only specs import a mock. Production code and page objects never do",
   },
+  // The Playwright family runs in Node.js, in the Playwright runner, and never in a host or in jsdom: only its own files import it, and only its own files import @playwright/test. Each of its files imports only @playwright/test, the family and constants files, so that the build of the entry holds no React, MUI or component
+  {
+    disallow: { to: { file: { categories: PLAYWRIGHT_CATEGORIES } } },
+    message:
+      "Only the Playwright page objects and the ./playwright entry import a Playwright page object or the Playwright base. Production code, specs, jsdom page objects and mocks never do",
+  },
+  {
+    disallow: { to: externalModule("@playwright/test") },
+    message:
+      "Only the Playwright page objects, the Playwright base and the ./playwright entry import @playwright/test: it runs in Node.js, in the Playwright runner",
+  },
+  {
+    from: { file: { categories: PLAYWRIGHT_CATEGORIES } },
+    disallow: PLAYWRIGHT_ANYTHING,
+    message:
+      "A Playwright page object imports only @playwright/test, other Playwright page objects, the Playwright base and constants files. The ./playwright entry imports only the page objects and the base. They load no React, MUI or component",
+  },
+  {
+    from: { file: { categories: "playwright" } },
+    allow: {
+      to: [
+        externalModule("@playwright/test"),
+        { file: { categories: ["playwright", "constants"] } },
+      ],
+    },
+  },
+  {
+    from: { file: { categories: "playwright-entry" } },
+    allow: { to: { file: { categories: "playwright" } } },
+  },
   {
     disallow: { to: { file: { categories: "worker-entry" } } },
     message:
@@ -513,6 +553,13 @@ const COMPONENT_SPECS = {
 const PAGE_OBJECT_MESSAGE =
   "Query and act through the page object of the component.";
 
+// A fixed wait or a wait on a selector or on the network makes a spec slow or flaky: a Playwright page object waits for what it needs with a web-first assertion on a locator, `locator.waitFor()` or `expect.poll`
+const FIXED_WAIT_MESSAGE =
+  "Wait with a web-first assertion on a locator, locator.waitFor() or expect.poll, never with a fixed wait, a selector or the network.";
+
+// The Playwright page objects, their base and the entry that exports them
+const PLAYWRIGHT_FILES = ["src/playwright.ts", "src/**/*.playwright.ts"];
+
 export default [
   ...defaultConfigWithoutTypescript,
   jestConfig,
@@ -617,6 +664,25 @@ export default [
           "VariableDeclarator[init.callee.name=/^render(InRoot|InSession)?$/] > ObjectPattern > Property[key.name=/^(container|(get|query|find)(All)?By.*)$/]",
           "CallExpression[callee.object.name='document'][callee.property.name=/^querySelector/]",
         ].map((selector) => ({ selector, message: PAGE_OBJECT_MESSAGE })),
+      ],
+    },
+  },
+  // The Playwright files never wait with a fixed wait, on a selector or on the network
+  {
+    files: PLAYWRIGHT_FILES,
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        ...["waitForTimeout", "waitForSelector", "waitForFunction"].map(
+          (property) => ({ property, message: FIXED_WAIT_MESSAGE })
+        ),
+      ],
+      "no-restricted-syntax": [
+        "error",
+        ...[
+          "Literal[value='networkidle']",
+          "TemplateElement[value.cooked='networkidle']",
+        ].map((selector) => ({ selector, message: FIXED_WAIT_MESSAGE })),
       ],
     },
   },

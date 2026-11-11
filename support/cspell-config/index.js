@@ -18,6 +18,7 @@ function createConfig(config = {}) {
         "**/.gitignore",
         "**/coverage/**",
         "**/dist/**",
+        "**/dist-playwright/**",
         "**/reports/**",
         "**/build/**",
         "**/*.svg",

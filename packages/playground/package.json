@@ -12,7 +12,8 @@
   },
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "dist-playwright"
   ],
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -25,13 +26,19 @@
       "types": "./dist/share.d.ts",
       "import": "./dist/share.js"
     },
+    "./playwright": {
+      "types": "./dist-playwright/playwright.d.ts",
+      "import": "./dist-playwright/playwright.js"
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
   "scripts": {
     "eslint": "eslint",
     "build": "tsup --config tsup.config.js",
+    "build:playwright": "tsup --config tsup.playwright.config.js && node ../../scripts/check-bundle-imports.js dist-playwright --allow @playwright/test",
     "check:all": "echo 'All checks passed'",
+    "check:pom-parity": "node ../../scripts/check-pom-parity.js src",
     "check:spell": "cspell --quiet .",
     "check:types": "tsc --noEmit -p tsconfig.eslint.json",
     "dev": "vite dev",

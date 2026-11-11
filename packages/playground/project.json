@@ -69,7 +69,36 @@
         "!{projectRoot}/jest.setup.cjs",
         "!{projectRoot}/babel.config.cjs",
         "!{projectRoot}/cspell.config.cjs",
-        "!{projectRoot}/tsconfig.eslint.json"
+        "!{projectRoot}/tsconfig.eslint.json",
+        // The Playwright page objects build on their own (build:playwright), and nothing this build reaches imports them
+        "!{projectRoot}/tsup.playwright.config.js",
+        "!{projectRoot}/src/playwright.ts",
+        "!{projectRoot}/src/**/*.playwright.ts"
+      ]
+    },
+    "build:playwright": {
+      // Not a dependency of `build`, so that the production build of the website never waits for it. It builds the `./playwright` entry, which imports only `@playwright/test`, other Playwright files and constants files (lint-enforced), so no workspace package has to be built first
+      // The sources, since a constants file may import other modules, which the entry then bundles. The closure check is part of the target
+      "inputs": [
+        "sharedGlobals",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/tsup.playwright.config.js",
+        "{projectRoot}/src/**/*",
+        "!{projectRoot}/src/**/*.spec.{ts,tsx}",
+        "!{projectRoot}/src/**/*.mock.{ts,tsx}",
+        "{workspaceRoot}/scripts/check-bundle-imports.js"
+      ]
+    },
+    "check:pom-parity": {
+      "cache": true,
+      // It parses the page objects with the root script, so only they and the script invalidate it
+      "inputs": [
+        "sharedGlobals",
+        "{projectRoot}/src/**/*.pom.ts",
+        "{projectRoot}/src/**/*.pom.playwright.ts",
+        "{projectRoot}/package.json",
+        "{workspaceRoot}/scripts/check-pom-parity.js"
       ]
     }
   },
