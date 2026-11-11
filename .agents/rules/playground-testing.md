@@ -15,7 +15,7 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 
 ## The page object base
 
-`src/shared/testing/pom` exports the base every page object extends (`Pom`) and `FixturePom`, the page object of the probe markup of a spec. Its TSDoc documents every member and option; read it before writing a page object. The facts that decide how to write one:
+`src/shared/testing/pom` exports the base every jsdom page object extends (`Pom`) and `FixturePom`, the page object of the probe markup of a spec. Its TSDoc documents every member and option; read it before writing a page object. The Playwright base beside it, `pom.playwright.ts`, which the barrel does not export, is in `.agents/rules/playwright-testing.md`. The facts that decide how to write one:
 
 - The `PomOptions` select the root element: a `testId`, a `name`, an `index`, a text it is `containing`, a `parent`, an explicit `root` or `portal` for an overlay outside the parent. The root is resolved on every access and never cached.
 - A composite takes `defaultTestId` from its constants file. An atom sets `defaultTestId = ""` and overrides `findRoot()` to find its root by role and name, or by text, within `searchBase`, passing the candidates through `pickMatch(...)` so that `index` and `containing` still apply; `findRootBySelector(...)` does that for a CSS selector.
@@ -23,8 +23,8 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 
 ## Page objects
 
-- Every `ui-kit`, `ui`, module and `app` component has `<Name>.pom.ts` exporting `class <Name>Pom extends Pom`.
-- Getters read state and child page objects (`get rows()`, `get isCollapsed()`); methods act (`open(index)`, `rename(name)`). Actions use `fireEvent`, and `act` when timers are involved. The package does not use `@testing-library/user-event`. Getters and methods return plain values (strings, booleans, numbers, child page objects), so specs assert on values.
+- Every `ui-kit`, `ui`, module and `app` component has `<Name>.pom.ts` exporting `class <Name>Pom extends Pom`. A component that a browser spec reaches also has a Playwright page object beside it, `<Name>.pom.playwright.ts`.
+- In a jsdom page object, getters read state and child page objects (`get rows()`, `get isCollapsed()`); methods act (`open(index)`, `rename(name)`). Actions use `fireEvent`, and `act` when timers are involved. The package does not use `@testing-library/user-event`. Getters and methods return plain values (strings, booleans, numbers, child page objects), so specs assert on values.
 - A page object of a part of a component that is not an element (a tab, a row) lives in that component's `.pom.ts`, is built by the component's page object with `childPom`, and is exported only as a type (`export type { ProblemRowPom };` of a class that is not exported), so no other page object builds it over the whole document.
 - A page object never repeats a query that another element's page object owns: it composes that page object with `this.childPom(ChildPom, options)`. A chain stays at two or three levels; a parent may expose a shortcut for a grandchild it uses often.
 - MUI overlays render inside the playground root (`packages/playground/AGENTS.md`, "Stack"), so a page object uses `portal: true` only when the overlay is outside its parent's root.

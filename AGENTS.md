@@ -29,7 +29,7 @@ Each package's own `README.md` covers its functionality and usage for consumers.
 
 ## Commands
 
-The repository uses `pnpm` and Nx. Projects share the same target names: `lint`, `check:types`, `check:spell`, `build`, `test:unit`, `test:mutation`, `test:e2e` and `check:all` (all the checks plus the build). Test targets exist only in the projects that define them.
+The repository uses `pnpm` and Nx. Projects share the same target names: `lint`, `check:types`, `check:spell`, `build`, `build:playwright` (the Playwright page objects, apart from the production build), `check:pom-parity` (each Playwright page object against its jsdom sibling), `test:unit`, `test:mutation`, `test:e2e` and `check:all` (all the checks plus the builds). Test targets, `build:playwright` and `check:pom-parity` exist only in the projects that define them.
 
 ```bash
 # One project
