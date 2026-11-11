@@ -28,6 +28,8 @@ test.describe("the chunk of the playground", () => {
       await page.goto(PLAYGROUND_PATH);
 
       await playgroundPage.playground.waitUntilLoaded();
+      // The worker starts after the shell renders, and the runner hears about it a moment later. The verdicts come from the worker, so once they arrive it has started and the runner has heard of it
+      await playgroundPage.playground.topBar.bar.waitUntilEvaluated();
 
       expect(await playgroundPage.isNoteVisible).toBe(false);
       expect(await scripts.urlsHolding(PLAYGROUND_CHUNK_MARKER)).toHaveLength(
