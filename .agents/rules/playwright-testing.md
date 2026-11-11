@@ -40,7 +40,7 @@ The browser specs of `test/website-e2e` reach the page only through Playwright p
 
 ## Specs
 
-- A spec of `test/website-e2e/test/` imports `test` and `expect` from `test/fixtures.ts`, never from `@playwright/test`. The fixtures give the root page objects and the records of what the pages do, such as the scripts they request and the web workers they start.
+- A spec of `test/website-e2e/test/` imports `test` and `expect` from `test/fixtures.ts`, never from `@playwright/test`, and no other file of `test/` takes `test` from Playwright, so that no spec runs without the fixtures. The fixtures give the root page objects and the records of what the pages do, such as the scripts they request and the web workers they start.
 - A file of `test/website-e2e` imports, of the workspace packages, only `@boundaries/playground/playwright` and `website/playwright`, never by a relative path: its `lint` and `check:types` build those two entries and nothing else.
 - A file of `test/website-e2e/test/` (a spec, the fixtures or a support file) drives the page (`goto`, `reload`, `addInitScript`) but never queries it: no locator, selector or DOM query. A component that a spec needs without a page object gets one beside it in the same change. Lint recognizes a page by the name of the variable that holds it (`page`, `popup` or a name ending in `Page`), so a page object held in such a variable has no member named like a page method.
 - A spec opens another tab or a context with empty storage through a fixture that returns the page object of the page it opened, never as a `Page` of its own.
