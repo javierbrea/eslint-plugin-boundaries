@@ -126,6 +126,17 @@ const config: Config = {
           editUrl:
             "https://github.com/javierbrea/eslint-plugin-boundaries/edit/master/packages/website/",
         },
+        pages: {
+          // Every file under `src/pages/` that this list misses becomes a route, so a Playwright page object or a constants file would be published as a page. Setting `exclude` replaces the defaults of Docusaurus (`GlobExcludeDefault` in `@docusaurus/utils`), so they are listed again before the globs of those files
+          exclude: [
+            "**/_*.{js,jsx,ts,tsx,md,mdx}",
+            "**/_*/**",
+            "**/*.test.{js,jsx,ts,tsx}",
+            "**/__tests__/**",
+            "**/*.playwright.ts",
+            "**/*.constants.ts",
+          ],
+        },
         theme: {
           customCss: [
             "./src/css/tokens.css",
