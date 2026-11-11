@@ -89,11 +89,13 @@ class ProjectRowPom extends Pom {
   }
 
   /**
-   * What the row looks like as the target of the dependency in focus, which jsdom cannot tell from the other rows: it is read from the rule that applies to the rows that have the attribute.
-   * @returns The declarations of that rule.
+   * The outline of the row, which marks the target of the dependency in focus.
+   * @returns The computed `outline` and `outline-offset` of the row, each an empty string when nothing sets it.
    */
-  get targetStyle(): Record<string, string> {
-    return getStyle(this.root, `${OWN_CLASS}[data-target]`);
+  get targetStyle(): { outline: string; outlineOffset: string } {
+    const { outline, outlineOffset } = getComputedStyle(this.root);
+
+    return { outline, outlineOffset };
   }
 
   /**

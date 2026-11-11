@@ -1113,7 +1113,7 @@ describe("readSketch", () => {
       expect(error).toBe("The project has more than 3000 dependencies.");
     });
 
-    it("should say that a sketch with too many files and folders is refused for its size", () => {
+    it("should say that a sketch with too many files and folders is refused for the limit of its nodes", () => {
       // Arrange
       const value = createLargeValue(MAX_SKETCH_NODES + 1, 0);
 
@@ -1123,11 +1123,11 @@ describe("readSketch", () => {
       // Assert
       expect(result).toStrictEqual({
         error: "The project has more than 1000 files and folders.",
-        tooLarge: true,
+        tooLarge: "nodes",
       });
     });
 
-    it("should say that a sketch with too many dependencies is refused for its size", () => {
+    it("should say that a sketch with too many dependencies is refused for the limit of its dependencies", () => {
       // Arrange
       const value = createLargeValue(1, MAX_SKETCH_DEPENDENCIES + 1);
 
@@ -1137,7 +1137,7 @@ describe("readSketch", () => {
       // Assert
       expect(result).toStrictEqual({
         error: "The project has more than 3000 dependencies.",
-        tooLarge: true,
+        tooLarge: "dependencies",
       });
     });
 

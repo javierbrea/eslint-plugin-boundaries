@@ -30,7 +30,7 @@ const TOO_LARGE = `The project in the link is larger than ${MAX_SKETCH_JSON_BYTE
 /** What unpacking the data of a link gives: the value it holds, or why the link is damaged */
 type Unpacked =
   | { readonly value: unknown }
-  | { readonly error: string; readonly tooLarge?: true };
+  | { readonly error: string; readonly tooLarge?: "bytes" };
 
 /**
  * Copies a sketch keeping only the keys that a sketch has, in a fixed order, so that the same sketch always makes the same link and nothing else is written.
@@ -132,7 +132,7 @@ function unpack(data: string): Unpacked {
     return { error: NOT_PACKED };
   }
   if (json === undefined) {
-    return { error: TOO_LARGE, tooLarge: true };
+    return { error: TOO_LARGE, tooLarge: "bytes" };
   }
   try {
     // A byte that is not UTF-8 is damage, not a character to replace
@@ -186,7 +186,7 @@ function readHash(hash: string): HashReading {
 /**
  * Reads the hash of a link. Only a hash with an `s` parameter holds a sketch: any other, such as the anchor of a heading of a docs page, holds none. Everything it holds is untrusted: the sketch goes through `readSketch`, so that it is one that the edits could have made. It never throws: whatever goes wrong while it reads, such as a stack that overflows, is a link that cannot be read.
  * @param hash The hash of a URL, with or without the leading `#`.
- * @returns Nothing when the hash has no sketch, the sketch, or why the hash cannot be read: an unknown version, damaged data, or a sketch that `readSketch` refuses. A sketch that is refused for its size says so with `tooLarge`.
+ * @returns Nothing when the hash has no sketch, the sketch, or why the hash cannot be read: an unknown version, damaged data, or a sketch that `readSketch` refuses. A sketch that is refused for its size says which limit it passes with `tooLarge`.
  */
 export function decodeHash(hash: string): HashReading {
   try {

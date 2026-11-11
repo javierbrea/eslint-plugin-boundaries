@@ -2,6 +2,7 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
+import { VISUALLY_HIDDEN } from "@/ui-kit/helpers/theme";
 import { STATE_TEXT, TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { StateTone } from "@/ui-kit/helpers/tone";
 
@@ -19,7 +20,7 @@ const Bar = styled("div")({
   height: BAR_HEIGHT,
   padding: "0 10px 0 12px",
   borderBottom: "1px solid var(--jsb-line)",
-  // What the bar holds keeps its size, so that a message that does not fit is the only item that gives way (see the message of the share)
+  // What the bar holds keeps its size
   "& > *": { flexShrink: 0 },
 });
 
@@ -50,17 +51,7 @@ const Count = styled("span", {
 })<{ color?: string }>(({ color }) => ({ color }));
 
 // Read by screen readers and never drawn: the text on screen is the one beside it
-const Announcement = styled("span")({
-  position: "absolute",
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  border: 0,
-  overflow: "hidden",
-  clipPath: "inset(50%)",
-  whiteSpace: "nowrap",
-});
+const Announcement = styled("span")(VISUALLY_HIDDEN);
 
 /** What the status says after the numbers of the sketch, with the tone of its text and of the dot. */
 type StatusEnd = {

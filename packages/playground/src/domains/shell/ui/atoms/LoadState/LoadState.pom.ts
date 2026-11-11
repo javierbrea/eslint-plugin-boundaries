@@ -9,7 +9,7 @@ import { LOAD_STATE_RESET_LABEL } from "./LoadState.constants";
 /** The selector of the message: a status while the sketch loads, an alert when it could not be loaded. */
 const MESSAGE_SELECTOR = "[role='status'], [role='alert']";
 
-/** The selector of the shell, which takes the place of the message and has live regions of its own, such as the status of the top bar and the message of the share. */
+/** The selector of the shell, which takes the place of the message and has live regions of its own, such as the status of the top bar and the region that announces that a link was copied. */
 const SHELL_SELECTOR = `[data-testid='${SHELL_TEST_ID}']`;
 
 /** Page object of the message that describes why the sketch is not on screen. It has no test id: it finds the status or the alert within its parent that is not in a shell. */

@@ -9,3 +9,6 @@ export const RESET_BUTTON_LABEL = "Reset";
 
 /** The label of the button that shares the sketch. */
 export const SHARE_BUTTON_LABEL = "Share";
+
+/** The test id of the button that shares the sketch. */
+export const SHARE_BUTTON_TEST_ID = "share-button";

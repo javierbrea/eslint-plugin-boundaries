@@ -28,7 +28,7 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 - A page object of a part of a component that is not an element (a tab, a row) lives in that component's `.pom.ts`, is built by the component's page object with `childPom`, and is exported only as a type (`export type { ProblemRowPom };` of a class that is not exported), so no other page object builds it over the whole document.
 - A page object never repeats a query that another element's page object owns: it composes that page object with `this.childPom(ChildPom, options)`. A chain stays at two or three levels; a parent may expose a shortcut for a grandchild it uses often.
 - MUI overlays render inside the playground root (`packages/playground/AGENTS.md`, "Stack"), so a page object uses `portal: true` only when the overlay is outside its parent's root.
-- Style assertions go through page object getters, which read `getComputedStyle` and use `src/shared/testing/emittedStyle` only for the rules that apply on hover or focus. A spec never reads CSS itself.
+- Style assertions go through page object getters, which read `getComputedStyle` and use `src/shared/testing/emittedStyle` only for the rules that jsdom does not apply: those on hover or focus, inside a media query such as `prefers-reduced-motion` or on a pseudo-element such as `::before`, and those that win by specificity, which jsdom does not weigh. A spec never reads CSS itself.
 - A page object, a constants file or a mock of another element is imported by file (`@/ui-kit/atoms/Icon/Icon.pom`), never through a barrel: barrels are production code. Production code never imports a page object.
 
 Illustrative composite, with the names of the project tree:

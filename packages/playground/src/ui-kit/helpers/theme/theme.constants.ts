@@ -11,6 +11,19 @@ export const FOCUS_RING = "2px solid var(--jsb-accent)";
 export const HOVER_BACKGROUND =
   "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
 
+/** The style of text that screen readers read and that is never drawn, such as a live region that announces what the screen shows in another way */
+export const VISUALLY_HIDDEN = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  border: 0,
+  overflow: "hidden",
+  clipPath: "inset(50%)",
+  whiteSpace: "nowrap",
+} as const;
+
 /** The style of a region whose content is out of date: it fades, and comes back when the content is up to date. */
 export const DIMMED = {
   opacity: 0.5,

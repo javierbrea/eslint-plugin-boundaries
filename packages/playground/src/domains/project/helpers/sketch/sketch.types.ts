@@ -6,6 +6,9 @@ import type {
   SketchSpecifier,
 } from "@/contract";
 
+/** A limit of the size of a sketch read from outside: how many files and folders it has, or how many dependencies */
+export type SketchLimit = "nodes" | "dependencies";
+
 /** A node of the tree as the project pane shows it: folders are implied by the paths of their files */
 export type TreeItem = {
   /** Path from the root of the sketch. It is the id of the item */
@@ -53,8 +56,8 @@ export type SketchReadResult =
   | {
       /** Why the value is not a sketch, as a sentence for the user */
       readonly error: string;
-      /** Present, and `true`, only when the value is refused for having more files, folders or dependencies than a sketch read from outside can have */
-      readonly tooLarge?: true;
+      /** Present only when the value is refused for its size: the limit that it passes, more files and folders (`nodes`) or more dependencies (`dependencies`) than a sketch read from outside can have */
+      readonly tooLarge?: SketchLimit;
     };
 
 /** The result of renaming a node with the name typed for it: the new sketch and the path the node has in it, or why the rename is refused */

@@ -284,7 +284,7 @@ describe("Playground", () => {
       expect(loadState.isRendered).toBe(false);
     });
 
-    it("should show that the sketch is loading until it loads with a store that can share, whose message is a live region of the shell", async () => {
+    it("should show that the sketch is loading until it loads with a store that can share, whose region that announces a copy is a status of the shell and not the message of the load", async () => {
       // Arrange
       const { playground } = renderPlayground(
         new SketchSource(SOURCE_SKETCH),
@@ -298,6 +298,7 @@ describe("Playground", () => {
 
       // Assert
       expect(loadingText).toBe("Loading the project…");
+      expect(playground.topBar.actions.announcement.isRendered).toBe(true);
       expect(loadState.isRendered).toBe(false);
     });
 
@@ -1967,7 +1968,7 @@ describe("Playground", () => {
       expect(playground.topBar.actions.hasShare).toBe(false);
     });
 
-    it("should make the link of the sketch on screen with the store, copy it and say so", async () => {
+    it("should make the link of the sketch on screen with the store, copy it and confirm it on Share and in the region", async () => {
       // Arrange
       const writeText = stubClipboard();
       const store = new SharingStore();
@@ -1991,10 +1992,18 @@ describe("Playground", () => {
       expect(writeText).toHaveBeenCalledWith(
         "https://example.com/playground/#v=1&s=abc"
       );
-      expect(playground.topBar.actions.message.text).toBe("Link copied");
+      expect({
+        isShareCopied: playground.topBar.actions.share.isShowingCopied,
+        announced: playground.topBar.actions.announcement.text,
+        hasDialog: playground.topBar.shareDialog.isRendered,
+      }).toEqual({
+        isShareCopied: true,
+        announced: "Link copied",
+        hasDialog: false,
+      });
     });
 
-    it("should share nothing and say why when no link could open the sketch on screen", async () => {
+    it("should share nothing and say why in a dialog when no link could open the sketch on screen", async () => {
       // Arrange
       const writeText = stubClipboard();
       const store = new SharingStore();
@@ -2012,9 +2021,13 @@ describe("Playground", () => {
       // Assert
       expect(store.shared).toEqual([]);
       expect(writeText).not.toHaveBeenCalled();
-      expect(playground.topBar.actions.message.text).toBe(
-        'The project cannot be shared: Dependency 1 cannot be in the project. The default name "default" cannot have an alias.'
+      expect(playground.topBar.shareDialog.title).toBe(
+        "The project cannot be shared"
       );
+      expect(playground.topBar.shareDialog.reason.text).toBe(
+        'Dependency 1 cannot be in the project. The default name "default" cannot have an alias.'
+      );
+      expect(playground.topBar.actions.share.isShowingLabel).toBe(true);
     });
   });
 

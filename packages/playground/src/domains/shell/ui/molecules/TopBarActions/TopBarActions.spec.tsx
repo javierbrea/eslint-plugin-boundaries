@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { createRef } from "react";
 
 import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
@@ -51,7 +51,7 @@ function renderActions(changes: Partial<TopBarActionsProps> = {}): Page {
 
 describe("TopBarActions", () => {
   describe("order", () => {
-    it("should draw the message, then Help, Reset and Share", () => {
+    it("should draw Help, Reset and Share, then the announcement of the copy", () => {
       // Arrange
       const { actions } = renderActions();
 
@@ -59,10 +59,10 @@ describe("TopBarActions", () => {
       const { parts } = actions;
 
       // Assert
-      expect(parts).toEqual(["message", "Help", "Reset", "Share"]);
+      expect(parts).toEqual(["Help", "Reset", "Share", "announcement"]);
     });
 
-    it("should draw neither the message nor Share when the bar cannot share", () => {
+    it("should draw neither Share nor the announcement when the bar cannot share", () => {
       // Arrange
       const { actions } = renderActions({ onShare: undefined });
 
@@ -72,12 +72,12 @@ describe("TopBarActions", () => {
       // Assert
       expect(parts).toEqual(["Help", "Reset"]);
       expect(hasShare).toBe(false);
-      expect(actions.message.isRendered).toBe(false);
+      expect(actions.announcement.isRendered).toBe(false);
     });
   });
 
   describe("fit", () => {
-    it("should never shrink its buttons, so that the message is the part that gives way", () => {
+    it("should never shrink its buttons, Share included", () => {
       // Arrange
       const { actions } = renderActions();
 
@@ -157,7 +157,7 @@ describe("TopBarActions", () => {
       const { actions } = renderActions({ helpButtonRef });
 
       // Act
-      helpButtonRef.current?.focus();
+      act(() => helpButtonRef.current?.focus());
 
       // Assert
       expect(helpButtonRef.current?.tagName).toBe("BUTTON");
@@ -221,12 +221,11 @@ describe("TopBarActions", () => {
       const { actions } = renderActions();
 
       // Act
-      const variant = actions.variantOf("Share");
-      const { pathData } = actions.iconOf("Share");
+      const { variant, labelIcon } = actions.share;
 
       // Assert
       expect(variant).toBe("contained");
-      expect(pathData).toBe(ICON_PATHS.share);
+      expect(labelIcon.pathData).toBe(ICON_PATHS.share);
     });
 
     it("should ask to share the sketch when it is pressed", () => {
@@ -241,15 +240,83 @@ describe("TopBarActions", () => {
       expect(props.onReset).not.toHaveBeenCalled();
     });
 
-    it("should say in the message how the last share ended", () => {
+    it("should give its element to the caller, who can take the keyboard focus back to it", () => {
+      // Arrange
+      const shareButtonRef = createRef<HTMLButtonElement>();
+      const { actions } = renderActions({ shareButtonRef });
+
+      // Act
+      act(() => shareButtonRef.current?.focus());
+
+      // Assert
+      expect(shareButtonRef.current?.tagName).toBe("BUTTON");
+      expect(actions.share.isFocused).toBe(true);
+      expect(actions.isHelpFocused).toBe(false);
+    });
+  });
+
+  describe("isShareCopied", () => {
+    it("should say Share, and announce nothing, by default", () => {
+      // Arrange
+      const { actions } = renderActions();
+
+      // Act
+      const { share, announcement } = actions;
+
+      // Assert
+      expect(share.isShowingLabel).toBe(true);
+      expect(share.visibleText).toBe("Share");
+      expect(announcement.text).toBe("");
+    });
+
+    it("should make Share say Copied, and announce that the link was copied, while it is true", () => {
+      // Arrange
+      const { actions } = renderActions({ isShareCopied: true });
+
+      // Act
+      const { share, announcement } = actions;
+
+      // Assert
+      expect(share.isShowingCopied).toBe(true);
+      expect(share.visibleText).toBe("Copied");
+      expect(announcement.text).toBe("Link copied");
+    });
+
+    it("should keep Share named Share for assistive technology while it says Copied", () => {
+      // Arrange
+      const { actions } = renderActions({ isShareCopied: true });
+
+      // Act
+      const isNamedShare = actions.share.isButtonNamed("Share");
+
+      // Assert
+      expect(isNamedShare).toBe(true);
+      expect(actions.parts).toEqual(["Help", "Reset", "Share", "announcement"]);
+    });
+
+    it("should say Share and announce nothing again when it goes back to false", () => {
+      // Arrange
+      const { actions, update } = renderActions({ isShareCopied: true });
+
+      // Act
+      update({ isShareCopied: false });
+
+      // Assert
+      expect(actions.share.isShowingLabel).toBe(true);
+      expect(actions.share.visibleText).toBe("Share");
+      expect(actions.announcement.text).toBe("");
+    });
+
+    it("should say Copied when it turns true after the actions were drawn", () => {
       // Arrange
       const { actions, update } = renderActions();
 
       // Act
-      update({ shareOutcome: "copied" });
+      update({ isShareCopied: true });
 
       // Assert
-      expect(actions.message.text).toBe("Link copied");
+      expect(actions.share.isShowingCopied).toBe(true);
+      expect(actions.announcement.text).toBe("Link copied");
     });
   });
 });

@@ -1,4 +1,9 @@
-export { CONFIG_PATH, SYNTAX_FACTS } from "./sketch.constants";
+export {
+  CONFIG_PATH,
+  MAX_SKETCH_DEPENDENCIES,
+  MAX_SKETCH_NODES,
+  SYNTAX_FACTS,
+} from "./sketch.constants";
 export type {
   DependencyRef,
   EditResult,
@@ -6,6 +11,7 @@ export type {
   NormalizedPath,
   ParsedStatement,
   RenameResult,
+  SketchLimit,
   SketchReadResult,
   SpecifierKind,
   StatementToken,

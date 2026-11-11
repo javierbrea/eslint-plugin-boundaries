@@ -1,4 +1,5 @@
 import { ExamplePickerPom } from "@/domains/examples/ui/atoms/ExamplePicker/ExamplePicker.pom";
+import { ShareDialogPom } from "@/domains/share/ui/molecules/ShareDialog/ShareDialog.pom";
 import { HelpDialogPom } from "@/domains/shell/ui/atoms/HelpDialog/HelpDialog.pom";
 import { TopBarActionsPom } from "@/domains/shell/ui/molecules/TopBarActions/TopBarActions.pom";
 import { TopBarPom } from "@/domains/shell/ui/templates/TopBar/TopBar.pom";
@@ -6,7 +7,7 @@ import { Pom } from "@/shared/testing/pom";
 
 import { SHELL_TOP_BAR_TEST_ID } from "./ShellTopBar.constants";
 
-/** Page object of the shell top bar, which is the top bar with the numbers of the store, the picker of examples, and Help, Reset and Share. */
+/** Page object of the shell top bar, which is the top bar with the numbers of the store, the picker of examples, and Help, Reset and Share, and the dialogs that Help and Share open. */
 export class ShellTopBarPom extends Pom {
   protected readonly defaultTestId = SHELL_TOP_BAR_TEST_ID;
 
@@ -27,7 +28,7 @@ export class ShellTopBarPom extends Pom {
   }
 
   /**
-   * Help, Reset and Share, and the message that comes before them.
+   * Help, Reset and Share, and the live region that tells that the link was copied.
    * @returns The page object of the actions.
    */
   get actions(): TopBarActionsPom {
@@ -40,5 +41,13 @@ export class ShellTopBarPom extends Pom {
    */
   get help(): HelpDialogPom {
     return this.childPom(HelpDialogPom, { portal: true });
+  }
+
+  /**
+   * The dialog of a share notice, which is rendered in an overlay outside the bar and not until a share has something to tell besides a link that was copied.
+   * @returns The page object of the dialog.
+   */
+  get shareDialog(): ShareDialogPom {
+    return this.childPom(ShareDialogPom, { portal: true });
   }
 }
