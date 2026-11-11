@@ -1,7 +1,6 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 
 import { CopiedAnnouncementPom } from "@/domains/share/ui/atoms/CopiedAnnouncement/CopiedAnnouncement.pom";
-import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 import { CopyButtonPom } from "@/ui-kit/molecules/CopyButton/CopyButton.pom";
@@ -329,13 +328,13 @@ export class ShareDialogPom extends Pom {
   }
 
   /**
-   * How the dialog is sized, which the element that holds its paper declares for the paper.
-   * @returns The `width` and the `box-sizing` that the rule declares, each an empty string when there is none.
+   * How the paper of the dialog is sized.
+   * @returns The computed `width` and `box-sizing` of the paper.
    */
   get size(): { width: string; boxSizing: string } {
-    const style = getStyle(this.root, `${OWN_CLASS} .MuiDialog-paper`);
+    const { width, boxSizing } = getComputedStyle(this.paper);
 
-    return { width: style.width ?? "", boxSizing: style["box-sizing"] ?? "" };
+    return { width, boxSizing };
   }
 
   /**
