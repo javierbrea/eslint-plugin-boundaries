@@ -12,7 +12,11 @@ import {
 } from "@/domains/share/helpers/sketchHash";
 import type { LinkLimit } from "@/domains/share/helpers/sketchHash";
 
-import type { ShareOutcome, ShareRefusal } from "./shareOutcome.types";
+import type {
+  LongLink,
+  ShareOutcome,
+  ShareRefusal,
+} from "./shareOutcome.types";
 
 /** The most that a link can hold of each limit. */
 const LINK_LIMITS: Readonly<Record<LinkLimit, number>> = {
@@ -22,14 +26,34 @@ const LINK_LIMITS: Readonly<Record<LinkLimit, number>> = {
 };
 
 /**
+ * Tells how long a link is when some apps may cut it when it is pasted (see `isLongLink`).
+ * @param link The link.
+ * @returns The length of the link and the length above which a link is long, or `undefined` when the link is not long.
+ */
+function getLongLink(link: string): LongLink | undefined {
+  return isLongLink(link)
+    ? { length: link.length, maxLength: LONG_LINK_LENGTH }
+    : undefined;
+}
+
+/**
  * Tells how sharing ended once the link is on the clipboard.
  * @param link The link that was copied.
  * @returns `long`, with the length of the link and the length above which a link is long, when some apps may cut the link when it is pasted (see `isLongLink`), and `copied` otherwise.
  */
 export function getCopiedOutcome(link: string): ShareOutcome {
-  return isLongLink(link)
-    ? { kind: "long", length: link.length, maxLength: LONG_LINK_LENGTH }
-    : { kind: "copied" };
+  const long = getLongLink(link);
+
+  return long === undefined ? { kind: "copied" } : { kind: "long", ...long };
+}
+
+/**
+ * Tells how sharing ended when the browser did not let the link be copied. The user copies the link by hand or again, so a long link is told as one here too.
+ * @param link The link that could not be copied.
+ * @returns `not-copied`, with the link, and with its length and the length above which a link is long when some apps may cut it when it is pasted (see `isLongLink`).
+ */
+export function getNotCopiedOutcome(link: string): ShareOutcome {
+  return { kind: "not-copied", link, long: getLongLink(link) };
 }
 
 /**

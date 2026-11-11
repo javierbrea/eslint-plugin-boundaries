@@ -4,6 +4,7 @@ import type { Sketch } from "@/contract";
 import { useSessionStore } from "@/domains/session/data/store";
 import {
   getCopiedOutcome,
+  getNotCopiedOutcome,
   getRefusedOutcome,
 } from "@/domains/share/helpers/shareOutcome";
 import type {
@@ -46,7 +47,7 @@ async function shareSketch(
     await navigator.clipboard.writeText(link);
   } catch {
     // The browser refused the clipboard, or has none
-    return { kind: "not-copied", link };
+    return getNotCopiedOutcome(link);
   }
   return getCopiedOutcome(link);
 }

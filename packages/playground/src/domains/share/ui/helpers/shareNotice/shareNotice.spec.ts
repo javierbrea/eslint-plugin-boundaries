@@ -49,6 +49,7 @@ describe("ShareNotice", () => {
         const notice: ShareNotice = {
           kind: "not-copied",
           link: "https://example.test/playground/#v=1",
+          long: undefined,
         };
 
         // Act
@@ -59,6 +60,27 @@ describe("ShareNotice", () => {
           tone: "bad",
           title: "The link could not be copied",
           text: "The browser did not let the playground use the clipboard. The link is selected below: press Ctrl+C or ⌘C to copy it, or try again.",
+          reason: undefined,
+          link: "https://example.test/playground/#v=1",
+        });
+      });
+
+      it("should also warn that some apps may cut the link when it is long, with the numbers written with separators", () => {
+        // Arrange
+        const notice: ShareNotice = {
+          kind: "not-copied",
+          link: "https://example.test/playground/#v=1",
+          long: { length: 16862, maxLength: 8192 },
+        };
+
+        // Act
+        const view = getShareNotice(notice);
+
+        // Assert
+        expect(view).toEqual({
+          tone: "bad",
+          title: "The link could not be copied",
+          text: "The browser did not let the playground use the clipboard. The link is selected below: press Ctrl+C or ⌘C to copy it, or try again. The link has 16,862 characters, and some apps cut links longer than 8,192 when they are pasted. After you paste it, check that it opens the whole project.",
           reason: undefined,
           link: "https://example.test/playground/#v=1",
         });

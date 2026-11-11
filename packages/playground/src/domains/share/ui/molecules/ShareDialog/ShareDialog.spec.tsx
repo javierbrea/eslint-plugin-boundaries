@@ -12,7 +12,11 @@ import type { ShareDialogProps } from "./ShareDialog.types";
 const LINK = "https://boundaries.test/playground/#v=1&d=eJxLTEoFAAH";
 
 const LONG: ShareNotice = { kind: "long", length: 9412, maxLength: 8192 };
-const NOT_COPIED: ShareNotice = { kind: "not-copied", link: LINK };
+const NOT_COPIED: ShareNotice = {
+  kind: "not-copied",
+  link: LINK,
+  long: undefined,
+};
 const NOT_MADE: ShareNotice = { kind: "not-made" };
 const TOO_LARGE: ShareNotice = { kind: "too-large", limit: "nodes", max: 1000 };
 const INVALID: ShareNotice = {

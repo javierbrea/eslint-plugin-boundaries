@@ -692,13 +692,14 @@ describe("useShareLink", () => {
         expect(result.current.notice).toStrictEqual({
           kind: "not-copied",
           link: SHORT_LINK,
+          long: undefined,
         });
         expect(result.current.isNoticeOpen).toBe(true);
         expect(result.current.isCopied).toBe(false);
       }
     );
 
-    it("should give the link, and not tell that it is long, when the clipboard rejects a long link", async () => {
+    it("should give the link, and tell how long it is, when the clipboard rejects a long link", async () => {
       // Arrange
       stubClipboard(() => Promise.reject(new Error("denied")));
 
@@ -711,6 +712,7 @@ describe("useShareLink", () => {
       expect(result.current.notice).toStrictEqual({
         kind: "not-copied",
         link: LONG_LINK,
+        long: { length: LONG_LINK.length, maxLength: LONG_LINK_LENGTH },
       });
     });
 
@@ -841,7 +843,7 @@ describe("useShareLink", () => {
       // Assert
       expect(afterClosing).toStrictEqual({
         isNoticeOpen: false,
-        notice: { kind: "not-copied", link: SHORT_LINK },
+        notice: { kind: "not-copied", link: SHORT_LINK, long: undefined },
       });
       expect(result.current.notice).toStrictEqual({ kind: "not-made" });
       expect(result.current.isNoticeOpen).toBe(true);

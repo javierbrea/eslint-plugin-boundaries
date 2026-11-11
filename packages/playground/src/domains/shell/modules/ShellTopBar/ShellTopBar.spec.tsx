@@ -256,6 +256,14 @@ const NOT_COPIED_CASE: NoticeCase = {
   clipboardRefuses: true,
 };
 
+const LONG_NOT_COPIED_CASE: NoticeCase = {
+  kind: "not-copied",
+  title: "The link could not be copied",
+  makeLink: () => Promise.resolve(LONG_LINK),
+  sketch: QUICK_START,
+  clipboardRefuses: true,
+};
+
 const NOT_MADE_CASE: NoticeCase = {
   kind: "not-made",
   title: "The link could not be made",
@@ -1092,6 +1100,34 @@ describe("ShellTopBar", () => {
       expect(shareDialog.buttonNames).toEqual(["Close", "Copy link"]);
       expect(shareDialog.copyButton.isShowingLabel).toBe(true);
       expect(shareDialog.announcement.text).toBe("");
+    });
+
+    it("should tell how long the link is when it is long, as the dialog of a long link that was copied does", async () => {
+      // Arrange
+      const lengthText = `${LONG_LINK.length.toLocaleString("en-US")} characters`;
+
+      // Act
+      const { shareDialog } = await renderNotice(LONG_NOT_COPIED_CASE);
+
+      // Assert
+      expect(shareDialog.title).toBe("The link could not be copied");
+      expect(shareDialog.text).toContain(lengthText);
+      expect(shareDialog.description).toContain(lengthText);
+      expect(shareDialog.link.value).toBe(LONG_LINK);
+    });
+
+    it("should not tell the length of a link that is not long", async () => {
+      // Arrange
+      const bar = await renderNotice(NOT_COPIED_CASE);
+
+      // Act
+      const { text } = bar.shareDialog;
+
+      // Assert
+      expect(text).toContain(
+        "The browser did not let the playground use the clipboard."
+      );
+      expect(text).not.toContain("characters");
     });
 
     it("should copy the same link when Copy link is pressed with a working clipboard, and confirm it on the button and in the region of the dialog", async () => {

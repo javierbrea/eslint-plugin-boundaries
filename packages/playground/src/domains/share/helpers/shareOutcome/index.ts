@@ -1,5 +1,10 @@
-export { getCopiedOutcome, getRefusedOutcome } from "./shareOutcome";
+export {
+  getCopiedOutcome,
+  getNotCopiedOutcome,
+  getRefusedOutcome,
+} from "./shareOutcome";
 export type {
+  LongLink,
   ShareNotice,
   ShareOutcome,
   ShareRefusal,

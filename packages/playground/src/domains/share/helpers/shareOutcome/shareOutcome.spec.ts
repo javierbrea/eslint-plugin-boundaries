@@ -6,7 +6,11 @@ import {
 import { LONG_LINK_LENGTH } from "@/domains/share/helpers/sketchHash";
 import { MAX_SKETCH_JSON_BYTES } from "@/domains/share/helpers/sketchHash/sketchHash.constants";
 
-import { getCopiedOutcome, getRefusedOutcome } from "./shareOutcome";
+import {
+  getCopiedOutcome,
+  getNotCopiedOutcome,
+  getRefusedOutcome,
+} from "./shareOutcome";
 
 /**
  * Makes a sketch with a number of files and a number of dependencies, spread over the files, each on an external module of its own.
@@ -114,6 +118,53 @@ describe("ShareOutcome", () => {
         kind: "long",
         length: 20000,
         maxLength: 8192,
+      });
+    });
+  });
+
+  describe("getNotCopiedOutcome", () => {
+    it("should give the link, and no length, when it is short", () => {
+      // Arrange
+      const link = `https://example.com/playground/#v=1&s=${"a".repeat(40)}`;
+
+      // Act
+      const outcome = getNotCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toStrictEqual({
+        kind: "not-copied",
+        link,
+        long: undefined,
+      });
+    });
+
+    it("should give no length when the link has the longest length that is not long", () => {
+      // Arrange
+      const link = "a".repeat(8192);
+
+      // Act
+      const outcome = getNotCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toStrictEqual({
+        kind: "not-copied",
+        link,
+        long: undefined,
+      });
+    });
+
+    it("should give the link with its length, and the one above which it is long, when it has one character more", () => {
+      // Arrange
+      const link = "a".repeat(8193);
+
+      // Act
+      const outcome = getNotCopiedOutcome(link);
+
+      // Assert
+      expect(outcome).toStrictEqual({
+        kind: "not-copied",
+        link,
+        long: { length: 8193, maxLength: 8192 },
       });
     });
   });

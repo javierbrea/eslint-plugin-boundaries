@@ -1,5 +1,13 @@
 import type { LinkLimit } from "@/domains/share/helpers/sketchHash";
 
+/** How long a link is that some apps may cut when it is pasted */
+export type LongLink = {
+  /** How many characters the link has */
+  readonly length: number;
+  /** The length above which a link is long */
+  readonly maxLength: number;
+};
+
 /** Why a sketch is not shared: nothing was copied, because the link would not open the sketch anywhere */
 export type ShareRefusal =
   | {
@@ -23,19 +31,17 @@ export type ShareOutcome =
       /** The link was copied, and nothing more needs saying */
       readonly kind: "copied";
     }
-  | {
+  | ({
       /** The link was copied, but some apps may cut it when it is pasted */
       readonly kind: "long";
-      /** How many characters the link has */
-      readonly length: number;
-      /** The length above which a link is long */
-      readonly maxLength: number;
-    }
+    } & LongLink)
   | {
       /** The link was made, but the browser did not let it be copied */
       readonly kind: "not-copied";
       /** The link, for the user to copy by hand or to copy again */
       readonly link: string;
+      /** How long the link is, when some apps may cut it once it is copied and pasted, and `undefined` otherwise */
+      readonly long: LongLink | undefined;
     }
   | {
       /** The sketch could not be checked, or the store could not make the link: there is no link */
