@@ -25,6 +25,10 @@ const CODE_VERDICT_COLORS: Readonly<Record<StateTone, string>> = {
   faint: "var(--jsb-code-comment)",
 };
 
+/** The background of the line under the pointer and of the line in focus: 66% of `--jsb-code-line`, so that the number and a `not checked` verdict, in `--jsb-code-comment`, keep 4.5:1 on the code of the light scheme */
+const LINE_BACKGROUND =
+  "color-mix(in srgb, var(--jsb-code-line) 66%, transparent)";
+
 const List = styled("ol")({
   margin: 0,
   padding: 0,
@@ -39,9 +43,9 @@ const Line = styled("li")({
   alignItems: "center",
   minHeight: 28,
   paddingRight: 14,
-  "&:hover": { backgroundColor: "var(--jsb-code-line)" },
+  "&:hover": { backgroundColor: LINE_BACKGROUND },
   "&[data-selected]": {
-    backgroundColor: "var(--jsb-code-line)",
+    backgroundColor: LINE_BACKGROUND,
     boxShadow: "inset 2px 0 0 var(--jsb-code-keyword)",
   },
   "&:hover [data-actions]": { opacity: 1 },
