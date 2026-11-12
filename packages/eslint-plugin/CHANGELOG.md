@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- chore: The README links to the playground, with a button next to the documentation one and a section after the installation, and its list of packages no longer refers to "this repository", which did not fit on npm.
+- chore: The README links to the playground, with a button next to the documentation one and a section after the installation. Its package list names the published packages without referring to the repository.
 
 ## [7.4.2] - 2026-11-05
 
