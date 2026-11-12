@@ -92,7 +92,7 @@ The [quick start](https://www.jsboundaries.dev/docs/quick-start/) puts these pie
 
 ## Packages
 
-This repository holds the packages of JS Boundaries:
+JS Boundaries is published as these packages:
 
 | Package | Description |
 | --- | --- |
