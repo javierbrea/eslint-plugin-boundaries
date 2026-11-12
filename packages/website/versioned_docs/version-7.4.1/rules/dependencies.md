@@ -16,6 +16,8 @@ keywords:
   - import restrictions
 ---
 
+import OpenInPlayground from "@site/src/components/OpenInPlayground";
+
 # dependencies
 
 > Enforce dependency constraints in your project.
@@ -30,7 +32,7 @@ This page focuses on how to configure the `boundaries/dependencies` rule options
 
 This rule evaluates dependencies. By default it checks only local-origin dependencies to known, non-internal targets. A dependency is skipped when its target is external or core, when its target is unknown, or when it is internal to the same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
 
-When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `rules`, which contains the policies. Policies are processed in order, and the last policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
+When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `policies`. Policies are processed in order, and the last policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
 
 ## Options
 
@@ -40,7 +42,7 @@ When a dependency is evaluated, the rule decides whether it is allowed or disall
   {
     "default": <string>,
     "message": <string>,
-    "rules": <array>,
+    "policies": <array>,
     "checkAllOrigins": <boolean>,
     "checkUnknownLocals": <boolean>,
     "checkInternals": <boolean>
@@ -55,13 +57,14 @@ The first element is the ESLint severity (`0` = off, `1` = warning, `2` = error)
 - `checkUnknownLocals`: Optional. Whether to check local dependencies whose target element is unknown (not matching any element descriptor) or to ignore them (default: `false`).
 - `checkInternals`: Optional. Whether to check internal dependencies (dependencies within files in the same element) (default: `false`).
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information.
-- `rules`: An array of policy objects processed in order to determine whether a dependency should be allowed. Each policy object can contain the following properties:
+- `policies`: An array of policy objects processed in order to determine whether a dependency should be allowed. Each policy object can contain the following properties:
   - `from`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the file being analyzed matches this selector, the policy is evaluated. Otherwise, it is skipped.
   - `to`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the dependency target matches this selector, the policy is evaluated. Otherwise, it is skipped.
   - `disallow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is disallowed (can be overridden by a subsequent policy returning `"allow"`).
   - `allow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is allowed (can be overridden by a subsequent policy returning `"disallow"`).
   - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information.
   - _`importKind`_: `<string>` - Optional. **Deprecated** (kept for backward compatibility). Makes sense only for [TypeScript](../guides/typescript-support.md) projects. Use `dependency.kind` instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule is only evaluated for dependencies of the specified kind.
+- _`rules`_: Optional. **Deprecated** alias of `policies`, kept for backward compatibility. It prints a deprecation warning, and `policies` takes precedence when both are set. See [Legacy Policy Configuration](../policies/legacy.mdx#legacy-rules-option-in-rules-configuration).
 
 :::warning
 You must provide at least one of `allow` or `disallow` effect for each policy.
@@ -242,10 +245,10 @@ src/
     "boundaries/files": [
       // any spec file is categorized as "test"
       { pattern: "**/*.spec.js", category: "test" },
-      // any file under helpers/ is categorized as "util"
-      { pattern: "helpers/**/*.js", category: "util" },
-      // files under helpers/permissions/ are additionally categorized as "internal"
-      { pattern: "helpers/permissions/**/*.js", category: "internal" }
+      // any file under src/helpers/ is categorized as "util"
+      { pattern: "src/helpers/**/*.js", category: "util" },
+      // files under src/helpers/permissions/ are additionally categorized as "internal"
+      { pattern: "src/helpers/permissions/**/*.js", category: "internal" }
     ],
     "import/resolver": {
       "babel-module": {}
@@ -254,15 +257,128 @@ src/
 }
 ```
 
-With these descriptors, each `helpers/<family>` folder is one helper element (so `helpers/data` captures `family: "data"`). The files inside, such as `sort.js` and `parse.js`, are distinguished by their `fileInternalPath`.
+With these descriptors, each `helpers/<family>` folder is one helper element (so `helpers/data` captures `family: "data"`). The files inside, such as `sort.js` and `parse.js`, are distinguished by their `fileInternalPath`. Element patterns only need the end of the path, but file patterns are matched against the full path from the project root, so the file patterns that name a folder include `src/`.
 
-File categories accumulate: `helpers/data/sort.js` matches only the `helpers/**/*.js` pattern, so its `categories` is `["util"]`, while `helpers/permissions/roles.js` matches both the `helpers/**/*.js` and `helpers/permissions/**/*.js` patterns, so its `categories` is `["util", "internal"]`. This is what the array query policy in the [Configuration Example](#configuration-example) uses to allow importing `"util"` helper files while excluding `"internal"` ones.
+File categories accumulate: `src/helpers/data/sort.js` matches only the `src/helpers/**/*.js` pattern, so its `categories` is `["util"]`, while `src/helpers/permissions/roles.js` matches both the `src/helpers/**/*.js` and `src/helpers/permissions/**/*.js` patterns, so its `categories` is `["util", "internal"]`. This is what the array query policy in the [Configuration Example](#configuration-example) uses to allow importing `"util"` helper files while excluding `"internal"` ones.
 
 :::note
 These examples use aliases for the `src/helpers`, `src/components`, and `src/modules` folders for simplicity. In a real project, you can use any folder structure and naming convention.
 :::
 
 ## Examples
+
+export const playgroundConfig = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*", capture: ["family"] },
+      { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+      { type: "module", pattern: "modules/*", capture: ["elementName"] },
+    ],
+    "boundaries/files": [
+      // any spec file is categorized as "test"
+      { pattern: "**/*.spec.js", category: "test" },
+      // any file under src/helpers/ is categorized as "util"
+      { pattern: "src/helpers/**/*.js", category: "util" },
+      // files under src/helpers/permissions/ are additionally categorized as "internal"
+      { pattern: "src/helpers/permissions/**/*.js", category: "internal" },
+    ],
+  },
+  rules: {
+    "boundaries/dependencies": [2, {
+      // disallow all local imports by default
+      default: "disallow",
+      policies: [
+        {
+          // from helper elements
+          from: { element: { type: "helper" } },
+          allow: {
+            to: {
+              element: { type: "helper" },
+              // allow only files categorized as "util" and not "internal" (array query)
+              file: { categories: { anyOf: ["util"], noneOf: ["internal"] } },
+            },
+            // allow only importing value, not type (TypeScript only)
+            dependency: { kind: "value" },
+          },
+        },
+        {
+          // from component elements
+          from: { element: { type: "component" } },
+          allow: {
+            to: [
+              // allow importing components of the same family
+              { element: { type: "component", captured: { family: "{{ from.element.captured.family }}" } } },
+              // allow importing the sort.js file of any helper
+              { element: { type: "helper", fileInternalPath: "sort.js" } },
+            ],
+          },
+        },
+        {
+          // from components with captured family "molecules"
+          from: { element: { type: "component", captured: { family: "molecules" } } },
+          allow: {
+            // allow importing components with captured family "atoms"
+            to: { element: { type: "component", captured: { family: "atoms" } } },
+          },
+        },
+        {
+          // from modules
+          from: { element: { type: "module" } },
+          // allow importing helpers, components, and modules
+          allow: {
+            to: { element: { type: ["helper", "component", "module"] } },
+          },
+        },
+        {
+          // from any element
+          from: { element: { type: "*" } },
+          // disallow importing files categorized as "test" (file selector)
+          disallow: {
+            to: { file: { categories: "test" } },
+          },
+        },
+      ],
+    }],
+  },
+}
+`;
+
+export const playgroundProject = `eslint.config.js
+src/components/atoms/atom-a/AtomA.js
+  import MoleculeA from "../../molecules/molecule-a/index.js";
+  import { roleHasPermissions } from "../../../helpers/permissions/roles.js";
+  import ModuleA from "../../../modules/module-a/index.js";
+  import { sortDescending } from "../../../helpers/data/sort.spec.js";
+  import AtomB from "../atom-b/index.js";
+  import { someSorter } from "../../../helpers/data/sort.js";
+src/components/atoms/atom-a/index.js
+src/components/atoms/atom-b/AtomB.js
+src/components/atoms/atom-b/index.js
+src/components/molecules/molecule-a/index.js
+src/components/molecules/molecule-a/MoleculeA.js
+  import AtomA from "../../atoms/atom-a/index.js";
+src/components/molecules/molecule-b/index.js
+src/components/molecules/molecule-b/MoleculeB.js
+src/helpers/data/parse.js
+src/helpers/data/sort.js
+  import { roleHasPermissions } from "../permissions/roles.js";
+src/helpers/data/sort.spec.js
+src/helpers/permissions/roles.js
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import ModuleA from "../../modules/module-a/index.js";
+  import { someParser } from "../data/parse.js";
+src/modules/module-a/index.js
+src/modules/module-a/ModuleA.js
+  import { someParser } from "../../helpers/data/parse.js";
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import ModuleB from "../module-b/index.js";
+src/modules/module-b/index.js
+src/modules/module-b/ModuleB.js
+`;
+
+Try the project structure, the settings and the Configuration Example of this page in the playground, with the imports of the examples below. The playground writes each import with the full relative path of its file instead of the aliases of the page, and leaves out the type import, because the files of the page are JavaScript.
+
+<OpenInPlayground config={playgroundConfig} project={playgroundProject} />
 
 ### Incorrect
 
@@ -377,30 +493,30 @@ import ModuleB from 'modules/module-b'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-- **No matching rule message:** When no rule matches a dependency and the default behavior is `"disallow"`, the message starts with:
+- **No matching policy message:** When no policy matches a dependency and the default behavior is `"disallow"`, the message starts with:
 
-  `There is no rule allowing dependencies ...`
+  `There is no policy allowing dependencies ...`
 
-  Then it describes the elements involved in the dependency. Captured values are listed as `captured values: key="value"`.
+  Then it describes the elements involved in the dependency, and the categories of their files when they have any. Captured values are listed as `captured values: key="value"`.
 
-  Example:
+  Example, for a helper importing a component:
 
-  `There is no rule allowing dependencies from elements of type "helper" and captured values: family="permissions" to elements of type "component" and captured values: family="atoms", elementName="atom-a"`
+  `There is no policy allowing dependencies from file of categories "util", "internal" belonging to elements of type "helper" and captured values: family="permissions" to elements of type "component" and captured values: family="atoms", elementName="atom-a"`
 
-- **Denied by rule message:** When a rule matches and denies a dependency, the message describes the denied selector and ends with the rule index:
+- **Denied by policy message:** When a policy matches and denies a dependency, the message describes the denied selector and ends with the policy index:
 
-  `... . Denied by rule at index <n>`
+  `... . Denied by policy at index <n>`
 
-  Example:
+  Example, for a component importing a test file:
 
-  `Dependencies to elements of type "component" and captured values: family="atoms", elementName="atom-a" are not allowed in elements of type "helper" and captured values: family="permissions". Denied by rule at index 1`
+  `Dependencies to file of categories "test", "util" are not allowed in elements of type "component". Denied by policy at index 4`
 
   **The exact sentence varies depending on which [selector](../selectors/selectors.md) parts were used to match the dependency** (in any of `from`, `to`, `dependency`, `disallow`). For dependencies on external or core modules, messages describe the module instead of an element, for example `module with origin "external" and module source "react"`. This detailed information helps you understand exactly why a dependency is disallowed and how to adjust your rules or code.
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific policies. Use the [`message` option](#options) in your rule configuration and see [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
+You can customize error messages globally or for specific policies. Use the [`message` option](#options) in your rule configuration and see [Policies -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Further Reading

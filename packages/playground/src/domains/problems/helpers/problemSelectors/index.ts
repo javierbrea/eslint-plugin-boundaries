@@ -1,0 +1,25 @@
+export type {
+  DependencyDetailFacts,
+  FailingDependency,
+  HighlightFacts,
+  PathCount,
+  PolicyFacts,
+  ProblemCounts,
+  ProblemEvaluation,
+  ProblemListFacts,
+  ProblemListInputs,
+  ProblemRowsFacts,
+  ProblemSubject,
+  ProblemSummary,
+  ProblemTabBadge,
+  ProblemTabFacts,
+} from "./problemSelectors.types";
+export {
+  createProblemCountsReader,
+  getProblemCounts,
+  getProblemList,
+  getProblemTabs,
+  getShownTab,
+  getTextProblems,
+  summarizeProblems,
+} from "./problemSelectors";

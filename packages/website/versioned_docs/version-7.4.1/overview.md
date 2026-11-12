@@ -21,6 +21,8 @@ keywords:
   - clean code
 ---
 
+import OpenInPlayground from "@site/src/components/OpenInPlayground";
+
 # Overview
 
 JS Boundaries is a project that provides a set of tools to help you enforce architectural boundaries in your JavaScript and TypeScript projects.
@@ -57,13 +59,13 @@ For each dependency it finds, the plugin classifies both the file the dependency
 
 ### 1. Define the Classification in Your Project through Configuration
 
-The plugin classifies every file along three independent layers. You configure the first two layers to recognize files and the elements they belong to; the third is derived for you.
+The plugin classifies every file along three independent layers. You configure the first two layers with descriptors to recognize files and the elements they belong to; the third has no descriptors and is derived from each import.
 
 | Layer | Describes | You configure? | Example |
 | --- | --- | --- | --- |
 | **element** | The architectural role a file plays. Usually based on the folder it is in. | Yes, with [element descriptors](./classification/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
 | **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./classification/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
-| **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `module.origin: "external"` |
+| **module** | Where the imported module resolves from. | No descriptors — derived from the import. [Settings](./settings/settings.md#boundariesflag-as-external) decide when it is external. | `import "react"` resolves to `module.origin: "external"` |
 
 Configuration is done in your `eslint.config.js` file, in the [`boundaries`](./settings/settings.md) settings. For example:
 
@@ -103,7 +105,7 @@ Given this configuration, the plugin builds a **description** for each dependenc
   from: {
     element: {
       types: ["controller"],
-      captured: { elementName: "controller-a" },
+      captured: null,
     },
     file: { categories: null },
     module: { origin: "local" },
@@ -111,7 +113,7 @@ Given this configuration, the plugin builds a **description** for each dependenc
   to: {
     element: {
       types: ["view"],
-      captured: { elementName: "view-a" },
+      captured: null,
     },
     file: { categories: null },
     module: { origin: "local" },
@@ -164,13 +166,17 @@ const dependencyRulePolicies = [
   },
   // Only controllers may use the `axios` package
   {
-    from: { element: { type: "!controller" } },
-    disallow: {
+    from: { element: { type: "controller" } },
+    allow: {
       to: { module: { origin: "external", source: "axios" } },
     },
   },
 ];
 ```
+
+:::note[Packages]
+By default, the rule does not check the dependencies on packages. Set `checkAllOrigins: true` in its options to check them, such as `axios` here. With no `default` option, a dependency that no policy allows is disallowed, so with these policies only controllers can import `axios` and no element can import any other package.
+:::
 
 :::note
 This is a very simplified view. See **[Selectors](./selectors/selectors.md)** for the full syntax and capabilities of selectors, and **[Policies](./policies/policies.mdx)** for the full list of policy properties.
@@ -178,7 +184,7 @@ This is a very simplified view. See **[Selectors](./selectors/selectors.md)** fo
 
 ### 4. Get Instant Feedback
 
-When a file violates a dependencies rule policy, ESLint reports an error. For example, a model importing a view:
+When a file has a dependency that the policies don't allow, ESLint reports an error. For example, a model importing a view:
 
 ```javascript
 // src/models/model-a/index.js
@@ -188,8 +194,76 @@ import View from "../../views/view-a";
 ESLint reports:
 
 ```text
-error  Dependencies to elements of type "view" are not allowed in elements of type "model". Denied by policy at index 2  boundaries/dependencies
+1:18  error  There is no policy allowing dependencies from elements of type "model" to elements of type "view"  boundaries/dependencies
 ```
+
+export const playgroundConfig = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "controller", pattern: "controllers/*" },
+      { type: "model", pattern: "models/*" },
+      { type: "view", pattern: "views/*" },
+      { type: "shared", pattern: "shared/*" },
+    ],
+    "boundaries/files": [
+      { category: "test", pattern: "**/*.spec.js" },
+    ],
+  },
+  rules: {
+    "boundaries/dependencies": [2, {
+      // Check the dependencies on packages too, such as axios
+      checkAllOrigins: true,
+      policies: [
+        // Allow controllers to depend on models and views
+        {
+          from: { element: { type: "controller" } },
+          allow: {
+            to: { element: { types: { anyOf: ["model", "view"] } } },
+          },
+        },
+        // Allow views to depend on models
+        {
+          from: { element: { type: "view" } },
+          allow: {
+            to: { element: { type: "model" } },
+          },
+        },
+        // Disallow any element from importing a test file
+        {
+          disallow: {
+            to: { file: { categories: "test" } },
+          },
+        },
+        // Only controllers may use the \`axios\` package
+        {
+          from: { element: { type: "controller" } },
+          allow: {
+            to: { module: { origin: "external", source: "axios" } },
+          },
+        },
+      ],
+    }],
+  },
+}
+`;
+
+export const playgroundProject = `eslint.config.js
+src/controllers/controller-a/index.js
+  import { ModelA } from "../../models/model-a/index.js";
+  import { ViewA } from "../../views/view-a/index.js";
+  import axios from "axios";
+src/models/model-a/index.js
+  import View from "../../views/view-a/index.js";
+  import axios from "axios";
+src/models/model-a/model-a.spec.js
+src/views/view-a/index.js
+  import { ModelA } from "../../models/model-a/index.js";
+  import { createModel } from "../../models/model-a/model-a.spec.js";
+`;
+
+Try the configuration of this page in the playground, on a sample project of four files and seven dependencies, among them the model importing the view.
+
+<OpenInPlayground config={playgroundConfig} project={playgroundProject} />
 
 ## Scope
 

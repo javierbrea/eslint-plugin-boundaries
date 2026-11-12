@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
+## [Unreleased]
+
+### Added
+
+- feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser, evaluated in a background thread that never blocks the page. A link keeps the whole project, to share it or to open it from the docs, and a new Playground guide explains how to use it.
+
+### Changed
+
+- chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
+- chore(#640): The 404 page marks its content with a test id, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
+- feat: The home shows the Robert C. Martin quote right below the hero and the playground right after "How it works", and its section labels are larger.
+- feat: The footer links to the Acknowledgments page once.
+- docs: The Overview and Classification pages say that the module layer has no descriptors, and link to the settings that decide when a module is external.
+- docs: The Policies, Elements, Files, Modules, Selectors and Settings pages leave deprecated options and syntax to their Legacy pages and link to them. The Legacy pages now also cover the deprecated rules, the legacy selectors in policies and the `elementPath` selector property.
+- docs: The text alternatives of the Selectors diagrams describe what the diagrams show.
+
+### Fixed
+
+- docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
+- docs: The Complete Example of the Policies page sets `checkAllOrigins`, without which the policy about `redux` never applied.
+- docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports.
+- docs: The `boundaries/dependencies`, `boundaries/entry-point` and `boundaries/external` rule pages document the `policies` option, with `rules` as its deprecated alias, and their sample error messages are the ones ESLint prints with the configuration of each page.
+- docs: The rule pages name the Policies page in their links to its Message Templating section, and the `boundaries/no-private` page says that its message is customized with its `message` option.
+- fix(#634): The dimension label of the home drawing has enough contrast to read in both themes.
+- docs: The JavaScript tab of the last step of the Quick Start marks every added line of the `boundaries/dependencies` rule, and its copy button keeps their indentation.
+- docs: The `importKind` and `target` examples of the Legacy Policy Configuration page have valid syntax and consistent indentation, and their copy button no longer copies a stray `.` line.
+
 ## [7.4.1] - 2026-11-02
 
 ### Added

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import Button from "../../../components/ui/Button/Button";
 import Eyebrow from "../../../components/ui/Eyebrow/Eyebrow";
 
+import { NOT_FOUND_CONTENT_TEST_ID } from "./NotFoundContent.constants";
 import styles from "./styles.module.css";
 
 /**
@@ -16,7 +17,10 @@ import styles from "./styles.module.css";
  */
 export default function NotFoundContent({ className }: Props): ReactNode {
   return (
-    <main className={clsx(styles.main, className)}>
+    <main
+      className={clsx(styles.main, className)}
+      data-testid={NOT_FOUND_CONTENT_TEST_ID}
+    >
       <div className={clsx("jsb-wrap", styles.inner)}>
         <Eyebrow>404</Eyebrow>
         <Heading as="h1" className={styles.title}>

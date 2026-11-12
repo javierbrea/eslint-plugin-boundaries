@@ -1,0 +1,42 @@
+/* The page around the playground, standing in for a host */
+
+html,
+body,
+#harness {
+  height: 100%;
+}
+
+#harness {
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  margin: 0;
+  background: var(--jsb-paper);
+  color: var(--jsb-ink);
+  font-family: var(--jsb-font-body);
+}
+
+.harness-stage {
+  flex: 1;
+  min-height: 0;
+}
+
+.harness-bar {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--jsb-line);
+}
+
+.harness-bar button {
+  padding: 6px 12px;
+  border: 1px solid var(--jsb-line-strong);
+  border-radius: var(--jsb-radius);
+  background: var(--jsb-paper-2);
+  color: var(--jsb-ink);
+  font: inherit;
+  cursor: pointer;
+}

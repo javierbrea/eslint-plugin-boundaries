@@ -23,13 +23,17 @@
 
 An ESLint plugin for JavaScript and TypeScript projects. Classify your files, write policies for who may depend on whom, and get an ESLint error the moment a boundary is crossed. In your IDE, in CI, with nothing new to run.
 
-**Documentation: [jsboundaries.dev](https://www.jsboundaries.dev/)** · [Quick start](https://www.jsboundaries.dev/docs/quick-start/)
+[![Documentation: jsboundaries.dev](https://img.shields.io/badge/Documentation-jsboundaries.dev-4c52d8?style=for-the-badge&labelColor=555)](https://www.jsboundaries.dev/) [![Playground: try it in your browser](https://img.shields.io/badge/Playground-try_it_in_your_browser-4c52d8?style=for-the-badge&labelColor=555)](https://www.jsboundaries.dev/playground/)
 
 ## Installation
 
 ```bash
 npm install --save-dev eslint eslint-plugin-boundaries
 ```
+
+## Playground
+
+The [playground](https://www.jsboundaries.dev/playground/) runs the classification of the plugin and its `boundaries/dependencies` rule in your browser, on a project you sketch: paste a config, lay out a folder tree, and watch each file get classified and each import get its verdict. It opens with the example of "How it works", below, already running on a sample project.
 
 <!-- The steps and snippets of this section repeat packages/website/src/components/home/Steps/Steps.tsx; a change to one needs the same change in the other. -->
 ## How it works
@@ -88,7 +92,7 @@ The [quick start](https://www.jsboundaries.dev/docs/quick-start/) puts these pie
 
 ## Packages
 
-This repository holds the packages of JS Boundaries:
+JS Boundaries is published as these packages:
 
 | Package | Description |
 | --- | --- |

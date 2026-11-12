@@ -125,13 +125,7 @@ The element type assigned to files matching the pattern (for example, `"componen
 ```
 
 :::warning
-Each descriptor must define at least one of `type` or `category`. Descriptors without a valid `pattern` and one of these are filtered out with a warning.
-:::
-
-### `category` (deprecated)
-
-:::warning[Deprecated]
-`category` in element descriptors is deprecated. Use **[file descriptor categories](./files.md)** instead. It keeps working without changes; the full reference and migration table are on the **[Legacy Element Fields](./elements/legacy.md#category-optional)** page.
+Each descriptor must define a `type`, or the deprecated [`category`](./elements/legacy.md#category-optional). Descriptors without a valid `pattern` and one of these are filtered out with a warning.
 :::
 
 ### `capture` (optional)
@@ -224,13 +218,13 @@ Keep keys unique across `capture` and `baseCapture`. On a name collision, the va
 
 When `true` (the default), the pattern only needs to match a **suffix** of the file path, using right-to-left incremental accumulation: `components/*` matches `src/components/Button`, `packages/ui/src/components/Button`, and any other path ending in `components/<something>`, without writing the full prefix.
 
-When set to `false`, the pattern is matched against the **full file path** from the project root (relative to [`rootPath`](../settings/settings.md#boundariesroot-path)). Unlike the deprecated `mode: "full"`, the descriptor still uses **folder semantics**: the pattern is expanded with `/**/*` internally, and the resolved element `path` is the matched folder prefix, not the full file path. `fileInternalPath` is computed the same way as in folder mode. When `partialMatch: false` is set, `mode` has no effect.
+When set to `false`, the pattern is matched against the **full file path** from the project root (relative to [`rootPath`](../settings/settings.md#boundariesroot-path)). The descriptor still uses **folder semantics**: the pattern is expanded with `/**/*` internally, and the resolved element `path` is the matched folder prefix, not the full file path. `fileInternalPath` is computed the same way as with `partialMatch: true`.
 
-| Behavior | `partialMatch: true` (default) | `partialMatch: false` | `mode: "full"` (deprecated) |
-|---|---|---|---|
-| Pattern suffix | `/**/*` appended | `/**/*` appended | none |
-| Match target | Right-to-left accumulated segments | Full file path | Full file path |
-| Element `path` | Matched folder | Matched folder prefix | Full file path |
+| Behavior | `partialMatch: true` (default) | `partialMatch: false` |
+|---|---|---|
+| Pattern suffix | `/**/*` appended | `/**/*` appended |
+| Match target | Right-to-left accumulated segments | Full file path |
+| Element `path` | Matched folder | Matched folder prefix |
 
 :::info
 `partialMatch` defaults to `true` for backward compatibility. It will most likely default to `false` in a future major version, and eventually be removed — requiring the full pattern is more intuitive and is already how [file descriptors](./files.md) match. Prefer setting `partialMatch: false` and writing the full path from the project root when you can.
@@ -271,12 +265,6 @@ Only relevant when [multi-type matching](#multi-type-elements) is enabled (`boun
 ```js
 { type: "index", pattern: "shared/index", exclusive: true }
 ```
-
-### `mode` (deprecated)
-
-:::warning[Deprecated]
-`mode` is deprecated. Element descriptors now always use folder-like matching; file classification use cases are covered by **[file descriptors](./files.md)**, and full-path matching by [`partialMatch: false`](#partialmatch-optional). It keeps working without changes; the full reference and migration steps are on the **[Legacy Element Fields](./elements/legacy.md#mode-optional)** page.
-:::
 
 ## Element Matching Order
 
@@ -345,10 +333,6 @@ When multiple descriptors match at the same path level, their `captured` values 
 Multi-type matching is **off by default** in the plugin: `boundaries/elements-single-match` defaults to `true` for backward compatibility. Set it to `false` to opt in. See the [setting reference](../settings/settings.md#boundarieselements-single-match) for the full details.
 :::
 
-:::note[Deprecated alias]
-`boundaries/elements-single-type` is a deprecated alias of `boundaries/elements-single-match`, kept for backward compatibility.
-:::
-
 Two descriptors match "at the same path level" when they resolve to the same element `path` (the same matched folder). Parents accumulate types the same way.
 
 ### `stopMatching` and `exclusive`
@@ -368,16 +352,12 @@ The other two layers have their own tables: [File description](./files.md#file-d
 | Property | Type | Description |
 | --- | --- | --- |
 | `types` | `<array of strings \| null>` | All element types matched at the main path level (see [multi-type](#multi-type-elements)), or `null` when the file matches no element descriptor. |
-| `path` | `<string \| null>` | Path of the element (the matched folder or file when using legacy mode "file"). Relative to [`rootPath`](../settings/settings.md#boundariesroot-path) when inside it, absolute when outside, or `null` for unknown elements. |
+| `path` | `<string \| null>` | Path of the element (the matched folder). Relative to [`rootPath`](../settings/settings.md#boundariesroot-path) when inside it, absolute when outside, or `null` for unknown elements. |
 | `fileInternalPath` | `<string \| null>` | Path of the file relative to its element path, or `null` for unknown elements. It varies depending on the file that was analyzed to get the element description. |
 | `captured` | `<object \| null>` | Captured values from the matched descriptor, or `null` when there are none. |
 | `parents` | `<array>` | Ancestor elements, nearest first. Each parent has `types`, `path`, and `captured` (same meaning as above, but for the parent element). |
 | `isIgnored` | `<boolean>` | `true` when the file is excluded by [ignore/include](../settings/settings.md#boundariesignore) settings. |
 | `isUnknown` | `<boolean>` | `true` when the file matches no element descriptor. |
-
-:::note[Deprecated element properties]
-Read the **[Legacy Element Fields](./elements/legacy.md)** page for deprecated element description fields that are still available for backward compatibility.
-:::
 
 ## Matching Elements using Selectors
 
@@ -403,3 +383,4 @@ This means defining an element descriptor makes the matching files **known**: a 
 - **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your policies.
 - **[Policies](../policies/policies.mdx)** - write dependency policies that enforce your architecture.
 - **[Settings](../settings/settings.md)** - the full reference for `boundaries/files`, `boundaries/elements-single-match`, and every other global setting.
+- **[Legacy](./elements/legacy.md)** - deprecated descriptor fields (`category`, `mode`) and element description properties that still work, with their replacements.

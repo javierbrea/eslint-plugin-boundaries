@@ -1,0 +1,26 @@
+export type {
+  ConfigProblem,
+  ConfigToken,
+  ConfigTokenKind,
+  DependencyDescription,
+  DependencyRelationship,
+  DependencyRelationshipKind,
+  DependencyResult,
+  DependencyVerdict,
+  DisallowedVerdict,
+  ElementTypeSummary,
+  Engine,
+  EntityDescription,
+  Evaluation,
+  FileCategorySummary,
+  NotEvaluatedReason,
+  ParentDescription,
+  PolicyRef,
+  PolicySummary,
+  ProblemLevel,
+  RuleSummary,
+  SkipReason,
+  TextRange,
+} from "./engine.types";
+export { createEngine } from "./evaluate";
+export { tokenizeConfig } from "./tokenizeConfig";

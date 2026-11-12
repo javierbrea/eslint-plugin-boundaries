@@ -25,6 +25,7 @@ keywords:
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeDiff from '@site/src/components/CodeDiff';
+import OpenInPlayground from "@site/src/components/OpenInPlayground";
 
 # Policies
 
@@ -33,10 +34,6 @@ Policies are how you define **which dependencies are allowed or disallowed** for
 ## Rule Format
 
 [`boundaries/dependencies`](../rules/dependencies.md) is the canonical rule for restricting dependencies between elements. This page documents how to configure it: you set a default effect (`allow` or `disallow`), then provide an array of policies that override that default.
-
-:::note[Deprecated rules use the same mechanism]
-The deprecated rules [`boundaries/element-types`](../rules/dependencies.md), [`boundaries/external`](../rules/external.mdx), and [`boundaries/entry-point`](../rules/entry-point.mdx) build on this same base configuration, with their own differences. Their pages document those differences and how to migrate to `boundaries/dependencies`.
-:::
 
 :::info[Policy precedence]
 Each matching policy overrides previous values, so the **final result is determined by the last matching policy**.
@@ -134,12 +131,6 @@ A selector matches only when every sub-selector you provide matches (an omitted 
 }
 ```
 
-:::note[Legacy]
-Legacy element selectors (for example `from: { type: "helper" }`) are still supported for backward compatibility, but they are deprecated. Read [Legacy Element Selectors](../selectors/legacy/element.md) and the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for more information and migration instructions.
-
-The `target` property is a deprecated alias for `to`. It still works, but use `to` for clarity. Read [Legacy Policy Configuration](./legacy.mdx#target-deprecated) for examples and migration.
-:::
-
 :::info
 Read the ["How policies match dependencies" section](#how-policies-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a policy matches a specific dependency.
 :::
@@ -159,10 +150,6 @@ This property matches dependencies by their metadata (for example import kind or
   allow: { from: { element: { type: "*" } } },
 }
 ```
-
-:::note[Legacy]
-The `dependency.module` selector is kept for backward compatibility but is deprecated. Use **`to.module.source`** via the entity selector instead — for example `to: { module: { origin: "core", source: "react" } }`. Read [Legacy Dependency Selectors](../selectors/legacy/dependency.md) and the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for more information and migration.
-:::
 
 :::info
 Read the ["How policies match dependencies" section](#how-policies-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a policy matches a specific dependency.
@@ -244,7 +231,7 @@ The Handlebars context for custom messages has these top-level variables:
 * `from` - The entity importing the dependency.
 * `to` - The entity being imported.
 * `dependency` - Metadata about the dependency itself.
-* `policy` - The policy that produced the error, or `null` when the error comes from the default policy (no policy matched). (`rule` is a deprecated alias, see [Legacy Policy Configuration](./legacy.mdx#legacy-rule-template-variable).)
+* `policy` - The policy that produced the error, or `null` when the error comes from the default policy (no policy matched).
 
 Both `from` and `to` carry the [full entity data tree](../classification/classification.md). These are the canonical paths:
 
@@ -302,14 +289,6 @@ For the complete property reference of `from`, `to`, and `dependency`, see [Clas
 :::info
 Missing properties in Handlebars templates resolve to an empty string.
 :::
-
-:::note[Legacy message aliases]
-For backward compatibility, each `from`/`to` side also exposes flat V6 fields in custom messages (for example `{{from.type}}` instead of `{{from.element.types.[0]}}`), and the legacy `${...}` message syntax still works. Both are deprecated — see **[Legacy Policy Configuration](./legacy.mdx#legacy-flat-message-aliases)**.
-:::
-
-### `importKind` (deprecated)
-
-Policy-level `importKind` is kept for backward compatibility but is deprecated. Use the [`dependency.kind`](../selectors/selectors.md#dependency-selectors) metadata selector instead; when both are defined, `dependency.kind` takes precedence. See **[Legacy Policy Configuration](./legacy.mdx#importkind-deprecated)** for examples and migration.
 
 ## Policies Evaluation Order
 
@@ -498,7 +477,9 @@ settings: {
 export default [{
   rules: {
     "boundaries/dependencies": [2, {
-      // Disallow every dependency by default
+      // Check the dependencies on packages too, such as `redux`, not only the ones on files of the project
+      checkAllOrigins: true,
+      // Disallow every dependency by default, packages included
       default: "disallow",
       policies: [
         {
@@ -573,9 +554,122 @@ export default [{
 }]
 ```
 
+export const playgroundConfig = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*", capture: ["family"] },
+      { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+      { type: "module", pattern: "modules/*", capture: ["elementName"] },
+    ],
+    "boundaries/files": [
+      { pattern: "**/*.spec.js", category: "test" },
+      { pattern: "**/*.css", category: "style" },
+    ],
+  },
+  rules: {
+    "boundaries/dependencies": [2, {
+      // Check the dependencies on packages too, such as \`redux\`, not only the ones on files of the project
+      checkAllOrigins: true,
+      // Disallow every dependency by default, packages included
+      default: "disallow",
+      policies: [
+        {
+          // Helpers can import other helpers
+          from: { element: { type: "helper" } },
+          allow: { to: { element: { type: "helper" } } },
+        },
+        {
+          // Components can import...
+          from: { element: { type: "component" } },
+          allow: {
+            to: [
+              // ...components of the same family (templated from the importing element)...
+              { element: { type: "component", captured: { family: "{{from.element.captured.family}}" } } },
+              // ...and helpers of the "data" family
+              { element: { type: "helper", captured: { family: "data" } } },
+            ],
+          },
+        },
+        {
+          // Components of family "molecules" can import components of family "atoms"
+          from: { element: { type: "component", captured: { family: "molecules" } } },
+          allow: {
+            to: { element: { type: "component", captured: { family: "atoms" } } },
+          },
+        },
+        {
+          // Components of family "atoms" cannot import "data" helpers
+          from: { element: { type: "component", captured: { family: "atoms" } } },
+          disallow: {
+            to: { element: { type: "helper", captured: { family: "data" } } },
+          },
+          // Custom message only for this specific error
+          message: "Atom components can't import data helpers",
+        },
+        {
+          // No file may import a test file
+          disallow: { to: { file: { categories: "test" } } },
+          message: "Do not import test files ({{to.file.categories}}) from production code",
+        },
+        {
+          // Modules can import any component or helper
+          from: { element: { type: "module" } },
+          allow: {
+            to: { element: { type: ["helper", "component"] } },
+          },
+        },
+        {
+          // Modules cannot import external state libraries directly
+          from: { element: { type: "module" } },
+          disallow: {
+            to: { module: { origin: "external", source: "redux" } },
+          },
+          message: "Modules must not import {{to.module.source}} directly",
+        },
+        {
+          // Modules whose name starts with "page-" can only import layout components
+          from: { element: { type: "module", captured: { elementName: "page-*" } } },
+          disallow: {
+            to: { element: { type: "component", captured: { family: "!layout" } } },
+          },
+          // Custom message only for this specific error
+          message: "Modules with a name starting by 'page-' can only import layout components. You tried to import a component of family {{to.element.captured.family}} from a module named {{from.element.captured.elementName}}",
+        },
+      ],
+    }],
+  },
+}
+`;
+
+export const playgroundProject = `eslint.config.js
+src/components/atoms/atom-a/index.js
+  import AtomB from "../atom-b/index.js";
+  import { sortAscending } from "../../../helpers/data/sort.js";
+  import { format } from "../../../helpers/format/index.js";
+src/components/atoms/atom-b/index.js
+src/components/layout/header/index.js
+src/components/molecules/molecule-a/index.js
+  import { sortCases } from "../../../helpers/data/sort.spec.js";
+  import AtomA from "../../atoms/atom-a/index.js";
+src/helpers/data/sort.js
+  import { format } from "../format/index.js";
+src/helpers/data/sort.spec.js
+src/helpers/format/index.js
+src/modules/checkout/index.js
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import { createStore } from "redux";
+src/modules/page-home/index.js
+  import AtomA from "../../components/atoms/atom-a/index.js";
+  import Header from "../../components/layout/header/index.js";
+`;
+
+Try this example in the playground, on nine files of the demo setup and ten dependencies. Five of them are disallowed, each one by a different kind of policy. JSON5 has no template literals, so the message of the last policy is a string of one line there.
+
+<OpenInPlayground config={playgroundConfig} project={playgroundProject} />
+
 ## Next Steps
 
-- [Legacy](./legacy.mdx) - the legacy policy configuration reference, with migration instructions.
+- [Legacy](./legacy.mdx) - deprecated rules, options and syntax that still work, such as `rules`, `target`, `importKind`, flat element selectors and `${...}` messages, with migration instructions.
 - [Selectors](../selectors/selectors.md) - the full reference for element, file, module, and entity selectors used in `from`/`to`.
 - [Settings](../settings/settings.md) - configure [`boundaries/files`](../settings/settings.md#boundariesfiles), [`boundaries/elements-single-match`](../settings/settings.md#boundarieselements-single-match), and the other plugin settings.
 - [`boundaries/dependencies` rule](../rules/dependencies.md) - the rule reference, with project structure and example diagnostics.

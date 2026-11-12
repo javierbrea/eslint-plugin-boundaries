@@ -22,6 +22,7 @@ keywords:
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeDiff from "@site/src/components/CodeDiff";
+import OpenInPlayground from "@site/src/components/OpenInPlayground";
 
 # Quick Start
 
@@ -313,11 +314,11 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 +        policies: [
 +          {
 +            from: { element: { type: "component" } },
-            allow: { to: { element: { type: "helper" } } }
++            allow: { to: { element: { type: "helper" } } }
 +          },
 +          {
-            from: { element: { type: "module" } },
-            allow: { to: { element: { types: ["component", "helper"] } } }
++            from: { element: { type: "module" } },
++            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {
 +            // No element may import a test file, whatever element it belongs to
@@ -378,6 +379,64 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 
 </TabItem>
 </Tabs>
+
+{/* The texts are exported because MDX removes up to two spaces of indentation from the lines of a template literal inside a JSX attribute, and the project needs them */}
+
+export const playgroundConfig = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*" },
+      { type: "component", pattern: "components/*/*" },
+      { type: "module", pattern: "modules/*" },
+    ],
+    "boundaries/files": [
+      { pattern: "**/*.spec.js", category: "test" },
+      { pattern: "**/*.css", category: "style" },
+    ],
+  },
+  rules: {
+    "boundaries/dependencies": [2, {
+      default: "disallow",
+      policies: [
+        {
+          from: { element: { type: "component" } },
+          allow: { to: { element: { type: "helper" } } },
+        },
+        {
+          from: { element: { type: "module" } },
+          allow: { to: { element: { types: ["component", "helper"] } } },
+        },
+        {
+          // No element may import a test file, whatever element it belongs to
+          disallow: { to: { file: { categories: "test" } } },
+        },
+      ],
+    }],
+  },
+}
+`;
+
+export const playgroundProject = `eslint.config.js
+src/components/atoms/Button/Button.css
+src/components/atoms/Button/Button.spec.js
+  import { Button } from "./index.js";
+src/components/atoms/Button/index.js
+  import { format } from "../../../helpers/format/index.js";
+  import "./Button.css";
+src/helpers/format/index.js
+  import { Button } from "../../components/atoms/Button/index.js";
+src/modules/checkout/index.js
+  import { Button } from "../../components/atoms/Button/index.js";
+  import { format } from "../../helpers/format/index.js";
+  import { renderButton } from "../../components/atoms/Button/Button.spec.js";
+  import React from "react";
+src/index.js
+  import "./modules/checkout/index.js";
+`;
+
+Try the configuration of this guide in the playground, on a sample project of six files and nine dependencies. The playground cannot spread the predefined rules of the plugin, so it leaves them out.
+
+<OpenInPlayground config={playgroundConfig} project={playgroundProject} />
 
 :::info
 You can customize the error messages reported by rule policies using **[message templates](./policies/policies.mdx)**.

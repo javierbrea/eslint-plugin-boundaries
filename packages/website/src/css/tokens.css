@@ -11,6 +11,7 @@
   --jsb-paper-2: #ffffff;
   --jsb-ink: #161a33;
   --jsb-muted: #5a6080;
+  /* Below 4.5:1 on the surfaces: for shapes, such as chevrons, icons and dots, and for disabled controls, not for text */
   --jsb-faint: #9397b6;
   --jsb-line: rgba(22, 26, 51, 0.13);
   --jsb-line-strong: rgba(22, 26, 51, 0.28);

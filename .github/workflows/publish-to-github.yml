@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7.0.1
     - name: Install pnpm
-      uses: pnpm/action-setup@v6.1.0
+      uses: pnpm/action-setup@v6.1.1
 
     - name: Install Node.js
       uses: actions/setup-node@v7.1.0
@@ -33,7 +33,7 @@ jobs:
       env:
         HUSKY_SKIP_INSTALL: 1
 
-    # NOTE: check:all runs browser-e2e, which needs the browsers
+    # NOTE: check:all runs browser-e2e and website-e2e, which need the browsers
     - uses: ./.github/actions/install-browsers
 
     - run: pnpm check:all

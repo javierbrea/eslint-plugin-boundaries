@@ -29,13 +29,14 @@ pnpm i
 
 This command will install dependencies for all packages in the monorepo, including the website package.
 
-Then build the plugin once:
+Then build the plugin and the playground once:
 
 ```sh
 pnpm nx build eslint-plugin
+pnpm nx build playground
 ```
 
-The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built.
+The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built. The `/playground/` page bundles the built `@boundaries/playground`, so `pnpm start` fails to resolve it until the playground is built; `pnpm nx start website` builds it first.
 
 ### Starting the Development Server
 
@@ -118,6 +119,8 @@ This command generates a static website optimized for deployment.
 ## Deployment
 
 The website deployment is fully automated using **[Netlify](https://www.netlify.com/)**, which handles both production deployments and preview environments.
+
+The build settings live in the Netlify UI, not in this repository: base directory `/`, package directory `packages/website`, publish directory `packages/website/build`, and build command `pnpm nx run website:build`. The build goes through Nx, so the `dependsOn` of the website's `build` target in `project.json` decides what is built before the site, such as the playground.
 
 ### Production Deployment
 

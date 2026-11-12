@@ -1,0 +1,54 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "website-e2e",
+  "projectType": "application",
+  "tags": [
+    "type:e2e"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        // The lint resolves the imports of the two `./playwright` entries, which exist once they are built. The site and the playground themselves are not imported, so their production builds are not needed
+        {
+          "target": "build:playwright",
+          "projects": ["playground", "website"]
+        }
+      ]
+    },
+    "check:types": {
+      // The specs type-check against the types of the two `./playwright` entries, which exist once they are built. The default `^build` would build the site and the playground, which the types do not need
+      "dependsOn": [
+        {
+          "target": "build:playwright",
+          "projects": ["playground", "website"]
+        }
+      ]
+    },
+    "test:e2e": {
+      // The suite serves the production build of the site and reaches it through the page objects of the two entries. The default inputs of the target hold the output of these tasks through `dependentTasksOutputFiles` (`nx show target inputs website-e2e:test:e2e` lists the files of `packages/website/build` and of both `dist-playwright`), so a change in the site or in a page object invalidates the cache
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["website"]
+        },
+        {
+          "target": "build:playwright",
+          "projects": ["playground", "website"]
+        }
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-config",
+    "cspell-config"
+  ]
+}

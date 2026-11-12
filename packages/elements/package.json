@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "handlebars": "4.7.10",
-    "is-core-module": "2.17.0",
+    "is-core-module": "2.18.0",
     "picomatch": "4.0.7"
   },
   "engines": {

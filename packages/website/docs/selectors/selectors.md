@@ -37,10 +37,6 @@ The smallest selector targets a single axis — for example, one element type:
 
 That selector matches any file belonging to a `helper` element. You could just as well match a single `file` category or `module` origin instead; no axis takes precedence over the others. From there you can add more conditions to narrow the match.
 
-:::note[Legacy flat selectors]
-Earlier versions accepted flat element selectors such as `{ type: "helper" }` (without the `element` wrapper) and bare strings like `"helper"`. They still work and are converted internally, so existing configurations keep running. For new policies, prefer the entity selector form so you can also match against `file` and `module`. The string and tuple formats are documented on the [Legacy Selectors](./legacy/element.md) page.
-:::
-
 ## How matching works
 
 1. You define [element descriptors](./element.md) and/or [file descriptors](./file.md) in your settings — at least one of the two.
@@ -53,7 +49,7 @@ All conditions inside a single selector are combined with **AND** — every prop
 
 An **entity** is the unit the plugin analyzes — one file described along three independent axes. An entity selector lets you match any combination of those axes:
 
-![How an entity description is split into element, file, and module sub-descriptions](./entity-description.svg)
+![The element, file, and module axes of an entity, each matched by its own selector](./entity-description.svg)
 
 An entity selector has three optional sub-selectors:
 
@@ -96,10 +92,6 @@ You can also provide an **array of entity selectors**, which matches if any of t
 ]
 ```
 
-:::note[Legacy]
-For backward compatibility, the plugin still accepts element selectors in the old flat format (without the `element` wrapper) as entity selectors. They are converted internally to the entity selector form, so existing configurations keep running. Read the [Legacy Element Selectors](./legacy/element.md) page for details on the old formats and how to migrate to the new entity selector form.
-:::
-
 :::tip[Which sub-selector should I use?]
 For **local** files, the meaningful classification lives in the `element` and `file` sub-selectors. For **external** and **core** imports, the file usually matches no element, so use the `module` sub-selector.
 :::
@@ -108,7 +100,7 @@ For **local** files, the meaningful classification lives in the `element` and `f
 
 A dependency selector matches an analyzed dependency between two files. You use it in a [policy](../policies/policies.mdx) to target specific imports and decide whether they are allowed or disallowed:
 
-![How a dependency description is split into from, to, and dependency](./dependency-description.svg)
+![The from and to entities of a dependency, matched by entity selectors, and its metadata, matched by a dependency selector](./dependency-description.svg)
 
 It has three optional keys:
 
@@ -385,10 +377,6 @@ This policy disallows dependencies between elements of the same type that belong
 When [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates) is enabled (its default), captured values are also injected at the top level of the template data. If a captured value has the same name as a runtime property (for example `path`, `category`, or `origin`), it overwrites that template variable and can cause surprising results. To avoid this, set `boundaries/legacy-templates` to `false` and access captured values only through the `captured` namespace (for example `{{ from.element.captured.path }}`).
 :::
 
-:::warning[Legacy template syntax]
-The legacy `${ property }` selector syntax is kept for backward compatibility but is deprecated. It is documented, with migration guidance, on the [Legacy templates](./legacy/templates.md) page. Use the modern `{{ property }}` syntax instead.
-:::
-
 ## Next Steps
 
 - [Element selector](./element.md) — match the element a file belongs to (`type`, `captured`, `parent`...).
@@ -398,4 +386,4 @@ The legacy `${ property }` selector syntax is kept for backward compatibility bu
 - [Classification](../classification/classification.md) — the three layers (element, file, module) that selectors match against.
 - [Settings](../settings/settings.md) — configure [`boundaries/files`](../settings/settings.md#boundariesfiles), [`boundaries/elements-single-match`](../settings/settings.md#boundarieselements-single-match), and [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates).
 - [Policies](../policies/policies.mdx) — use selectors in `from`/`to`/`dependency` together with `allow`/`disallow`.
-- [Legacy Selectors](./legacy/element.md) — string and tuple selector formats and how to migrate them.
+- Legacy [element selectors](./legacy/element.md) (flat, string and tuple formats, deprecated properties), [dependency metadata selectors](./legacy/dependency.md) (`module`) and [templates](./legacy/templates.md) (`${...}`) — deprecated syntax that still works, and how to migrate it.

@@ -11,7 +11,7 @@ All repository artifacts must be written in English.
 
 ## Repository Overview
 
-This repository is a pnpm + Nx monorepo containing the `@boundaries` packages: four published libraries (`elements`, `config`, `policies`, `eslint-plugin`), a Docusaurus website, examples, and shared support configs. Projects live under `packages/`, `examples/`, `support/`, and `test/`.
+This repository is a pnpm + Nx monorepo containing the `@boundaries` packages: four published libraries (`elements`, `config`, `policies`, `eslint-plugin`), the private `playground` React component, a Docusaurus website that renders it, examples, and shared support configs. Projects live under `packages/`, `examples/`, `support/`, and `test/`.
 
 Each package's own `README.md` covers its functionality and usage for consumers. Agent-facing implementation guidance — layering, hard constraints, entry points — lives in that project's own `AGENTS.md` instead; see below.
 
@@ -29,7 +29,7 @@ Each package's own `README.md` covers its functionality and usage for consumers.
 
 ## Commands
 
-The repository uses `pnpm` and Nx. Projects share the same target names: `lint`, `check:types`, `check:spell`, `build`, `test:unit`, `test:mutation`, `test:e2e` and `check:all` (all the checks plus the build). Test targets exist only in the projects that define them.
+The repository uses `pnpm` and Nx. Projects share the same target names: `lint`, `check:types`, `check:spell`, `build`, `build:playwright` (the Playwright page objects, apart from the production build), `check:pom-parity` (each Playwright page object against its jsdom sibling), `test:unit`, `test:mutation`, `test:e2e` and `check:all` (all the checks plus the builds). Test targets, `build:playwright` and `check:pom-parity` exist only in the projects that define them.
 
 ```bash
 # One project
