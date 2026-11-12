@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-import { GITHUB_PLAYGROUND_ISSUE } from "../../../data/site/links";
+import { PLAYGROUND } from "../../../data/site/links";
 import Reveal from "../../motion/Reveal";
 import Button from "../../ui/Button/Button";
 import SectionHead from "../../ui/SectionHead/SectionHead";
@@ -28,7 +28,7 @@ const RESULTS = [
 ];
 
 /**
- * Teaser of the upcoming playground: a static preview of a folder tree and its classification.
+ * Teaser of the playground: a static preview of a folder tree and its classification, with a link to the playground.
  * @returns The section.
  */
 export default function PlaygroundTeaser(): ReactNode {
@@ -38,12 +38,12 @@ export default function PlaygroundTeaser(): ReactNode {
         <Reveal>
           <SectionHead
             className={styles.head}
-            eyebrow="Drafting table · coming next"
+            eyebrow="Playground"
             title="Try a config against a sketched project"
             lead="Paste settings, lay out a folder tree, and watch each file get classified and each import get its verdict. In the browser, nothing to install."
           >
-            <Button variant="outline" href={GITHUB_PLAYGROUND_ISSUE} arrow>
-              Follow the progress
+            <Button variant="outline" to={PLAYGROUND} arrow>
+              Open the playground
             </Button>
           </SectionHead>
         </Reveal>

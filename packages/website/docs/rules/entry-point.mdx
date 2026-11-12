@@ -39,7 +39,7 @@ Read the **[migration guide below](#migration-to-boundariesdependencies)** for c
 :::
 
 :::info[Same base mechanism as Policies]
-This rule builds on the same base configuration documented in **[Policies](../policies/policies.mdx)** (a `default` plus a `rules` array). The differences are: its rule entries use a required **`target`** entity selector (an alias of `to`) instead of `from`/`to`, and the policy `allow`/`disallow` values match the imported **`fileInternalPath`** entry points. Read [Policies](../policies/policies.mdx) first, then the options below for the differences.
+This rule builds on the same base configuration documented in **[Policies](../policies/policies.mdx)** (a `default` plus a `policies` array). The differences are: its policies use a required **`target`** entity selector (an alias of `to`) instead of `from`/`to`, and the policy `allow`/`disallow` values match the imported **`fileInternalPath`** entry points. Read [Policies](../policies/policies.mdx) first, then the options below for the differences.
 :::
 
 ## Rule Details
@@ -50,19 +50,20 @@ This rule validates dependencies to ensure that each element is imported only th
 
 ```
 "boundaries/entry-point":
-  [<severity>, { "default": <string>, "message": <string>, "rules": <object> }]
+  [<severity>, { "default": <string>, "message": <string>, "policies": <array> }]
 ```
 
 The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second item is the options object:
 
-- `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any policy rule. If `"allow"`, imports are allowed unless explicitly disallowed by a rule. If `"disallow"`, imports are disallowed unless explicitly allowed by a policy.
+- `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any policy. If `"allow"`, imports are allowed unless explicitly disallowed by a policy. If `"disallow"`, imports are disallowed unless explicitly allowed by a policy.
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
-- `rules`: An array of policy objects processed in order to determine whether an import should be allowed. Each policy object can have the following properties:
+- `policies`: An array of policy objects processed in order to determine whether an import should be allowed. Each policy object can have the following properties:
   - `target` (**required**): **[`<entity selectors>`](../selectors/selectors.md)** - The policy is only evaluated when the imported element matches this selector. Accepts both legacy element selectors (for example `{ type: "module" }`) and entity selectors (for example `{ element: { type: "module" } }`).
   - `disallow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`). The pattern is matched against the `fileInternalPath` — the imported file's path relative to its element root (for example `index.js` or `subfolder/main.js`)
   - `allow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`). Like `disallow`, the pattern is matched against the `fileInternalPath`
   - _`importKind`_: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the policy is only evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`
   - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information
+- _`rules`_: Optional. **Deprecated** alias of `policies`, kept for backward compatibility. It prints a deprecation warning, and `policies` takes precedence when both are set. See [Legacy Policy Configuration](../policies/legacy.mdx#legacy-rules-option-in-rules-configuration).
 
 :::warning
 Each policy requires `target` and at least one of `allow` or `disallow`.
@@ -245,16 +246,20 @@ import ModuleB from 'modules/module-b'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). The message includes information about the violated rule and the elements involved in the violation, as well as the internal path of the imported file.
+It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). The configuration example of this page only has `allow` policies, so an import that none of them allows is reported with a message that names the importing element and the imported element, with the captured values of each.
 
-For example:
+For example, for `ModuleA.js` importing `modules/module-b/ModuleB`:
 
-`Dependencies to elements of type "module", captured values: elementName="module-a" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 1`
+`There is no policy allowing dependencies from elements of type "module" and captured values: elementName="module-a" to elements of type "module" and captured values: elementName="module-b"`
+
+The message does not name the imported file. A `disallow` policy that matches its `fileInternalPath` produces a message that names it and ends with the index of the policy. For example, a third policy `{ target: { type: "module" }, disallow: "ModuleB.js" }` reports the same import as:
+
+`Dependencies to elements of type "module" and fileInternalPath "ModuleB.js" are not allowed. Denied by policy at index 2`
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
+You can customize error messages globally or for specific policies. See [Policies -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Migration to `boundaries/dependencies`

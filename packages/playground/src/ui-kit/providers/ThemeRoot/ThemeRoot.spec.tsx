@@ -1,0 +1,101 @@
+import { render } from "@testing-library/react";
+
+import { ThemeRoot } from "./ThemeRoot";
+import { ThemeRootPom } from "./ThemeRoot.pom";
+
+/**
+ * Renders content inside the root element.
+ * @param testId The test id the root renders; none when it is unset.
+ * @returns The page object of the root element.
+ */
+function renderRoot(testId?: string): ThemeRootPom {
+  render(
+    <ThemeRoot testId={testId}>
+      <p>Content of the playground</p>
+    </ThemeRoot>
+  );
+
+  return new ThemeRootPom();
+}
+
+describe("ThemeRoot", () => {
+  it("should hold its content in an element with the class of the root", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const holdsContent = root.holds("Content of the playground");
+
+    // Assert
+    expect(holdsContent).toBe(true);
+  });
+
+  it("should give the playground the card and the ink of the host's tokens", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { backgroundColor, color } = root;
+
+    // Assert
+    expect(backgroundColor).toBe("var(--jsb-card)");
+    expect(color).toBe("var(--jsb-ink)");
+  });
+
+  it("should give the playground a 13 px body font with a 1.45 line height", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { fontFamily, fontSize, lineHeight } = root;
+
+    // Assert
+    expect(fontFamily).toBe("var(--jsb-font-body)");
+    expect(fontSize).toBe("13px");
+    expect(lineHeight).toBe("1.45");
+  });
+
+  it("should be as tall as its container", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { height } = root;
+
+    // Assert
+    expect(height).toBe("100%");
+  });
+
+  it("should count the border in its size", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { boxSizing } = root;
+
+    // Assert
+    expect(boxSizing).toBe("border-box");
+  });
+
+  it("should render the test id it is given on its root element", () => {
+    // Arrange
+    const root = renderRoot("playground");
+
+    // Act
+    const { renderedTestId } = root;
+
+    // Assert
+    expect(renderedTestId).toBe("playground");
+  });
+
+  it("should render no test id unless it is given one", () => {
+    // Arrange
+    const root = renderRoot();
+
+    // Act
+    const { renderedTestId } = root;
+
+    // Assert
+    expect(renderedTestId).toBeNull();
+  });
+});

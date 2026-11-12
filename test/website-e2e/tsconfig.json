@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom"],
+    "types": ["node"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "strict": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "test-results"]
+}

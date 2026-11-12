@@ -1,0 +1,110 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "playground",
+  "projectType": "library",
+  "tags": [
+    "type:react:lib"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      // It lints itself with the workspace eslint-plugin-boundaries, a devDependency, so `^build` builds it first
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        "^build"
+      ]
+    },
+    "check:types": {
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "test:unit": {
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "dev": {
+      // The harness loads the packages the sources import from their builds
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "build": {
+      "cache": true,
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        "production",
+        "!{projectRoot}/dev/**/*",
+        "!{projectRoot}/vite.config.js",
+        // The package is an ES module, so the configs of the tools that never take part in the build are .cjs files; tsconfig.eslint.json is read by lint and check:types only
+        "!{projectRoot}/jest.config.cjs",
+        "!{projectRoot}/jest.setup.cjs",
+        "!{projectRoot}/babel.config.cjs",
+        "!{projectRoot}/cspell.config.cjs",
+        "!{projectRoot}/tsconfig.eslint.json",
+        // The Playwright page objects build on their own (build:playwright), and nothing this build reaches imports them
+        "!{projectRoot}/tsup.playwright.config.js",
+        "!{projectRoot}/src/playwright.ts",
+        "!{projectRoot}/src/**/*.playwright.ts"
+      ]
+    },
+    "build:playwright": {
+      // Not a dependency of `build`, so that the production build of the website never waits for it. It builds the `./playwright` entry, which imports only `@playwright/test`, other Playwright files and constants files (lint-enforced), so no workspace package has to be built first
+      // The sources, since a constants file may import other modules, which the entry then bundles. The closure check is part of the target
+      "inputs": [
+        "sharedGlobals",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/tsup.playwright.config.js",
+        "{projectRoot}/src/**/*",
+        "!{projectRoot}/src/**/*.spec.{ts,tsx}",
+        "!{projectRoot}/src/**/*.mock.{ts,tsx}",
+        "{workspaceRoot}/scripts/check-bundle-imports.js"
+      ]
+    },
+    "check:pom-parity": {
+      "cache": true,
+      // It parses the page objects with the root script, and the base classes of the jsdom ones that it resolves, which may live in any source file
+      "inputs": [
+        "sharedGlobals",
+        "{projectRoot}/src/**/*.ts",
+        "!{projectRoot}/src/**/*.spec.ts",
+        "{projectRoot}/package.json",
+        "{workspaceRoot}/scripts/check-pom-parity.js"
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-plugin",
+    "eslint-config",
+    "cspell-config"
+  ]
+}

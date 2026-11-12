@@ -16,6 +16,8 @@ export type ButtonProps = {
   href?: string;
   /** Show a trailing arrow that slides on hover. */
   arrow?: boolean;
+  /** Skip the check of the build that the target exists, for a target whose fragment is not an anchor of its page. */
+  noBrokenLinkCheck?: boolean;
   /** Extra class names. */
   className?: string;
   /** Label. */
@@ -29,6 +31,7 @@ export type ButtonProps = {
  * @param props.to Internal path to link to.
  * @param props.href External URL to link to.
  * @param props.arrow Show a trailing arrow that slides on hover.
+ * @param props.noBrokenLinkCheck Skip the check of the build that the target exists, for a target whose fragment is not an anchor of its page.
  * @param props.className Extra class names.
  * @param props.children Label.
  * @returns The link.
@@ -38,6 +41,7 @@ export default function Button({
   to,
   href,
   arrow = false,
+  noBrokenLinkCheck = false,
   className,
   children,
 }: Readonly<ButtonProps>): ReactNode {
@@ -45,6 +49,7 @@ export default function Button({
     <Link
       to={to}
       href={href}
+      data-noBrokenLinkCheck={noBrokenLinkCheck}
       className={clsx(styles.button, styles[variant], className)}
     >
       <span className={styles.label}>{children}</span>

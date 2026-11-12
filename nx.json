@@ -103,13 +103,21 @@
         "build"
       ]
     },
+    "build:playwright": {
+      // The Playwright page objects of a package, built apart from its production build. Each project sets the inputs, which hold the sources its entry bundles
+      "cache": true,
+      "outputs": ["{projectRoot}/dist-playwright"]
+    },
     "check:all": {
+      // A project runs the targets of this list that it defines
       "dependsOn": [
         "check:spell",
         "lint",
         "check:types",
         "test:unit",
         "build",
+        "build:playwright",
+        "check:pom-parity",
         "test:e2e"
       ]
     }

@@ -1,0 +1,92 @@
+{
+  "name": "@boundaries/playground",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playground that classifies the files of a sketched project and evaluates its dependencies against a boundaries config, in the browser",
+  "author": "Javier Brea",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
+    "directory": "packages/playground"
+  },
+  "type": "module",
+  "files": [
+    "dist",
+    "dist-playwright"
+  ],
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./share": {
+      "types": "./dist/share.d.ts",
+      "import": "./dist/share.js"
+    },
+    "./playwright": {
+      "types": "./dist-playwright/playwright.d.ts",
+      "import": "./dist-playwright/playwright.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "eslint": "eslint",
+    "build": "tsup --config tsup.config.js",
+    "build:playwright": "tsup --config tsup.playwright.config.js && node ../../scripts/check-bundle-imports.js dist-playwright --allow @playwright/test",
+    "check:all": "echo 'All checks passed'",
+    "check:pom-parity": "node ../../scripts/check-pom-parity.js src",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit -p tsconfig.eslint.json",
+    "dev": "vite dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "pnpm test:unit",
+    "test:unit": "jest"
+  },
+  "dependencies": {
+    "@boundaries/config": "workspace:*",
+    "@boundaries/elements": "workspace:*",
+    "@boundaries/policies": "workspace:*",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@emotion/cache": "11.14.0",
+    "@humanwhocodes/momoa": "3.3.13",
+    "@lezer/highlight": "1.2.5",
+    "@mui/x-tree-view": "9.17.0",
+    "codemirror-json5": "1.0.3",
+    "fflate": "0.8.3",
+    "react-resizable-panels": "4.16.1"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "7.29.7",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "@mui/material": "9.5.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "jest-environment-jsdom": "30.5.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.5"
+  }
+}

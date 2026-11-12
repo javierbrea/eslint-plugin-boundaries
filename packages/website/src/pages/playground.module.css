@@ -1,0 +1,57 @@
+/* The wrapper of the page: it positions the visually hidden heading inside it, and the footer next to it is hidden through it, on this page alone */
+.wrapper {
+  position: relative;
+}
+
+/* Visible to screen readers and the outline only: the navbar's active item is the title of the page */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.stage,
+.loading {
+  background: var(--jsb-card);
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  color: var(--jsb-muted);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.9rem;
+}
+
+.note {
+  margin: 32px 16px;
+  padding: 1.25rem 1.5rem;
+  border: 1px dashed var(--jsb-line-strong);
+  border-radius: var(--jsb-radius-lg);
+  color: var(--jsb-muted);
+}
+
+/* The mobile navbar breakpoint of Docusaurus, as NARROW_QUERY in playground.tsx: from it up, the playground fills the page below the navbar, and the footer is out of the way so that only the panes scroll */
+@media (min-width: 997px) {
+  .note {
+    display: none;
+  }
+
+  .stage,
+  .loading {
+    height: max(620px, 100vh - var(--ifm-navbar-height));
+  }
+
+  .wrapper + footer {
+    display: none;
+  }
+}
+
+@media (max-width: 996px) {
+  .loading {
+    display: none;
+  }
+}

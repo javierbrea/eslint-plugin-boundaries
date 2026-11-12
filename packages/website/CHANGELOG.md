@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
+## [Unreleased]
+
+### Added
+
+- feat(#539): A playground at `/playground/`, linked from the navbar and the home: sketch a project and its boundaries config, and see how each file is classified and which imports are allowed, in the browser, evaluated in a background thread that never blocks the page. A link keeps the whole project, to share it or to open it from the docs, and a new Playground guide explains how to use it.
+
+### Changed
+
+- chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
+- chore(#640): The playground page marks its desktop-only note and its loading box with test ids, the 404 page marks its content, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
+
+### Fixed
+
+- docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
+- docs: The Complete Example of the Policies page sets `checkAllOrigins`, without which the policy about `redux` never applied.
+- docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports.
+- docs: The `boundaries/dependencies`, `boundaries/entry-point` and `boundaries/external` rule pages document the `policies` option, with `rules` as its deprecated alias, and their sample error messages are the ones ESLint prints with the configuration of each page.
+- docs: The rule pages name the Policies page in their links to its Message Templating section, and the `boundaries/no-private` page says that its message is customized with its `message` option.
+- fix(#634): The dimension label of the home drawing has enough contrast to read in both themes.
+
 ## [7.4.1] - 2026-11-02
 
 ### Added

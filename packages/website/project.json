@@ -17,7 +17,12 @@
           "target": "eslint:config",
           "projects": ["eslint-config"]
         },
-        "^build"
+        "^build",
+        // The lint resolves the imports of `@boundaries/playground/playwright`, which exist once that entry is built
+        {
+          "target": "build:playwright",
+          "projects": ["playground"]
+        }
       ]
     },
     "test:unit": {
@@ -34,18 +39,65 @@
       ]
     },
     "check:types": {
-      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
-      "dependsOn": []
+      // The page imports the built playground; the default `^build` would also build the workspace eslint-plugin, which only `lint` uses
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        },
+        // The page objects type-check against the types of `@boundaries/playground/playwright`, which exist once that entry is built
+        {
+          "target": "build:playwright",
+          "projects": ["playground"]
+        }
+      ]
     },
     "build": {
       "cache": true,
-      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
-      "dependsOn": [],
+      // The site bundles the built playground; the default `^build` would also build the workspace eslint-plugin, which only `lint` uses
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        }
+      ],
       "outputs": ["{projectRoot}/build"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
         "default",
-        "production"
+        "production",
+        // The Playwright page objects build on their own (build:playwright), and nothing the site imports reaches them
+        "!{projectRoot}/tsup.playwright.config.js",
+        "!{projectRoot}/src/playwright.ts",
+        "!{projectRoot}/src/**/*.playwright.ts"
+      ]
+    },
+    "build:playwright": {
+      // Not a dependency of `build`, so that the production build of the site never waits for it. The page objects extend the base of `@boundaries/playground/playwright`, whose build comes first: its types are in the output of this one
+      "dependsOn": [
+        {
+          "target": "build:playwright",
+          "projects": ["playground"]
+        }
+      ],
+      // The sources, since a constants file may import other modules, which the entry then bundles, and the build of the playground, which holds the base. The closure check is part of the target
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "sharedGlobals",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/tsup.playwright.config.js",
+        "{projectRoot}/src/**/*",
+        "{workspaceRoot}/scripts/check-bundle-imports.js"
+      ]
+    },
+    "start": {
+      // The dev server bundles the built playground
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        }
       ]
     }
   },

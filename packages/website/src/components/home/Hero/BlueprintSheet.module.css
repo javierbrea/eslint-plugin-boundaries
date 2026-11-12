@@ -57,7 +57,8 @@
 .dimText {
   font-family: var(--jsb-font-mono);
   font-size: 9px;
-  fill: var(--jsb-faint);
+  /* --jsb-faint fails AA contrast on the glow of the sheet, and --jsb-muted alone falls just short of it where the glow is strongest */
+  fill: color-mix(in srgb, var(--jsb-muted) 90%, var(--jsb-ink));
 }
 
 /* Layers */
