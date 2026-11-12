@@ -50,13 +50,10 @@ File descriptors categorize files independently from the element they belong to 
 **All selector properties are optional.** You can match on a single property, or combine several to target a more specific case. Remember that combined properties use AND logic — every one you specify must match.
 :::
 
-:::note
-File categories are the recommended replacement for the deprecated element-level `category`. Read the [Element Selector Legacy Syntax](./legacy/element.md) section for migration guidance.
-:::
-
 ## Next Steps
 
 - [Selectors](./selectors.md) — the entity/dependency model, array queries, captured values, and templating.
 - [Element selector](./element.md) — match the element a file belongs to.
 - [Module selector](./module.md) — match external and core module imports.
 - [Files](../classification/files.md) — define file descriptors and read the file description properties.
+- [Legacy Selectors](./legacy/element.md#category) — migrate the deprecated element-level `category` to file categories.

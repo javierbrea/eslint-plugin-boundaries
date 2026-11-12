@@ -27,13 +27,13 @@ export default function Home(): ReactNode {
       </Head>
       <Hero />
       <main>
+        <Quote />
         <Problem />
         <Steps />
+        <PlaygroundTeaser />
         <Spec />
         <Perspectives />
         <Numbers />
-        <Quote />
-        <PlaygroundTeaser />
         <FinalCta />
       </main>
     </Layout>

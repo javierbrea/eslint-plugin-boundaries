@@ -97,20 +97,6 @@ To target a dependency by its module, use the [`module` sub-selector](../selecto
 
 This is the right way to write policies about packages and built-ins, where there is no local element to match. See [Module Selectors](../selectors/module.md) for the full `module` selector reference.
 
-## Replacing the Deprecated External Rule
-
-The module layer replaces the patterns from the deprecated [`boundaries/external`](../rules/external.mdx) rule. Instead of a separate rule for package imports, match the module directly in `boundaries/dependencies`:
-
-```js
-// Forbid helpers from importing the "react" package
-{
-  from: { element: { type: "helper" } },
-  disallow: { to: { module: { origin: ["external", "core"], source: "react" } } }
-}
-```
-
-It also replaces the deprecated `dependency.module` metadata selector — use `to.module.source` instead. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for the full mapping.
-
 ## How Settings Influence Origin
 
 Two settings change how the plugin assigns an origin. Their schemas live in the [Settings reference](../settings/settings.md); this layer only describes their effect:
@@ -142,3 +128,4 @@ These settings are most useful in monorepos. See the [Monorepo Setup guide](../g
 - **[Settings](../settings/settings.md#boundariesflag-as-external)** - configure `flag-as-external` and `root-path`.
 - **[Monorepo Setup](../guides/monorepo-setup.md)** - classify workspace imports as local or external.
 - **[Classification](./classification.md)** - how element, file, and module combine into one entity.
+- **Legacy** - migrate the deprecated [`boundaries/external`](../rules/external.mdx#migration-to-boundariesdependencies) rule and [`dependency.module`](../selectors/legacy/dependency.md) selector to module selectors.

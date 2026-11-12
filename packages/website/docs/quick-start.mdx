@@ -314,11 +314,11 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 +        policies: [
 +          {
 +            from: { element: { type: "component" } },
-            allow: { to: { element: { type: "helper" } } }
++            allow: { to: { element: { type: "helper" } } }
 +          },
 +          {
-            from: { element: { type: "module" } },
-            allow: { to: { element: { types: ["component", "helper"] } } }
++            from: { element: { type: "module" } },
++            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {
 +            // No element may import a test file, whatever element it belongs to

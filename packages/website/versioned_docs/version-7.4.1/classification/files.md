@@ -206,8 +206,6 @@ The [`no-unknown-files`](../rules/no-unknown-files.md) rule reports files that t
 
 This means defining a file descriptor makes the matching files **known**: a file that matches any `boundaries/files` pattern is no longer flagged, even if it belongs to no element.
 
-This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements/legacy.md) or element [`category`](./elements/legacy.md)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
-
 The default message reflects both layers:
 
 ```text
@@ -216,20 +214,6 @@ File does not match any file pattern and does not belong to any known element
 
 See [`no-unknown-files`](../rules/no-unknown-files.md) for the full rule reference.
 
-## Migrating from the Element `category` Property
-
-File categories are the recommended replacement for the deprecated [`category` property in element descriptors](./elements/legacy.md).
-
-It keeps working without changes; you will see a deprecation warning in your console. File descriptors are a better fit because they categorize files independently of elements: one element can contain files in several categories, and a single file can have several categories at once — neither is possible with the single, element-wide `category`.
-
-To migrate, move the category from the element descriptor to a file descriptor:
-
-| Legacy (element descriptor) | Recommended (file descriptor) |
-| --- | --- |
-| `{ type: "helper", category: "helper", pattern: "helpers/*" }` | `{ type: "helper", pattern: "helpers/*" }` plus `boundaries/files`: `{ pattern: "helpers/**", category: "helper" }` |
-
-See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for full details.
-
 ## Next Steps
 
 - **[Classification](./classification.md)** - how elements, files, and modules combine into one entity.
@@ -237,3 +221,4 @@ See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) fo
 - **[Modules](./modules.md)** - classify dependencies by where they resolve from.
 - **[Selectors](../selectors/selectors.md)** - match files (and their categories) in your policies.
 - **[Settings](../settings/settings.md)** - the `boundaries/files` setting schema and every other global setting.
+- **[Legacy element fields](./elements/legacy.md#category-optional)** - migrate the deprecated element-level `category` to file descriptors.
