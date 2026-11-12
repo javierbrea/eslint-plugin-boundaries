@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- chore: The README links to the playground, with a button next to the documentation one and a section after the installation. Its package list names the published packages without referring to the repository.
+
 ## [7.4.2] - 2026-11-05
 
 ### Changed
