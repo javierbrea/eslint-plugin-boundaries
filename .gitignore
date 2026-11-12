@@ -145,8 +145,4 @@ test/browser-e2e/test-results/
 test/website-e2e/test-results/
 
 # Agent working plans (local only)
-.agents/plans/*
-# Exception: the playground plan is shared between sessions on its integration branch
-# feat/539/playground and is removed by its last phase before the branch merges into release
-!.agents/plans/playground.md
-!.agents/plans/playground/
+.agents/plans/
