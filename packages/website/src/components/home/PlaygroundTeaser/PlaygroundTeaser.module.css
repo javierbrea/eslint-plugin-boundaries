@@ -1,6 +1,7 @@
+/* Between the steps, which draw the line above, and the specification, which draws none */
 .play {
   padding-block: 5rem;
-  border-top: 1px solid var(--jsb-line);
+  border-bottom: 1px solid var(--jsb-line);
 }
 
 .grid {

@@ -234,10 +234,6 @@ const config: Config = {
           title: "Community",
           items: [
             {
-              label: "Acknowledgements",
-              to: "/docs/misc/acknowledgments/",
-            },
-            {
               label: "Discussions",
               to: "https://github.com/javierbrea/eslint-plugin-boundaries/discussions",
             },

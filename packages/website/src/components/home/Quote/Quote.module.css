@@ -1,5 +1,6 @@
 .quote {
   padding-block: 4rem 5rem;
+  border-top: 1px solid var(--jsb-line);
 }
 
 .text {

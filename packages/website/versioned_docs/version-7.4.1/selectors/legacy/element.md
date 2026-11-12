@@ -149,6 +149,15 @@ Module origin describes where an imported module comes from, so it now lives on 
 | --- | --- |
 | `{ element: { origin: "external" } }` | `{ module: { origin: "external" } }` |
 
+### elementPath
+
+The `elementPath` property, also in a `parent` selector, is deprecated. Use `path` in the [element sub-selector](../element.md) instead.
+
+| Deprecated | Replacement |
+| --- | --- |
+| `{ elementPath: "src/helpers/*" }` | `{ element: { path: "src/helpers/*" } }` |
+| `{ parent: { elementPath: "src/modules/*" } }` | `{ element: { parent: { path: "src/modules/*" } } }` |
+
 ### internalPath
 
 The `internalPath` property on an element selector is deprecated. Use the [`module` sub-selector](../module.md) `internalPath` to match the path within an external or core module, or `fileInternalPath` to match the path within a local element.

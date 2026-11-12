@@ -59,13 +59,13 @@ For each dependency it finds, the plugin classifies both the file the dependency
 
 ### 1. Define the Classification in Your Project through Configuration
 
-The plugin classifies every file along three independent layers. You configure the first two layers to recognize files and the elements they belong to; the third is derived for you.
+The plugin classifies every file along three independent layers. You configure the first two layers with descriptors to recognize files and the elements they belong to; the third has no descriptors and is derived from each import.
 
 | Layer | Describes | You configure? | Example |
 | --- | --- | --- | --- |
 | **element** | The architectural role a file plays. Usually based on the folder it is in. | Yes, with [element descriptors](./classification/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
 | **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./classification/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
-| **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `module.origin: "external"` |
+| **module** | Where the imported module resolves from. | No descriptors — derived from the import. [Settings](./settings/settings.md#boundariesflag-as-external) decide when it is external. | `import "react"` resolves to `module.origin: "external"` |
 
 Configuration is done in your `eslint.config.js` file, in the [`boundaries`](./settings/settings.md) settings. For example:
 

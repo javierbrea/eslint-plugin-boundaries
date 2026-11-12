@@ -152,11 +152,7 @@ Both `parents` and `parent` work with **parent selector objects**. A parent sele
 
 ## Deprecated element selector properties
 
-:::warning[Deprecated]
-Several element selector properties — **`category`**, **`origin`**, **`elementPath`**, **`internalPath`**, **`filePath`**, and the parent-level **`elementPath`** — are kept for backward compatibility but are deprecated. They still work and are converted internally.
-
-Use the modern replacements instead: the [`file` sub-selector](./file.md) `categories`, the [`module` sub-selector](./module.md) `origin`, `element.path`, and `element.fileInternalPath`. The full list, with migration tables, lives on the [Legacy Element Selectors](./legacy/element.md) page.
-:::
+The deprecated `category`, `origin`, `elementPath`, `internalPath` and `filePath` properties still work. Their replacements are on the [Legacy Selectors](./legacy/element.md#element-selector-properties) page.
 
 ## Next Steps
 

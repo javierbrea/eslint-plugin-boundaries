@@ -484,12 +484,6 @@ export default [{
 }]
 ```
 
-## Deprecated Settings
-
-:::warning[Deprecated]
-The `boundaries/types` and `boundaries/alias` settings are kept for backward compatibility but are deprecated. Use **[`boundaries/elements`](#boundarieselements)** and the **[`import/resolver`](#importresolver)** settings instead. They are documented, with migration guidance, on the **[Deprecated Settings](./legacy.md)** page.
-:::
-
 ## Next Steps
 
 - **[Elements](../classification/elements.md)** - element descriptors in context.
@@ -498,3 +492,4 @@ The `boundaries/types` and `boundaries/alias` settings are kept for backward com
 - **[Policies](../policies/policies.mdx)** - message templates referenced by `legacy-templates`.
 - **[Debugging](../guides/debugging.md)** - debug filter examples.
 - **[Monorepo Setup](../guides/monorepo-setup.md)** - `flag-as-external` usage in monorepos.
+- **[Deprecated Settings](./legacy.md)** - `boundaries/types`, `boundaries/alias` and `boundaries/elements-single-type`, with their replacements.

@@ -59,10 +59,6 @@ Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`,
 }
 ```
 
-:::warning[Deprecated]
-The **`module`** property on a dependency metadata selector is deprecated. Use the [`module` sub-selector](./module.md) with **`source`** in `to` instead — for example `to: { module: { source: "react" } }`. Read the [Legacy Dependency Metadata Selector Syntax](./legacy/dependency.md) page for migration guidance.
-:::
-
 :::info
 **All selector properties are optional.** You can match on a single property, or combine several to target a more specific case. Remember that combined properties use AND logic — every one you specify must match.
 :::
@@ -72,3 +68,4 @@ The **`module`** property on a dependency metadata selector is deprecated. Use t
 - [Selectors](./selectors.md) — the entity/dependency model, array queries, captured values, and templating.
 - [Policies](../policies/policies.mdx) — use `from`/`to`/`dependency` together with `allow`/`disallow`.
 - [Classification → Dependency](../classification/dependency.md) — the runtime dependency metadata the plugin builds.
+- [Legacy Dependency Metadata Selector Syntax](./legacy/dependency.md) — the deprecated `module` property and how to migrate it.

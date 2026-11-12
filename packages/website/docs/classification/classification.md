@@ -32,7 +32,7 @@ It answers the first — *what is this file?* — through three independent laye
 
 - **Element** — the architectural piece the file belongs to, such as the folder `components/Button/` or `helpers/data/`. **You define elements** with [element descriptors](./elements.md).
 - **File** — the file on its own, regardless of which element it lives in. **You define file categories** with [file descriptors](./files.md).
-- **Module** — what an import resolves to: a local file, an external package, or a Node.js built-in. **This layer is derived automatically** from the import; you do not configure it (except for the [optional `boundaries/flag-as-external` and `boundaries/root-path` settings](../settings/settings.md)).
+- **Module** — what an import resolves to: a local file, an external package, or a Node.js built-in. **This layer has no descriptors**: it is derived from the import, and [settings](../settings/settings.md#boundariesflag-as-external) decide when a module is external.
 
 Together these three layers form an **entity** — the unit the plugin analyzes. The layers are orthogonal: the same file can be element-type `["component"]`, file-categories `["test", "tsx"]`, and module-origin `"local"`, all independently.
 
@@ -88,12 +88,12 @@ This layer is for cross-cutting file kinds — tests, styles, stories — that a
 ```
 
 :::info
-Read **[Files](./files.md)** for file descriptor properties, how categories accumulate, and the migration from the deprecated element-level `category`.
+Read **[Files](./files.md)** for file descriptor properties and how categories accumulate.
 :::
 
 ### The module layer
 
-The module layer describes where a dependency resolves to. Unlike the other two, you do not configure it — the plugin derives it from each import. A module has an `origin` of `"local"` (your own project), `"external"` (an installed package), or `"core"` (a Node.js built-in), plus a `source` (the base package name) and an `internalPath` (the sub-path within a package).
+The module layer describes where a dependency resolves to. Unlike the other two, it has no descriptors — the plugin derives it from each import. A module has an `origin` of `"local"` (your own project), `"external"` (an installed package), or `"core"` (a Node.js built-in), plus a `source` (the base package name) and an `internalPath` (the sub-path within a package).
 
 This is the layer you use to control imports of packages and built-ins: allow only certain elements to import `react`, or forbid direct imports of Node.js core modules.
 
@@ -123,7 +123,7 @@ You rarely use a single layer in isolation. A typical policy combines them: *com
 | --- | --- | --- |
 | Group code by architectural role (components, helpers, modules) | Elements | [`boundaries/elements`](./elements.md) |
 | Tag files across elements (tests, styles, stories) | File categories | [`boundaries/files`](./files.md) |
-| Control imports of external packages or Node.js core modules | Modules | derived automatically; see [Modules](./modules.md) |
+| Control imports of external packages or Node.js core modules | Modules | No descriptors; [settings](../settings/settings.md#boundariesflag-as-external) decide when a module is external. See [Modules](./modules.md). |
 | Capture path fragments (element name, family) for dynamic policies | Element or file captured values | [`boundaries/elements`](./elements.md) / [`boundaries/files`](./files.md) |
 
 For the full property list of each layer, see the per-layer reference tables:

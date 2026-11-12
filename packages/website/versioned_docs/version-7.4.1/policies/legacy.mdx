@@ -2,7 +2,7 @@
 id: legacy
 title: Legacy Policy Configuration
 sidebar_label: Legacy
-description: Deprecated policy configuration in eslint-plugin-boundaries — rule-level importKind, legacy flat message aliases, and the legacy ${...} message template syntax, with migration guidance.
+description: Deprecated policy configuration in eslint-plugin-boundaries — deprecated rules, the rules option, importKind and target, legacy selectors in policies, legacy flat message aliases, and the legacy ${...} message template syntax, with migration guidance.
 tags:
   - configuration
   - deprecated
@@ -25,6 +25,10 @@ import CodeDiff from '@site/src/components/CodeDiff';
 :::warning[Deprecated]
 Everything on this page is kept for backward compatibility but is deprecated and will be removed in a future major version. Prefer the modern configuration documented in [Policies](./policies.mdx).
 :::
+
+## Deprecated rules
+
+The deprecated rules [`boundaries/element-types`](../rules/dependencies.md), [`boundaries/external`](../rules/external.mdx), and [`boundaries/entry-point`](../rules/entry-point.mdx) build on the same base configuration as [Policies](./policies.mdx), with their own differences. Their pages document those differences and how to migrate to `boundaries/dependencies`.
 
 ## Legacy `rules` option in rules configuration
 
@@ -84,7 +88,7 @@ Specifies whether a rule applies based on how the dependency is imported.
 .   disallow: {
 .     to: { element: { type: "helper" } },
 +     dependency: { kind: "type" }
-.   }
+.   },
 -   importKind: "type"
 . }
 
@@ -94,10 +98,10 @@ Specifies whether a rule applies based on how the dependency is imported.
 .   allow: {
 .     to: { element: { type: "helper" } },
 +     dependency: { kind: ["value", "type"] }
-.   }
+.   },
 -   importKind: ["value", "type"]
 . }
-.
+
 . // Modules can import components as any import kind
 . {
 .   from: { element: { type: "module" } },
@@ -119,17 +123,24 @@ The `target` property is a deprecated alias for `to`. It still works, but use `t
 
 <CodeDiff language="javascript">{`
 . {
-. from: { element: { type: "component" } },
-. disallow: {
--    target: { element: { type: "helper" } }
-+    to: { element: { type: "helper" } }
-. }
+.   from: { element: { type: "component" } },
+.   disallow: {
+-     target: { element: { type: "helper" } }
++     to: { element: { type: "helper" } }
+.   }
 . }
 `}</CodeDiff>
 
 :::warning
 When both `target` and `to` are defined, `to` takes precedence.
 :::
+
+## Legacy selectors in policies
+
+Policies still accept the selectors of earlier versions, which are converted internally:
+
+- Element selectors in the flat format, without the `element` wrapper, such as `from: { type: "helper" }`, and the string and tuple formats. Read [Legacy Element Selectors](../selectors/legacy/element.md) for the formats and how to migrate them.
+- The `dependency.module` selector. Use `to.module.source` instead, for example `to: { module: { source: "react" } }`. Read [Legacy Dependency Metadata Selector Syntax](../selectors/legacy/dependency.md) for the migration.
 
 ## Legacy `rule` template variable
 
