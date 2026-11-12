@@ -62,27 +62,11 @@ export class PlaygroundPagePom extends Pom {
   }
 
   /**
-   * Whether the loading box is on screen. It reads once and does not wait.
-   * @returns A promise of true when the box is visible.
-   */
-  get isLoadingBoxVisible(): Promise<boolean> {
-    return this.loadingBox.isVisible();
-  }
-
-  /**
    * Waits for the note to be on screen, which is how a narrow viewport shows the page.
    * @returns A promise that settles when the note is visible, and rejects when it is not before the timeout of the assertions.
    */
   async waitForNote(): Promise<void> {
     await expect(this.note).toBeVisible();
-  }
-
-  /**
-   * Waits for the note to be out of sight, which is how a wide viewport shows the page.
-   * @returns A promise that settles when the note is hidden, and rejects when it is not before the timeout of the assertions.
-   */
-  async waitUntilNoteHidden(): Promise<void> {
-    await expect(this.note).toBeHidden();
   }
 
   /**

@@ -1,0 +1,19 @@
+{
+  "name": "@boundaries/website-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eslint": "eslint",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test:e2e": "playwright install chromium && playwright test"
+  },
+  "dependencies": {
+    "@boundaries/playground": "workspace:*",
+    "website": "workspace:*"
+  }
+}

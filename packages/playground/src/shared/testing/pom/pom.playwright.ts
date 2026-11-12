@@ -106,6 +106,36 @@ export abstract class Pom {
   }
 
   /**
+   * Reads an attribute of an element once, without waiting for the element: the `getAttribute` of a locator waits for the element to be in the page, and a value getter never waits.
+   * @param attributeName The name of the attribute, such as `aria-expanded`.
+   * @param target The locator of the element, which is the root element by default.
+   * @returns A promise of the value of the attribute, or null when the element has no such attribute or is not in the page.
+   */
+  protected async readAttribute(
+    attributeName: string,
+    target: Locator = this.root
+  ): Promise<string | null> {
+    const [value] = await target.evaluateAll(
+      (elements, attribute) =>
+        elements.map((element) => element.getAttribute(attribute)),
+      attributeName
+    );
+
+    return value ?? null;
+  }
+
+  /**
+   * Reads the text of an element once (the first one, when the locator matches several), without waiting for it: the `textContent` of a locator waits for the element to be in the page, and a value getter never waits.
+   * @param target The locator of the element, which is the root element by default.
+   * @returns A promise of the text content of the element, or an empty string when it is not in the page.
+   */
+  protected async readText(target: Locator = this.root): Promise<string> {
+    const [text] = await target.allTextContents();
+
+    return text ?? "";
+  }
+
+  /**
    * Whether the component is in the page, which is false when its root element cannot be found. It reads once and does not wait for the component to render.
    * @returns A promise of true when the root element is found.
    */

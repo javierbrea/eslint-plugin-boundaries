@@ -307,6 +307,54 @@ export function createBrowserConfig(hint) {
   };
 }
 
+// A fixed wait or a wait on a selector or on the network makes a spec slow or flaky: a Playwright page object waits for what it needs with a web-first assertion on a locator, `locator.waitFor()` or `expect.poll`
+const FIXED_WAIT_MESSAGE =
+  "Wait with a web-first assertion on a locator, locator.waitFor() or expect.poll, never with a fixed wait, a selector or the network.";
+
+// The timers of the page or of Node.js, which sleep for a fixed time when a promise wraps them: a call of the global function, a call of it as a member of `window`, `globalThis` or `global`, and an import of a module of Node.js that exports them, by a string. The guard reads names, so an alias, a destructured or computed member or `.call` passes it
+const TIMER_FUNCTIONS = "/^(setTimeout|setInterval)$/";
+const TIMER_MODULES = "/^(node:)?timers(\\/promises)?$/";
+
+const FIXED_WAIT_SYNTAX = [
+  "Literal[value='networkidle']",
+  "TemplateElement[value.cooked='networkidle']",
+  `CallExpression[callee.name=${TIMER_FUNCTIONS}]`,
+  `CallExpression[callee.object.name=/^(window|globalThis|global)$/][callee.property.name=${TIMER_FUNCTIONS}]`,
+  `ImportDeclaration[source.value=${TIMER_MODULES}]`,
+  `ExportNamedDeclaration[source.value=${TIMER_MODULES}]`,
+  `ExportAllDeclaration[source.value=${TIMER_MODULES}]`,
+  `ImportExpression[source.value=${TIMER_MODULES}]`,
+  `CallExpression[callee.name='require'][arguments.0.value=${TIMER_MODULES}]`,
+];
+
+/**
+ * Returns the config of the Playwright files that never wait with a fixed wait (`waitForTimeout`, `setTimeout`, `setInterval` and the `timers` modules of Node.js), on a selector or a function (`waitForSelector`, `waitForFunction`) or on the network (the `networkidle` load state).
+ * @param {string[]} files The globs of the Playwright files.
+ * @param {{ selector: string, message: string }[]} [extraRestrictedSyntax] More `no-restricted-syntax` entries for the same files. A later config object replaces the options of a rule instead of merging them, so a config that restricts more syntax in some of these files passes its entries here, to a call of its own for those files.
+ * @returns {object} The config.
+ */
+export function createFixedWaitConfig(files, extraRestrictedSyntax = []) {
+  return {
+    files,
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        ...["waitForTimeout", "waitForSelector", "waitForFunction"].map(
+          (property) => ({ property, message: FIXED_WAIT_MESSAGE })
+        ),
+      ],
+      "no-restricted-syntax": [
+        "error",
+        ...FIXED_WAIT_SYNTAX.map((selector) => ({
+          selector,
+          message: FIXED_WAIT_MESSAGE,
+        })),
+        ...extraRestrictedSyntax,
+      ],
+    },
+  };
+}
+
 // Rules of the sonarjs recommended config that the "Sonar way comprehensive" profile of the SonarCloud projects does not run
 const SONARJS_RULES_NOT_IN_SONARCLOUD = [
   "argument-type",

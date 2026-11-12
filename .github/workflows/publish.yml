@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7.0.1
     - uses: ./.github/actions/install
-    # NOTE: check:all runs browser-e2e, which needs the browsers
+    # NOTE: check:all runs browser-e2e and website-e2e, which need the browsers
     - uses: ./.github/actions/install-browsers
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks
@@ -35,7 +35,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7.0.1
     - uses: ./.github/actions/install
-    # NOTE: check:all runs browser-e2e, which needs the browsers
+    # NOTE: check:all runs browser-e2e and website-e2e, which need the browsers
     - uses: ./.github/actions/install-browsers
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks --tag beta

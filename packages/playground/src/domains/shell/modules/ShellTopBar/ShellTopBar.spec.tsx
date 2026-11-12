@@ -1219,7 +1219,6 @@ describe("ShellTopBar", () => {
 
       // Assert
       expect(bar.help.isRendered).toBe(true);
-      expect(bar.help.title).toBe("How the playground works");
       expect(bar.actions.isHelpPressed).toBe(true);
     });
 

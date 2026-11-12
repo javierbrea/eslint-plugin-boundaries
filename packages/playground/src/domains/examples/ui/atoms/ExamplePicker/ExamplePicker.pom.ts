@@ -115,6 +115,14 @@ export class ExamplePickerPom extends Pom {
   }
 
   /**
+   * The name of the current example, which the button says after its label.
+   * @returns The name, which is empty when the sketch is none of the examples.
+   */
+  get title(): string {
+    return this.text.slice(this.label.length).trim();
+  }
+
+  /**
    * The color of the label.
    * @returns The computed value.
    */

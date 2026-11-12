@@ -7,7 +7,7 @@ import { HASH_STORE_WRITE_DELAY } from "./HashStore.constants";
 type PendingWrite = {
   /** The timer that runs the write after the delay */
   readonly timer: number;
-  /** Runs the write at once, as the timer and `pagehide` do. It writes nothing when the page is no longer the one that scheduled the write */
+  /** Runs the write at once, as the timer and `pagehide` do. It writes nothing when the page is no longer the one that scheduled the write, or when the hash holds another link by then */
   readonly run: () => void;
 };
 
@@ -38,7 +38,7 @@ export class HashStore implements StateStore {
   }
 
   /**
-   * Remembers the sketch and writes it to the hash once the user stops saving: 500 milliseconds after the last save, or when the page is hidden, whichever comes first. The returned promise does not wait for the write. The write is for the page that saved: when the host has moved to another page by then, such as a client-side navigation to the docs, nothing is written there. Until it is written, the sketch is newer than the hash: the next `load` gives it, and writes it, when the page has no hash or has the one the store last read or wrote, and gives the sketch of any other hash instead.
+   * Remembers the sketch and writes it to the hash once the user stops saving: 500 milliseconds after the last save, or when the page is hidden, whichever comes first. The returned promise does not wait for the write. The write is for the page that saved: when the host has moved to another page by then, such as a client-side navigation to the docs, nothing is written there. Nor is it written over another link that the hash holds by then, such as the one of a docs button that brought the host back before the delay ended, or one pasted in the address bar, so that the next `load` reads that link. Until it is written, the sketch is newer than the hash: the next `load` gives it, and writes it, when the page has no hash or has the one the store last read or wrote, and gives the sketch of any other hash instead.
    * @param sketch The sketch to save.
    */
   public save(sketch: Sketch): Promise<void> {
@@ -47,7 +47,7 @@ export class HashStore implements StateStore {
     const page = this._getPage();
     const run = (): void => {
       this._cancelWrite();
-      if (this._getPage() === page) {
+      if (this._getPage() === page && !this._holdsAnotherLink()) {
         this._write(encodeSketch(sketch));
       }
     };
@@ -140,6 +140,16 @@ export class HashStore implements StateStore {
       this._write(encodeSketch(this._sketch));
     }
     return this._sketch;
+  }
+
+  /**
+   * Tells whether the hash of the URL is a link of the playground that the store did not last read or write, which a write that waited must not overwrite. A hash with no sketch, such as the anchor of a heading, is no link.
+   * @returns True when the hash holds a sketch, or one that cannot be read, and is not the hash the store last read or wrote.
+   */
+  private _holdsAnotherLink(): boolean {
+    const { hash } = window.location;
+
+    return hash !== this._hash && decodeHash(hash).status !== "empty";
   }
 
   /**

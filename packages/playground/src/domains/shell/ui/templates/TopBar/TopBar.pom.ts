@@ -3,9 +3,14 @@ import { within } from "@testing-library/react";
 import { Pom } from "@/shared/testing/pom";
 
 import { TOP_BAR_TEST_ID } from "./TopBar.constants";
+import type { TopBarCounts } from "./TopBar.types";
 
 /** What the text of the status starts with: the number of files. */
 const STATUS_PATTERN = /^\d+ files? ·/;
+
+/** What the text of the status is once the problems are counted, with the number of files, dependencies and problems as its groups. */
+const COUNTED_STATUS_PATTERN =
+  /^(\d+) files? · (\d+) (?:dependency|dependencies) · (\d+) problems?$/;
 
 /** The attributes that the styled parts of the bar use as props and must not leave in the DOM. */
 const PROP_ATTRIBUTES = ["color", "tone"] as const;
@@ -120,6 +125,28 @@ export class TopBarPom extends Pom {
    */
   get statusText(): string {
     return this.label.textContent;
+  }
+
+  /**
+   * The numbers that the status counts once the problems are known.
+   * @returns The numbers of files, dependencies and problems.
+   * @throws When the status does not count the problems, such as when it says that the config has errors.
+   */
+  get counts(): TopBarCounts {
+    const text = this.statusText;
+    const match = COUNTED_STATUS_PATTERN.exec(text);
+
+    if (match === null) {
+      throw new Error(
+        `${this.constructor.name} found no count of the problems in the status "${text}"`
+      );
+    }
+
+    return {
+      files: Number(match[1]),
+      dependencies: Number(match[2]),
+      problems: Number(match[3]),
+    };
   }
 
   /**
