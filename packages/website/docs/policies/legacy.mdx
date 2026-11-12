@@ -88,7 +88,7 @@ Specifies whether a rule applies based on how the dependency is imported.
 .   disallow: {
 .     to: { element: { type: "helper" } },
 +     dependency: { kind: "type" }
-.   }
+.   },
 -   importKind: "type"
 . }
 
@@ -98,10 +98,10 @@ Specifies whether a rule applies based on how the dependency is imported.
 .   allow: {
 .     to: { element: { type: "helper" } },
 +     dependency: { kind: ["value", "type"] }
-.   }
+.   },
 -   importKind: ["value", "type"]
 . }
-.
+
 . // Modules can import components as any import kind
 . {
 .   from: { element: { type: "module" } },
@@ -123,11 +123,11 @@ The `target` property is a deprecated alias for `to`. It still works, but use `t
 
 <CodeDiff language="javascript">{`
 . {
-. from: { element: { type: "component" } },
-. disallow: {
--    target: { element: { type: "helper" } }
-+    to: { element: { type: "helper" } }
-. }
+.   from: { element: { type: "component" } },
+.   disallow: {
+-     target: { element: { type: "helper" } }
++     to: { element: { type: "helper" } }
+.   }
 . }
 `}</CodeDiff>
 

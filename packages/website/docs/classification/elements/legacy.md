@@ -51,7 +51,7 @@ See the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx)
 
 **Type:** `<string>` — one of `"folder"` | `"file"` | `"full"`. **Default:** `"folder"`.
 
-It keeps working without changes. `mode` controlled how a pattern was interpreted:
+It keeps working without changes, but prints a deprecation warning. `mode` controlled how a pattern was interpreted:
 
 - **`folder`** (default): the element is a folder. The pattern is expanded internally (effectively adding `/**/*`), so any file under the matched folder belongs to the element. This is the standard behavior — you no longer need to set it.
 - **`file`**: the element is the file itself, matched right-to-left without the folder expansion, so the element `path` is the file path. Use cases that classified individual files this way are now better expressed with [file descriptors](../files.md) and their categories.

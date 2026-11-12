@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - docs: The rule pages name the Policies page in their links to its Message Templating section, and the `boundaries/no-private` page says that its message is customized with its `message` option.
 - fix(#634): The dimension label of the home drawing has enough contrast to read in both themes.
 - docs: The JavaScript tab of the last step of the Quick Start marks every added line of the `boundaries/dependencies` rule, and its copy button keeps their indentation.
+- docs: The `importKind` and `target` examples of the Legacy Policy Configuration page have valid syntax and consistent indentation, and their copy button no longer copies a stray `.` line.
 
 ## [7.4.1] - 2026-11-02
 
