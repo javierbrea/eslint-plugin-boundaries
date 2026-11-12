@@ -1,6 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 
-import { renderHookInSession } from "@/domains/session/data/store/store.mock";
+import {
+  leaveNothingOpen,
+  renderHookInSession,
+} from "@/domains/session/data/store/store.mock";
 
 import { useShownTab } from "./useShownTab";
 
@@ -24,7 +27,7 @@ describe("useShownTab", () => {
     });
   });
 
-  it("should be the sketch's when nothing is in focus", () => {
+  it("should be the sketch's when the instance starts, with the config in focus", () => {
     // Act
     const { result } = renderHookInSession(useShownTab);
 
@@ -36,6 +39,8 @@ describe("useShownTab", () => {
     // Arrange
     const { store, result } = renderHookInSession(useShownTab);
 
+    leaveNothingOpen(store, "src/index.js");
+
     // Act
     act(() => store.selectTab("node"));
 
@@ -46,6 +51,8 @@ describe("useShownTab", () => {
   it("should be the tab of the node when something is opened", () => {
     // Arrange
     const { store, result } = renderHookInSession(useShownTab);
+
+    leaveNothingOpen(store, "src/index.js");
 
     // Act
     act(() => store.open({ kind: "config" }));

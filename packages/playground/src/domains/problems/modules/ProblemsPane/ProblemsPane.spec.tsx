@@ -7,6 +7,7 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import {
   failEvaluation,
+  leaveNothingOpen,
   releaseEvaluation,
   renderInSession,
   waitUntilEvaluationIsLate,
@@ -39,6 +40,9 @@ const DEFAULT_MESSAGE =
   'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"';
 
 const FILE = "src/modules/checkout/index.js";
+
+/** A file that a sketch is given, to be opened and removed so that nothing is open */
+const SPARE_FILE = "spare.js";
 
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
@@ -76,6 +80,18 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
 }
 
 /**
+ * Adds a spare file to a sketch, which a spec opens and removes with `leaveNothingOpen` to leave nothing open: the sketch that is left is the one given.
+ * @param sketch The sketch.
+ * @returns The sketch with a file more, at the end of its tree.
+ */
+function withSpareFile(sketch: Sketch): Sketch {
+  return {
+    ...sketch,
+    tree: [...sketch.tree, { path: SPARE_FILE, kind: "file" }],
+  };
+}
+
+/**
  * Reads the tabs of the panel.
  * @param pane The problems pane.
  * @returns The text of each tab, with `*` after the selected one.
@@ -103,8 +119,11 @@ describe("ProblemsPane", () => {
 
   describe("the sketch", () => {
     it("should have only the tab of the sketch, selected, when nothing is open", () => {
+      // Arrange
+      const { store, pane } = renderPane(withSpareFile(QUICK_START));
+
       // Act
-      const { pane } = renderPane();
+      leaveNothingOpen(store, SPARE_FILE);
 
       // Assert
       expect(getTabs(pane)).toEqual(["Project*"]);
@@ -116,7 +135,7 @@ describe("ProblemsPane", () => {
       const { pane } = renderPane(MISTAKES);
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Project2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js2"]);
       expect(pane.list.row("eslint.config.js:15:16").message).toContain(
         "Invalid rule options."
       );
@@ -162,15 +181,17 @@ describe("ProblemsPane", () => {
       });
 
       // Assert
-      expect(before).toEqual(["Project*"]);
-      expect(getTabs(pane)).toEqual(["Project2*"]);
+      expect(before).toEqual(["Project*", "eslint.config.js"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js2"]);
     });
   });
 
   describe("the rows of the config", () => {
     it("should open the config at the range of the problem when a row is pressed", () => {
       // Arrange
-      const { store, pane } = renderPane(MISTAKES);
+      const { store, pane } = renderPane(withSpareFile(MISTAKES));
+
+      leaveNothingOpen(store, SPARE_FILE);
 
       // Act
       pane.list.row("eslint.config.js:15:16").press();
@@ -249,7 +270,7 @@ describe("ProblemsPane", () => {
       typeLines(store, "src/index.js\nsrc/../outside.js\n");
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Project1*"]);
+      expect(getTabs(pane)).toEqual(["Project1*", "eslint.config.js"]);
       expect(pane.list.row("Project text:2").message).toContain(
         "The path cannot have `.` or `..` segments."
       );
@@ -283,7 +304,7 @@ describe("ProblemsPane", () => {
       expect(pane.list.row("eslint.config.js:15:16").opens).toBe(true);
     });
 
-    it("should open nothing when a line is pressed", () => {
+    it("should open nothing, and leave the config in focus, when a line is pressed", () => {
       // Arrange
       const { store, pane } = renderPane();
       typeLines(store, "src/../outside.js\n");
@@ -296,7 +317,7 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(listener).not.toHaveBeenCalled();
-      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(store.getState().focus).toEqual({ kind: "config" });
     });
 
     it("should list them together with the problems of the config", () => {
@@ -307,7 +328,7 @@ describe("ProblemsPane", () => {
       typeLines(store, "src/../outside.js\n");
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Project2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js1"]);
       expect(pane.list.rowCount).toBe(2);
     });
 
@@ -320,7 +341,7 @@ describe("ProblemsPane", () => {
       act(() => store.setView("tree"));
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Project*"]);
+      expect(getTabs(pane)).toEqual(["Project*", "eslint.config.js"]);
       expect(pane.list.emptyText).toBe("No problems in the project.");
     });
   });
@@ -411,12 +432,17 @@ describe("ProblemsPane", () => {
   describe("the config", () => {
     it("should add its tab with the count of its problems, and list only those", () => {
       // Arrange
-      const { store, pane } = renderPane(MISTAKES);
+      const { store, pane } = renderPane(withSpareFile(MISTAKES));
+
+      leaveNothingOpen(store, SPARE_FILE);
+
+      const before = getTabs(pane);
 
       // Act
       act(() => store.open({ kind: "config" }));
 
       // Assert
+      expect(before).toEqual(["Project2*"]);
       expect(getTabs(pane)).toEqual(["Project2", "eslint.config.js2*"]);
       expect(pane.list.rowCount).toBe(2);
     });
@@ -489,7 +515,7 @@ describe("ProblemsPane", () => {
         const { pane } = renderPane(FULL_QUICK_START);
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Project2*"]);
+        expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js"]);
         expect(pane.list.rows.map((row) => row.locationWithPosition)).toEqual([
           `${FORMAT}:1 → ${BUTTON_SOURCE}`,
           `${FILE}:3 → ${BUTTON_SPEC_SOURCE}`,
@@ -526,7 +552,7 @@ describe("ProblemsPane", () => {
         });
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Project2*"]);
+        expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js2"]);
         expect(pane.list.row("eslint.config.js:5:7").opens).toBe(true);
       });
 
@@ -576,7 +602,7 @@ describe("ProblemsPane", () => {
         });
 
         // Assert
-        expect(getTabs(pane)).toEqual(["Project*"]);
+        expect(getTabs(pane)).toEqual(["Project*", "eslint.config.js"]);
         expect(pane.list.emptyText).toBe("No problems in the project.");
       });
     });
@@ -1111,7 +1137,7 @@ describe("ProblemsPane", () => {
       });
 
       // Assert
-      expect(getTabs(pane)).toEqual(["Project*"]);
+      expect(getTabs(pane)).toEqual(["Project*", "eslint.config.js"]);
       expect(pane.tabPanel.noticeTexts).toEqual([]);
       expect(pane.tabPanel.bodyOpacity).toBe(1);
     });
@@ -1186,7 +1212,7 @@ describe("ProblemsPane", () => {
       // Assert
       expect(whileLate).toEqual(["Evaluating the project…"]);
       expect(pane.tabPanel.noticeTexts).toEqual([]);
-      expect(getTabs(pane)).toEqual(["Project2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js2"]);
     });
   });
 
@@ -1306,7 +1332,7 @@ describe("ProblemsPane", () => {
       // Assert
       expect(pane.tabPanel.noticeTexts).toEqual([]);
       expect(pane.tabPanel.bodyOpacity).toBe(1);
-      expect(getTabs(pane)).toEqual(["Project2*"]);
+      expect(getTabs(pane)).toEqual(["Project2*", "eslint.config.js2"]);
     });
 
     it("should fade the body, with no notice, once the evaluation is late", () => {

@@ -67,7 +67,7 @@ const NONE_CLOSED: ReadonlySet<string> = new Set();
 const NEW_NAMES = { file: "new-file.js", folder: "new-folder" } as const;
 
 /**
- * Creates the state an instance starts with: the sketch, whose evaluation is on its way, with nothing in focus, the project as a tree with every folder open, and the problems panel open on the sketch.
+ * Creates the state an instance starts with: the sketch, whose evaluation is on its way, with the config in focus, so that the config is the first thing the user reads, the project as a tree with every folder open, and the problems panel open on the sketch, which sums up the problems of the config and of the files.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change in the project.
  * @returns The first state.
@@ -81,7 +81,7 @@ export function createSessionState(
     evaluation: undefined,
     evaluationStatus: "pending",
     capabilities,
-    focus: NO_FOCUS,
+    focus: CONFIG_FOCUS,
     tab: "sketch",
     problemsCollapsed: false,
     reveal: undefined,

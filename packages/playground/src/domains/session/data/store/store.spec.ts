@@ -157,13 +157,13 @@ describe("createSessionStore", () => {
   });
 
   describe("getState", () => {
-    it("should start from the sketch, with nothing in focus", () => {
+    it("should start from the sketch, with the config in focus", () => {
       // Act
       const store = createStartedStore(SKETCH, ALL_CAPABILITIES);
 
       // Assert
       expect(store.getState().sketch).toBe(SKETCH);
-      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(store.getState().focus).toEqual({ kind: "config" });
     });
 
     it("should have no evaluation before it starts, and create no worker", () => {
@@ -408,7 +408,7 @@ describe("createSessionStore", () => {
       store.subscribe(listener);
 
       // Act
-      store.open({ kind: "config" });
+      store.open({ kind: "file", path: "src/index.js" });
 
       // Assert
       expect(listener).toHaveBeenCalledTimes(1);
@@ -802,6 +802,8 @@ describe("createSessionStore", () => {
       // Arrange
       const store = createStartedStore(SKETCH, ALL_CAPABILITIES);
       const range = { from: 1, to: 2, line: 1, column: 2 };
+
+      store.open({ kind: "file", path: "src/index.js" });
 
       // Act
       store.open({ kind: "config", range });

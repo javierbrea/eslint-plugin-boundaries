@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- feat: The playground opens `eslint.config.js` when it loads a project, an example or a link, instead of an empty pane.
 - chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
 - chore(#640): The 404 page marks its content with a test id, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
 - feat: The home shows the Robert C. Martin quote right below the hero and the playground right after "How it works", and its section labels are larger.

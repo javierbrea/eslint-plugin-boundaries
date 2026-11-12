@@ -153,6 +153,18 @@ export function renderHookInSession<Result>(
 }
 
 /**
+ * Leaves nothing in focus the way the user does: an instance starts with the config in focus, and only a file in focus that is removed leaves nothing open. It opens the file and removes it, inside `act` so that the panes render the state, so the sketch loses that file and the spy of the sketches receives the new one.
+ * @param store The store of the instance, whose capabilities let the tree be edited.
+ * @param path The path of a file of the sketch, which the spec adds to the sketch to have one to remove.
+ */
+export function leaveNothingOpen(store: SessionStore, path: string): void {
+  act(() => {
+    store.open({ kind: "file", path });
+    store.removeNode(path);
+  });
+}
+
+/**
  * Advances the fake clock past the delay of an evaluation of the config, inside `act` so that the panes render the evaluation. The spec uses `jest.useFakeTimers()`.
  */
 export function waitForEvaluation(): void {

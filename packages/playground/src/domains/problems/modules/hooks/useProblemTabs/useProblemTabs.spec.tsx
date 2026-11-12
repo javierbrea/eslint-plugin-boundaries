@@ -1,10 +1,21 @@
 import { act, renderHook } from "@testing-library/react";
 
+import type { Sketch } from "@/contract";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { useView } from "@/domains/session/data/store";
-import { renderHookInSession } from "@/domains/session/data/store/store.mock";
+import {
+  HOOK_SKETCH,
+  leaveNothingOpen,
+  renderHookInSession,
+} from "@/domains/session/data/store/store.mock";
 
 import { useProblemTabs } from "./useProblemTabs";
+
+/** The sketch of the hooks with a spare file, which a spec opens and removes to leave nothing open: the sketch that is left is `HOOK_SKETCH`. */
+const SKETCH_WITH_SPARE_FILE: Sketch = {
+  ...HOOK_SKETCH,
+  tree: [...HOOK_SKETCH.tree, { path: "spare.js", kind: "file" }],
+};
 
 describe("useProblemTabs", () => {
   describe("outside the provider", () => {
@@ -27,8 +38,14 @@ describe("useProblemTabs", () => {
   });
 
   it("should give the tab of the sketch when nothing is in focus", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(
+      useProblemTabs,
+      SKETCH_WITH_SPARE_FILE
+    );
+
     // Act
-    const { result } = renderHookInSession(useProblemTabs);
+    leaveNothingOpen(store, "spare.js");
 
     // Assert
     expect(result.current).toEqual([
@@ -42,12 +59,20 @@ describe("useProblemTabs", () => {
 
   it("should add the tab of the config when it is in focus", () => {
     // Arrange
-    const { store, result } = renderHookInSession(useProblemTabs);
+    const { store, result } = renderHookInSession(
+      useProblemTabs,
+      SKETCH_WITH_SPARE_FILE
+    );
+
+    leaveNothingOpen(store, "spare.js");
+
+    const before = result.current.map(({ id }) => id);
 
     // Act
     act(() => store.open({ kind: "config" }));
 
     // Assert
+    expect(before).toEqual(["sketch"]);
     expect(result.current).toEqual([
       {
         id: "sketch",

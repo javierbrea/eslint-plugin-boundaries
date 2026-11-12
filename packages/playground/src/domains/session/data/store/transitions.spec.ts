@@ -55,6 +55,12 @@ const INDEX_FOCUS: Focus = { kind: "file", path: "src/index.js" };
 
 const FORMAT_FOCUS: Focus = { kind: "file", path: "src/helpers/format.js" };
 
+/** What the user has after the file that was open is removed: nothing in focus, and the tab of the sketch, as the removal leaves them. */
+const NOTHING_OPEN: Pick<SessionState, "focus" | "tab"> = {
+  focus: { kind: "none" },
+  tab: "sketch",
+};
+
 /** The tree cannot be edited, and the rest can. */
 const TREE_LOCKED = { ...ALL_CAPABILITIES, editTree: false };
 
@@ -208,7 +214,7 @@ function getEdges(state: SessionState): string[] {
 
 describe("Transitions", () => {
   describe("createSessionState", () => {
-    it("should start with nothing in focus, the tree with every folder open and the sketch tab, and the evaluation on its way", () => {
+    it("should start with the config in focus, the tree with every folder open and the sketch tab, and the evaluation on its way", () => {
       // Act
       const state = createSessionState(SKETCH, ALL_CAPABILITIES);
 
@@ -218,7 +224,7 @@ describe("Transitions", () => {
         evaluation: undefined,
         evaluationStatus: "pending",
         capabilities: ALL_CAPABILITIES,
-        focus: { kind: "none" },
+        focus: { kind: "config" },
         tab: "sketch",
         problemsCollapsed: false,
         reveal: undefined,
@@ -244,8 +250,11 @@ describe("Transitions", () => {
 
   describe("openTarget", () => {
     it("should put the config in focus and select the tab of the node", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
       // Act
-      const state = openTarget(createState(), { kind: "config" });
+      const state = openTarget(before, { kind: "config" });
 
       // Assert
       expect(state.focus).toEqual({ kind: "config" });
@@ -337,8 +346,11 @@ describe("Transitions", () => {
     });
 
     it("should ask to show the range of a config target with the first key", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
       // Act
-      const state = openTarget(createState(), {
+      const state = openTarget(before, {
         kind: "config",
         range: RANGE,
       });
@@ -485,8 +497,11 @@ describe("Transitions", () => {
 
   describe("selectItem", () => {
     it("should open the config when the item is the config node", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
       // Act
-      const state = selectItem(createState(), "eslint.config.js");
+      const state = selectItem(before, "eslint.config.js");
 
       // Assert
       expect(state.focus).toEqual({ kind: "config" });
@@ -654,16 +669,22 @@ describe("Transitions", () => {
     });
 
     it("should add a file at the root when nothing is in focus or selected", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
       // Act
-      const state = addNode(createState(), "file");
+      const state = addNode(before, "file");
 
       // Assert
       expect(getPaths(state)).toContain("new-file.js");
     });
 
     it("should add a folder at the root when nothing is in focus or selected", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
       // Act
-      const state = addNode(createState(), "folder");
+      const state = addNode(before, "folder");
 
       // Assert
       expect(state.sketch.tree).toContainEqual({
@@ -773,7 +794,7 @@ describe("Transitions", () => {
 
     it("should ignore a selected folder that is gone when nothing is open", () => {
       // Arrange
-      const before = createState({ pickedFolder: "gone" });
+      const before = createState({ ...NOTHING_OPEN, pickedFolder: "gone" });
 
       // Act
       const state = addNode(before, "file");
@@ -1375,13 +1396,14 @@ describe("Transitions", () => {
 
     it("should keep nothing in focus as it was", () => {
       // Arrange
-      const before = createState();
+      const before = createState(NOTHING_OPEN);
 
       // Act
       const state = removeNode(before, "src");
 
       // Assert
       expect(state.focus).toBe(before.focus);
+      expect(state.focus).toEqual({ kind: "none" });
       expect(state.tab).toBe("sketch");
     });
 
@@ -2123,8 +2145,11 @@ describe("Transitions", () => {
     const FROM = { path: "src/index.js", index: 2 };
 
     it("should be set by a config target that has a range and the dependency it came from, which also asks to reveal the range", () => {
+      // Arrange
+      const before = createDependencyState(NOTHING_OPEN);
+
       // Act
-      const state = openTarget(createDependencyState(), {
+      const state = openTarget(before, {
         kind: "config",
         range: RANGE,
         policy: 2,
@@ -2849,16 +2874,20 @@ describe("Transitions", () => {
       expect(state.focus).toBe(openNode);
     });
 
-    it("should not put it in focus when it was not", () => {
+    it("should keep the file in focus, and not put the dependency in focus, when it was not", () => {
+      // Arrange
+      // The file of the dependency is the focus where the dependency would be put in focus, as the file pane edits it
+      const before = createDependencyState({ focus: INDEX_FOCUS, tab: "node" });
+
       // Act
       const state = replaceDependency(
-        createDependencyState(),
+        before,
         REF,
         importModule("src/index.js", "lodash")
       );
 
       // Assert
-      expect(state.focus).toEqual({ kind: "none" });
+      expect(state.focus).toBe(INDEX_FOCUS);
     });
 
     it("should return the same state when there is no dependency at the position", () => {
@@ -3014,16 +3043,21 @@ describe("Transitions", () => {
       expect(other.focus).toBe(openNode);
     });
 
-    it("should leave nothing in focus as it was", () => {
+    it("should keep the file in focus, with its tab, when the dependency removed was not in focus", () => {
+      // Arrange
+      // The focus is the file of the dependency removed, as the file pane edits it
+      const openNode: Focus = { kind: "file", path: "main.js" };
+      const before = createDependencyState({ focus: openNode, tab: "node" });
+
       // Act
-      const state = removeDependency(createDependencyState(), {
+      const state = removeDependency(before, {
         path: "main.js",
         index: 0,
       });
 
       // Assert
-      expect(state.focus).toEqual({ kind: "none" });
-      expect(state.tab).toBe("sketch");
+      expect(state.focus).toBe(openNode);
+      expect(state.tab).toBe("node");
     });
 
     it("should return the same state when there is no dependency at the position", () => {

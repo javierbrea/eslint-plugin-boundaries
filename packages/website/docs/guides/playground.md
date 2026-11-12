@@ -28,7 +28,7 @@ The playground needs a wide screen: on a narrow one, its page shows a note inste
 
 ## Sketch a project
 
-With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Every edit evaluates the project again: there is no run button.
+With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Each project it opens, such as an example or a link, starts with `eslint.config.js` open in the middle pane. Every edit evaluates the project again: there is no run button.
 
 ### Files and folders
 
