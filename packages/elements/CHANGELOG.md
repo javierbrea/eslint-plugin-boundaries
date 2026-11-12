@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.3.3] - 2026-11-12
+
+### Changed
+
+- chore: Upgrade `is-core-module` to 2.18.0. The modules described as `core` do not change.
+
 ## [3.3.2] - 2026-11-05
 
 ### Fixed
