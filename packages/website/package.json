@@ -1,6 +1,6 @@
 {
   "name": "website",
-  "version": "7.4.3",
+  "version": "7.4.1",
   "private": true,
   "exports": {
     "./playwright": {
