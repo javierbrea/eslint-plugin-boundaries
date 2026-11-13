@@ -99,16 +99,16 @@
       "allowedVersions": "<25.0.0"
     },
     {
-      "description": "packages/website commits font files copied from these packages",
+      "description": "packages/design-tokens commits font files copied from these packages",
       "matchFileNames": [
-        "packages/website/package.json"
+        "packages/design-tokens/package.json"
       ],
       "matchPackageNames": [
         "@fontsource/*"
       ],
       "groupName": "fontsource",
       "prBodyNotes": [
-        "Run `pnpm --filter website sync:fonts` and `pnpm --filter website social-card`, and commit `packages/website/static/fonts/` and `packages/website/static/img/og-image.png`."
+        "Run `pnpm --filter @boundaries/design-tokens sync:fonts` and `pnpm --filter website social-card`, and commit `packages/design-tokens/static/fonts/` and `packages/website/static/img/og-image.png`."
       ]
     },
     {

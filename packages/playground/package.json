@@ -73,6 +73,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "7.29.7",
+    "@boundaries/design-tokens": "workspace:*",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/material": "9.5.0",

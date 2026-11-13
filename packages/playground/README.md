@@ -39,11 +39,11 @@ const href = `/playground/#${getPlaygroundHash({ config, project })}`;
 
 The playground fills its container, so the host gives the container a height, such as the viewport below its navbar.
 
-The host bundles the package and provides its peer dependencies (`react`, `react-dom`, `@mui/material`, `@emotion/react`, `@emotion/styled`) and the `--jsb-*` design tokens of the website (`packages/website/src/css/tokens.css`). The playground follows the `data-theme` attribute (`light` or `dark`) of the host's `<html>` element.
+The host bundles the package and provides its peer dependencies (`react`, `react-dom`, `@mui/material`, `@emotion/react`, `@emotion/styled`) and the `--jsb-*` design tokens of [`@boundaries/design-tokens`](../design-tokens). The playground follows the `data-theme` attribute (`light` or `dark`) of the host's `<html>` element.
 
 ## Development
 
 ```bash
-pnpm nx dev playground          # the dev harness, with the website's tokens, the Quick start example and a theme toggle
+pnpm nx dev playground          # the dev harness, with the tokens and fonts of @boundaries/design-tokens, the Quick start example and a theme toggle
 pnpm nx check:all playground    # lint, types, spelling, tests and build
 ```

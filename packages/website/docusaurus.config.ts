@@ -1,3 +1,4 @@
+import { STATIC_DIR as DESIGN_TOKENS_STATIC_DIR } from "@boundaries/design-tokens";
 // eslint-disable-next-line import/no-namespace
 import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
@@ -38,6 +39,9 @@ const config: Config = {
     },
   },
   trailingSlash: true,
+
+  // The fonts of @boundaries/design-tokens are served from its static folder, under /fonts/, where its fonts.css and the preload links below point
+  staticDirectories: ["static", DESIGN_TOKENS_STATIC_DIR],
 
   headTags: [
     {
@@ -139,8 +143,8 @@ const config: Config = {
         },
         theme: {
           customCss: [
-            "./src/css/tokens.css",
-            "./src/css/fonts.css",
+            require.resolve("@boundaries/design-tokens/tokens.css"),
+            require.resolve("@boundaries/design-tokens/fonts.css"),
             "./src/css/infima-bridge.css",
             "./src/css/custom.css",
           ],

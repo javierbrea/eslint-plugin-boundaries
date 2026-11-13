@@ -1,10 +1,12 @@
 /**
  * Self-hosted typefaces (latin subsets). The files live in `static/fonts`
- * and are refreshed with `pnpm --filter website sync:fonts`.
+ * and are refreshed with `pnpm --filter @boundaries/design-tokens sync:fonts`.
+ * A host serves `static/` (`STATIC_DIR` of the package entry) at its root, so
+ * the URLs below are root-relative.
  * The `webpackIgnore` comments keep the URLs as written: Docusaurus resolves
  * root-relative CSS URLs through webpack, which would otherwise copy the files
- * under a hashed `/assets/fonts/` name that the preload links in
- * `docusaurus.config.ts` cannot point to.
+ * under a hashed `/assets/fonts/` name that the preload links in the
+ * website's `docusaurus.config.ts` cannot point to.
  */
 
 @font-face {

@@ -539,6 +539,13 @@ const PARENT_IMPORT_PATTERN = {
 
 const SHARED_IMPORT_PATTERNS = [HOST_IMPORT_PATTERN, PARENT_IMPORT_PATTERN];
 
+// The harness stands in for a host: it takes the playground from "../src" and what a host provides, such as the tokens and the fonts, from workspace packages, never from a file of another package
+const HARNESS_IMPORT_PATTERN = {
+  group: ["../../*"],
+  message:
+    'The harness imports the playground from "../src" and another package by its name, as a host does, never by a relative path.',
+};
+
 // Specs of components, which go through page objects. The specs of code that renders no component drive probe components, or none, so they query the DOM as they need
 const COMPONENT_SPECS = {
   files: ["src/{app,ui-kit,shared,domains}/**/*.spec.{ts,tsx}"],
@@ -592,6 +599,16 @@ export default [
     files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: SHARED_IMPORT_PATTERNS }],
+    },
+  },
+  // The harness reaches no other package by a relative path
+  {
+    files: ["dev/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: [HARNESS_IMPORT_PATTERN] },
+      ],
     },
   },
   // The specs of components also leave the queries and the events to the page object

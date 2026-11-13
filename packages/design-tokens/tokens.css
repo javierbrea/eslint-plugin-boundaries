@@ -1,9 +1,9 @@
 /**
- * Design tokens of the site. Light values on `:root`, dark values on
- * `[data-theme="dark"]`. Every color in site CSS references one of these;
- * literal colors are allowed only here, in the per-theme Infima shade scales
- * of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside
- * the Prism theme object.
+ * Design tokens of the website and of the hosts of the playground. Light
+ * values on `:root`, dark values on `[data-theme="dark"]`. Every color in
+ * site CSS references one of these; literal colors are allowed only here, in
+ * the per-theme Infima shade scales of the website's `infima-bridge.css`, in
+ * the CodeDiff rules of its `custom.css` and inside its Prism theme object.
  */
 
 :root {

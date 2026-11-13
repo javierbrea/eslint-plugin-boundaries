@@ -8,9 +8,11 @@
   "targets": {
     "lint": {
       "cache": true,
+      // The harness imports @boundaries/design-tokens, which has no build to depend on, so its files are inputs
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
-        "default"
+        "default",
+        { "input": "assets", "projects": ["design-tokens"] }
       ],
       // It lints itself with the workspace eslint-plugin-boundaries, a devDependency, so `^build` builds it first
       "dependsOn": [

@@ -4,7 +4,8 @@
  *
  * The Fontsource packages are dev dependencies used only as a source of
  * files: the woff2 files are committed so that the build has no network
- * dependency. Run `pnpm --filter website sync:fonts` after upgrading them.
+ * dependency. Run `pnpm --filter @boundaries/design-tokens sync:fonts` after
+ * upgrading them.
  *
  * With `--check`, nothing is copied: the script fails if a committed file
  * differs from its package, which `pnpm lint` runs so that an upgrade
@@ -16,8 +17,8 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const resolveModule = createRequire(import.meta.url);
-const websiteRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const targetDir = join(websiteRoot, "static", "fonts");
+const designTokensRoot = dirname(dirname(fileURLToPath(import.meta.url)));
+const targetDir = join(designTokensRoot, "static", "fonts");
 const check = process.argv.includes("--check");
 
 /** Latin woff2 files to ship, per Fontsource package. */
@@ -49,7 +50,7 @@ function sync(source, target) {
     !existsSync(target) ||
     !readFileSync(source).equals(readFileSync(target))
   ) {
-    outdated.push(relative(websiteRoot, target));
+    outdated.push(relative(designTokensRoot, target));
   }
 }
 
@@ -73,7 +74,7 @@ for (const [packageName, files] of Object.entries(FONTS)) {
 
 if (outdated.length) {
   console.error(
-    `These files differ from the Fontsource packages; run \`pnpm --filter website sync:fonts\` and commit them:\n${outdated.join("\n")}`
+    `These files differ from the Fontsource packages; run \`pnpm --filter @boundaries/design-tokens sync:fonts\` and commit them:\n${outdated.join("\n")}`
   );
   process.exit(1);
 }
