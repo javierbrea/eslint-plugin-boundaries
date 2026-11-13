@@ -145,7 +145,7 @@ For every pull request opened against the `master` branch, Netlify automatically
 
 ## Versioning
 
-The website follows the same versioning strategy as the main JS Boundaries project. Each release of the JS Boundaries library corresponds to a specific version of the documentation.
+The website's version, and the releases that create a new version of the documentation, are defined in step 2 of "Publishing" in the [contributing guide](../../.github/CONTRIBUTING.md#publishing).
 
 Read the Docusaurus [versioning documentation](https://docusaurus.io/docs/versioning) for more details.
 
@@ -164,9 +164,6 @@ pnpm run version <current-version>
 This command will create a new versioned documentation set based on the current content. Then you can update the content of the `docs/` folder to reflect changes in the new version, which will be accessible at `/docs/next/` until the next release.
 
 When the new version is ready to be released, create a new versioned docs set by running the command above with the appropriate version number.
-
-> [!INFO]
-> A new documentation version is created only when a release actually changes the website's `docs/` content, following the same version number as the corresponding `eslint-plugin` release. If a release — patch or minor — doesn't touch `docs/`, skip this command entirely: the website package version and its versioned docs stay as they are.
 
 ## Social Card
 

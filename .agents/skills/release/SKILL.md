@@ -27,18 +27,18 @@ The release spans four phases. The first three depend on merges made outside thi
 1. **Check the preconditions.**
    - `git status --porcelain` is empty. If not, stop and ask the maintainer what to do with the changes.
    - Run `git fetch origin`; the local `release` branch equals `origin/release`. If not, stop and ask before updating it.
-   - Never commit on `release`. The preparation always goes on a new branch `chore/release-<eslint-plugin-version-with-dashes>` created from `release` (for example `chore/release-7-2-1`) and ends in a PR into `release`.
+   - Never commit on `release`. The preparation always goes on a new branch `chore/release-<eslint-plugin-version-with-dashes>` created from `release` (for example `chore/release-7-2-1`, or `chore/release-website-7-4-3-rev-1` for a release that only deploys the website) and ends in a PR into `release`.
 
 2. **Take the inventory.**
    - List every package whose `CHANGELOG.md` has entries under the Unreleased section or under a version section that is not on `origin/master` yet, and every package among `elements`, `config`, `policies` and `eslint-plugin` whose `dependencies` or `peerDependencies` in `package.json` differ from `origin/master`. Renovate changes those fields without writing a changelog entry, so the preview adds an entry for each such change that has none, following `.agents/rules/changelog-and-versioning.md`.
    - Propose each new version from the entries, following `.agents/rules/changelog-and-versioning.md`. A version already set in a package's `package.json` by a contributor PR, or named in its Unreleased entries or in an upgrade notes page, is the starting proposal; flag it if it does not fit the entries, or if they name different versions.
    - Check that every package that depends on a changed one is also versioned (`pnpm nx graph` or `pnpm nx show project <name> --json`), and that `package.json` and `sonar-project.properties` of `elements`, `config`, `policies` and `eslint-plugin` agree on the version.
-   - For the website, apply step 2 of "Publishing": detect whether `packages/website/docs/` changed since the latest snapshot listed in `packages/website/versions.json` (compare it with `packages/website/versioned_docs/version-<latest>/` and read the website changelog's Unreleased section).
-   - If `eslint-plugin` has no new version, stop and ask the maintainer how to tag the release.
+   - For the website, apply step 2 of "Publishing": its Unreleased section decides whether it gets a version, and whether `eslint-plugin` gets one decides which. Compare `packages/website/docs/` with `packages/website/versioned_docs/version-<first entry of versions.json>/` to decide whether it needs a snapshot.
+   - If only the website has changes, the release only deploys the website, and it ends with phase 2 and the search index check of phase 3. If another package has changes but `eslint-plugin` has no new version, stop and ask the maintainer how to tag the release.
 
-3. **Show a mandatory preview and get explicit confirmation.** Present the proposed version of every package, the branch name, the commit message (`chore(release): Release eslint-plugin vX.Y.Z and elements vA.B.C`) and the PR title (`chore: Release eslint-plugin vX.Y.Z and elements vA.B.C`), both naming the packages actually released, and the planned change to every file, including whether the website gets a new version. Let the maintainer adjust versions. Do not create the branch, edit files, commit, push or open a PR before the confirmation.
+3. **Show a mandatory preview and get explicit confirmation.** Present the proposed version of every package, the branch name, the commit message (`chore(release): Release eslint-plugin vX.Y.Z and elements vA.B.C`) and the PR title (`chore: Release eslint-plugin vX.Y.Z and elements vA.B.C`), both naming the packages actually released, and the planned change to every file, including the website version and whether it gets a snapshot. Let the maintainer adjust versions. Do not create the branch, edit files, commit, push or open a PR before the confirmation.
 
-4. **Apply the changes.** Create the branch and make the changes `CONTRIBUTING.md` lists for the preparation. Run `pnpm nx version website <version>` only when the website takes a new version. Show the resulting `git status`, the real `git diff --stat` (excluding `versioned_docs/` content from the detailed diff) and the versions that changed, then ask for explicit confirmation again before committing and pushing: the preview could not include the output of `pnpm nx version website`.
+4. **Apply the changes.** Create the branch and make the changes `CONTRIBUTING.md` lists for the preparation. Run `pnpm nx version website <version>` only when the website gets a snapshot. Show the resulting `git status`, the real `git diff --stat` (excluding `versioned_docs/` content from the detailed diff) and the versions that changed, then ask for explicit confirmation again before committing and pushing: the preview could not include the output of `pnpm nx version website`.
 
 5. **Commit, push and open the PR into `release`.** Commit with the confirmed message, push the branch, and open the PR with the `create-pr` skill (target `release`, title as confirmed). Stop here and report.
 
@@ -56,7 +56,7 @@ Start when the maintainer confirms the PR from phase 1 is merged into `release`.
 Start when the maintainer confirms the PR from phase 2 is merged into `master`.
 
 1. Check that `origin/master` contains the release commit.
-2. If the website got a new version, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
+2. If the release changed the website's documentation, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
 3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
 4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), and ask for explicit confirmation. Never create a tag or a release without it.
 5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered. Continue with phase 4.
@@ -82,7 +82,7 @@ Return results with:
 
 - **Summary**: the phase completed, the version of every released package, and the URLs of the PR or release created. For phase 4, the publication check result, the milestone and board changes, the issues commented and the branches deleted.
 - **Details**: the files changed per package, the branch name, and how the website decision was made.
-- **Pending manual steps**: the merge the maintainer has to make before the next phase, the search index check when the website got a new version, and anything phase 4 left for the maintainer, such as a failed publication.
+- **Pending manual steps**: the merge the maintainer has to make before the next phase, the search index check when the release changed the website's documentation, and anything phase 4 left for the maintainer, such as a failed publication.
 - **On authorization failure**: the copyable content from the failure handling section, and a clear statement that authorization is required.
 
 Include assumptions, risks, and follow-ups when relevant.
