@@ -154,7 +154,7 @@ A row opens what it points to: a problem of the config opens the config at its p
 
 `Share`, in the top bar, copies a link to the playground. The part of the link after `#` holds the whole project, compressed: its config, its files and its dependencies. A browser does not send that part of a URL to the server, so the project is never uploaded: it travels inside the link. The address bar holds the project too, a moment after each edit, so reloading the page keeps it.
 
-When the link is copied and is short enough for any app, the button reads `Copied` for a moment. Otherwise a dialog says what happened:
+When the link is copied and is short enough for any app, the button turns green and reads `Copied` for a moment. Otherwise a dialog says what happened:
 
 - `Long link copied`, for a link of more than 8,192 characters: some apps cut links that long when they are pasted, so check that the link you pasted opens the whole project.
 - `The link could not be copied`, when the browser refuses access to the clipboard. The dialog shows the link, selected, to copy it by hand, and `Copy link` tries again. For a link of more than 8,192 characters, it also warns that some apps cut it.
