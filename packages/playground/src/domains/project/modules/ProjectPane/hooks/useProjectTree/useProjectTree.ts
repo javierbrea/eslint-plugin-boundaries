@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import type { Sketch } from "@/contract";
+import type { Sketch, SketchNode } from "@/contract";
 import {
   CONFIG_PATH,
   countFilesUnder,
@@ -8,6 +8,11 @@ import {
   getParentPath,
   hasNode,
 } from "@/domains/project/helpers/sketch";
+import type {
+  MenuPosition,
+  ProjectMenuAction,
+  ProjectMenuRequest,
+} from "@/domains/project/ui/helpers/projectMenu";
 import {
   useAddNode,
   useCancelRename,
@@ -33,6 +38,21 @@ import type {
 
 /** The request that the dialog shows before there is one: it is closed, so nobody reads it */
 const NO_REQUEST: DeleteRequest = { path: "", files: 0 };
+
+/** The menu before the user opens one: it is closed, so nobody reads it */
+const NO_MENU: ProjectMenuRequest = {
+  target: { kind: "folder", path: "" },
+  position: { top: 0, left: 0 },
+};
+
+/**
+ * Gets the folder that the context menu of a node adds nodes in.
+ * @param target The node of the menu, or the folder with an empty path for the root.
+ * @returns The folder itself, the folder of a file, or an empty string for the root.
+ */
+function getMenuFolder(target: SketchNode): string {
+  return target.kind === "folder" ? target.path : getParentPath(target.path);
+}
 
 /**
  * Gets the id of the tree item that a focus is on.
@@ -79,8 +99,8 @@ function getItemAfterRemoval(sketch: Sketch, removedPath: string): string {
 }
 
 /**
- * Connects the project tree to the store, and holds what belongs to the page and not to the store: the item that must take the keyboard focus, and the dialog that asks before a folder with files goes. The edits are transitions of the store, which move the focus, the selected folder and the closed folders with the sketch. Every handler is stable while what it reads does not change, so that the items of the tree do not render again.
- * @returns The state and the handlers, for the tree, the foot and the confirmation dialog.
+ * Connects the project tree to the store, and holds what belongs to the page and not to the store: the item that must take the keyboard focus, the context menu of the tree, and the dialog that asks before a folder with files goes. The edits are transitions of the store, which move the focus, the selected folder and the closed folders with the sketch. Every handler is stable while what it reads does not change, so that the items of the tree do not render again.
+ * @returns The state and the handlers, for the tree, the foot, the context menu and the confirmation dialog.
  */
 export function useProjectTree(): ProjectTreeController {
   const store = useSessionStore();
@@ -107,6 +127,10 @@ export function useProjectTree(): ProjectTreeController {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   // Where the keyboard goes once the dialog is gone after the user confirmed: the dialog has the focus until then, and the folder it asked about does not exist any more
   const afterDeleteRef = useRef<string | undefined>(undefined);
+  const [menu, setMenu] = useState<ProjectMenuRequest>(NO_MENU);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // What the user picked in the menu, which runs once the menu is gone: the menu gives the keyboard back to where it was when it closes, so the field of a rename and the dialog of a removal must take it after that
+  const menuActionRef = useRef<ProjectMenuAction | undefined>(undefined);
 
   // The keyboard can clear the selection, which leaves everything as it was
   const select = useCallback(
@@ -170,6 +194,39 @@ export function useProjectTree(): ProjectTreeController {
     afterDeleteRef.current = undefined;
   }
 
+  // Stable, because every item of the tree takes it
+  const openMenu = useCallback(
+    (menuTarget: SketchNode, position: MenuPosition) => {
+      setMenu({ target: menuTarget, position });
+      setIsMenuOpen(true);
+    },
+    []
+  );
+
+  /**
+   * Keeps what the user picked in the menu, and closes the menu: the action runs once the menu is gone.
+   * @param action What the user picked.
+   */
+  function chooseMenuAction(action: ProjectMenuAction): void {
+    menuActionRef.current = action;
+    setIsMenuOpen(false);
+  }
+
+  /** Runs what the user picked in the menu, once the menu is gone: it adds a node in the folder of the menu, or renames or removes its node as the row does. A menu closed without a pick runs nothing. */
+  function menuExited(): void {
+    const action = menuActionRef.current;
+    const { target: node } = menu;
+
+    menuActionRef.current = undefined;
+    if (action === "add-file" || action === "add-folder") {
+      addNode(action === "add-file" ? "file" : "folder", getMenuFolder(node));
+    } else if (action === "rename") {
+      startRename(node.path);
+    } else if (action === "delete") {
+      requestDelete(node.path);
+    }
+  }
+
   return {
     collapsed: closedFolders,
     target,
@@ -189,5 +246,11 @@ export function useProjectTree(): ProjectTreeController {
     confirmDelete,
     cancelDelete: () => setIsDeleteOpen(false),
     deleteExited,
+    menu,
+    isMenuOpen,
+    openMenu,
+    chooseMenuAction,
+    closeMenu: () => setIsMenuOpen(false),
+    menuExited,
   };
 }

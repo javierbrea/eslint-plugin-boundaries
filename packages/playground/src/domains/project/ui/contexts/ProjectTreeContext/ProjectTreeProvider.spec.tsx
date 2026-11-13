@@ -24,6 +24,7 @@ const VALUE: ProjectTreeContextValue = {
   onRenameCommit: jest.fn(),
   onRenameCancel: jest.fn(),
   onDelete: jest.fn(),
+  onOpenMenu: jest.fn(),
 };
 
 /**

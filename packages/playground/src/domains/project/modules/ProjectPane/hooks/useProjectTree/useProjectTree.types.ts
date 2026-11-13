@@ -1,3 +1,7 @@
+import type {
+  ProjectMenuAction,
+  ProjectMenuRequest,
+} from "@/domains/project/ui/helpers/projectMenu";
 import type { ProjectTreeProps } from "@/domains/project/ui/organisms/ProjectTree";
 import type { SessionStore } from "@/domains/session/data/store";
 
@@ -9,7 +13,7 @@ export type DeleteRequest = {
   readonly files: number;
 };
 
-/** What {@link useProjectTree} gives the pane: the state of the tree and the handlers of the tree, the foot and the confirmation dialog. */
+/** What {@link useProjectTree} gives the pane: the state of the tree and the handlers of the tree, the foot, the context menu and the confirmation dialog. */
 export type ProjectTreeController = {
   /** The folders the user closed */
   readonly collapsed: ReadonlySet<string>;
@@ -47,4 +51,16 @@ export type ProjectTreeController = {
   readonly cancelDelete: () => void;
   /** The dialog is gone from the page, which is when the keyboard can go back to the tree */
   readonly deleteExited: () => void;
+  /** The context menu that the user opened last: its node and where it opens. It keeps the last one while the menu closes */
+  readonly menu: ProjectMenuRequest;
+  /** Whether the context menu is open */
+  readonly isMenuOpen: boolean;
+  /** Opens the context menu of a node, or of the root */
+  readonly openMenu: ProjectTreeProps["onOpenMenu"];
+  /** Keeps what the user picked in the context menu, and closes it */
+  readonly chooseMenuAction: (action: ProjectMenuAction) => void;
+  /** Closes the context menu and runs nothing */
+  readonly closeMenu: () => void;
+  /** The context menu is gone from the page, which is when what the user picked runs */
+  readonly menuExited: () => void;
 };

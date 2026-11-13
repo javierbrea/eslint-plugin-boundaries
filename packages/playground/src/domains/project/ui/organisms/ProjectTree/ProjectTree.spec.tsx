@@ -49,6 +49,7 @@ function createProps(
     onRenameCommit: jest.fn(),
     onRenameCancel: jest.fn(),
     onDelete: jest.fn(),
+    onOpenMenu: jest.fn(),
     ...overrides,
   };
 }
@@ -435,6 +436,72 @@ describe("ProjectTree", () => {
       // Assert
       expect(tree.item("src/index.js").row.isTarget).toBe(false);
       expect(tree.item("index.js").row.isTarget).toBe(true);
+    });
+  });
+
+  describe("menu", () => {
+    it("should ask for the menu of the root where the pointer is on a right click on its empty space, in place of the menu of the browser", () => {
+      // Arrange
+      const props = createProps();
+      renderInRoot(<ProjectTree {...props} />);
+
+      // Act
+      const isPrevented = new ProjectTreePom().rightClickEmptySpace({
+        x: 50,
+        y: 300,
+      });
+
+      // Assert
+      expect(isPrevented).toBe(true);
+      expect(props.onOpenMenu).toHaveBeenCalledTimes(1);
+      expect(props.onOpenMenu).toHaveBeenCalledWith(
+        { kind: "folder", path: "" },
+        { top: 300, left: 50 }
+      );
+    });
+
+    it("should ask only for the menu of the node on a right click on its row", () => {
+      // Arrange
+      const props = createProps();
+      renderInRoot(<ProjectTree {...props} />);
+
+      // Act
+      new ProjectTreePom().item("src").row.rightClickName({ x: 20, y: 40 });
+
+      // Assert
+      expect(props.onOpenMenu).toHaveBeenCalledTimes(1);
+      expect(props.onOpenMenu).toHaveBeenCalledWith(
+        { kind: "folder", path: "src" },
+        { top: 40, left: 20 }
+      );
+    });
+
+    it("should keep the menu of the browser on its empty space when nodes cannot be edited", () => {
+      // Arrange
+      const props = createProps({ editable: false });
+      renderInRoot(<ProjectTree {...props} />);
+
+      // Act
+      const isPrevented = new ProjectTreePom().rightClickEmptySpace();
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(props.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it("should keep the menu of the browser on the row of the config", () => {
+      // Arrange
+      const props = createProps();
+      renderInRoot(<ProjectTree {...props} />);
+
+      // Act
+      const isPrevented = new ProjectTreePom()
+        .item("eslint.config.js")
+        .row.rightClickName();
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(props.onOpenMenu).not.toHaveBeenCalled();
     });
   });
 

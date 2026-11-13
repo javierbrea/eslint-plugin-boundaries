@@ -64,6 +64,35 @@ test.describe("the playground page", () => {
   );
 
   test(
+    "a file renamed from the menu of its row takes the name typed in its field",
+    { tag: "@desktop" },
+    async ({ page, playgroundPage }) => {
+      const { playground } = playgroundPage;
+      const { project } = playground;
+
+      await page.goto(PLAYGROUND_PATH);
+      await waitUntilProjectShown(playground);
+
+      const [path] = await project.tree.filePaths;
+
+      expect(path).toBeDefined();
+
+      const renamed = `${path.slice(0, path.lastIndexOf("/") + 1)}renamed.js`;
+
+      await project.item(path).row.rightClickName();
+      await project.menu.pick("Rename");
+      await project.menu.waitUntilGone();
+      // The menu gives the keyboard back to the row as it closes, and the field takes it only after that: a field that lost it would have ended the rename
+      await expect.poll(() => project.tree.renameField.isFocused).toBe(true);
+      await project.tree.renameField.type("renamed.js");
+      await project.tree.renameField.pressKey("Enter");
+
+      await expect.poll(() => project.tree.filePaths).toContain(renamed);
+      expect(await project.tree.filePaths).not.toContain(path);
+    }
+  );
+
+  test(
     "the example picker loads another example and writes it to the hash of the URL",
     { tag: "@desktop" },
     async ({ page, playgroundPage, openPlaygroundInFreshContext }) => {

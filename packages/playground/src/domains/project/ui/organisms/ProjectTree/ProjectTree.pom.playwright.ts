@@ -1,3 +1,4 @@
+import { RenameFieldPom } from "@/domains/project/ui/atoms/RenameField/RenameField.pom.playwright";
 import { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom.playwright";
 import { Pom } from "@/shared/testing/pom/pom.playwright";
 
@@ -14,6 +15,14 @@ export class ProjectTreePom extends Pom {
    */
   item(path: string): ProjectTreeItemPom {
     return this.childPom(ProjectTreeItemPom, { name: path });
+  }
+
+  /**
+   * The field that renames a node, which takes the place of its name: the item of the node cannot be found by its path while it is renamed.
+   * @returns The page object of the field, which is not rendered while no node is renamed.
+   */
+  get renameField(): RenameFieldPom {
+    return this.childPom(RenameFieldPom);
   }
 
   /**

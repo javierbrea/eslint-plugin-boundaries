@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { useProblemCounts } from "@/domains/problems/modules/hooks/useProblemCounts";
 import { ProjectText } from "@/domains/project/modules/ProjectText";
+import { ProjectTreeMenu } from "@/domains/project/ui/atoms/ProjectTreeMenu";
 import { DeleteFolderDialog } from "@/domains/project/ui/molecules/DeleteFolderDialog";
 import { ProjectFoot } from "@/domains/project/ui/molecules/ProjectFoot";
 import { ProjectTree } from "@/domains/project/ui/organisms/ProjectTree";
@@ -18,7 +19,7 @@ import { useProjectTree } from "./hooks/useProjectTree";
 import { PROJECT_PANE_TEST_ID } from "./ProjectPane.constants";
 
 /**
- * The left pane: the sketch as a tree with `eslint.config.js` pinned first, or as text, and a foot to add files and folders and to switch between the two. Both views edit the sketch of the store through its transitions.
+ * The left pane: the sketch as a tree with `eslint.config.js` pinned first, or as text, and a foot to add files and folders and to switch between the two. The tree has a context menu that adds, renames and removes nodes. Both views edit the sketch of the store through its transitions.
  * @returns The pane, as tall as its container.
  */
 function ProjectPaneContent(): ReactNode {
@@ -61,11 +62,20 @@ function ProjectPaneContent(): ReactNode {
             onRenameCommit={tree.commitRename}
             onRenameCancel={tree.cancelRename}
             onDelete={tree.requestDelete}
+            onOpenMenu={tree.openMenu}
           />
         ) : (
           <ProjectText />
         )}
       </ProjectPaneLayout>
+      <ProjectTreeMenu
+        isOpen={tree.isMenuOpen}
+        target={tree.menu.target}
+        position={tree.menu.position}
+        onAction={tree.chooseMenuAction}
+        onClose={tree.closeMenu}
+        onExited={tree.menuExited}
+      />
       <DeleteFolderDialog
         isOpen={tree.isDeleteOpen}
         path={path}

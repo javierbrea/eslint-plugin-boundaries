@@ -988,6 +988,87 @@ describe("Transitions", () => {
       // Assert
       expect(state.renaming).toBe("new-file.js");
     });
+
+    describe("in a folder asked for", () => {
+      it("should add the node in that folder, before the selected one and the one of the open file", () => {
+        // Arrange
+        const before = createState({
+          focus: INDEX_FOCUS,
+          tab: "node",
+          pickedFolder: "docs",
+        });
+
+        // Act
+        const file = addNode(before, "file", "src/helpers");
+        const folder = addNode(before, "folder", "src/helpers");
+
+        // Assert
+        expect(getPaths(file)).toContain("src/helpers/new-file.js");
+        expect(getPaths(folder)).toContain("src/helpers/new-folder");
+      });
+
+      it("should add the node at the root for an empty folder path", () => {
+        // Arrange
+        const before = createState({ focus: INDEX_FOCUS, tab: "node" });
+
+        // Act
+        const state = addNode(before, "file", "");
+
+        // Assert
+        expect(getPaths(state)).toContain("new-file.js");
+      });
+
+      it("should add the node in an empty folder", () => {
+        // Act
+        const state = addNode(createState(), "file", "docs");
+
+        // Assert
+        expect(getPaths(state)).toContain("docs/new-file.js");
+      });
+
+      it("should start renaming the new node, open a new file and open the folders above it", () => {
+        // Arrange
+        const before = createState({
+          closedFolders: new Set(["src", "src/helpers", "docs"]),
+        });
+
+        // Act
+        const state = addNode(before, "file", "src/helpers");
+
+        // Assert
+        expect(state.renaming).toBe("src/helpers/new-file.js");
+        expect(state.focus).toEqual({
+          kind: "file",
+          path: "src/helpers/new-file.js",
+        });
+        expect(Array.from(state.closedFolders)).toEqual(["docs"]);
+      });
+
+      it.each([
+        ["gone", "a folder that is gone"],
+        ["main.js", "a file"],
+      ])("should return the same state for %s, which is %s", (folder) => {
+        // Arrange
+        const before = createState();
+
+        // Act
+        const state = addNode(before, "file", folder);
+
+        // Assert
+        expect(state).toBe(before);
+      });
+
+      it("should return the same state without editTree", () => {
+        // Arrange
+        const before = createState({ capabilities: TREE_LOCKED });
+
+        // Act
+        const state = addNode(before, "folder", "src");
+
+        // Assert
+        expect(state).toBe(before);
+      });
+    });
   });
 
   describe("startRename", () => {

@@ -1,6 +1,7 @@
 import { waitFor } from "@testing-library/react";
 
 import { ProjectTextPom } from "@/domains/project/modules/ProjectText/ProjectText.pom";
+import { ProjectTreeMenuPom } from "@/domains/project/ui/atoms/ProjectTreeMenu/ProjectTreeMenu.pom";
 import { DeleteFolderDialogPom } from "@/domains/project/ui/molecules/DeleteFolderDialog/DeleteFolderDialog.pom";
 import { ProjectFootPom } from "@/domains/project/ui/molecules/ProjectFoot/ProjectFoot.pom";
 import type { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
@@ -10,7 +11,7 @@ import { Pom } from "@/shared/testing/pom";
 
 import { PROJECT_PANE_TEST_ID } from "./ProjectPane.constants";
 
-/** Page object of the project pane, which is its layout: the tree or the text, the foot, and the dialog that asks before a folder with files is removed. It composes the page objects of those pieces and has shortcuts for what a spec does most. */
+/** Page object of the project pane, which is its layout: the tree or the text, the foot, the context menu of the tree, and the dialog that asks before a folder with files is removed. It composes the page objects of those pieces and has shortcuts for what a spec does most. */
 export class ProjectPanePom extends Pom {
   protected readonly defaultTestId = PROJECT_PANE_TEST_ID;
 
@@ -55,12 +56,41 @@ export class ProjectPanePom extends Pom {
   }
 
   /**
+   * The context menu of the tree. It is rendered outside the pane, next to it, so it is searched in the whole document.
+   * @returns The page object of the menu, which is not rendered until the user opens it.
+   */
+  get menu(): ProjectTreeMenuPom {
+    return this.childPom(ProjectTreeMenuPom, { portal: true });
+  }
+
+  /**
    * The item of a node of the tree.
    * @param path The path of the node, or `eslint.config.js` for the config.
    * @returns The page object of the item.
    */
   item(path: string): ProjectTreeItemPom {
     return this.tree.item(path);
+  }
+
+  /**
+   * Opens the context menu of a node with the keyboard, as a keyboard user does: its item takes the focus, and Shift+F10 is pressed.
+   * @param path The path of the node.
+   */
+  openMenuWithKeyboard(path: string): void {
+    const item = this.item(path);
+
+    item.focus();
+    item.pressKey("F10", { shiftKey: true });
+  }
+
+  /**
+   * Picks an item of the open context menu, and waits for the menu to be gone from the page, which is when what the user picked runs.
+   * @param label The accessible name of the item, such as `Rename`.
+   * @returns A promise that settles when the menu is gone.
+   */
+  async pickFromMenu(label: string): Promise<void> {
+    this.menu.pick(label);
+    await this.menu.waitUntilGone();
   }
 
   /**
