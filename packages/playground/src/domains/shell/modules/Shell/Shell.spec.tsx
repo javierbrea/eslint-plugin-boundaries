@@ -507,6 +507,15 @@ describe("Shell", () => {
       expect(shell.node.empty.title).toBe("Open a file or the config");
     });
 
+    it("should not offer to add a file when the project cannot be edited", () => {
+      // Act
+      const { shell } = renderShellWithNothingOpen({ capabilities: READ_ONLY });
+
+      // Assert
+      expect(shell.node.shown).toBe("empty");
+      expect(shell.node.empty.addFileButton.isRendered).toBe(false);
+    });
+
     it("should describe the sketch in the inspector", () => {
       // Act
       const { shell } = renderShellWithNothingOpen();
