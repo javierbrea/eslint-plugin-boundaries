@@ -209,6 +209,14 @@ export function useOpen(): SessionStore["open"] {
 }
 
 /**
+ * Gets the command that closes what is in focus.
+ * @returns The stable method of the store.
+ */
+export function useClose(): SessionStore["close"] {
+  return useSessionStore().close;
+}
+
+/**
  * Gets the command that handles the selection of an item of the tree.
  * @returns The stable method of the store.
  */

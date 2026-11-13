@@ -4,7 +4,10 @@ import type { Sketch } from "@/contract";
 import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
-import { renderInSession } from "@/domains/session/data/store/store.mock";
+import {
+  leaveNothingOpen,
+  renderInSession,
+} from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
 import { NODE_FRAME_LABEL } from "@/domains/shell/ui/helpers/nodeFrame";
 
@@ -38,6 +41,17 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
 }
 
 /**
+ * Renders the node pane the way a user leaves it with nothing open: the instance starts with the config in focus, which is closed.
+ * @returns The render, the store, the spy of the sketches and the page object of the pane.
+ */
+function renderWithNothingOpen(): PaneRender {
+  const render = renderPane();
+
+  leaveNothingOpen(render.store);
+  return render;
+}
+
+/**
  * Finds a snippet of the config text.
  * @param snippet The text to look for, once in the config.
  * @returns Its range, as the engine places a problem.
@@ -58,12 +72,13 @@ describe("NodePane", () => {
   describe("the landmark", () => {
     it("should be named after the node in focus when nothing is open", () => {
       // Arrange
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingOpen();
 
       // Act
       const isNamedRegion = pane.frame.isRegionNamed(NODE_FRAME_LABEL);
 
       // Assert
+      expect(pane.shown).toBe("empty");
       expect(isNamedRegion).toBe(true);
     });
 
@@ -82,12 +97,14 @@ describe("NodePane", () => {
     it("should be named after the node in focus when the config is open", () => {
       // Arrange
       const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
       act(() => store.open({ kind: "config" }));
 
       // Act
       const isNamedRegion = pane.frame.isRegionNamed(NODE_FRAME_LABEL);
 
       // Assert
+      expect(pane.shown).toBe("config");
       expect(isNamedRegion).toBe(true);
     });
   });
@@ -95,7 +112,7 @@ describe("NodePane", () => {
   describe("nothing open", () => {
     it("should offer to open a file or the config", () => {
       // Act
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingOpen();
 
       // Assert
       expect(pane.shown).toBe("empty");
@@ -104,7 +121,7 @@ describe("NodePane", () => {
 
     it("should open the config from its button", () => {
       // Arrange
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingOpen();
 
       // Act
       pane.empty.openConfigButton.press();
@@ -117,7 +134,7 @@ describe("NodePane", () => {
 
     it("should show the file it adds in the pane of the file", () => {
       // Arrange
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingOpen();
 
       // Act
       pane.empty.addFileButton.press();
@@ -138,6 +155,51 @@ describe("NodePane", () => {
       // Assert
       expect(pane.shown).toBe("empty");
       expect(pane.empty.title).toBe("Open a file or the config");
+    });
+  });
+
+  describe("the close button", () => {
+    it("should close the config, and give the keyboard focus to the button that opens it again", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      pane.config.pane.closeButton.press();
+
+      // Assert
+      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(true);
+    });
+
+    it("should close the file in focus, and give the keyboard focus to the button that opens the config", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+
+      // Act
+      pane.file.closeButton.press();
+
+      // Assert
+      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(true);
+    });
+
+    it("should not give the keyboard focus to the pane that a removal shows later, once something was open again after a close", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      pane.config.pane.closeButton.press();
+      const focusedAfterClose = pane.empty.openConfigButton.isFocused;
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.removeNode(FILE));
+
+      // Assert
+      expect(focusedAfterClose).toBe(true);
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(false);
     });
   });
 
@@ -218,12 +280,14 @@ describe("NodePane", () => {
 
     it("should show the file of a dependency that is in focus when nothing else was open", () => {
       // Arrange
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingOpen();
+      const shownBefore = pane.shown;
 
       // Act
       act(() => store.open({ kind: "dependency", path: OTHER_FILE, index: 0 }));
 
       // Assert
+      expect(shownBefore).toBe("empty");
       expect(pane.shown).toBe("file");
       expect(pane.file.head.path).toBe(OTHER_FILE);
       expect(pane.file.lines.line(0).isSelected).toBe(true);
@@ -263,6 +327,7 @@ describe("NodePane", () => {
     it("should put the cursor at the start of the range that a target points at", () => {
       // Arrange
       const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
       const range = rangeOf('"boundaries/dependencies"');
 
       // Act

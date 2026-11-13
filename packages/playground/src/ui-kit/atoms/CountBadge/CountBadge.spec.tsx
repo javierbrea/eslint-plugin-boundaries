@@ -45,6 +45,25 @@ describe("CountBadge", () => {
     expect(isNamedImage).toBe(true);
   });
 
+  it("should have the id it is given, so that an element can take its name from it, and none without one", () => {
+    // Arrange
+    render(
+      <>
+        <CountBadge id="files-badge" count={1} tone="warn" label="1 warning" />
+        <CountBadge count={2} tone="bad" label="2 problems" />
+      </>
+    );
+
+    // Act
+    const ids = [
+      new CountBadgePom({ name: "1 warning" }).id,
+      new CountBadgePom({ name: "2 problems" }).id,
+    ];
+
+    // Assert
+    expect(ids).toEqual(["files-badge", ""]);
+  });
+
   it("should not pass its tone to the DOM", () => {
     // Arrange
     render(<CountBadge count={2} tone="bad" label="2 problems" />);

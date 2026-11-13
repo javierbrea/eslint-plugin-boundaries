@@ -119,6 +119,31 @@ describe("ProjectTreeItem", () => {
       expect(named).toEqual([true, true, true]);
     });
 
+    it("should add to its name the tag of the target and what its badge counts, which its row shows after the name", () => {
+      // Arrange
+      const counts: ProblemCounts = {
+        config: 2,
+        configHasErrors: true,
+        byPath: new Map([
+          ["src", { count: 1, hasErrors: true }],
+          ["src/index.js", { count: 1, hasErrors: true }],
+        ]),
+      };
+      renderItems({ target: "src/index.js", counts });
+
+      // Act
+      const named = [
+        ["eslint.config.js", "eslint.config.js 2 problems"],
+        ["src", "src/ 1 failing dependency"],
+        ["src/index.js", "index.js target 1 failing dependency"],
+      ].map(([path, accessibleName]) =>
+        item(path).isTreeItemNamed(accessibleName)
+      );
+
+      // Assert
+      expect(named).toEqual([true, true, true]);
+    });
+
     it("should set the kind of its node", () => {
       // Arrange
       renderItems();
@@ -415,7 +440,7 @@ describe("ProjectTreeItem", () => {
       // Assert
       expect(targetTag).toBe("target");
       expect(targetTagColor).toBe("var(--jsb-accent)");
-      expect(text).toBe(`index.js${targetTag}`);
+      expect(text).toBe(`index.js ${targetTag}`);
     });
 
     it("should put the tag after the actions, so that their gap is never between the tag and the end of the row", () => {

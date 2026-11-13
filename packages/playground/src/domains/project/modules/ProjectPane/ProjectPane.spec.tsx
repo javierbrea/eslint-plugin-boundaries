@@ -8,6 +8,7 @@ import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import type { SessionStore } from "@/domains/session/data/store";
 import {
   NO_CAPABILITIES,
+  leaveNothingOpen,
   renderInSession,
 } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
@@ -199,7 +200,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(names).toEqual([
-        "eslint.config.js",
+        "eslint.config.js 1 problem",
         "src/",
         "components/",
         "Button.js",
@@ -296,7 +297,9 @@ describe("ProjectPane", () => {
 
     it("should open the config when it is clicked", () => {
       // Arrange
-      const { store, pane } = renderPane();
+      const { store, pane } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
 
       // Act
       pane.click("eslint.config.js");
@@ -320,24 +323,16 @@ describe("ProjectPane", () => {
 
     it("should select the config when it is in focus", () => {
       // Arrange
-      const { pane } = renderPane({ focus: { kind: "config" } });
+      const { pane, store } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
+      act(() => store.open({ kind: "config" }));
 
       // Act
       const config = pane.item("eslint.config.js");
 
       // Assert
       expect(config.ariaSelected).toBe("true");
-    });
-
-    it("should select nothing when nothing is in focus", () => {
-      // Arrange
-      const { pane } = renderPane();
-
-      // Act
-      const selected = pane.tree.selectedPaths;
-
-      // Assert
-      expect(selected).toEqual([]);
     });
 
     it("should select a folder the user clicked, and keep what is in focus", () => {
@@ -372,7 +367,9 @@ describe("ProjectPane", () => {
 
     it("should drop the selected folder when something else takes the focus", () => {
       // Arrange
-      const { store, pane } = renderPane();
+      const { store, pane } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
       pane.click("src");
 
       // Act
@@ -673,6 +670,8 @@ describe("ProjectPane", () => {
     it("should outline nothing while a file, the config or nothing is in focus", () => {
       // Arrange
       const { pane, store } = renderPane({ sketch: QUICK_START });
+      leaveNothingOpen(store);
+      const focusAtStart = getFocus(store);
       const none = getTargets(pane);
       act(() => store.open({ kind: "file", path: CHECKOUT }));
       const file = getTargets(pane);
@@ -681,6 +680,7 @@ describe("ProjectPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
+      expect(focusAtStart).toEqual({ kind: "none" });
       expect([none, file, getTargets(pane)]).toEqual([[], [], []]);
     });
 
@@ -767,7 +767,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(pane.tree.itemPaths).toContain("src/components/Button.js");
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should not pass the keys of the field to the tree", () => {
@@ -780,7 +780,7 @@ describe("ProjectPane", () => {
       field.pressKey(" ");
 
       // Assert
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should follow the rename with the focus", () => {
@@ -1174,7 +1174,7 @@ describe("ProjectPane", () => {
       pane.item("src/index.js").renameAction.press();
 
       // Assert
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should ignore the keys that come from inside the item", () => {
@@ -1453,7 +1453,7 @@ describe("ProjectPane", () => {
       await pane.waitUntilDeleteDialogGone();
 
       // Assert
-      expect(pane.tree.selectedPaths).toEqual([]);
+      expect(pane.tree.selectedPaths).toEqual(["eslint.config.js"]);
     });
 
     it("should keep the selection of a folder when another is removed", () => {
@@ -1547,9 +1547,10 @@ describe("ProjectPane", () => {
 
     it("should add the file at the root when the config is in focus", () => {
       // Arrange
-      const { onSketchChange, pane } = renderPane({
-        focus: { kind: "config" },
+      const { onSketchChange, pane, store } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
       });
+      act(() => store.open({ kind: "config" }));
 
       // Act
       pane.foot.addFile();

@@ -160,17 +160,17 @@ function stubClipboard(): jest.Mock<Promise<void>, [string]> {
 }
 
 /**
- * Waits for the node pane to show that nothing is open, which is how a spec tells that a new shell replaced one in which a file was open.
+ * Waits for the node pane to show the config, which is how a spec tells that a new shell replaced one in which a file was open: a new shell starts with the config in focus.
  * @param playground The page object of the playground.
- * @returns A promise that settles when nothing is open.
+ * @returns A promise that settles when the config is open.
  */
-async function waitForNothingOpen(playground: PlaygroundPom): Promise<void> {
+async function waitForConfigOpen(playground: PlaygroundPom): Promise<void> {
   await waitFor(() => {
     if (
       !playground.shell.isRendered ||
-      playground.shell.node.shown !== "empty"
+      playground.shell.node.shown !== "config"
     ) {
-      throw new Error("Something is still open");
+      throw new Error("The config is not open yet");
     }
   });
 }
@@ -791,7 +791,7 @@ describe("Playground", () => {
       expect(store.listenerCount).toBe(0);
     });
 
-    it("should load the store again when it calls back, and show the sketch it has in a new shell with nothing in focus", async () => {
+    it("should load the store again when it calls back, and show the sketch it has in a new shell with the config in focus", async () => {
       // Arrange
       const store = new NotifyingStore();
       const { playground } = renderPlayground(
@@ -811,10 +811,19 @@ describe("Playground", () => {
 
       // Assert
       expect(shownBefore).toBe("file");
-      expect(playground.shell.node.shown).toBe("empty");
-      expect(playground.shell.problems.tabs).toHaveLength(1);
-      expect(playground.shell.problems.tabs[0].text).toMatch(/^Project/);
-      expect(playground.shell.problems.tabs[0].isSelected).toBe(true);
+      expect(playground.shell.node.shown).toBe("config");
+      expect(
+        playground.shell.problems.tabs.map(({ text, isSelected }) => ({
+          text,
+          isSelected,
+        }))
+      ).toEqual([
+        { text: expect.stringMatching(/^Project/), isSelected: true },
+        {
+          text: expect.stringMatching(/^eslint\.config\.js/),
+          isSelected: false,
+        },
+      ]);
     });
 
     it("should show the sketch of the source when the store has none any more", async () => {
@@ -895,7 +904,7 @@ describe("Playground", () => {
   });
 
   describe("reset", () => {
-    it("should forget what the store saved and show the sketch of the source, in a new shell with nothing in focus, when the sketch is the source's", async () => {
+    it("should forget what the store saved and show the sketch of the source, in a new shell with the config in focus, when the sketch is the source's", async () => {
       // Arrange
       const store = new MemoryStore();
       const clear = jest.spyOn(store, "clear");
@@ -908,7 +917,7 @@ describe("Playground", () => {
 
       // Act
       playground.topBar.actions.pressReset();
-      await waitForNothingOpen(playground);
+      await waitForConfigOpen(playground);
 
       // Assert
       expect(clear).toHaveBeenCalledTimes(1);
@@ -964,7 +973,7 @@ describe("Playground", () => {
       expect(playground.statusText).toMatch(/^1 file ·/);
     });
 
-    it("should reset the sketch when the user confirms, in a new shell with nothing in focus", async () => {
+    it("should reset the sketch when the user confirms, in a new shell with the config in focus", async () => {
       // Arrange
       const store = new MemoryStore();
       const clear = jest.spyOn(store, "clear");
@@ -981,7 +990,7 @@ describe("Playground", () => {
 
       // Act
       dialog.button("Reset").press();
-      await waitForNothingOpen(playground);
+      await waitForConfigOpen(playground);
 
       // Assert
       await playground.waitForStatus("2 files ·");
@@ -1171,7 +1180,7 @@ describe("Playground", () => {
   });
 
   describe("choosing an example", () => {
-    it("should save the example and show it in a new shell with nothing in focus, without asking, when the sketch is the one of the source", async () => {
+    it("should save the example and show it in a new shell with the config in focus, without asking, when the sketch is the one of the source", async () => {
       // Arrange
       const store = new MemoryStore();
       const save = jest.spyOn(store, "save");
@@ -1191,7 +1200,7 @@ describe("Playground", () => {
 
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(QUICK_START_EXAMPLE.sketch);
-      expect(playground.shell.node.shown).toBe("empty");
+      expect(playground.shell.node.shown).toBe("config");
       expect(playground.dialog().isRendered).toBe(false);
     });
 
@@ -1346,6 +1355,11 @@ describe("Playground", () => {
       );
       await playground.waitForStatus("2 files ·");
       playground.project.item("src/index.ts").deleteAction.press();
+      // A file is open, so that the config in focus of the new shell tells it replaced this one
+      playground.project.click("src/components/Price/index.ts");
+
+      const shownBefore = playground.shell.node.shown;
+
       save.mockClear();
       playground.topBar.picker.open();
       playground.topBar.picker.pick("Policies");
@@ -1364,7 +1378,8 @@ describe("Playground", () => {
       expect(save).toHaveBeenCalledWith(
         EXAMPLES.find(({ title }) => title === "Policies")?.sketch
       );
-      expect(playground.shell.node.shown).toBe("empty");
+      expect(shownBefore).toBe("file");
+      expect(playground.shell.node.shown).toBe("config");
     });
 
     it("should leave the sketch on screen while the dialog fades out, and show the example once the dialog is gone", async () => {
@@ -1668,7 +1683,7 @@ describe("Playground", () => {
 
       // Act
       playground.topBar.actions.pressReset();
-      await waitForNothingOpen(playground);
+      await waitForConfigOpen(playground);
 
       // Assert
       expect(playground.topBar.actions.isResetFocused).toBe(true);
@@ -1772,7 +1787,7 @@ describe("Playground", () => {
       await playground.waitForStatus("2 files ·");
       playground.project.click("src/index.ts");
       playground.topBar.actions.pressReset();
-      await waitForNothingOpen(playground);
+      await waitForConfigOpen(playground);
       await store.save(SAVED_SKETCH);
 
       const focusedByReset = playground.topBar.actions.isResetFocused;

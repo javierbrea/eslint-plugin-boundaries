@@ -26,6 +26,8 @@ export type SessionStore = {
   readonly dispose: () => void;
   /** Opens a target: the focus, the tab of the problems panel and the reveal in the config change together. */
   readonly open: (target: Target) => void;
+  /** Closes what is in focus: nothing stays open, and the tab of the problems panel goes back to the sketch's. */
+  readonly close: () => void;
   /** Handles the selection of an item of the tree: a file and the config open, a folder is selected. */
   readonly selectItem: (id: string) => void;
   /** Remembers that a folder of the tree was opened or closed. */

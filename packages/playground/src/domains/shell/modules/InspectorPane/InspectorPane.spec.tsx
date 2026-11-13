@@ -8,6 +8,7 @@ import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import {
   failEvaluation,
+  leaveNothingOpen,
   releaseEvaluation,
   renderInSession,
   waitUntilEvaluationIsLate,
@@ -66,6 +67,18 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
   };
 }
 
+/**
+ * Renders the inspector pane with nothing in focus, the way the user leaves it: the instance starts with the config in focus, which is closed.
+ * @param sketch The sketch to start from.
+ * @returns The render, the store, the spy of the sketches and the page object of the pane.
+ */
+function renderWithNothingInFocus(sketch: Sketch = QUICK_START): PaneRender {
+  const render = renderPane(sketch);
+
+  leaveNothingOpen(render.store);
+  return render;
+}
+
 describe("InspectorPane", () => {
   afterEach(() => {
     jest.useRealTimers();
@@ -82,7 +95,7 @@ describe("InspectorPane", () => {
   describe("nothing in focus", () => {
     it("should describe the sketch with the numbers of the evaluation", () => {
       // Act
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingInFocus();
 
       // Assert
       expect(pane.shown).toBe("project");
@@ -92,7 +105,7 @@ describe("InspectorPane", () => {
 
     it("should count the dependencies of the sketch and what the engine decided about them", () => {
       // Act
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingInFocus();
 
       // Assert
       expect(pane.project.count("dependencies")).toBe("9");
@@ -106,7 +119,7 @@ describe("InspectorPane", () => {
     it("should count the files at once after a node is removed", () => {
       // Arrange
       jest.useFakeTimers();
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingInFocus();
 
       // Act
       act(() => store.removeNode(FILE));
@@ -118,7 +131,7 @@ describe("InspectorPane", () => {
     it("should count the files at once after the text of the project is read", () => {
       // Arrange
       jest.useFakeTimers();
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingInFocus();
       act(() => store.setView("text"));
       act(() => store.setTextDraft("src/a.js\nsrc/b.js\n"));
 
@@ -132,7 +145,7 @@ describe("InspectorPane", () => {
     it("should count the elements of the config a moment after the config is edited", () => {
       // Arrange
       jest.useFakeTimers();
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingInFocus();
 
       // Act
       act(() => store.changeConfig("{ settings: {}, rules: {} }"));
@@ -205,7 +218,8 @@ describe("InspectorPane", () => {
 
     it("should describe the file of a dependency that is in focus when no file was open", () => {
       // Arrange
-      const { pane, store } = renderPane();
+      const { pane, store } = renderWithNothingInFocus();
+      const shownBefore = pane.shown;
 
       // Act
       act(() =>
@@ -217,6 +231,7 @@ describe("InspectorPane", () => {
       );
 
       // Assert
+      expect(shownBefore).toBe("project");
       expect(pane.shown).toBe("file");
       expect(pane.file.section("from").summary).toBe(
         "src/helpers/format/index.js"
@@ -535,6 +550,7 @@ describe("InspectorPane", () => {
     it("should list the entries of the config", () => {
       // Arrange
       const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
       act(() => store.open({ kind: "config" }));
@@ -549,6 +565,7 @@ describe("InspectorPane", () => {
     it("should list the policies of the rule with the dependencies each decided", () => {
       // Arrange
       const { pane, store } = renderPane();
+      act(() => store.open({ kind: "file", path: FILE }));
 
       // Act
       act(() => store.open({ kind: "config" }));
@@ -687,7 +704,7 @@ describe("InspectorPane", () => {
 
     it("should describe the project, and drop the note, when the evaluation arrives", () => {
       // Arrange
-      const { pane } = renderPane();
+      const { pane } = renderWithNothingInFocus();
       waitUntilEvaluationIsLate();
       const whileLate = pane.note.text;
 
@@ -710,7 +727,7 @@ describe("InspectorPane", () => {
     function renderOutOfDate(): PaneRender {
       jest.useFakeTimers();
 
-      const render = renderPane();
+      const render = renderWithNothingInFocus();
 
       holdInlineWorkers();
       act(() => render.store.removeNode(FILE));

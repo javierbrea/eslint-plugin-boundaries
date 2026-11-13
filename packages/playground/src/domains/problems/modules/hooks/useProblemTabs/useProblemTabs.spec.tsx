@@ -2,7 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { useView } from "@/domains/session/data/store";
-import { renderHookInSession } from "@/domains/session/data/store/store.mock";
+import {
+  leaveNothingOpen,
+  renderHookInSession,
+} from "@/domains/session/data/store/store.mock";
 
 import { useProblemTabs } from "./useProblemTabs";
 
@@ -27,8 +30,11 @@ describe("useProblemTabs", () => {
   });
 
   it("should give the tab of the sketch when nothing is in focus", () => {
+    // Arrange
+    const { store, result } = renderHookInSession(useProblemTabs);
+
     // Act
-    const { result } = renderHookInSession(useProblemTabs);
+    leaveNothingOpen(store);
 
     // Assert
     expect(result.current).toEqual([
@@ -44,10 +50,15 @@ describe("useProblemTabs", () => {
     // Arrange
     const { store, result } = renderHookInSession(useProblemTabs);
 
+    leaveNothingOpen(store);
+
+    const before = result.current.map(({ id }) => id);
+
     // Act
     act(() => store.open({ kind: "config" }));
 
     // Assert
+    expect(before).toEqual(["sketch"]);
     expect(result.current).toEqual([
       {
         id: "sketch",

@@ -158,7 +158,7 @@ describe("useProblemSummary", () => {
     }));
 
     // Act
-    act(() => store.open({ kind: "config" }));
+    act(() => store.open({ kind: "file", path: "src/index.js" }));
 
     // Assert
     expect(results[1].summary).toBe(results[0].summary);

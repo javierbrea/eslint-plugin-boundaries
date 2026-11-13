@@ -153,6 +153,14 @@ export function renderHookInSession<Result>(
 }
 
 /**
+ * Leaves nothing in focus the way the user does, with the close button of the node pane: an instance starts with the config in focus. It closes inside `act`, so that the panes render the state, and the sketch does not change.
+ * @param store The store of the instance.
+ */
+export function leaveNothingOpen(store: SessionStore): void {
+  act(() => store.close());
+}
+
+/**
  * Advances the fake clock past the delay of an evaluation of the config, inside `act` so that the panes render the evaluation. The spec uses `jest.useFakeTimers()`.
  */
 export function waitForEvaluation(): void {

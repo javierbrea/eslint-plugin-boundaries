@@ -28,7 +28,7 @@ The playground needs a wide screen: on a narrow one, its page shows a note inste
 
 ## Sketch a project
 
-With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Every edit evaluates the project again: there is no run button.
+With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Each project it opens, such as an example or a link, starts with `eslint.config.js` open in the middle pane. The cross after the name of the open file or of the config, in the head of that pane, closes it. Every edit evaluates the project again: there is no run button.
 
 ### Files and folders
 
@@ -111,7 +111,7 @@ The inspector, on the right, describes what the middle pane has open.
   - `to` is the file or the external module that the dependency in focus points to, with the same boxes. Click a line of the file to put its dependency in focus.
   - `dependency` is the dependency in focus: `kind`, `nodeKind`, `source`, `specifiers` and `relationship`, the properties of a [dependency selector](../selectors/dependency.md).
 - **The config:** its `Element types` and `File categories` with how many files each matches, and its `Policies` with how many dependencies each one decided, then the `default`. Another rule of the plugin reads `not evaluated here`. A row opens its entry in the config.
-- **Nothing:** the numbers of the project.
+- **Nothing**, once you close the open file or the config: the numbers of the project.
 
 ### Verdicts
 

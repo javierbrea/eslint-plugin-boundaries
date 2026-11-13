@@ -144,6 +144,20 @@ function renderShellInProbe(): FixturePom {
 }
 
 /**
+ * Renders the shell with nothing open, the way the user leaves it: the shell starts with the config in focus, and the user closes it.
+ * @param overrides What differs from an editable shell of the quick-start sketch.
+ * @returns The page object of the shell, the mock that receives each new sketch, and the way to render it again.
+ */
+function renderShellWithNothingOpen(
+  overrides: Partial<ShellProps> = {}
+): ShellRender {
+  const rendered = renderShell(overrides);
+
+  rendered.shell.node.config.pane.closeButton.press();
+  return rendered;
+}
+
+/**
  * Renders the shell of the whole example in the root element of the playground, as the `Playground` component does: the dialogs of the shell render inside it, and its theme applies.
  * @param overrides What differs from an editable shell of the whole example.
  * @returns The page object of the shell.
@@ -454,19 +468,57 @@ describe("Shell", () => {
     });
   });
 
-  describe("nothing open", () => {
-    it("should start with nothing open", () => {
+  describe("the start", () => {
+    it("should start with the config open in the node pane", () => {
       // Act
       const { shell } = renderShell();
+
+      // Assert
+      expect(shell.node.shown).toBe("config");
+      expect(shell.node.config.editorNamed(CONFIG).isRendered).toBe(true);
+    });
+
+    it("should describe the config in the inspector", () => {
+      // Act
+      const { shell } = renderShell();
+
+      // Assert
+      expect(shell.inspector.shown).toBe("config");
+      expect(shell.inspector.config.groupLabels).toContain("Element types");
+    });
+
+    it("should select the config in the tree and add its tab to the problems, after the one of the sketch", () => {
+      // Act
+      const { shell } = renderShell();
+
+      // Assert
+      expect(shell.project.item(CONFIG).ariaSelected).toBe("true");
+      expect(getTabs(shell)).toEqual(["Project*", "eslint.config.js"]);
+    });
+  });
+
+  describe("nothing open", () => {
+    it("should offer to open a file or the config", () => {
+      // Act
+      const { shell } = renderShellWithNothingOpen();
 
       // Assert
       expect(shell.node.shown).toBe("empty");
       expect(shell.node.empty.title).toBe("Open a file or the config");
     });
 
+    it("should not offer to add a file when the project cannot be edited", () => {
+      // Act
+      const { shell } = renderShellWithNothingOpen({ capabilities: READ_ONLY });
+
+      // Assert
+      expect(shell.node.shown).toBe("empty");
+      expect(shell.node.empty.addFileButton.isRendered).toBe(false);
+    });
+
     it("should describe the sketch in the inspector", () => {
       // Act
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Assert
       const { project } = shell.inspector;
@@ -477,7 +529,7 @@ describe("Shell", () => {
 
     it("should have the sketch tab only, selected, with no problems", () => {
       // Act
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Assert
       expect(getTabs(shell)).toEqual(["Project*"]);
@@ -486,7 +538,7 @@ describe("Shell", () => {
 
     it("should open the config from the button of the empty pane", () => {
       // Arrange
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Act
       shell.node.empty.openConfigButton.press();
@@ -498,7 +550,7 @@ describe("Shell", () => {
 
     it("should add a file at the root and open it from the button of the empty pane", () => {
       // Arrange
-      const { shell, onSketchChange } = renderShell();
+      const { shell, onSketchChange } = renderShellWithNothingOpen();
 
       // Act
       shell.node.empty.addFileButton.press();
@@ -518,7 +570,7 @@ describe("Shell", () => {
 
     it("should add the file the way the tree does: opened, with the tree showing and its name being edited", () => {
       // Arrange
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Act
       shell.node.empty.addFileButton.press();
@@ -534,7 +586,7 @@ describe("Shell", () => {
 
     it("should add the file in the folder that the user picked in the tree", () => {
       // Arrange
-      const { shell, onSketchChange } = renderShell();
+      const { shell, onSketchChange } = renderShellWithNothingOpen();
       shell.project.click("src/modules");
 
       // Act
@@ -549,7 +601,7 @@ describe("Shell", () => {
 
     it("should add the file at the root when no folder is picked", () => {
       // Arrange
-      const { shell, onSketchChange } = renderShell();
+      const { shell, onSketchChange } = renderShellWithNothingOpen();
 
       // Act
       shell.node.empty.addFileButton.press();
@@ -562,7 +614,7 @@ describe("Shell", () => {
 
     it("should show the tree, where the name is edited, when the project was shown as text", () => {
       // Arrange
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
       shell.project.foot.pressView("Text");
 
       // Act
@@ -580,7 +632,7 @@ describe("Shell", () => {
     it("should count the new file at once", () => {
       // Arrange
       useFakeTimeouts();
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Act
       shell.node.empty.addFileButton.press();
@@ -591,7 +643,7 @@ describe("Shell", () => {
 
     it("should give the file it adds a name that is free", () => {
       // Arrange
-      const { shell } = renderShell({
+      const { shell } = renderShellWithNothingOpen({
         initialSketch: {
           ...QUICK_START,
           tree: [...QUICK_START.tree, { path: "new-file.js", kind: "file" }],
@@ -603,14 +655,6 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.file.head.path).toBe("new-file-2.js");
-    });
-
-    it("should not offer to add a file when the project cannot be edited", () => {
-      // Act
-      const { shell } = renderShell({ capabilities: READ_ONLY });
-
-      // Assert
-      expect(shell.node.empty.addFileButton.isRendered).toBe(false);
     });
   });
 
@@ -672,6 +716,7 @@ describe("Shell", () => {
     it("should open the editor from the tree", () => {
       // Arrange
       const { shell } = renderShell();
+      shell.project.click(FILE);
 
       // Act
       shell.project.click(CONFIG);
@@ -683,6 +728,7 @@ describe("Shell", () => {
     it("should describe it in the inspector", () => {
       // Arrange
       const { shell } = renderShell();
+      shell.project.click(FILE);
 
       // Act
       shell.project.click(CONFIG);
@@ -693,12 +739,14 @@ describe("Shell", () => {
 
     it("should add its tab to the problems and select it", () => {
       // Arrange
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
+      const tabsBefore = getTabs(shell);
 
       // Act
       shell.project.click(CONFIG);
 
       // Assert
+      expect(tabsBefore).toEqual(["Project*"]);
       expect(getTabs(shell)).toEqual(["Project", "eslint.config.js*"]);
       expect(shell.problems.list.emptyText).toBe("No problems in the config.");
     });
@@ -706,6 +754,7 @@ describe("Shell", () => {
     it("should let the editor change the text when the config can be edited", () => {
       // Arrange
       const { shell } = renderShell();
+      shell.project.click(FILE);
 
       // Act
       shell.project.click(CONFIG);
@@ -717,6 +766,7 @@ describe("Shell", () => {
     it("should read the text only, when the config cannot be edited", () => {
       // Arrange
       const { shell } = renderShell({ capabilities: READ_ONLY });
+      shell.project.click(FILE);
 
       // Act
       shell.project.click(CONFIG);
@@ -797,7 +847,7 @@ describe("Shell", () => {
       const { shell } = renderShell({ initialSketch: MISTAKES });
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Project2*"]);
+      expect(getTabs(shell)).toEqual(["Project2*", "eslint.config.js2"]);
       expect(
         getProblemRow(shell, "eslint.config.js:15:16").locationWithPosition
       ).toBe("eslint.config.js:15:16");
@@ -857,7 +907,9 @@ describe("Shell", () => {
 
     it("should open the editor at the range of a problem when its row is pressed", () => {
       // Arrange
-      const { shell } = renderShell({ initialSketch: MISTAKES });
+      const { shell } = renderShellWithNothingOpen({
+        initialSketch: MISTAKES,
+      });
 
       // Act
       getProblemRow(shell, "eslint.config.js:15:16").press();
@@ -1078,7 +1130,7 @@ describe("Shell", () => {
       text.blur();
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Project1*"]);
+      expect(getTabs(shell)).toEqual(["Project1*", "eslint.config.js"]);
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
       expect(getProblemItem(shell, "Project text:9").text).toContain(
         "The path cannot have `.` or `..` segments."
@@ -1107,7 +1159,7 @@ describe("Shell", () => {
 
     it("should open nothing when a line that could not be read is pressed", () => {
       // Arrange
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
       shell.project.foot.pressView("Text");
       shell.project.text.type(`${shell.project.text.value}\nsrc/../outside.js`);
       shell.project.text.blur();
@@ -1132,7 +1184,7 @@ describe("Shell", () => {
       shell.project.foot.pressView("Tree");
 
       // Assert
-      expect(getTabs(shell)).toEqual(["Project*"]);
+      expect(getTabs(shell)).toEqual(["Project*", "eslint.config.js"]);
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 0 problems");
     });
 
@@ -1340,7 +1392,7 @@ describe("Shell", () => {
     it("should describe the sketch in the inspector at once after a file is removed", () => {
       // Arrange
       useFakeTimeouts();
-      const { shell } = renderShell();
+      const { shell } = renderShellWithNothingOpen();
 
       // Act
       shell.project.item(FILE).deleteAction.press();
@@ -2099,9 +2151,10 @@ describe("Shell", () => {
       ]);
       expect(second.problems.tabs.map(({ text }) => text)).toEqual([
         "Project2",
+        "eslint.config.js2",
       ]);
-      expect(second.node.shown).toBe("empty");
-      expect(second.node.empty.title).toBe("Open a file or the config");
+      expect(second.node.shown).toBe("config");
+      expect(second.node.config.editorNamed(CONFIG).isRendered).toBe(true);
     });
 
     it("should evaluate each shell with its own sketch", () => {
