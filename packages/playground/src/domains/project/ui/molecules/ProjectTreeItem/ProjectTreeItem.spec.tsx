@@ -73,6 +73,7 @@ function renderItems(
     onRenameCommit: jest.fn(),
     onRenameCancel: jest.fn(),
     onDelete: jest.fn(),
+    onOpenMenu: jest.fn(),
     ...changes,
   };
   const tree = (context: ProjectTreeContextValue): ReactNode => (
@@ -546,7 +547,7 @@ describe("ProjectTreeItem", () => {
       expect(folder.row.buttonNames).toEqual(["Rename src", "Delete src"]);
     });
 
-    it("should announce the keys that rename and remove, on a file and on a folder", () => {
+    it("should announce the keys that rename, remove and open the menu, on a file and on a folder", () => {
       // Arrange
       renderItems();
 
@@ -556,7 +557,18 @@ describe("ProjectTreeItem", () => {
       );
 
       // Assert
-      expect(shortcuts).toEqual(["F2 Delete", "F2 Delete"]);
+      expect(shortcuts).toEqual(["F2 Delete Shift+F10", "F2 Delete Shift+F10"]);
+    });
+
+    it("should announce that a file and a folder open a menu", () => {
+      // Arrange
+      renderItems();
+
+      // Act
+      const popups = ["src", "src/index.js"].map((path) => item(path).popup);
+
+      // Assert
+      expect(popups).toEqual(["menu", "menu"]);
     });
 
     it("should offer nothing on the config, which can be neither renamed nor removed", () => {
@@ -569,6 +581,7 @@ describe("ProjectTreeItem", () => {
       // Assert
       expect(config.row.buttonNames).toEqual([]);
       expect(config.keyShortcuts).toBeNull();
+      expect(config.popup).toBeNull();
     });
 
     it("should offer nothing when nodes cannot be edited", () => {
@@ -581,6 +594,156 @@ describe("ProjectTreeItem", () => {
       // Assert
       expect(file.row.buttonNames).toEqual([]);
       expect(file.keyShortcuts).toBeNull();
+      expect(file.popup).toBeNull();
+    });
+  });
+
+  describe("menu", () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ["file", "src/index.js"],
+      ["folder", "src"],
+    ] as const)(
+      "should ask for the menu of a %s where the pointer is, in place of the menu of the browser",
+      (kind, path) => {
+        // Arrange
+        const { context } = renderItems();
+
+        // Act
+        const isPrevented = item(path).row.rightClickName({ x: 40, y: 60 });
+
+        // Assert
+        expect(isPrevented).toBe(true);
+        expect(context.onOpenMenu).toHaveBeenCalledTimes(1);
+        expect(context.onOpenMenu).toHaveBeenCalledWith(
+          { kind, path },
+          { top: 60, left: 40 }
+        );
+      }
+    );
+
+    it("should not select the node on a right click", () => {
+      // Arrange
+      const { onSelect } = renderItems();
+
+      // Act
+      item("src/index.js").row.rightClickName();
+
+      // Assert
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("should ask for the menu of the node right clicked, and not of the folder it is in", () => {
+      // Arrange
+      const { context } = renderItems();
+
+      // Act
+      item("src/components/Button.js").row.rightClickName();
+
+      // Assert
+      expect(context.onOpenMenu).toHaveBeenCalledTimes(1);
+      expect(context.onOpenMenu).toHaveBeenCalledWith(
+        { kind: "file", path: "src/components/Button.js" },
+        { top: 0, left: 0 }
+      );
+    });
+
+    it("should keep the menu of the browser on the config", () => {
+      // Arrange
+      const { context } = renderItems();
+
+      // Act
+      const isPrevented = item("eslint.config.js").row.rightClickName();
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it("should keep the menu of the browser when nodes cannot be edited", () => {
+      // Arrange
+      const { context } = renderItems({ editable: false });
+
+      // Act
+      const isPrevented = item("src/index.js").row.rightClickName();
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it("should keep the menu of the browser in the field of a rename, to copy and paste", () => {
+      // Arrange
+      const { context } = renderItems({ renaming: "src/index.js" });
+
+      // Act
+      const isPrevented = item("src/index.js").field.rightClick();
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["Shift+F10", "F10", true],
+      ["the menu key", "ContextMenu", false],
+    ])(
+      "should ask for the menu under the name of the node with %s, in place of the menu of the browser",
+      (_keys, key, shiftKey) => {
+        // Arrange
+        const { context } = renderItems();
+        jest
+          .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+          .mockReturnValue(new DOMRect(30, 26, 60, 26));
+
+        // Act
+        const isPrevented = item("src/index.js").pressKey(key, { shiftKey });
+
+        // Assert
+        expect(isPrevented).toBe(true);
+        expect(context.onOpenMenu).toHaveBeenCalledTimes(1);
+        expect(context.onOpenMenu).toHaveBeenCalledWith(
+          { kind: "file", path: "src/index.js" },
+          { top: 52, left: 30 }
+        );
+      }
+    );
+
+    it("should not ask for the menu with F10 alone", () => {
+      // Arrange
+      const { context } = renderItems();
+
+      // Act
+      const isPrevented = item("src/index.js").pressKey("F10");
+
+      // Assert
+      expect(isPrevented).toBe(false);
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it("should not ask for the menu with the keys while the node is renamed", () => {
+      // Arrange
+      const { context } = renderItems({ renaming: "src/index.js" });
+
+      // Act
+      item("src/index.js").pressKey("ContextMenu");
+
+      // Assert
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
+    });
+
+    it("should not ask for the menu with the keys on the config", () => {
+      // Arrange
+      const { context } = renderItems();
+
+      // Act
+      item("eslint.config.js").pressKey("F10", { shiftKey: true });
+
+      // Assert
+      expect(context.onOpenMenu).not.toHaveBeenCalled();
     });
   });
 

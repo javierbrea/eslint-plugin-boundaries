@@ -1,6 +1,6 @@
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useMemo } from "react";
-import type { ReactNode } from "react";
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 
 import { ProjectTreeProvider } from "@/domains/project/ui/contexts/ProjectTreeContext";
 import type { ProjectTreeContextValue } from "@/domains/project/ui/contexts/ProjectTreeContext";
@@ -26,7 +26,7 @@ const TREE_STYLES = {
 } as const;
 
 /**
- * The tree of the sketch, with `eslint.config.js` pinned first: folders open and close, files and the config are selected, and the rows can be renamed and removed. It shows the state it is given and reports what the user does; the store keeps the state. The handlers must be stable, so that an item renders again only when what it shows changes.
+ * The tree of the sketch, with `eslint.config.js` pinned first: folders open and close, files and the config are selected, and the rows can be renamed and removed. A right click on a row asks for the context menu of its node, and a right click on the empty space of the tree asks for the one of the root, while nodes can be edited. It shows the state it is given and reports what the user does; the store keeps the state. The handlers must be stable, so that an item renders again only when what it shows changes.
  * @param props ProjectTree props.
  * @param props.tree The nodes of the sketch to show.
  * @param props.counts Problems per node, for the badges.
@@ -43,6 +43,7 @@ const TREE_STYLES = {
  * @param props.onRenameCommit Called with the name typed for a node.
  * @param props.onRenameCancel Called when the user gives up renaming.
  * @param props.onDelete Called when the user asks to remove a node.
+ * @param props.onOpenMenu Called when the user asks for the context menu of a node or of the root.
  * @returns The tree.
  */
 export function ProjectTree({
@@ -61,6 +62,7 @@ export function ProjectTree({
   onRenameCommit,
   onRenameCancel,
   onDelete,
+  onOpenMenu,
 }: Readonly<ProjectTreeProps>): ReactNode {
   const items = useMemo(() => getProjectItems(tree), [tree]);
   const expandedItems = useMemo(
@@ -80,6 +82,7 @@ export function ProjectTree({
       onRenameCommit,
       onRenameCancel,
       onDelete,
+      onOpenMenu,
     }),
     [
       counts,
@@ -92,8 +95,26 @@ export function ProjectTree({
       onRenameCommit,
       onRenameCancel,
       onDelete,
+      onOpenMenu,
     ]
   );
+
+  /**
+   * Asks for the context menu of the root of the project where the pointer is, when the right click is on the empty space of the tree and not on a row, which asks for its own.
+   * @param menuEvent The right click on the tree.
+   */
+  function handleContextMenu(
+    menuEvent: ReactMouseEvent<HTMLUListElement>
+  ): void {
+    if (!editable || menuEvent.target !== menuEvent.currentTarget) {
+      return;
+    }
+    menuEvent.preventDefault();
+    onOpenMenu(
+      { kind: "folder", path: "" },
+      { top: menuEvent.clientY, left: menuEvent.clientX }
+    );
+  }
 
   return (
     <ProjectTreeProvider value={context}>
@@ -108,6 +129,7 @@ export function ProjectTree({
           onToggle(id, isExpanded)
         }
         onSelectedItemsChange={(_event, id) => onSelect(id)}
+        onContextMenu={handleContextMenu}
         sx={TREE_STYLES}
       />
     </ProjectTreeProvider>

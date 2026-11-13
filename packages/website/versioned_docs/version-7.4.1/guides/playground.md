@@ -36,6 +36,7 @@ The `Project` pane shows the files as a tree, with `eslint.config.js` first.
 
 - **`+ File` and `+ Folder`**, at the foot of the pane, add a file or a folder in the selected folder, the folder of the open file or the root, and let you name it.
 - **Rename and delete** show at the end of a row (or press F2 and Delete). A name with `/`, such as `utils/format.js`, moves the node into that folder. The dependencies follow a file that is renamed or moved, and the ones from or to a file go with it when it is deleted.
+- **Right-click a file or a folder** for its menu: `New file` and `New folder` add a node in that folder, or in the folder of that file, and `Rename` and `Delete` do what the row actions do. Right-click the empty space below the rows to add a node at the root. With the keyboard, Shift+F10 opens the menu of the row in focus.
 
 The paths of the tree start at the folder of `eslint.config.js`, which the playground takes as the working directory of ESLint.
 

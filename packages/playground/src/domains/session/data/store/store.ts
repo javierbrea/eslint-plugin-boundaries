@@ -159,7 +159,7 @@ export function createSessionStore(
     toggleFolder: (path, isOpen) => set(toggleFolder(state, path, isOpen)),
     changeConfig: (config, highlight) =>
       set(changeConfig(state, config, highlight)),
-    addNode: (kind) => set(addNode(state, kind)),
+    addNode: (kind, folder) => set(addNode(state, kind, folder)),
     startRename: (path) => set(startRename(state, path)),
     renameNode: (path, typedName) => {
       const result = renameNode(state, path, typedName);

@@ -1059,6 +1059,23 @@ describe("createSessionStore", () => {
       expect(state.focus).toEqual({ kind: "file", path: "new-file.js" });
       expect(state.renaming).toBe("new-file.js");
     });
+
+    it("should add the node in the folder asked for", () => {
+      // Arrange
+      const store = createStartedStore(SKETCH, ALL_CAPABILITIES);
+
+      // Act
+      store.addNode("folder", "src");
+
+      // Assert
+      const state = store.getState();
+
+      expect(state.sketch.tree).toContainEqual({
+        path: "src/new-folder",
+        kind: "folder",
+      });
+      expect(state.renaming).toBe("src/new-folder");
+    });
   });
 
   describe("startRename and cancelRename", () => {

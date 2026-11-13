@@ -163,6 +163,14 @@ export class RenameFieldPom extends Pom {
   click(): void {
     fireEvent.click(this.root);
   }
+
+  /**
+   * Right clicks the field, as the user does to copy or paste with the menu of the browser.
+   * @returns True when the page kept the menu of the browser from opening.
+   */
+  rightClick(): boolean {
+    return !fireEvent.contextMenu(this.root);
+  }
 }
 
 export type { RefusalPom };

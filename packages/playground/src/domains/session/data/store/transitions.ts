@@ -204,6 +204,16 @@ function applyEdit(
 }
 
 /**
+ * Tells whether a path is a folder of the sketch.
+ * @param sketch The sketch.
+ * @param path The path.
+ * @returns True when the sketch has a node at the path and it is not a file.
+ */
+function isFolder(sketch: Sketch, path: string): boolean {
+  return hasNode(sketch, path) && !getFiles(sketch).includes(path);
+}
+
+/**
  * Gets the folder that a new node goes in: the folder the user selected, the folder of the file in focus, or the root.
  * @param state The state.
  * @param state.sketch
@@ -217,11 +227,7 @@ function getTargetFolder({
   focus: openNode,
 }: SessionState): string {
   // The selected folder can be gone, or be a file, after an edit of the text
-  if (
-    pickedFolder !== undefined &&
-    hasNode(sketch, pickedFolder) &&
-    !getFiles(sketch).includes(pickedFolder)
-  ) {
+  if (pickedFolder !== undefined && isFolder(sketch, pickedFolder)) {
     return pickedFolder;
   }
   // A dependency in focus is a line of its file, which is the open one
@@ -413,22 +419,27 @@ export function setView(state: SessionState, view: ProjectView): SessionState {
 }
 
 /**
- * Adds a file or a folder with a free name and starts renaming it, from the tree or from the pane of nothing open alike. It goes in the folder the user selected, the folder of the file in focus or the root; the tree shows, with the folders above it open. A new file opens; a new folder is selected.
+ * Adds a file or a folder with a free name and starts renaming it, from the tree or from the pane of nothing open alike. It goes in the folder asked for, such as the one whose menu the user opened, or else in the folder the user selected, the folder of the file in focus or the root; the tree shows, with the folders above it open. A new file opens; a new folder is selected.
  * @param state The state before.
  * @param kind Whether to add a file or a folder.
- * @returns The state after, or the same one without `editTree`.
+ * @param folder The folder to add the node in, or an empty string for the root. Without it, the node goes where the state says.
+ * @returns The state after, or the same one without `editTree`, or when the folder asked for is not a folder of the sketch: it was gone or turned into a file while the user chose.
  */
 export function addNode(
   state: SessionState,
-  kind: "file" | "folder"
+  kind: "file" | "folder",
+  folder?: string
 ): SessionState {
-  if (!state.capabilities.editTree) {
+  if (
+    !state.capabilities.editTree ||
+    (folder !== undefined && folder !== "" && !isFolder(state.sketch, folder))
+  ) {
     return state;
   }
 
   const path = getUniquePath(
     state.sketch,
-    getTargetFolder(state),
+    folder ?? getTargetFolder(state),
     NEW_NAMES[kind]
   );
 

@@ -236,6 +236,20 @@ class ProjectRowPom extends Pom {
   }
 
   /**
+   * Right clicks the name of the node, as the user does to open its context menu.
+   * @param at Where the pointer is, in pixels from the top left corner of the viewport.
+   * @param at.x The distance from the left.
+   * @param at.y The distance from the top.
+   * @returns True when the page kept the menu of the browser from opening.
+   */
+  rightClickName(at: { x: number; y: number } = { x: 0, y: 0 }): boolean {
+    return !fireEvent.contextMenu(
+      this.root.querySelector("[title]") as HTMLElement,
+      { clientX: at.x, clientY: at.y }
+    );
+  }
+
+  /**
    * The badge of the row.
    * @param label The accessible name of the badge, such as `2 failing dependencies`. The first badge of the row when it is unset.
    * @returns The page object of the badge.
@@ -440,6 +454,14 @@ export class ProjectTreeItemPom extends Pom {
   }
 
   /**
+   * The kind of popup the item announces, which is its context menu.
+   * @returns The `aria-haspopup` attribute, or null when it has none.
+   */
+  get popup(): string | null {
+    return this.root.getAttribute("aria-haspopup");
+  }
+
+  /**
    * Whether the item has the keyboard focus.
    * @returns True when the item is the active element of the page.
    */
@@ -463,9 +485,12 @@ export class ProjectTreeItemPom extends Pom {
   /**
    * Presses a key while the item has the focus.
    * @param key The `key` of the event, such as `F2` or `Delete`.
+   * @param modifiers The keys held at the same time.
+   * @param modifiers.shiftKey Whether Shift is held, as in Shift+F10.
+   * @returns True when the item kept the browser from doing what the key does by default.
    */
-  pressKey(key: string): void {
-    fireEvent.keyDown(this.root, { key });
+  pressKey(key: string, modifiers: { shiftKey?: boolean } = {}): boolean {
+    return !fireEvent.keyDown(this.root, { key, ...modifiers });
   }
 }
 
