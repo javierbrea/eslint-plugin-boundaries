@@ -1,0 +1,38 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "design-tokens",
+  "projectType": "library",
+  "tags": [
+    "type:css:lib"
+  ],
+  "namedInputs": {
+    // What a host reads from the package. It has no build to depend on, so each target of a host that reads these files lists this input with `projects`, and a change here invalidates its cache
+    "assets": [
+      "{projectRoot}/package.json",
+      "{projectRoot}/index.js",
+      "{projectRoot}/index.d.ts",
+      "{projectRoot}/tokens.css",
+      "{projectRoot}/fonts.css",
+      "{projectRoot}/static/**/*"
+    ]
+  },
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        }
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-config",
+    "cspell-config"
+  ]
+}

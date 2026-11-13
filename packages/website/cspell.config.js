@@ -3,9 +3,7 @@ const { createConfig } = require("../../support/cspell-config/index.js");
 
 module.exports = createConfig({
   words: [
-    "Avenir",
     "blockquotes",
-    "fontsource",
     "networkidle",
     "nums",
     "Sora",
@@ -13,5 +11,4 @@ module.exports = createConfig({
     "viewports",
     "woff",
   ],
-  ignorePaths: ["static/fonts/LICENSE-*.txt"],
 });
