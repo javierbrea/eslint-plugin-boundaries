@@ -8,6 +8,16 @@ import { CopyButton } from "./CopyButton";
 import { CopyButtonPom } from "./CopyButton.pom";
 import type { CopyButtonProps } from "./CopyButton.types";
 
+/** The `transition` that MUI gives every button, as jsdom reads it: its background, shadow, border and text fade in 250 ms. */
+const MUI_BUTTON_TRANSITION = [
+  "background-color",
+  "box-shadow",
+  "border-color",
+  "color",
+]
+  .map((property) => `${property} 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms`)
+  .join(",");
+
 /** What a spec gets from the button it renders. */
 type Page = {
   /** The page object of the button. */
@@ -292,18 +302,18 @@ describe("CopyButton", () => {
       expect(check.reducedMotion).toBe("none");
     });
 
-    it("should turn green as fast as the faces swap, and take longer to fade back to the color of the theme", () => {
+    it("should turn green as fast as the faces swap, and fade back with the transition that MUI gives every button, which its hover takes too", () => {
       // Arrange
-      const { button, update } = renderButton();
+      const { button, update } = renderButton({ isCopied: true });
 
       // Act
-      const whileLabel = button.colorMotion.transition;
-      update({ isCopied: true });
       const whileCopied = button.colorMotion.transition;
+      update({ isCopied: false });
+      const afterCopied = button.colorMotion.transition;
 
       // Assert
       expect(whileCopied).toBe("background-color 180ms var(--jsb-ease)");
-      expect(whileLabel).toBe("background-color 400ms var(--jsb-ease)");
+      expect(afterCopied).toBe(MUI_BUTTON_TRANSITION);
     });
 
     it("should fade its color also for a user who asks for less motion, since a color is not motion", () => {

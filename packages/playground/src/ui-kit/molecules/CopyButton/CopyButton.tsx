@@ -3,6 +3,7 @@ import { keyframes, styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { Icon } from "@/ui-kit/atoms/Icon";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
 import {
   COPY_BUTTON_COPIED_LABEL,
@@ -12,9 +13,8 @@ import type { CopyButtonProps } from "./CopyButton.types";
 
 const REDUCED_MOTION = "@media (prefers-reduced-motion: reduce)";
 
-// The green of a copy that worked. 15% of `--jsb-ink` darkens `--jsb-ok` in the light scheme and lightens it in the dark one, so that the text of the button, `--jsb-accent-ink`, passes 4.5:1 on it in both
-const COPIED_BACKGROUND =
-  "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))";
+// The green of a copy that worked is the text of the ok state, which passes 4.5:1 on `--jsb-card`. The text of the button, `--jsb-accent-ink`, is `--jsb-card` in the light scheme and darker in the dark one, so it passes 4.5:1 on that green in both
+const COPIED_BACKGROUND = STATE_TEXT.ok;
 
 // A ring of that green leaves the edge of the button and fades as it grows
 const COPIED_PULSE = keyframes({
@@ -26,19 +26,17 @@ const COPIED_PULSE = keyframes({
   },
 });
 
-// The face that leaves slides out of the button and is cut by it. The button turns green with the faces and sends a ring out, then takes longer to fade back to its color, while the label comes back. The color is not motion, so it fades for every user, and only the ring stops for a user who asks for less motion
+// The face that leaves slides out of the button and is cut by it. The button turns green as fast as the faces swap and sends a ring out, then fades back to its color with the transition that MUI gives every button, while the label comes back. The color is not motion, so it fades for every user, and only the ring stops for a user who asks for less motion
 const Root = styled(Button, {
   shouldForwardProp: (prop) => prop !== "isCopied",
 })<{ isCopied: boolean }>(({ isCopied }) => ({
   overflow: "hidden",
-  ...(isCopied
-    ? {
-        backgroundColor: COPIED_BACKGROUND,
-        transition: "background-color 180ms var(--jsb-ease)",
-        animation: `${COPIED_PULSE} 600ms var(--jsb-ease)`,
-        [REDUCED_MOTION]: { animation: "none" },
-      }
-    : { transition: "background-color 400ms var(--jsb-ease)" }),
+  ...(isCopied && {
+    backgroundColor: COPIED_BACKGROUND,
+    transition: "background-color 180ms var(--jsb-ease)",
+    animation: `${COPIED_PULSE} 600ms var(--jsb-ease)`,
+    [REDUCED_MOTION]: { animation: "none" },
+  }),
 }));
 
 // Both faces sit in the same cell, so the button is always as wide as the wider one and nothing around it moves when they swap
