@@ -39,7 +39,7 @@ describe("useShownTab", () => {
     // Arrange
     const { store, result } = renderHookInSession(useShownTab);
 
-    leaveNothingOpen(store, "src/index.js");
+    leaveNothingOpen(store);
 
     // Act
     act(() => store.selectTab("node"));
@@ -52,7 +52,7 @@ describe("useShownTab", () => {
     // Arrange
     const { store, result } = renderHookInSession(useShownTab);
 
-    leaveNothingOpen(store, "src/index.js");
+    leaveNothingOpen(store);
 
     // Act
     act(() => store.open({ kind: "config" }));

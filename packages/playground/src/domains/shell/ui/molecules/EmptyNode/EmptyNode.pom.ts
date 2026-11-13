@@ -45,6 +45,14 @@ class EmptyNodeButtonPom extends Pom {
     return this.childPom(IconPom);
   }
 
+  /**
+   * Whether the button has the keyboard focus.
+   * @returns True when the button is the active element of the document.
+   */
+  get isFocused(): boolean {
+    return document.activeElement === this.root;
+  }
+
   /** Presses the button. */
   press(): void {
     fireEvent.click(this.root);

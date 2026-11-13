@@ -41,13 +41,13 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
 }
 
 /**
- * Renders the node pane the way a user leaves it with nothing open: the instance starts with the config in focus, so a file is opened and removed.
+ * Renders the node pane the way a user leaves it with nothing open: the instance starts with the config in focus, which is closed.
  * @returns The render, the store, the spy of the sketches and the page object of the pane.
  */
 function renderWithNothingOpen(): PaneRender {
   const render = renderPane();
 
-  leaveNothingOpen(render.store, FILE);
+  leaveNothingOpen(render.store);
   return render;
 }
 
@@ -155,6 +155,51 @@ describe("NodePane", () => {
       // Assert
       expect(pane.shown).toBe("empty");
       expect(pane.empty.title).toBe("Open a file or the config");
+    });
+  });
+
+  describe("the close button", () => {
+    it("should close the config, and give the keyboard focus to the button that opens it again", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+
+      // Act
+      pane.config.pane.closeButton.press();
+
+      // Assert
+      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(true);
+    });
+
+    it("should close the file in focus, and give the keyboard focus to the button that opens the config", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      act(() => store.open({ kind: "dependency", path: FILE, index: 0 }));
+
+      // Act
+      pane.file.closeButton.press();
+
+      // Assert
+      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(true);
+    });
+
+    it("should not give the keyboard focus to the pane that a removal shows later, once something was open again after a close", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      pane.config.pane.closeButton.press();
+      const focusedAfterClose = pane.empty.openConfigButton.isFocused;
+      act(() => store.open({ kind: "file", path: FILE }));
+
+      // Act
+      act(() => store.removeNode(FILE));
+
+      // Assert
+      expect(focusedAfterClose).toBe(true);
+      expect(pane.shown).toBe("empty");
+      expect(pane.empty.openConfigButton.isFocused).toBe(false);
     });
   });
 

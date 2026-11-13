@@ -202,6 +202,38 @@ function isRowBad(
 }
 
 /**
+ * Gets what names an item: what its row reads, which is its own name, the tag of the target and what the badge counts, and not the items inside it.
+ * @param nameId The id of the name of the item. The tag and the badge have ids made from it.
+ * @param isTarget Whether the row shows the tag of the target.
+ * @param hasBadge Whether the row shows a badge.
+ * @returns The ids of the tag and of the badge, the value of `aria-labelledby` of the item, and the space to write between the name and the text that the row shows after it, or `null` when the row shows none.
+ */
+function getItemName(
+  nameId: string,
+  isTarget: boolean,
+  hasBadge: boolean
+): {
+  tagId: string;
+  badgeId: string;
+  labelledBy: string;
+  separator: " " | null;
+} {
+  const tagId = `${nameId}-target`;
+  const badgeId = `${nameId}-badge`;
+  const endTextIds = [
+    ...(isTarget ? [tagId] : []),
+    ...(hasBadge ? [badgeId] : []),
+  ];
+
+  return {
+    tagId,
+    badgeId,
+    labelledBy: [nameId, ...endTextIds].join(" "),
+    separator: endTextIds.length > 0 ? " " : null,
+  };
+}
+
+/**
  * Gives the keyboard focus to an item when the tree asks for it. The item that was renamed has another id, so it is a new item: it asks when it mounts, which is when it is in the page. The focus is only taken when it is on the body, as Enter, Escape and a closed dialog leave it. Leaving the rename field with a click or Tab puts it where the user went, and that is not taken back.
  * @param itemId The id of the item.
  * @param focusRequest The id of the item that must take the keyboard focus, if any.
@@ -273,6 +305,11 @@ export function ProjectTreeItem({
   const isFailingFile = item.kind === "file" && badge.count > 0;
   const isBad = isRowBad(item, badge, context.counts);
   const isTarget = context.target === itemId;
+  const { tagId, badgeId, labelledBy, separator } = getItemName(
+    nameId,
+    isTarget,
+    badge.count > 0
+  );
 
   /**
    * Starts the rename with F2 and removes the node with Delete.
@@ -296,8 +333,7 @@ export function ProjectTreeItem({
     <TreeItemProvider {...getContextProviderProps()}>
       <Root
         {...getRootProps({
-          // The name of the item is its own, not the one of everything inside it
-          "aria-labelledby": nameId,
+          "aria-labelledby": labelledBy,
           // The keys that rename and remove the node are not written anywhere in the row
           "aria-keyshortcuts": canEdit ? "F2 Delete" : undefined,
           onKeyDown: handleKeyDown,
@@ -342,6 +378,8 @@ export function ProjectTreeItem({
               {label}
             </Name>
           )}
+          {/* A space between the name and the text at the end, which the flex row does not draw: without it, axe joins them into one word and finds that the name of the item does not hold what the row shows (https://github.com/dequelabs/axe-core/issues/5459) */}
+          {separator}
           <End>
             {canEdit && !isRenaming ? (
               <Actions data-actions="">
@@ -375,7 +413,11 @@ export function ProjectTreeItem({
               </Actions>
             ) : null}
             {/* After the actions, which take a gap even while they are clipped: before them, the tag would be that gap away from the end of the row */}
-            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
+            {isTarget ? (
+              <TargetTag id={tagId} data-target-tag="">
+                target
+              </TargetTag>
+            ) : null}
             {isFailingFile ? (
               <Failure tone={badge.tone} data-failure="">
                 <Icon name={FAILURE_ICONS[badge.tone]} />
@@ -383,6 +425,7 @@ export function ProjectTreeItem({
             ) : null}
             {badge.count > 0 ? (
               <CountBadge
+                id={badgeId}
                 count={badge.count}
                 tone={badge.tone}
                 label={badge.label}

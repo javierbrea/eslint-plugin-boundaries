@@ -5,6 +5,7 @@ import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 import { PaneFramePom } from "@/ui-kit/atoms/PaneFrame/PaneFrame.pom";
 import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
+import { CloseButtonPom } from "@/ui-kit/molecules/CloseButton/CloseButton.pom";
 
 import { ADD_DEPENDENCY_LABEL, FILE_PANE_TEST_ID } from "./FilePane.constants";
 
@@ -102,6 +103,14 @@ export class FilePanePom extends Pom {
    */
   get head(): PaneHeadPom {
     return this.childPom(PaneHeadPom);
+  }
+
+  /**
+   * The button of the head that closes the pane.
+   * @returns The page object of the button.
+   */
+  get closeButton(): CloseButtonPom {
+    return this.childPom(CloseButtonPom);
   }
 
   /**

@@ -56,6 +56,7 @@ function createProps(
     problems: [],
     readOnly: false,
     onChange: jest.fn(),
+    onClose: jest.fn(),
     frameLabel: FRAME_LABEL,
     ...overrides,
   };
@@ -98,6 +99,33 @@ describe("ConfigPane", () => {
     expect(labelTag).toBe("SPAN");
     expect(path).toBe("eslint.config.js");
     expect(pathTitle).toBe("eslint.config.js");
+  });
+
+  it("should draw the button that closes the config between the name of the file and the hint, named after the file", () => {
+    // Arrange
+    render(<ConfigPane {...createProps()} />);
+    const pane = new ConfigPanePom();
+
+    // Act
+    const { itemTexts, hint } = pane.head;
+    const isNamed = pane.closeButton.isButtonNamed("Close eslint.config.js");
+
+    // Assert
+    expect(itemTexts).toEqual(["Config", "eslint.config.js", "", hint]);
+    expect(isNamed).toBe(true);
+  });
+
+  it("should report that the user pressed the close button", () => {
+    // Arrange
+    const props = createProps();
+    render(<ConfigPane {...props} />);
+    const pane = new ConfigPanePom();
+
+    // Act
+    pane.closeButton.press();
+
+    // Assert
+    expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 
   it("should say in the hint that the config is JSON5, with the settings and the rules in mono", () => {

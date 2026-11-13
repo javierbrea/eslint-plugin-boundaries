@@ -352,6 +352,15 @@ export function openTarget(state: SessionState, target: Target): SessionState {
 }
 
 /**
+ * Closes what is in focus, as the close button of the node pane does: nothing stays in focus, and the problems panel goes back to the tab of the sketch. The node pane shows that nothing is open, and the inspector the numbers of the sketch.
+ * @param state The state before.
+ * @returns The state after, or the same one when nothing is in focus.
+ */
+export function closeNode(state: SessionState): SessionState {
+  return state.focus.kind === "none" ? state : closeFocus(state);
+}
+
+/**
  * Handles the selection of an item of the tree. A file and the config open; a folder is only selected, and is where the next node goes.
  * @param state The state before.
  * @param id The id of the item: `eslint.config.js` for the config node, or the path of a node.

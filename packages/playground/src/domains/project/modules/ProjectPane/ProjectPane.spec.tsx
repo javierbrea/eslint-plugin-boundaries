@@ -200,7 +200,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(names).toEqual([
-        "eslint.config.js",
+        "eslint.config.js 1 problem",
         "src/",
         "components/",
         "Button.js",
@@ -670,7 +670,7 @@ describe("ProjectPane", () => {
     it("should outline nothing while a file, the config or nothing is in focus", () => {
       // Arrange
       const { pane, store } = renderPane({ sketch: QUICK_START });
-      leaveNothingOpen(store, BUTTON_SPEC);
+      leaveNothingOpen(store);
       const focusAtStart = getFocus(store);
       const none = getTargets(pane);
       act(() => store.open({ kind: "file", path: CHECKOUT }));

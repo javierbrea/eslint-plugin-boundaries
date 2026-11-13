@@ -42,6 +42,7 @@ function renderPane(overrides: Partial<FilePaneProps> = {}): PaneRender {
     onEdit: jest.fn(),
     onRemove: jest.fn(),
     onAdd: jest.fn(),
+    onClose: jest.fn(),
     ...overrides,
   };
 
@@ -102,6 +103,30 @@ describe("FilePane", () => {
     expect(labelTag).toBe("SPAN");
     expect(path).toBe(PATH);
     expect(pathTitle).toBe(PATH);
+  });
+
+  it("should draw the button that closes the file right after its path, named after the file", () => {
+    // Arrange
+    const { pane } = renderPane();
+
+    // Act
+    const { itemTexts } = pane.head;
+    const isNamed = pane.closeButton.isButtonNamed(`Close ${PATH}`);
+
+    // Assert
+    expect(itemTexts).toEqual(["File", PATH, ""]);
+    expect(isNamed).toBe(true);
+  });
+
+  it("should report that the user pressed the close button", () => {
+    // Arrange
+    const { pane, props } = renderPane();
+
+    // Act
+    pane.closeButton.press();
+
+    // Assert
+    expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 
   describe("the dependencies", () => {

@@ -46,9 +46,6 @@ const BUTTON = "src/components/atoms/Button/index.js";
 
 const BUTTON_SPEC = "src/components/atoms/Button/Button.spec.js";
 
-/** A file that {@link renderShellWithNothingOpen} adds to the sketch only to open it and remove it, so that nothing is open and the sketch is the one the case asks for */
-const SPARE_FILE = "src/spare.js";
-
 /** The quick-start config with the two mistakes of the mockup: a wrong option of the rule, which is an error, and a wrong key of an element descriptor, which is a warning */
 const MISTAKES: Sketch = {
   ...QUICK_START,
@@ -147,26 +144,16 @@ function renderShellInProbe(): FixturePom {
 }
 
 /**
- * Renders the shell with nothing open, the way the user leaves it: the shell starts with the config in focus, so the user opens a file and removes it from the tree. The sketch has a spare file for that, so the sketch of the case is the one it asks for once the file is gone.
+ * Renders the shell with nothing open, the way the user leaves it: the shell starts with the config in focus, and the user closes it.
  * @param overrides What differs from an editable shell of the quick-start sketch.
  * @returns The page object of the shell, the mock that receives each new sketch, and the way to render it again.
  */
 function renderShellWithNothingOpen(
   overrides: Partial<ShellProps> = {}
 ): ShellRender {
-  const { initialSketch = QUICK_START } = overrides;
-  const rendered = renderShell({
-    ...overrides,
-    initialSketch: {
-      ...initialSketch,
-      tree: [...initialSketch.tree, { path: SPARE_FILE, kind: "file" }],
-    },
-  });
+  const rendered = renderShell(overrides);
 
-  rendered.shell.project.click(SPARE_FILE);
-  rendered.shell.project.item(SPARE_FILE).deleteAction.press();
-  // The removal of the spare file is not an edit that the case reports
-  rendered.onSketchChange.mockClear();
+  rendered.shell.node.config.pane.closeButton.press();
   return rendered;
 }
 

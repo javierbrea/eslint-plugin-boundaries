@@ -7,6 +7,7 @@ import { DependencyLines } from "@/domains/files/ui/molecules/DependencyLines";
 import { Icon } from "@/ui-kit/atoms/Icon";
 import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
+import { CloseButton } from "@/ui-kit/molecules/CloseButton";
 
 import {
   ADD_DEPENDENCY_LABEL,
@@ -47,7 +48,7 @@ const Hint = styled("p")(({ theme }) => ({
 }));
 
 /**
- * The node pane when a file is open: its path in the head and, on a code area, the list of its dependencies with their verdicts, the button that adds one and a hint about the picker. It shows what it is given and reports what the user does: the picker and the store are the business of the module that renders it. When the user removes the only line, the keyboard focus goes to the button that adds one.
+ * The node pane when a file is open: its path in the head, with the button that closes it, and, on a code area, the list of its dependencies with their verdicts, the button that adds one and a hint about the picker. It shows what it is given and reports what the user does: the picker and the store are the business of the module that renders it. When the user removes the only line, the keyboard focus goes to the button that adds one.
  * @param props FilePane props.
  * @param props.path Path of the open file.
  * @param props.frameLabel The accessible name of the landmark of the pane.
@@ -58,6 +59,7 @@ const Hint = styled("p")(({ theme }) => ({
  * @param props.onEdit Called with the position of the line whose edit action was pressed.
  * @param props.onRemove Called with the position of the line whose delete action was pressed.
  * @param props.onAdd Called when the user presses `+ Dependency`.
+ * @param props.onClose Called when the user presses the close button of the head.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The pane.
  */
@@ -71,6 +73,7 @@ export function FilePane({
   onEdit,
   onRemove,
   onAdd,
+  onClose,
   testId = FILE_PANE_TEST_ID,
 }: Readonly<FilePaneProps>): ReactNode {
   const addButton = useRef<HTMLButtonElement>(null);
@@ -82,7 +85,11 @@ export function FilePane({
 
   return (
     <PaneFrame label={frameLabel} testId={testId}>
-      <PaneHead label={FILE_PANE_LABEL} path={path} />
+      <PaneHead
+        label={FILE_PANE_LABEL}
+        path={path}
+        end={<CloseButton subject={path} onClose={onClose} />}
+      />
       <Code>
         <DependencyLines
           lines={lines}

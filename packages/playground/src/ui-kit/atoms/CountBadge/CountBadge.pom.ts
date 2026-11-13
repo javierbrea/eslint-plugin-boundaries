@@ -46,6 +46,14 @@ export class CountBadgePom extends Pom {
   }
 
   /**
+   * The id of the badge, by which an element takes its name from it.
+   * @returns The `id` of the root, or an empty string when it has none.
+   */
+  get id(): string {
+    return this.root.id;
+  }
+
+  /**
    * Whether the tone reached the DOM as an attribute, which a badge must not do.
    * @returns True when the badge has a `tone` attribute.
    */

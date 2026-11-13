@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- feat: The playground opens `eslint.config.js` when it loads a project, an example or a link, instead of an empty pane.
+- feat: The playground opens `eslint.config.js` when it loads a project, an example or a link, instead of an empty pane. The cross in the head of the open file or of the config closes it, and the inspector then shows the numbers of the project.
 - chore(#634): The comment of the `--jsb-faint` token says that it is meant for shapes, not for text.
 - chore(#640): The 404 page marks its content with a test id, and the pages plugin skips `*.playwright.ts` and `*.constants.ts` files, so the helpers of the browser tests never become routes.
 - feat: The home shows the Robert C. Martin quote right below the hero and the playground right after "How it works", and its section labels are larger.
@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- fix: The items of the playground's project tree tell assistive technology their problem count and their `target` tag, the headings of its config inspector no longer skip a level, and accessibility checkers find its config editor in the tab order.
 - docs: The policies of the Overview page now do what they say: with `checkAllOrigins`, only controllers can import `axios`. The sample ESLint message for the model importing a view is the one ESLint prints.
 - docs: The Complete Example of the Policies page sets `checkAllOrigins`, without which the policy about `redux` never applied.
 - docs: The `boundaries/dependencies` rule page writes the `boundaries/files` patterns from the root of its `src/` project, so that its Correct and Incorrect examples are what ESLint reports.

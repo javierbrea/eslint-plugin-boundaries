@@ -814,6 +814,21 @@ describe("createSessionStore", () => {
     });
   });
 
+  describe("close", () => {
+    it("should close what is open", () => {
+      // Arrange
+      const store = createStartedStore(SKETCH, ALL_CAPABILITIES);
+      store.open({ kind: "file", path: "src/index.js" });
+
+      // Act
+      store.close();
+
+      // Assert
+      expect(store.getState().focus).toEqual({ kind: "none" });
+      expect(store.getState().tab).toBe("sketch");
+    });
+  });
+
   describe("open with a dependency", () => {
     it("should put the dependency in focus and select its tab", () => {
       // Arrange

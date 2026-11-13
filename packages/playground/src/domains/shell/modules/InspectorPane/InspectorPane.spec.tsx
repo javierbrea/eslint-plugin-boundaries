@@ -52,9 +52,6 @@ const REACT_LINE = 3;
 /** A file with a dependency of its own, for the focus to move to */
 const BUTTON = "src/components/atoms/Button/index.js";
 
-/** A file that the sketch has only to be opened and removed, so that a test leaves nothing in focus and still counts what the example has */
-const SPARE_FILE = "src/spare.js";
-
 /** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
 type PaneRender = SessionRender & { readonly pane: InspectorPanePom };
 
@@ -71,17 +68,14 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
 }
 
 /**
- * Renders the inspector pane with nothing in focus, the way the user leaves it: the instance starts with the config in focus, so the sketch gets a spare file that is opened and removed, and the sketch is the one of the example again.
- * @param sketch The sketch to start from, which has no spare file.
+ * Renders the inspector pane with nothing in focus, the way the user leaves it: the instance starts with the config in focus, which is closed.
+ * @param sketch The sketch to start from.
  * @returns The render, the store, the spy of the sketches and the page object of the pane.
  */
 function renderWithNothingInFocus(sketch: Sketch = QUICK_START): PaneRender {
-  const render = renderPane({
-    ...sketch,
-    tree: [...sketch.tree, { path: SPARE_FILE, kind: "file" }],
-  });
+  const render = renderPane(sketch);
 
-  leaveNothingOpen(render.store, SPARE_FILE);
+  leaveNothingOpen(render.store);
   return render;
 }
 

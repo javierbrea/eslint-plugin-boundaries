@@ -70,6 +70,8 @@ const EXTENSIONS: Extension[] = [
   syntaxHighlighting(highlightStyle),
   highlightExtension,
   editorTheme,
+  // The text is in the tab order already, as an editable element, but tools such as axe only see a tabindex: without it, they report the scroller around the text as a region that the keyboard cannot reach
+  EditorView.contentAttributes.of({ tabindex: "0" }),
   propsCompartment.of([]),
   listenerCompartment.of([]),
 ];

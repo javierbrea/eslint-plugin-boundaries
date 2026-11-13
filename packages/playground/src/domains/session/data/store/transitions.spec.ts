@@ -14,6 +14,7 @@ import {
   addNode,
   cancelRename,
   changeConfig,
+  closeNode,
   createSessionState,
   openTarget,
   readText,
@@ -492,6 +493,76 @@ describe("Transitions", () => {
 
       // Assert
       expect(state.closedFolders).toBe(before.closedFolders);
+    });
+  });
+
+  describe("closeNode", () => {
+    it("should leave nothing in focus and select the tab of the sketch, and drop the range to reveal and the highlight of the config", () => {
+      // Arrange
+      const before = openTarget(createState(), {
+        kind: "config",
+        range: RANGE,
+        policy: 0,
+        dependency: { path: "src/index.js", index: 0 },
+      });
+
+      // Act
+      const state = closeNode(before);
+
+      // Assert
+      expect(before.reveal).toEqual({ range: RANGE, key: 1 });
+      expect(before.highlight).toBeDefined();
+      expect(state).toMatchObject(NOTHING_OPEN);
+      expect(state.reveal).toBeUndefined();
+      expect(state.highlight).toBeUndefined();
+    });
+
+    it.each<[string, Pick<SessionState, "focus" | "tab">]>([
+      ["a file", { focus: INDEX_FOCUS, tab: "node" }],
+      [
+        "a dependency",
+        {
+          focus: { kind: "dependency", path: "src/index.js", index: 0 },
+          tab: "dependency",
+        },
+      ],
+    ])("should leave nothing in focus when %s is open", (_name, opened) => {
+      // Arrange
+      const before = createState(opened);
+
+      // Act
+      const state = closeNode(before);
+
+      // Assert
+      expect(state).toMatchObject(NOTHING_OPEN);
+    });
+
+    it("should keep the folder the user selected and the count of the ranges revealed, so that the next one is revealed again", () => {
+      // Arrange
+      const before = createState({
+        focus: INDEX_FOCUS,
+        tab: "node",
+        pickedFolder: "docs",
+        revealCount: 3,
+      });
+
+      // Act
+      const state = closeNode(before);
+
+      // Assert
+      expect(state.pickedFolder).toBe("docs");
+      expect(state.revealCount).toBe(3);
+    });
+
+    it("should return the same state when nothing is in focus", () => {
+      // Arrange
+      const before = createState(NOTHING_OPEN);
+
+      // Act
+      const state = closeNode(before);
+
+      // Assert
+      expect(state).toBe(before);
     });
   });
 

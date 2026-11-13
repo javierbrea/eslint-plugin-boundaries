@@ -15,6 +15,7 @@ import {
   createSessionState,
   setEvaluation,
   openTarget,
+  closeNode,
   selectItem,
   toggleFolder,
   changeConfig,
@@ -153,6 +154,7 @@ export function createSessionStore(
       evaluator.dispose();
     },
     open: (target) => set(openTarget(state, target)),
+    close: () => set(closeNode(state)),
     selectItem: (id) => set(selectItem(state, id)),
     toggleFolder: (path, isOpen) => set(toggleFolder(state, path, isOpen)),
     changeConfig: (config, highlight) =>

@@ -78,7 +78,8 @@ const Detail = styled("small")(({ theme }) => ({
   overflowWrap: "anywhere",
 }));
 
-const SectionLabel = styled("h3")(({ theme }) => ({
+// The groups are the first headings under the h1 of the host page: the title of the inspector is no heading, so they are h2, and the levels never skip one
+const SectionLabel = styled("h2")(({ theme }) => ({
   margin: "4px 0 0",
   ...theme.typography.paneLabel,
   color: "var(--jsb-muted)",

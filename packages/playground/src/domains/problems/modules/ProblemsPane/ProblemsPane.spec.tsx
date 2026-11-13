@@ -41,9 +41,6 @@ const DEFAULT_MESSAGE =
 
 const FILE = "src/modules/checkout/index.js";
 
-/** A file that a sketch is given, to be opened and removed so that nothing is open */
-const SPARE_FILE = "spare.js";
-
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
 
@@ -80,18 +77,6 @@ function renderPane(sketch: Sketch = QUICK_START): PaneRender {
 }
 
 /**
- * Adds a spare file to a sketch, which a spec opens and removes with `leaveNothingOpen` to leave nothing open: the sketch that is left is the one given.
- * @param sketch The sketch.
- * @returns The sketch with a file more, at the end of its tree.
- */
-function withSpareFile(sketch: Sketch): Sketch {
-  return {
-    ...sketch,
-    tree: [...sketch.tree, { path: SPARE_FILE, kind: "file" }],
-  };
-}
-
-/**
  * Reads the tabs of the panel.
  * @param pane The problems pane.
  * @returns The text of each tab, with `*` after the selected one.
@@ -120,10 +105,10 @@ describe("ProblemsPane", () => {
   describe("the sketch", () => {
     it("should have only the tab of the sketch, selected, when nothing is open", () => {
       // Arrange
-      const { store, pane } = renderPane(withSpareFile(QUICK_START));
+      const { store, pane } = renderPane(QUICK_START);
 
       // Act
-      leaveNothingOpen(store, SPARE_FILE);
+      leaveNothingOpen(store);
 
       // Assert
       expect(getTabs(pane)).toEqual(["Project*"]);
@@ -189,9 +174,9 @@ describe("ProblemsPane", () => {
   describe("the rows of the config", () => {
     it("should open the config at the range of the problem when a row is pressed", () => {
       // Arrange
-      const { store, pane } = renderPane(withSpareFile(MISTAKES));
+      const { store, pane } = renderPane(MISTAKES);
 
-      leaveNothingOpen(store, SPARE_FILE);
+      leaveNothingOpen(store);
 
       // Act
       pane.list.row("eslint.config.js:15:16").press();
@@ -432,9 +417,9 @@ describe("ProblemsPane", () => {
   describe("the config", () => {
     it("should add its tab with the count of its problems, and list only those", () => {
       // Arrange
-      const { store, pane } = renderPane(withSpareFile(MISTAKES));
+      const { store, pane } = renderPane(MISTAKES);
 
-      leaveNothingOpen(store, SPARE_FILE);
+      leaveNothingOpen(store);
 
       const before = getTabs(pane);
 
