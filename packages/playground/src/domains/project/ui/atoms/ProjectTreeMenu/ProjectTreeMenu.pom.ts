@@ -155,11 +155,16 @@ export class ProjectTreeMenuPom extends Pom {
   }
 
   /**
-   * Presses a key while the menu has the focus.
+   * Presses a key on the item that has the keyboard focus, or on the menu when none has it.
    * @param key The `key` of the event, such as `Escape`.
+   * @returns True when the menu kept the browser from doing what the key does by default.
    */
-  pressKey(key: string): void {
-    fireEvent.keyDown(this.root, { key });
+  pressKey(key: string): boolean {
+    const focused = this.items.find(
+      (menuItem) => menuItem === document.activeElement
+    );
+
+    return !fireEvent.keyDown(focused ?? this.root, { key });
   }
 
   /**

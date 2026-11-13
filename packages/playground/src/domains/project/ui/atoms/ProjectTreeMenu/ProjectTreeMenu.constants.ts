@@ -16,7 +16,7 @@ export const PROJECT_MENU_ACTION_LABELS: Readonly<
   delete: "Delete",
 };
 
-/** The key that does from the row what an item does, which the item announces and writes at its end. */
+/** The key that picks an item from anywhere in the menu, and does what the item does from the row. The item announces it and writes it at its end, and it is also the `key` of its key press. */
 export const PROJECT_MENU_SHORTCUTS: Readonly<
   Partial<Record<ProjectMenuAction, string>>
 > = {

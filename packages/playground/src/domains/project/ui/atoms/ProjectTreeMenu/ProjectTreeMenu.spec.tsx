@@ -202,6 +202,44 @@ describe("ProjectTreeMenu", () => {
       expect(props.onClose).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ["F2", "rename"],
+      ["Delete", "delete"],
+    ])(
+      "should report the key %s as %s from the item in focus, and keep the browser from acting on it",
+      (key, action) => {
+        // Arrange
+        const { menu, props } = renderMenu();
+        const focusedItem = menu.focusedItem;
+
+        // Act
+        const isPrevented = menu.pressKey(key);
+
+        // Assert
+        expect(focusedItem).toBe("New file");
+        expect(isPrevented).toBe(true);
+        expect(props.onAction).toHaveBeenCalledTimes(1);
+        expect(props.onAction).toHaveBeenCalledWith(action);
+      }
+    );
+
+    it.each(["F2", "Delete"])(
+      "should report nothing on the key %s in the menu of the root, which can be neither renamed nor removed",
+      (key) => {
+        // Arrange
+        const { menu, props } = renderMenu({
+          target: { kind: "folder", path: "" },
+        });
+
+        // Act
+        const isPrevented = menu.pressKey(key);
+
+        // Assert
+        expect(isPrevented).toBe(false);
+        expect(props.onAction).not.toHaveBeenCalled();
+      }
+    );
+
     it("should stay open after a pick until it is closed", () => {
       // Arrange
       const { menu } = renderMenu();

@@ -2,9 +2,14 @@ import Divider from "@mui/material/Divider";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
-import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+} from "react";
 
 import { getMenuGroups } from "@/domains/project/ui/helpers/projectMenu";
+import type { ProjectMenuAction } from "@/domains/project/ui/helpers/projectMenu";
 
 import {
   NODE_MENU_LABEL,
@@ -35,12 +40,25 @@ function preventBrowserMenu(menuEvent: ReactMouseEvent): void {
 }
 
 /**
- * The context menu of the project tree, which opens where the user right clicked: on a file or a folder, it adds a file or a folder in the folder of the node and renames or removes the node; on the empty space of the tree, it adds them at the root. The key that does the same from the row is written at the end of an item. A right click outside the menu closes it, as a click does, and the menu of the browser never opens over it.
+ * Finds the item of the menu that a key press does, by the key written at its end.
+ * @param actions The actions that the menu offers.
+ * @param key The `key` of the key press, such as `F2`.
+ * @returns The action of the item, or `undefined` when no item of the menu has that key.
+ */
+function findShortcutAction(
+  actions: readonly ProjectMenuAction[],
+  key: string
+): ProjectMenuAction | undefined {
+  return actions.find((action) => PROJECT_MENU_SHORTCUTS[action] === key);
+}
+
+/**
+ * The context menu of the project tree, which opens where the user right clicked: on a file or a folder, it adds a file or a folder in the folder of the node and renames or removes the node; on the empty space of the tree, it adds them at the root. The key written at the end of an item picks it from anywhere in the menu, and does the same from the row. A right click outside the menu closes it, as a click does, and the menu of the browser never opens over it.
  * @param props ProjectTreeMenu props.
  * @param props.isOpen Whether the menu is open.
  * @param props.target The node the menu is about, or the folder with an empty path for the root.
  * @param props.position Where the menu opens.
- * @param props.onAction Called with the action that the user picks.
+ * @param props.onAction Called with the action that the user picks, with the pointer or the keyboard.
  * @param props.onClose Called when the user closes the menu without picking.
  * @param props.onExited Called when the menu is gone from the page after it closed.
  * @returns The menu, which opens inside the root element of the playground.
@@ -55,6 +73,20 @@ export function ProjectTreeMenu({
 }: Readonly<ProjectTreeMenuProps>): ReactNode {
   const menuName =
     target.path === "" ? ROOT_MENU_LABEL : `${NODE_MENU_LABEL} ${target.path}`;
+  const groups = getMenuGroups(target);
+
+  /**
+   * Picks the item whose key the user pressed, wherever the focus is in the menu.
+   * @param keyEvent The key press inside the menu.
+   */
+  function handleKeyDown(keyEvent: ReactKeyboardEvent): void {
+    const action = findShortcutAction(groups.flat(), keyEvent.key);
+
+    if (action !== undefined) {
+      keyEvent.preventDefault();
+      onAction(action);
+    }
+  }
 
   return (
     <Menu
@@ -64,7 +96,11 @@ export function ProjectTreeMenu({
       anchorPosition={position}
       transitionDuration={PROJECT_TREE_MENU_TRANSITION}
       slotProps={{
-        list: { "aria-label": menuName, sx: LIST_STYLES },
+        list: {
+          "aria-label": menuName,
+          sx: LIST_STYLES,
+          onKeyDown: handleKeyDown,
+        },
         paper: { onContextMenu: preventBrowserMenu },
         backdrop: {
           onContextMenu: (menuEvent: ReactMouseEvent) => {
@@ -75,7 +111,7 @@ export function ProjectTreeMenu({
         transition: { onExited },
       }}
     >
-      {getMenuGroups(target).flatMap((actions, index) => [
+      {groups.flatMap((actions, index) => [
         ...(index > 0 ? [<Divider key={`divider-${index}`} />] : []),
         ...actions.map((action) => {
           const shortcut = PROJECT_MENU_SHORTCUTS[action];

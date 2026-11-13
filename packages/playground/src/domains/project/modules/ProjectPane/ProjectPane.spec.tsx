@@ -1774,6 +1774,34 @@ describe("ProjectPane", () => {
       );
     });
 
+    it("should rename the node in place from F2 in its menu, with the keyboard in the field", async () => {
+      // Arrange
+      const { pane } = renderPane();
+      pane.openMenuWithKeyboard("src/index.js");
+
+      // Act
+      pane.menu.pressKey("F2");
+      await pane.menu.waitUntilGone();
+
+      // Assert
+      expect(pane.item("src/index.js").field.isFocused).toBe(true);
+    });
+
+    it("should remove a file from Delete in its menu", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.openMenuWithKeyboard("index.js");
+
+      // Act
+      pane.menu.pressKey("Delete");
+      await pane.menu.waitUntilGone();
+
+      // Assert
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
+        "index.js"
+      );
+    });
+
     it("should ask before it removes a folder with files, and give the keyboard back to the folder when the user cancels", async () => {
       // Arrange
       const { onSketchChange, pane } = renderPane();
