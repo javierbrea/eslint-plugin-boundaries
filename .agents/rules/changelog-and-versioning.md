@@ -10,7 +10,7 @@ The SemVer meanings, the independent version of each package and the bump of dep
 
 Every change to the code that a package publishes or deploys, or to the configuration that builds it, adds an entry to that package's `CHANGELOG.md`, even when only comments change: an internal change that users never see gets a `chore` entry. The entry goes in the format already used in the file: under the `## [Unreleased]` section at the top, or under the section of the new version when the change also bumps the package version. Changes that are never published, such as tests or lint configuration, get no entry; they go in the `## chore` section of the release PR (step 4 of "Publishing" in `.github/CONTRIBUTING.md`). Until a package or a feature is first released, a change to it adds no entry: the entries of that version describe it as it is released. A change doesn't have to bump the version; when it does, follow the "Versioning" section of `.github/CONTRIBUTING.md`. Don't date a version section; the release process does it (the `release` skill).
 
-`packages/website` follows a different versioning rule: see step 2 of "Publishing" in `.github/CONTRIBUTING.md`.
+`packages/website` follows a different versioning rule: its entries always go under `## [Unreleased]`, and the release process gives them a version (step 2 of "Publishing" in `.github/CONTRIBUTING.md`).
 
 ## Entry style
 
