@@ -5,11 +5,11 @@
  *
  * Usage: `node scripts/check-changelogs.js <base> <head> <released>`, for example `node scripts/check-changelogs.js origin/release HEAD origin/master`. It checks the changes from the merge base of `<base>` and `<head>` to `<head>`, and `<released>` is the branch that holds the released versions.
  *
- * Each changelog covers the files of its package, and two of them cover more: the `eslint-plugin` changelog covers the root `README.md`, which the build of the plugin copies into the package, and the `website` changelog covers the `playground` and `design-tokens` packages, which the website deploys. Of those files, the ones that are never published nor deployed, such as tests or the configuration of a tool that doesn't build the package, need no entry, and a `package.json` needs one only when something other than its `devDependencies` or `scripts` changes.
+ * Each changelog covers the files of its package, and two of them cover more: the `eslint-plugin` changelog covers the root `README.md`, which the build of the plugin copies into the package, and the `website` changelog covers the `playground` and `design-tokens` packages, which the website deploys. Of those files, the ones that are never published nor deployed, such as tests or the configuration of a tool that doesn't build the package, need no entry. A `package.json` needs one only when something other than its `devDependencies` or the scripts that its `build` script doesn't run changes, and a `project.json` only when its `build` target changes, comments aside.
  *
- * A changelog has an entry when the part above its first released version, which is the first version that the changelog of `<released>` also has, changes. That counts an entry added or edited under `## [Unreleased]` or under a version that is not released yet, and the heading that a release adds above the entries it releases, but not an edit of a released version. Blank lines and trailing spaces are ignored.
+ * A changelog has an entry when the part above its first released version, which is the first version that the changelog of `<released>` also has, gains a line that it didn't have. That counts an entry added or edited under `## [Unreleased]` or under a version that is not released yet, and the heading that a release adds above the entries it releases, but not an edit of a released version, nor removing or moving entries. Blank lines and trailing spaces are ignored.
  *
- * Every changelog that has no entry for its changes is written to stderr with the files that need it, and the exit code is 1. A git command that fails also exits with 1, and a bad argument with 2.
+ * Every changelog that has no entry for its changes is written to stderr with the files that need it, and the exit code is 1. A git command that fails, such as one given a reference that is not a commit, also exits with 1, and a bad argument with 2.
  */
 
 import { execFileSync } from "node:child_process";
@@ -68,9 +68,11 @@ const UNPUBLISHED_FILES = [
   "**/*.pom.ts",
   "**/*.playwright.ts",
   "packages/playground/src/playwright.ts",
+  "packages/website/src/playwright.ts",
   "**/tsup.playwright.config.js",
+  // The support that the specs and the page objects of the playground share, which its production code never imports (`packages/playground/eslint.config.mjs`)
+  "packages/playground/src/shared/testing/**",
   // The configuration of the tools that don't build the packages. Babel only transforms the tests
-  "**/project.json",
   "**/eslint.config.*",
   "**/eslint-local-rules.js",
   "**/cspell.config.*",
@@ -89,8 +91,16 @@ const UNPUBLISHED_FILES = [
   "packages/design-tokens/scripts/**",
 ];
 
-// The fields of a `package.json` that never reach the users of the package
-const UNPUBLISHED_PACKAGE_FIELDS = ["devDependencies", "scripts"];
+const PACKAGE_FILE = "package.json";
+const PROJECT_FILE = "project.json";
+// The Nx target of a `project.json` and the script of a `package.json` that build the package
+const BUILD = "build";
+// A script that runs another one, such as `pnpm build:tsc`
+const RUN_SCRIPT = /\bpnpm (?:run )?([\w:-]+)/g;
+// A string of a JSONC file, which is kept, or a comment, which is removed
+const JSONC_COMMENT = /("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+// A string of a JSONC file, which is kept, or a comma that no value follows, which is removed
+const JSONC_TRAILING_COMMA = /("(?:\\.|[^"\\])*")|,(?=\s*[}\]])/g;
 
 const VERSION_HEADING = /^## \[([^\]]+)\]/;
 // Older changelogs wrote it in lower case
@@ -111,17 +121,17 @@ function git(args) {
 }
 
 /**
- * Reads a file at a commit.
+ * Reads a file at a commit. A reference that is not a commit, or any other failure of git, throws.
  * @param {string} ref The commit.
  * @param {string} file The path of the file.
  * @returns {string | undefined} Its content, or undefined when the commit doesn't have it.
  */
 function readFile(ref, file) {
-  try {
-    return git(["show", `${ref}:${file}`]);
-  } catch {
+  if (git(["ls-tree", "--full-tree", "--name-only", ref, "--", file]) === "") {
     return undefined;
   }
+
+  return git(["show", `${ref}:${file}`]);
 }
 
 /**
@@ -149,20 +159,63 @@ function covers(changelog, file) {
 }
 
 /**
- * Returns a `package.json` without the fields that never reach the users of the package.
- * @param {string | undefined} text The content of the file.
- * @returns {string | undefined} The fields that reach them, as JSON, or undefined when there is no file.
+ * Parses a JSON file that may have comments and trailing commas, as Nx reads a `project.json`.
+ * @param {string} text The content of the file.
+ * @returns {any} Its value.
  */
-function publishedPackageFields(text) {
+function parseJsonc(text) {
+  const keepString = (_match, string) => string ?? "";
+
+  return JSON.parse(
+    text
+      .replace(JSONC_COMMENT, keepString)
+      .replace(JSONC_TRAILING_COMMA, keepString)
+  );
+}
+
+/**
+ * Returns the scripts of a `package.json` that its build runs: `build`, and in turn the scripts that each one runs with `pnpm`.
+ * @param {Record<string, string> | undefined} scripts The scripts of the `package.json`.
+ * @returns {Record<string, string>} The scripts that the build runs.
+ */
+function buildScripts(scripts = {}) {
+  const found = {};
+  const pending = [BUILD];
+
+  while (pending.length > 0) {
+    const name = pending.pop();
+
+    if (Object.hasOwn(scripts, name) && !Object.hasOwn(found, name)) {
+      found[name] = scripts[name];
+
+      for (const [, called] of scripts[name].matchAll(RUN_SCRIPT)) {
+        pending.push(called);
+      }
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Returns the part of a `package.json` or a `project.json` that builds or publishes the package: the `package.json` without its `devDependencies` and the scripts that its build doesn't run, and the `build` target of the `project.json`.
+ * @param {string} file The path of the file.
+ * @param {string | undefined} text The content of the file.
+ * @returns {string | undefined} That part, as JSON, or undefined when there is no file or no `build` target.
+ */
+function buildOrPublishedPart(file, text) {
   if (text === undefined) {
     return undefined;
   }
 
+  if (path.posix.basename(file) === PROJECT_FILE) {
+    return JSON.stringify(parseJsonc(text).targets?.[BUILD]);
+  }
+
   const manifest = JSON.parse(text);
 
-  for (const field of UNPUBLISHED_PACKAGE_FIELDS) {
-    delete manifest[field];
-  }
+  delete manifest.devDependencies;
+  manifest.scripts = buildScripts(manifest.scripts);
 
   return JSON.stringify(manifest);
 }
@@ -179,10 +232,10 @@ function needsEntry(file, from, to) {
     return false;
   }
 
-  if (path.posix.basename(file) === "package.json") {
+  if ([PACKAGE_FILE, PROJECT_FILE].includes(path.posix.basename(file))) {
     return (
-      publishedPackageFields(readFile(from, file)) !==
-      publishedPackageFields(readFile(to, file))
+      buildOrPublishedPart(file, readFile(from, file)) !==
+      buildOrPublishedPart(file, readFile(to, file))
     );
   }
 
@@ -212,14 +265,14 @@ function versions(text) {
  * Returns the part of a changelog that is not released: from its first `## ` heading to the heading of its first released version.
  * @param {string | undefined} text The content of the changelog.
  * @param {Set<string>} released The released versions.
- * @returns {string} That part, without blank lines and trailing spaces.
+ * @returns {string[]} The lines of that part, without blank lines and trailing spaces.
  */
 function unreleasedPart(text, released) {
   const lines = (text ?? "").split("\n").map((line) => line.trimEnd());
   const start = lines.findIndex((line) => line.startsWith("## "));
 
   if (start === -1) {
-    return "";
+    return [];
   }
 
   // A changelog with no `## [Unreleased]` heading starts with its first released version, and then that part is empty
@@ -228,10 +281,28 @@ function unreleasedPart(text, released) {
       index >= start && released.has(VERSION_HEADING.exec(line)?.[1])
   );
 
-  return lines
-    .slice(start, end === -1 ? undefined : end)
-    .filter(Boolean)
-    .join("\n");
+  return lines.slice(start, end === -1 ? undefined : end).filter(Boolean);
+}
+
+/**
+ * Tells whether some lines include one that others don't, counting repeated lines once each.
+ * @param {string[]} before The lines before the change.
+ * @param {string[]} after The lines after the change.
+ * @returns {boolean} Whether `after` has a line that `before` doesn't.
+ */
+function addsLine(before, after) {
+  const remaining = new Map();
+
+  for (const line of before) {
+    remaining.set(line, (remaining.get(line) ?? 0) + 1);
+  }
+
+  return after.some((line) => {
+    const count = remaining.get(line) ?? 0;
+
+    remaining.set(line, count - 1);
+    return count === 0;
+  });
 }
 
 /**
@@ -254,9 +325,10 @@ function checkChangelogs(base, head, released) {
       files: files.filter(
         (file) => covers(entry, file) && needsEntry(file, from, head)
       ),
-      hasEntry:
-        unreleasedPart(readFile(from, changelog), releasedVersions) !==
-        unreleasedPart(readFile(head, changelog), releasedVersions),
+      hasEntry: addsLine(
+        unreleasedPart(readFile(from, changelog), releasedVersions),
+        unreleasedPart(readFile(head, changelog), releasedVersions)
+      ),
     };
   }).filter((result) => result.files.length > 0);
 }

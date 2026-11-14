@@ -32,20 +32,23 @@ function git(args) {
 }
 
 /**
- * Reads the versions of the website docs at a commit.
+ * Reads the versions of the website docs at a commit. Any failure of git throws.
  * @param {string} ref The commit.
  * @returns {string[]} The versions, latest first, or none when the commit has no `versions.json`.
  */
 function readVersions(ref) {
-  let text;
+  const listed = git([
+    "ls-tree",
+    "--full-tree",
+    "--name-only",
+    ref,
+    "--",
+    VERSIONS_FILE,
+  ]);
 
-  try {
-    text = git(["show", `${ref}:${VERSIONS_FILE}`]);
-  } catch {
-    return [];
-  }
-
-  return JSON.parse(text);
+  return listed === ""
+    ? []
+    : JSON.parse(git(["show", `${ref}:${VERSIONS_FILE}`]));
 }
 
 /**
