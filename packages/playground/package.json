@@ -62,7 +62,7 @@
     "@mui/x-tree-view": "9.17.0",
     "codemirror-json5": "1.0.3",
     "fflate": "0.8.3",
-    "react-resizable-panels": "4.16.1"
+    "react-resizable-panels": "4.21.0"
   },
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
@@ -80,8 +80,8 @@
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
     "@types/react": "19.3.0",
-    "@types/react-dom": "19.2.7",
-    "@vitejs/plugin-react": "6.1.2",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
     "jest-environment-jsdom": "30.5.2",
     "react": "19.3.1",
