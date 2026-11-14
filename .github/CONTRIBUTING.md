@@ -124,6 +124,9 @@ When you're finished with the changes, please ensure the following:
 * You have updated the documentation if necessary.
 * You have run the linter and fixed any issues.
 * __You have added the necessary changes to the `CHANGELOG.md` file__ of each affected package: under the "Unreleased" section at the beginning of the file, or under the section of the new version if your PR also bumps the package version. The changes of the website always go under "Unreleased": its version is set during the release (step 2 of [publishing](#publishing)).
+   * A check of the PRs into `release` fails when a PR changes what a package publishes or deploys and adds no entry to its changelog. The `website` changelog also covers the `playground` and `design-tokens` packages, which the website deploys, and the `eslint-plugin` changelog covers the root `README.md`, which the plugin publishes. Renovate writes no changelog entries, so its PRs are not checked.
+   * When a PR needs no entry, for example because it only changes a feature that is not released yet, a maintainer adds the `skip-changelog` label to it.
+* If you change the documentation of a released version, change only the snapshot of the latest version in `packages/website/versioned_docs/`, as [the website's `AGENTS.md`](../packages/website/AGENTS.md) describes. A check of the PRs into `release` fails when a PR changes another snapshot, unless a maintainer adds the `skip-versioned-docs` label to it.
 * If your PR bumps the version of a package in its `package.json` file, the bump follows the [versioning](#versioning) section. Bumping the version is not required: depending on other ongoing PRs, it can also be done later, during the release.
 
 When you have checked these points, then you are ready to submit your pull request. To do so, follow these steps:

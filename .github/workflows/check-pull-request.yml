@@ -1,0 +1,70 @@
+name: Check pull request
+on:
+  # NOTE: Adding or removing a label runs the checks again, which is why they are not part of the build workflow
+  pull_request:
+    branches:
+      - release
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # NOTE: Renovate writes no changelog entry, and the release adds the entries of its changes. It labels its pull requests a second after opening them, so its author is checked too
+  changelogs:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') && !contains(github.event.pull_request.labels.*.name, 'renovate') && github.event.pull_request.user.login != 'renovate[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      # NOTE: The checkout is the merge commit of the pull request, whose first parent is the tip of the base branch
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 2
+      - name: Fetch the released versions
+        run: git fetch --no-tags --depth=1 origin master:refs/remotes/origin/master
+      - name: Install Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Check changelogs
+        run: node scripts/check-changelogs.js HEAD^1 HEAD origin/master
+  versioned-docs:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-versioned-docs') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 2
+      - name: Install Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Check versioned docs
+        run: node scripts/check-versioned-docs.js HEAD^1 HEAD
+
+  # Consolidation job that depends on all other jobs. A skipped job passes
+  # Of the jobs of this workflow, configure only this one as required status check in GitHub
+  all-pull-request-checks:
+    runs-on: ubuntu-latest
+    needs: [changelogs, versioned-docs]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "changelogs: ${{ needs.changelogs.result }}"
+          echo "versioned-docs: ${{ needs.versioned-docs.result }}"
+
+          if [[ "${{ needs.changelogs.result }}" != "success" && "${{ needs.changelogs.result }}" != "skipped" ]] || \
+             [[ "${{ needs.versioned-docs.result }}" != "success" && "${{ needs.versioned-docs.result }}" != "skipped" ]]; then
+            echo "❌ One or more jobs failed"
+            exit 1
+          fi
+
+          echo "✅ All jobs completed successfully"
