@@ -49,26 +49,26 @@ Start when the maintainer confirms the PR from phase 1 is merged into `release`.
 1. Run `git fetch origin` and check that `origin/release` contains the release commit and the versions match the confirmed ones.
 2. Build the PR from `release` to `master` as step 4 of "Publishing" defines it. Collect the issues to close from the `(#N)` tokens and the `closes #N` lines in the commits and merged PRs in `git log origin/master..origin/release`. Resolve each number on GitHub: an issue goes in the list, and a pull request is read for the issues it closes.
 3. Show a preview of the title, the full body and the list of issues to close. Ask for explicit confirmation before opening the PR.
-4. Open the PR, with the GitHub MCP tools or `gh`. Stop here and report.
+4. Open the PR. Stop here and report.
 
 ### Phase 3: create the GitHub release
 
 Start when the maintainer confirms the PR from phase 2 is merged into `master`.
 
 1. Check that `origin/master` contains the release commit.
-2. If the release changed the website's documentation, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
+2. If the release changed the website's documentation, check that the "Update Website Search Index" workflow (`web-search-index.yml`) ran for the merge. If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
 3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
 4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), and ask for explicit confirmation. Never create a tag or a release without it.
-5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered. Continue with phase 4.
+5. Create the release targeting `master`. Report the URL, and that the publish workflows were triggered. Continue with phase 4.
 
 ### Phase 4: close the release
 
 Start right after the release is created, or when the maintainer asks to finish a release that is already published.
 
-1. **Check the publication.** Wait for the publish workflows to finish (`gh run list --workflow publish.yml` and `--workflow publish-to-github.yml`) and check with `npm view <package> version` that every released package is on npm; the registry can take some minutes to show a version after the workflow succeeds. If a workflow failed, report it and stop: fixing a publication is the maintainer's decision.
-2. **Close the milestone.** If a milestone named after the `eslint-plugin` version (`vX.Y.Z`) exists and has no open issues or pull requests, close it (`gh api -X PATCH repos/<owner>/<repo>/milestones/<number> -f state=closed`). If it still has open items, list them and ask the maintainer what to do with them.
-3. **Update the project board**, if the repository has one (read `gh project list --owner <owner>`; it needs the `project` token scope, `gh auth refresh -s read:project,project`). For each issue closed by the phase 2 PR, check its status on the board and move to the final column (for example `Done`) the ones that are not there yet. A board workflow usually moves them when the issue is closed, so often nothing is left to do: say so.
-4. **Comment on the issues the release fixes.** Take the issues closed by the phase 2 PR and decide for each one whether a comment helps its readers: issues opened by external reporters or fixed by external contributors get one; the maintainer's own tracking and task issues normally do not. Each comment names the released version, links the GitHub release and, when the website has upgrade notes or a migration guide for the fix, links their exact section; it thanks the reporter and the contributors by their GitHub user. **Show a mandatory preview of every comment**, let the maintainer drop or edit any of them, and post only the confirmed ones (`gh issue comment <number> --body-file <file>`). Never post a comment without that confirmation.
+1. **Check the publication.** Wait for the publish workflows (`publish.yml` and `publish-to-github.yml`) to finish and check with `npm view <package> version` that every released package is on npm; the registry can take some minutes to show a version after the workflow succeeds. If a workflow failed, report it and stop: fixing a publication is the maintainer's decision.
+2. **Close the milestone.** If a milestone named after the `eslint-plugin` version (`vX.Y.Z`) exists and has no open issues or pull requests, close it. If it still has open items, list them and ask the maintainer what to do with them.
+3. **Update the project board**, if the repository has one; reading and changing it needs a token with the `project` scope. For each issue closed by the phase 2 PR, check its status on the board and move to the final column (for example `Done`) the ones that are not there yet. A board workflow usually moves them when the issue is closed, so often nothing is left to do: say so.
+4. **Comment on the issues the release fixes.** Take the issues closed by the phase 2 PR and decide for each one whether a comment helps its readers: issues opened by external reporters or fixed by external contributors get one; the maintainer's own tracking and task issues normally do not. Each comment names the released version, links the GitHub release and, when the website has upgrade notes or a migration guide for the fix, links their exact section; it thanks the reporter and the contributors by their GitHub user. **Show a mandatory preview of every comment**, let the maintainer drop or edit any of them, and post only the confirmed ones. Never post a comment without that confirmation.
 5. **Delete the merged branches** the release leaves behind: the `chore/release-*` branch of phase 1, and any integration branch named in the release issues. List them and ask before deleting; `git push origin --delete <branch>` only after the confirmation.
 6. Report what was checked, closed, moved, commented and deleted, and what was skipped and why.
 

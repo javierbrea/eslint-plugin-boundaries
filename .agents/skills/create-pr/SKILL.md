@@ -43,7 +43,7 @@ Provide (optional; a sensible default applies):
 5. **Gather change context.** Inspect the branch changes against `target_branch` (for example `git diff <target_branch>...HEAD` and `git log <target_branch>..HEAD`) to understand what the pull request introduces, and to determine which parts of the codebase were touched (for the scope labels in step 9).
 
 6. **Enrich the description (issue conditional).**
-   - If an issue number was found, fetch it — prefer a GitHub MCP tool (for example `get_issue`); otherwise `gh issue view <number> --json title,body` — and use its title/body together with the diff to write an accurate change description.
+   - If an issue number was found, read it and use its title/body together with the diff to write an accurate change description.
    - If no issue was found, or it cannot be read, derive the description from the branch changes only.
    - In both cases, ask the user any clarifying questions about the changes or intent **before** showing the preview.
 
@@ -58,21 +58,19 @@ Provide (optional; a sensible default applies):
    - Type: `type: bug` (branch prefix `fix/`/`bug/`, or `fix(...)` commits) or `type: feature` (branch prefix `feat/`). For other prefixes, do not force `type: bug`/`type: feature`; ask the user if a type label should be applied (for example `type: task`).
    - Scope: the `scope:` labels of the files changed in the diff, one or more.
 
-10. **Prefer GitHub MCP tools.** Use GitHub MCP tools for all supported operations (for example `create_pull_request`, `update_pull_request`, `get_issue`). Fall back to `gh` CLI or REST only for operations MCP does not support.
+10. **Create or update the pull request.** Check whether a pull request already exists for the current branch. If one exists, update it and leave its existing draft/ready state unchanged (never promote or demote it). Otherwise create a new pull request targeting `target_branch`, **explicitly as a draft**; do not switch a newly created pull request to ready for review.
 
-11. **Create or update the pull request.** Check whether a pull request already exists for the current branch. If one exists, update it and leave its existing draft/ready state unchanged (never promote or demote it). Otherwise create a new pull request targeting `target_branch`, **explicitly setting `draft: true`** so it starts in draft state; do not switch a newly created pull request to ready for review.
+11. **Label and assign.** Apply the labels determined in step 9 (adding to, not replacing, any labels already present on an existing PR unless they conflict, e.g. a stale type label). On creation, assign the pull request to the authenticated user; on update, keep the existing assignee (do not reassign).
 
-12. **Label and assign.** Apply the labels determined in step 9 (adding to, not replacing, any labels already present on an existing PR unless they conflict, e.g. a stale type label). On creation, assign the pull request to the authenticated user; on update, keep the existing assignee (do not reassign).
-
-13. **Report.** Respond to the user with the pull request URL.
+12. **Report.** Respond to the user with the pull request URL.
 
 ### Authorization Failure Handling (Required)
 
-- Never enter retry loops with shell commands when authorization or authentication failures are detected.
+- Never retry when an authorization or authentication failure is detected.
 - Treat errors such as `401`, `403`, `Bad credentials`, `Requires authentication`, `Resource not accessible by integration`, `permission denied`, or `not authorized` as terminal for the current automation attempt.
 - On such failures, stop automation immediately and inform the user that authorization is required.
 - Always include the computed PR title and full PR description in the response so the user can copy and paste them manually.
-- Do not keep attempting alternative shell-based GitHub flows after an auth failure has been detected.
+- Do not try other ways to reach GitHub after an auth failure has been detected.
 
 ## Output format
 
@@ -90,10 +88,10 @@ Include assumptions, risks, and follow-ups when relevant.
 
 **Input**
 - Goal: open a PR for branch `feat/466/category-type-accumulation`.
-- Context: default `target_branch=release`; GitHub MCP not available, `gh` CLI available.
+- Context: default `target_branch=release`.
 
 **Expected output**
-- Issue `#466` discovered from the branch name; description enriched from `gh issue view 466` plus the diff; a preview confirmed by the user; a draft PR titled `feat: Support disabling category accumulation at file descriptors` targeting `release`, with `closes #466`, labeled `type: feature` and `scope: code` (plus `scope: tests`/`scope: documentation` if those files also changed), and its URL.
+- Issue `#466` discovered from the branch name; description enriched from issue `#466` plus the diff; a preview confirmed by the user; a draft PR titled `feat: Support disabling category accumulation at file descriptors` targeting `release`, with `closes #466`, labeled `type: feature` and `scope: code` (plus `scope: tests`/`scope: documentation` if those files also changed), and its URL.
 
 ### Example B (fix, issue discovered from commits)
 
