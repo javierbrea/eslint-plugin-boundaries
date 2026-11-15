@@ -1,17 +1,20 @@
-jest.mock("../Debug", () => {
-  const mockWarnOnce = jest.fn();
-  return {
-    warnOnce: mockWarnOnce,
-    // Prints through the mocked warnOnce, as the real one does
-    warnDiagnostics: jest.fn(
-      (diagnostics: { title: string; detail?: string }[]) => {
-        for (const { title, detail } of diagnostics) {
-          mockWarnOnce(title, detail);
+jest.mock<{ warnOnce: jest.Mock; warnDiagnostics: jest.Mock }>(
+  "../Debug",
+  () => {
+    const mockWarnOnce = jest.fn();
+    return {
+      warnOnce: mockWarnOnce,
+      // Prints through the mocked warnOnce, as the real one does
+      warnDiagnostics: jest.fn(
+        (diagnostics: { title: string; detail?: string }[]) => {
+          for (const { title, detail } of diagnostics) {
+            mockWarnOnce(title, detail);
+          }
         }
-      }
-    ),
-  };
-});
+      ),
+    };
+  }
+);
 
 import { warnOnce } from "../Debug";
 import { RULE_NAMES_MAP } from "../Shared";

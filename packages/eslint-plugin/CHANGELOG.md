@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- chore(#514): An internal type of the `no-unknown` rule is a `type` alias instead of an interface. The exported `Config` and `PluginBoundaries` interfaces don't change.
+
 ## [7.4.3] - 2026-11-12
 
 ### Changed

@@ -111,6 +111,7 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
 /**
  * ESLint configuration with optional settings and rules specific to the boundaries plugin.
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Exported interface: users may merge declarations into it
 export interface Config<PluginName extends string = typeof PLUGIN_NAME>
   extends Linter.Config {
   /**
@@ -126,6 +127,7 @@ export interface Config<PluginName extends string = typeof PLUGIN_NAME>
 /**
  * ESLint plugin interface for the boundaries plugin, including metadata, rules, and configurations.
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Exported interface: users may merge declarations into it
 export interface PluginBoundaries extends ESLint.Plugin {
   meta: {
     name: string;

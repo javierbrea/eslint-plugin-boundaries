@@ -471,189 +471,131 @@ describe("createConfig", () => {
 });
 
 describe("Constants", () => {
-  describe("PLUGIN_NAME", () => {
-    it("should be defined as a string", () => {
-      expect(PLUGIN_NAME).toBeDefined();
-      expect(typeof PLUGIN_NAME).toBe("string");
-      expect(PLUGIN_NAME).toBe("boundaries");
+  it("should define PLUGIN_NAME as boundaries", () => {
+    expect(typeof PLUGIN_NAME).toBe("string");
+    expect(PLUGIN_NAME).toBe("boundaries");
+  });
+
+  it.each([
+    ["RULE_SHORT_NAMES_MAP", RULE_SHORT_NAMES_MAP],
+    ["RULE_NAMES_MAP", RULE_NAMES_MAP],
+    ["DEPENDENCY_KINDS_MAP", DEPENDENCY_KINDS_MAP],
+    ["DEPENDENCY_NODE_KEYS_MAP", DEPENDENCY_NODE_KEYS_MAP],
+    ["SETTINGS_KEYS_MAP", SETTINGS_KEYS_MAP],
+    ["ELEMENT_DESCRIPTOR_MODES_MAP", ELEMENT_DESCRIPTOR_MODES_MAP],
+    ["RULE_EFFECTS_MAP", RULE_EFFECTS_MAP],
+    ["RULE_POLICIES_MAP", RULE_POLICIES_MAP],
+  ])("should define %s as a string key/value map", (_name, map) => {
+    expect(typeof map).toBe("object");
+
+    expect(
+      Object.keys(map).filter((key) => typeof key !== "string")
+    ).toStrictEqual([]);
+    expect(
+      Object.values(map).filter((value) => typeof value !== "string")
+    ).toStrictEqual([]);
+  });
+
+  it("should define the short name of each rule in RULE_SHORT_NAMES_MAP", () => {
+    expect(RULE_SHORT_NAMES_MAP).toMatchObject({
+      ELEMENT_TYPES: "element-types",
+      ENTRY_POINT: "entry-point",
+      EXTERNAL: "external",
+      NO_IGNORED_DEPENDENCIES: "no-ignored-dependencies",
+      NO_IGNORED: "no-ignored",
+      NO_PRIVATE: "no-private",
+      NO_UNKNOWN_FILES: "no-unknown-files",
+      NO_UNKNOWN_DEPENDENCIES: "no-unknown-dependencies",
+      NO_UNKNOWN: "no-unknown",
     });
   });
 
-  describe("RULE_SHORT_NAMES_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(RULE_SHORT_NAMES_MAP).toBeDefined();
-      expect(typeof RULE_SHORT_NAMES_MAP).toBe("object");
-      Object.entries(RULE_SHORT_NAMES_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(RULE_SHORT_NAMES_MAP.ELEMENT_TYPES).toBe("element-types");
-      expect(RULE_SHORT_NAMES_MAP.ENTRY_POINT).toBe("entry-point");
-      expect(RULE_SHORT_NAMES_MAP.EXTERNAL).toBe("external");
-      expect(RULE_SHORT_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
-        "no-ignored-dependencies"
-      );
-      expect(RULE_SHORT_NAMES_MAP.NO_IGNORED).toBe("no-ignored");
-      expect(RULE_SHORT_NAMES_MAP.NO_PRIVATE).toBe("no-private");
-      expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_FILES).toBe("no-unknown-files");
-      expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
-        "no-unknown-dependencies"
-      );
-      expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN).toBe("no-unknown");
+  it("should define the name of each rule in RULE_NAMES_MAP", () => {
+    expect(RULE_NAMES_MAP).toMatchObject({
+      ELEMENT_TYPES: "boundaries/element-types",
+      ENTRY_POINT: "boundaries/entry-point",
+      EXTERNAL: "boundaries/external",
+      NO_IGNORED_DEPENDENCIES: "boundaries/no-ignored-dependencies",
+      NO_IGNORED: "boundaries/no-ignored",
+      NO_PRIVATE: "boundaries/no-private",
+      NO_UNKNOWN_FILES: "boundaries/no-unknown-files",
+      NO_UNKNOWN_DEPENDENCIES: "boundaries/no-unknown-dependencies",
+      NO_UNKNOWN: "boundaries/no-unknown",
     });
   });
 
-  describe("RULE_NAMES_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(RULE_NAMES_MAP).toBeDefined();
-      expect(typeof RULE_NAMES_MAP).toBe("object");
-
-      Object.entries(RULE_NAMES_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(RULE_NAMES_MAP.ELEMENT_TYPES).toBe("boundaries/element-types");
-      expect(RULE_NAMES_MAP.ENTRY_POINT).toBe("boundaries/entry-point");
-      expect(RULE_NAMES_MAP.EXTERNAL).toBe("boundaries/external");
-      expect(RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
-        "boundaries/no-ignored-dependencies"
-      );
-      expect(RULE_NAMES_MAP.NO_IGNORED).toBe("boundaries/no-ignored");
-      expect(RULE_NAMES_MAP.NO_PRIVATE).toBe("boundaries/no-private");
-      expect(RULE_NAMES_MAP.NO_UNKNOWN_FILES).toBe(
-        "boundaries/no-unknown-files"
-      );
-      expect(RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
-        "boundaries/no-unknown-dependencies"
-      );
-      expect(RULE_NAMES_MAP.NO_UNKNOWN).toBe("boundaries/no-unknown");
+  it("should define the dependency kinds in DEPENDENCY_KINDS_MAP", () => {
+    expect(DEPENDENCY_KINDS_MAP).toMatchObject({
+      TYPE: "type",
+      VALUE: "value",
+      TYPE_OF: "typeof",
     });
   });
 
-  describe("DEPENDENCY_KINDS_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(DEPENDENCY_KINDS_MAP).toBeDefined();
-      expect(typeof DEPENDENCY_KINDS_MAP).toBe("object");
-
-      Object.entries(DEPENDENCY_KINDS_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(DEPENDENCY_KINDS_MAP.TYPE).toBe("type");
-      expect(DEPENDENCY_KINDS_MAP.VALUE).toBe("value");
-      expect(DEPENDENCY_KINDS_MAP.TYPE_OF).toBe("typeof");
+  it("should define the dependency node keys in DEPENDENCY_NODE_KEYS_MAP", () => {
+    expect(DEPENDENCY_NODE_KEYS_MAP).toMatchObject({
+      REQUIRE: "require",
+      IMPORT: "import",
+      DYNAMIC_IMPORT: "dynamic-import",
+      EXPORT: "export",
     });
   });
 
-  describe("DEPENDENCY_NODE_KEYS_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(DEPENDENCY_NODE_KEYS_MAP).toBeDefined();
-      expect(typeof DEPENDENCY_NODE_KEYS_MAP).toBe("object");
-
-      Object.entries(DEPENDENCY_NODE_KEYS_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(DEPENDENCY_NODE_KEYS_MAP.REQUIRE).toBe("require");
-      expect(DEPENDENCY_NODE_KEYS_MAP.IMPORT).toBe("import");
-      expect(DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT).toBe("dynamic-import");
-      expect(DEPENDENCY_NODE_KEYS_MAP.EXPORT).toBe("export");
+  it("should define the settings keys in SETTINGS_KEYS_MAP", () => {
+    expect(SETTINGS_KEYS_MAP).toMatchObject({
+      ELEMENTS: "boundaries/elements",
+      IGNORE: "boundaries/ignore",
+      INCLUDE: "boundaries/include",
+      ROOT_PATH: "boundaries/root-path",
+      DEPENDENCY_NODES: "boundaries/dependency-nodes",
+      ADDITIONAL_DEPENDENCY_NODES: "boundaries/additional-dependency-nodes",
+      DEBUG: "boundaries/debug",
+      TYPES: "boundaries/types",
+      ALIAS: "boundaries/alias",
     });
   });
 
-  describe("SETTINGS_KEYS_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(SETTINGS_KEYS_MAP).toBeDefined();
-      expect(typeof SETTINGS_KEYS_MAP).toBe("object");
-
-      Object.entries(SETTINGS_KEYS_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(SETTINGS_KEYS_MAP.ELEMENTS).toBe("boundaries/elements");
-      expect(SETTINGS_KEYS_MAP.IGNORE).toBe("boundaries/ignore");
-      expect(SETTINGS_KEYS_MAP.INCLUDE).toBe("boundaries/include");
-      expect(SETTINGS_KEYS_MAP.ROOT_PATH).toBe("boundaries/root-path");
-      expect(SETTINGS_KEYS_MAP.DEPENDENCY_NODES).toBe(
-        "boundaries/dependency-nodes"
-      );
-      expect(SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES).toBe(
-        "boundaries/additional-dependency-nodes"
-      );
-      expect(SETTINGS_KEYS_MAP.DEBUG).toBe("boundaries/debug");
-      expect(SETTINGS_KEYS_MAP.TYPES).toBe("boundaries/types");
-      expect(SETTINGS_KEYS_MAP.ALIAS).toBe("boundaries/alias");
+  it("should define the element descriptor modes in ELEMENT_DESCRIPTOR_MODES_MAP", () => {
+    expect(ELEMENT_DESCRIPTOR_MODES_MAP).toMatchObject({
+      FOLDER: "folder",
+      FILE: "file",
+      FULL: "full",
     });
   });
 
-  describe("ELEMENT_DESCRIPTOR_MODES_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(ELEMENT_DESCRIPTOR_MODES_MAP).toBeDefined();
-      expect(typeof ELEMENT_DESCRIPTOR_MODES_MAP).toBe("object");
-
-      Object.entries(ELEMENT_DESCRIPTOR_MODES_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER).toBe("folder");
-      expect(ELEMENT_DESCRIPTOR_MODES_MAP.FILE).toBe("file");
-      expect(ELEMENT_DESCRIPTOR_MODES_MAP.FULL).toBe("full");
+  it("should define the rule effects in RULE_EFFECTS_MAP", () => {
+    expect(RULE_EFFECTS_MAP).toMatchObject({
+      ALLOW: "allow",
+      DISALLOW: "disallow",
     });
   });
 
-  describe("RULE_EFFECTS_MAP", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(RULE_EFFECTS_MAP).toBeDefined();
-      expect(typeof RULE_EFFECTS_MAP).toBe("object");
-
-      Object.entries(RULE_EFFECTS_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(RULE_EFFECTS_MAP.ALLOW).toBe("allow");
-      expect(RULE_EFFECTS_MAP.DISALLOW).toBe("disallow");
+  it("should define the rule effects in RULE_POLICIES_MAP, its deprecated alias", () => {
+    expect(RULE_POLICIES_MAP).toMatchObject({
+      ALLOW: "allow",
+      DISALLOW: "disallow",
     });
   });
 
-  describe("RULE_POLICIES_MAP (deprecated alias of RULE_EFFECTS_MAP)", () => {
-    it("should be defined as a string key/value map", () => {
-      expect(RULE_POLICIES_MAP).toBeDefined();
-      expect(typeof RULE_POLICIES_MAP).toBe("object");
-
-      Object.entries(RULE_POLICIES_MAP).forEach(([key, value]) => {
-        expect(typeof key).toBe("string");
-        expect(typeof value).toBe("string");
-      });
-
-      expect(RULE_POLICIES_MAP.ALLOW).toBe("allow");
-      expect(RULE_POLICIES_MAP.DISALLOW).toBe("disallow");
-    });
-
-    it("is the same object as RULE_EFFECTS_MAP", () => {
-      expect(RULE_POLICIES_MAP).toBe(RULE_EFFECTS_MAP);
-    });
+  it("should define RULE_POLICIES_MAP as the same object as RULE_EFFECTS_MAP", () => {
+    expect(RULE_POLICIES_MAP).toBe(RULE_EFFECTS_MAP);
   });
 });
 
 describe("Type Guard Functions", () => {
   describe("isRuleShortName", () => {
-    it("should return true for valid rule short names", () => {
-      expect(isRuleShortName("element-types")).toBe(true);
-      expect(isRuleShortName("entry-point")).toBe(true);
-      expect(isRuleShortName("external")).toBe(true);
-      expect(isRuleShortName("no-ignored-dependencies")).toBe(true);
-      expect(isRuleShortName("no-ignored")).toBe(true);
-      expect(isRuleShortName("no-private")).toBe(true);
-      expect(isRuleShortName("no-unknown-files")).toBe(true);
-      expect(isRuleShortName("no-unknown-dependencies")).toBe(true);
-      expect(isRuleShortName("no-unknown")).toBe(true);
+    it.each([
+      "element-types",
+      "entry-point",
+      "external",
+      "no-ignored-dependencies",
+      "no-ignored",
+      "no-private",
+      "no-unknown-files",
+      "no-unknown-dependencies",
+      "no-unknown",
+    ])("should return true for the valid rule short name %s", (name) => {
+      expect(isRuleShortName(name)).toBe(true);
     });
 
     it("should return false for invalid rule short names", () => {
@@ -673,16 +615,18 @@ describe("Type Guard Functions", () => {
   });
 
   describe("isRuleName", () => {
-    it("should return true for valid rule names with prefix", () => {
-      expect(isRuleName("boundaries/element-types")).toBe(true);
-      expect(isRuleName("boundaries/entry-point")).toBe(true);
-      expect(isRuleName("boundaries/external")).toBe(true);
-      expect(isRuleName("boundaries/no-ignored-dependencies")).toBe(true);
-      expect(isRuleName("boundaries/no-ignored")).toBe(true);
-      expect(isRuleName("boundaries/no-private")).toBe(true);
-      expect(isRuleName("boundaries/no-unknown-files")).toBe(true);
-      expect(isRuleName("boundaries/no-unknown-dependencies")).toBe(true);
-      expect(isRuleName("boundaries/no-unknown")).toBe(true);
+    it.each([
+      "boundaries/element-types",
+      "boundaries/entry-point",
+      "boundaries/external",
+      "boundaries/no-ignored-dependencies",
+      "boundaries/no-ignored",
+      "boundaries/no-private",
+      "boundaries/no-unknown-files",
+      "boundaries/no-unknown-dependencies",
+      "boundaries/no-unknown",
+    ])("should return true for the valid rule name with prefix %s", (name) => {
+      expect(isRuleName(name)).toBe(true);
     });
 
     it("should return false for rule short names without prefix", () => {
@@ -755,18 +699,18 @@ describe("Type Guard Functions", () => {
   });
 
   describe("isSettingsKey", () => {
-    it("should return true for valid settings keys", () => {
-      expect(isSettingsKey("boundaries/elements")).toBe(true);
-      expect(isSettingsKey("boundaries/ignore")).toBe(true);
-      expect(isSettingsKey("boundaries/include")).toBe(true);
-      expect(isSettingsKey("boundaries/root-path")).toBe(true);
-      expect(isSettingsKey("boundaries/dependency-nodes")).toBe(true);
-      expect(isSettingsKey("boundaries/additional-dependency-nodes")).toBe(
-        true
-      );
-      expect(isSettingsKey("boundaries/debug")).toBe(true);
-      expect(isSettingsKey("boundaries/types")).toBe(true);
-      expect(isSettingsKey("boundaries/alias")).toBe(true);
+    it.each([
+      "boundaries/elements",
+      "boundaries/ignore",
+      "boundaries/include",
+      "boundaries/root-path",
+      "boundaries/dependency-nodes",
+      "boundaries/additional-dependency-nodes",
+      "boundaries/debug",
+      "boundaries/types",
+      "boundaries/alias",
+    ])("should return true for the valid settings key %s", (name) => {
+      expect(isSettingsKey(name)).toBe(true);
     });
 
     it("should return false for invalid settings keys", () => {

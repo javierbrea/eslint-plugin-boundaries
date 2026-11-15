@@ -11,7 +11,7 @@ export type ProjectCapabilities = {
 };
 
 /** Where the project comes from, which is what differs between hosts: a sketch kept in memory on the website, a project read from disk in a local app */
-export interface ProjectSource {
+export type ProjectSource = {
   /** What the user can change in the project */
   readonly capabilities: ProjectCapabilities;
   /**
@@ -19,4 +19,4 @@ export interface ProjectSource {
    * @returns The project as a sketch.
    */
   load(): Promise<Sketch>;
-}
+};

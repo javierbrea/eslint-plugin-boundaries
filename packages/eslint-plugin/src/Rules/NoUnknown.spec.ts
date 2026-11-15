@@ -10,11 +10,11 @@ import type { EslintDependencyNode } from "../Elements";
 import type { NoUnknownDependenciesOptions } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
-jest.mock("../Debug", () => ({
+jest.mock<{ warnOnce: jest.Mock }>("../Debug", () => ({
   warnOnce: jest.fn(),
 }));
 
-jest.mock("./Support", () => ({
+jest.mock<{ dependencyRule: jest.Mock }>("./Support", () => ({
   dependencyRule: jest.fn(
     (
       meta: unknown,
@@ -31,10 +31,8 @@ jest.mock("./Support", () => ({
 import getNoUnknownDependenciesRule from "./NoUnknown";
 import { dependencyRule } from "./Support";
 
-const warnOnceMock = warnOnce as jest.MockedFunction<typeof warnOnce>;
-const dependencyRuleMock = dependencyRule as jest.MockedFunction<
-  typeof dependencyRule
->;
+const warnOnceMock = jest.mocked(warnOnce);
+const dependencyRuleMock = jest.mocked(dependencyRule);
 
 type NoUnknownHandler = (args: {
   dependency: DependencyDescription;

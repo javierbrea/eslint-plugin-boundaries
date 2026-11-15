@@ -48,6 +48,7 @@ export const jestConfig = {
     "jest/require-to-throw-message": [0],
     "jest/unbound-method": [0],
     "jest/prefer-lowercase-title": [2, { ignoreTopLevelDescribe: true }],
+    "jest/consistent-test-it": [2, { fn: "it" }],
   },
 };
 
@@ -227,6 +228,15 @@ export const typescriptConfig = {
         prefer: "type-imports",
         disallowTypeAnnotations: true,
         fixStyle: "separate-type-imports",
+      },
+    ],
+    "@typescript-eslint/consistent-type-definitions": [2, "type"],
+    "@typescript-eslint/naming-convention": [
+      2,
+      {
+        selector: "interface",
+        format: null,
+        custom: { regex: "^I[A-Z]", match: false },
       },
     ],
   },

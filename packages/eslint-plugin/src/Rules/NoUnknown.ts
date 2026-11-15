@@ -12,10 +12,10 @@ import { NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP, RULE_NAMES_MAP } from "../Shared";
 import { dependencyRule } from "./Support";
 
 /** Which axes an unknown-dependency report should mention in its message. */
-interface ReportedAxes {
+type ReportedAxes = {
   element: boolean;
   file: boolean;
-}
+};
 
 /**
  * Decides whether a dependency should be reported as unknown for the given
