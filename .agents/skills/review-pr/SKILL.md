@@ -21,19 +21,19 @@ Provide (all optional; a sensible default applies):
 1. **Resolve the target PR.** Accept a full PR URL, a bare number, or nothing.
    - A full URL fully identifies owner/repo/number.
    - A bare number is assumed to belong to this repository's `origin` remote (`javierbrea/eslint-plugin-boundaries`).
-   - With no argument, find the current branch and look up the open pull request for it (prefer a GitHub MCP tool such as `pull_request_read`/`list_pull_requests`; fall back to `gh pr view --json url,number`). If none exists, tell the user and stop.
-   - Fetch the PR's metadata, changed files and diff, and existing review comments (prefer `pull_request_read`).
+   - With no argument, find the current branch and look up the open pull request for it. If none exists, tell the user and stop.
+   - Fetch the PR's metadata, changed files and diff, and existing review comments.
 
 2. **Sync the local checkout.** Compare the current branch and its `HEAD` commit against the PR's head ref and head commit sha.
    - If they already match, proceed directly.
    - If they differ, state exactly what differs (branch name and/or commit sha) and **ask for explicit permission** before doing anything: `git fetch origin <headRef>` then checkout. If the working tree has uncommitted changes, warn about that first and never discard local work without confirmation.
-   - If the user declines the checkout, continue in **GitHub-only mode**: review using the PR's diff and file contents fetched over the GitHub API/MCP instead of the local working tree. Remember this for the final report — local checks such as running tests or lint cannot be performed in this mode.
+   - If the user declines the checkout, continue in **GitHub-only mode**: review using the PR's diff and file contents fetched from GitHub instead of the local working tree. Remember this for the final report — local checks such as running tests or lint cannot be performed in this mode.
 
 3. **Discover the related issue**, to obtain the functional specification the change is meant to satisfy. Try in order:
    - A `closes #<number>` / `fixes #<number>` / `resolves #<number>` reference (or GitHub's own linked-issues field) in the PR body.
    - A number in the PR's source branch name (for example `477` in `fix/477/migration-guide-links`).
    - A `(#<number>)` token in the commits on the branch (this repository's commit convention is `<type>(#<number>): <description>`).
-   - If an issue is found, read it in full — including its comments — with `issue_read` (or `gh issue view <number> --json title,body,comments`) to build the functional spec.
+   - If an issue is found, read it in full — including its comments — to build the functional spec.
    - If no issue is found, proceed in issue-less mode: derive the spec from the PR title and description only.
 
 4. **Gather review context.**
@@ -64,11 +64,7 @@ Provide (all optional; a sensible default applies):
 
 9. **Show a mandatory preview.** Present the full general comment and a numbered list of every inline comment (`file:line`, severity, explanation, suggestion if any). Ask for explicit confirmation before posting anything. Let the user drop, edit, or downgrade individual findings before proceeding. Do not post anything before this confirmation.
 
-10. **Post the review**, using the GitHub MCP review flow:
-    - `pull_request_review_write` with `method: create` to open a pending review, including the general comment as its body.
-    - `add_comment_to_pending_review` once per confirmed inline finding, with the suggestion block included in the comment body when applicable.
-    - `pull_request_review_write` with `method: submit_pending` and **`event: COMMENT`** to submit. The review is always submitted as a comment — never `APPROVE`, never `REQUEST_CHANGES`; the human maintainer decides the verdict.
-    - Fall back to `gh` CLI or REST only for operations the MCP tools do not support.
+10. **Post the review** as a single review: the general comment as its body, and one inline comment per confirmed finding, with its suggestion block when it has one. The review is always submitted as a comment — never `APPROVE`, never `REQUEST_CHANGES`; the human maintainer decides the verdict.
 
 11. **No findings is a valid, complete outcome.** If nothing survives step 8, submit the general comment alone. Do not invent problems to justify inline comments.
 
@@ -76,11 +72,11 @@ Provide (all optional; a sensible default applies):
 
 ### Authorization Failure Handling (Required)
 
-- Never enter retry loops with shell commands when authorization or authentication failures are detected.
+- Never retry when an authorization or authentication failure is detected.
 - Treat errors such as `401`, `403`, `Bad credentials`, `Requires authentication`, `Resource not accessible by integration`, `permission denied`, or `not authorized` as terminal for the current automation attempt.
 - On such failures, stop automation immediately and inform the user that authorization is required.
 - Always include the full computed review — general comment plus every inline comment with its `file:line` and suggestion — in the response so the user can copy and paste it manually.
-- Do not keep attempting alternative shell-based GitHub flows after an auth failure has been detected.
+- Do not try other ways to reach GitHub after an auth failure has been detected.
 
 ## Output format
 
@@ -110,7 +106,7 @@ Include assumptions, risks, and follow-ups when relevant.
 - Context: the user declines the offered checkout.
 
 **Expected output**
-- GitHub-only mode: diff and files fetched via the API/MCP instead of the working tree; the final report notes that local tests/lint could not be run; review still posted after preview confirmation.
+- GitHub-only mode: diff and files fetched from GitHub instead of the working tree; the final report notes that local tests/lint could not be run; review still posted after preview confirmation.
 
 ### Example C (current branch, no linked issue, no findings)
 
@@ -128,5 +124,4 @@ Include assumptions, risks, and follow-ups when relevant.
 - The review is always submitted with `event: COMMENT`. Never submit `APPROVE` or `REQUEST_CHANGES` automatically.
 - Always show a preview and obtain explicit confirmation before posting the review.
 - Never check out the PR branch, or discard local changes, without explicit permission.
-- Prefer GitHub MCP tools for all supported operations; fall back to `gh` CLI or REST only for what MCP cannot do.
 - If no problems are found, do not manufacture any — a general-comment-only review is a complete, valid result.

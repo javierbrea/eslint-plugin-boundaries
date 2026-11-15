@@ -5,12 +5,17 @@ import { useTreeItemModel } from "@mui/x-tree-view/hooks";
 import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
 import { useEffect, useId } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+} from "react";
 
 import type { ProblemCounts } from "@/domains/problems/helpers/problemSelectors";
 import { RenameField } from "@/domains/project/ui/atoms/RenameField";
 import { useProjectTreeContext } from "@/domains/project/ui/contexts/ProjectTreeContext";
 import type { ProjectItem } from "@/domains/project/ui/helpers/projectItems";
+import type { MenuPosition } from "@/domains/project/ui/helpers/projectMenu";
 import { formatCount } from "@/shared/helpers/formatCount";
 import { CountBadge } from "@/ui-kit/atoms/CountBadge";
 import { Icon } from "@/ui-kit/atoms/Icon";
@@ -26,6 +31,12 @@ import {
   RENAME_ACTION_LABEL,
 } from "./ProjectTreeItem.constants";
 import type { ProjectTreeItemProps } from "./ProjectTreeItem.types";
+
+/** What an item that can be edited announces: the keys that rename and remove its node and the one that opens its context menu, and the menu itself. */
+const EDITABLE_ITEM_PROPS = {
+  "aria-keyshortcuts": "F2 Delete Shift+F10",
+  "aria-haspopup": "menu",
+} as const;
 
 /** The mark of a file with failing dependencies: the cross of errors, or the triangle of the line of a warning. */
 const FAILURE_ICONS: Readonly<Record<Tone, IconName>> = {
@@ -202,6 +213,61 @@ function isRowBad(
 }
 
 /**
+ * Gets what names an item: what its row reads, which is its own name, the tag of the target and what the badge counts, and not the items inside it.
+ * @param nameId The id of the name of the item. The tag and the badge have ids made from it.
+ * @param isTarget Whether the row shows the tag of the target.
+ * @param hasBadge Whether the row shows a badge.
+ * @returns The ids of the tag and of the badge, the value of `aria-labelledby` of the item, and the space to write between the name and the text that the row shows after it, or `null` when the row shows none.
+ */
+function getItemName(
+  nameId: string,
+  isTarget: boolean,
+  hasBadge: boolean
+): {
+  tagId: string;
+  badgeId: string;
+  labelledBy: string;
+  separator: " " | null;
+} {
+  const tagId = `${nameId}-target`;
+  const badgeId = `${nameId}-badge`;
+  const endTextIds = [
+    ...(isTarget ? [tagId] : []),
+    ...(hasBadge ? [badgeId] : []),
+  ];
+
+  return {
+    tagId,
+    badgeId,
+    labelledBy: [nameId, ...endTextIds].join(" "),
+    separator: endTextIds.length > 0 ? " " : null,
+  };
+}
+
+/**
+ * Tells whether a key press asks for the context menu, as Shift+F10 and the menu key do in the menus of an operating system.
+ * @param keyEvent The key press.
+ * @returns True for Shift+F10 and for the menu key.
+ */
+function isMenuKey(keyEvent: ReactKeyboardEvent): boolean {
+  return (
+    (keyEvent.key === "F10" && keyEvent.shiftKey) ||
+    keyEvent.key === "ContextMenu"
+  );
+}
+
+/**
+ * Gets where the context menu of an item opens when the keyboard asks for it: under the name of the item, which has no pointer position.
+ * @param nameElement The element of the name of the item.
+ * @returns The bottom left corner of the name.
+ */
+function getMenuPositionUnder(nameElement: Element): MenuPosition {
+  const { bottom, left } = nameElement.getBoundingClientRect();
+
+  return { top: bottom, left };
+}
+
+/**
  * Gives the keyboard focus to an item when the tree asks for it. The item that was renamed has another id, so it is a new item: it asks when it mounts, which is when it is in the page. The focus is only taken when it is on the body, as Enter, Escape and a closed dialog leave it. Leaving the rename field with a click or Tab puts it where the user went, and that is not taken back.
  * @param itemId The id of the item.
  * @param focusRequest The id of the item that must take the keyboard focus, if any.
@@ -234,7 +300,7 @@ function useFocusRequest(
 }
 
 /**
- * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. The item that the dependency in focus points to is outlined and tagged `target`. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
+ * An item of the project tree: the chevron, the name, and at the end the row actions and the badge. The item that the dependency in focus points to is outlined and tagged `target`. A right click on the row, Shift+F10 or the menu key asks for the context menu of a file or a folder that can be edited, without selecting it; the config, a tree that cannot be edited and a node being renamed keep the menu of the browser. It replaces the item of the tree view, which does not have room for them, and keeps its behavior: selection, expansion and keyboard navigation come from `useTreeItem`.
  * @param props ProjectTreeItem props.
  * @param props.ref The ref of the root element of the item.
  * @param props.id The id attribute of the item.
@@ -273,9 +339,14 @@ export function ProjectTreeItem({
   const isFailingFile = item.kind === "file" && badge.count > 0;
   const isBad = isRowBad(item, badge, context.counts);
   const isTarget = context.target === itemId;
+  const { tagId, badgeId, labelledBy, separator } = getItemName(
+    nameId,
+    isTarget,
+    badge.count > 0
+  );
 
   /**
-   * Starts the rename with F2 and removes the node with Delete.
+   * Starts the rename with F2, removes the node with Delete, and asks for the context menu with Shift+F10 or the menu key.
    * @param keyEvent The key press in the item.
    */
   function handleKeyDown(keyEvent: ReactKeyboardEvent<HTMLLIElement>): void {
@@ -289,24 +360,47 @@ export function ProjectTreeItem({
     } else if (keyEvent.key === "Delete") {
       keyEvent.preventDefault();
       context.onDelete(itemId);
+    } else if (isMenuKey(keyEvent) && !isRenaming) {
+      // The browser would open its own menu too
+      keyEvent.preventDefault();
+      context.onOpenMenu(
+        { kind: item.kind, path: itemId },
+        // The name is in the row while the node is not renamed
+        getMenuPositionUnder(document.getElementById(nameId) as HTMLElement)
+      );
     }
+  }
+
+  /**
+   * Asks for the context menu where the pointer is, in place of the menu of the browser. A right click does not select the item.
+   * @param menuEvent The right click on the row.
+   */
+  function handleContextMenu(menuEvent: ReactMouseEvent<HTMLDivElement>): void {
+    // The field of a rename keeps the menu of the browser, to copy and paste
+    if (!canEdit || isRenaming) {
+      return;
+    }
+    menuEvent.preventDefault();
+    context.onOpenMenu(
+      { kind: item.kind, path: itemId },
+      { top: menuEvent.clientY, left: menuEvent.clientX }
+    );
   }
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <Root
         {...getRootProps({
-          // The name of the item is its own, not the one of everything inside it
-          "aria-labelledby": nameId,
-          // The keys that rename and remove the node are not written anywhere in the row
-          "aria-keyshortcuts": canEdit ? "F2 Delete" : undefined,
+          "aria-labelledby": labelledBy,
+          // The keys that rename and remove the node, and the one that opens its menu, are not written anywhere in the row
+          ...(canEdit ? EDITABLE_ITEM_PROPS : {}),
           onKeyDown: handleKeyDown,
         })}
         data-kind={item.kind}
         data-testid={PROJECT_TREE_ITEM_TEST_ID}
       >
         <Row
-          {...getContentProps()}
+          {...getContentProps({ onContextMenu: handleContextMenu })}
           data-kind={item.kind}
           data-bad={flag(isBad)}
           data-target={flag(isTarget)}
@@ -342,6 +436,8 @@ export function ProjectTreeItem({
               {label}
             </Name>
           )}
+          {/* A space between the name and the text at the end, which the flex row does not draw: without it, axe joins them into one word and finds that the name of the item does not hold what the row shows (https://github.com/dequelabs/axe-core/issues/5459) */}
+          {separator}
           <End>
             {canEdit && !isRenaming ? (
               <Actions data-actions="">
@@ -375,7 +471,11 @@ export function ProjectTreeItem({
               </Actions>
             ) : null}
             {/* After the actions, which take a gap even while they are clipped: before them, the tag would be that gap away from the end of the row */}
-            {isTarget ? <TargetTag data-target-tag="">target</TargetTag> : null}
+            {isTarget ? (
+              <TargetTag id={tagId} data-target-tag="">
+                target
+              </TargetTag>
+            ) : null}
             {isFailingFile ? (
               <Failure tone={badge.tone} data-failure="">
                 <Icon name={FAILURE_ICONS[badge.tone]} />
@@ -383,6 +483,7 @@ export function ProjectTreeItem({
             ) : null}
             {badge.count > 0 ? (
               <CountBadge
+                id={badgeId}
                 count={badge.count}
                 tone={badge.tone}
                 label={badge.label}

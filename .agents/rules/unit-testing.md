@@ -20,7 +20,7 @@ Use `.spec.ts` for all test files, or `.spec.tsx` for those that render React co
 
 ## Structure
 
-Every `it` block follows **Arrange → Act → Assert**. Use `it()`, never `test()`. One top-level `describe` per class or module, one nested `describe` per public method:
+Every `it` block follows **Arrange → Act → Assert**. One top-level `describe` per class or module, one nested `describe` per public method:
 
 ```typescript
 describe("ServiceName", () => {
@@ -54,15 +54,7 @@ Reset or recreate mocks in `beforeEach` (not `afterEach`) so state doesn't leak 
 
 ## Type safety
 
-**Never use `any` in tests.** Use `as unknown as T` for partial mocks that can't implement the full interface, and `@ts-expect-error` with a descriptive comment only when intentionally passing an incomplete type, kept close to the problematic line.
-
-```typescript
-// Good
-const partialConfig = { timeout: 5000 } as unknown as Config;
-
-// Bad
-const config: any = { timeout: 5000 };
-```
+Lint forbids `any`, in tests too. A partial mock is cast with `as unknown as T`, and a value of the wrong type that a test passes on purpose gets `@ts-expect-error` with a comment that says why, on the line before it.
 
 ## Coverage — 100% required
 
@@ -72,8 +64,6 @@ The Jest config of `packages/elements`, `packages/config`, `packages/policies`, 
 
 | Anti-pattern | Correct approach |
 |---|---|
-| `const x: any = ...` | `const x = ... as unknown as Foo` |
-| `test()` instead of `it()` | Use `it()` consistently |
 | `.test.ts` extension | Use `.spec.ts` |
 | Shared mutable state across tests | Reset in `beforeEach` |
 | `as jest.Mocked<T>` for module mocks | `jest.mocked()` |

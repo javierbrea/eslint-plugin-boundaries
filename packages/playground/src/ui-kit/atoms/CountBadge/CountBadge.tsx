@@ -34,15 +34,17 @@ const Badge = styled("span", {
  * @param props.count The number to show.
  * @param props.tone The color of the badge: `bad` for what fails, `warn` for what is worth a look.
  * @param props.label What the number counts, such as `3 unread messages`.
+ * @param props.id The id of the badge, for an element that takes its name from it.
  * @returns The badge.
  */
 export function CountBadge({
   count,
   tone,
   label,
+  id,
 }: Readonly<CountBadgeProps>): ReactNode {
   return (
-    <Badge tone={tone} role="img" aria-label={label}>
+    <Badge id={id} tone={tone} role="img" aria-label={label}>
       {count}
     </Badge>
   );

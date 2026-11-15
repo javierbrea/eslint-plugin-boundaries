@@ -1,4 +1,4 @@
-jest.mock("../../../src/Debug", () => ({
+jest.mock<{ warnDiagnostics: jest.Mock }>("../../../src/Debug", () => ({
   ...jest.requireActual("../../../src/Debug"),
   warnDiagnostics: jest.fn(),
 }));

@@ -22,6 +22,11 @@ class ProjectRowPom extends Pom {
   async clickName(): Promise<void> {
     await this.root.locator("[title]").first().click();
   }
+
+  /** Right clicks the name of the node, as the user does to open its context menu. */
+  async rightClickName(): Promise<void> {
+    await this.root.locator("[title]").first().click({ button: "right" });
+  }
 }
 
 /** Page object of an item of the project tree, in a browser. It finds the item by the path of its node, the `name` option when it is set: the title of the name of the item. Without it, the `index` option picks among all the items of its parent, folders before the items inside them, in the order they are drawn. The items inside a folder are not part of the item, and neither are their rows. */

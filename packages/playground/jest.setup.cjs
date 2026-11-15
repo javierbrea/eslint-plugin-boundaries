@@ -1,4 +1,4 @@
-/* global jest, beforeEach */
+/* global jest, beforeEach, Range, DOMRect */
 
 // jsdom has no `TextEncoder` or `TextDecoder`, which every browser and Node.js have, and the encoder of the links uses them. These are the ones of Node.js. It has no `structuredClone` either, which the stand-in of the worker below copies each message with, as `postMessage` does: the serializer of V8 is the algorithm of `structuredClone` in Node.js
 const nodeUtil = require("node:util");
@@ -57,3 +57,9 @@ beforeEach(() => {
     });
   });
 });
+
+// jsdom lays nothing out, and its `Range` has neither `getClientRects` nor `getBoundingClientRect`, which CodeMirror calls each time it measures the editor in an animation frame. Without them it logs a `TypeError` for each measure, and every instance starts with the config editor on screen, so a spec run alone filled its output with them. They give no rectangles, as the elements of jsdom do. The spec of the share entry runs in Node.js, which has no `Range`
+if (typeof Range !== "undefined") {
+  Range.prototype.getClientRects ??= () => [];
+  Range.prototype.getBoundingClientRect ??= () => new DOMRect();
+}

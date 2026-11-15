@@ -6,9 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > [!INFO]
-> Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
+> Each version is a deployment of the website. A version without a suffix is deployed with the `eslint-plugin-boundaries` release of the same number, and adds the documentation of that release. A version with a `+rev.N` suffix, such as `7.4.1+rev.1`, is a later deployment that keeps the documentation of that version and changes the site or fixes its pages.
 
-## [Unreleased]
+## [7.4.1+rev.2] - 2026-11-15
+
+### Changed
+
+- feat: The playground opens `eslint.config.js` when it loads a project, an example or a link, instead of an empty pane. The cross in the head of the open file or of the config closes it, and the inspector then shows the numbers of the project.
+- feat: The `Share` button of the playground, and `Copy link` in its dialog, turn green while they say `Copied`, and fade back to their color afterwards.
+- feat: The project tree of the playground has a context menu. Right-click a folder to add a file or a folder inside it, a file to add one next to it, either one to rename or delete it, and the empty space below the rows to add one at the root; Shift+F10 opens it from the keyboard.
+- chore(#647): The design tokens and the self-hosted fonts come from the private `@boundaries/design-tokens` workspace package, and the site serves the fonts at the same URLs.
+- chore(#514): The `ProjectSource` and `StateStore` types of the playground are `type` aliases instead of interfaces.
+
+### Fixed
+
+- fix: The items of the playground's project tree tell assistive technology their problem count and their `target` tag, the headings of its config inspector no longer skip a level, and accessibility checkers find its config editor in the tab order.
+
+## [7.4.1+rev.1] - 2026-11-12
 
 ### Added
 
@@ -98,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - docs(#467): Document `boundaries/files-single-match`, `boundaries/elements-single-match` (canonical replacement for the deprecated `boundaries/elements-single-type`), and the per-descriptor `stopMatching`/`exclusive` options on file and element descriptors, in the Settings reference and the Files/Elements classification pages.
 - docs(#431): Add Oxlint integration guide to the documentation, showing how to use the plugin with Oxlint instead of ESLint.
 
-## [7.0.0-docs.1] - 2026-07-17
+## [7.0.0+rev.1] - 2026-07-17
 
 - docs(#440): Point the TypeScript Support guide to the new in-repo `examples/typescript` folder instead of the standalone `epb-ts-example` repository.
 

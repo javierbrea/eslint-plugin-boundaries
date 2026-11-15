@@ -158,6 +158,16 @@ export class ConfigInspectorPom extends Pom {
   }
 
   /**
+   * The elements the headings of the groups are drawn in.
+   * @returns The tag name of each heading of the inspector, in upper case, in order.
+   */
+  get groupTags(): string[] {
+    return this.scope
+      .queryAllByRole("heading")
+      .map((heading) => heading.tagName);
+  }
+
+  /**
    * Gets a group of rows.
    * @param label The text of its heading, such as `Element types`.
    * @returns The page object of the group.

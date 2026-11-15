@@ -5,9 +5,9 @@ import plugin from "./index";
 describe("package", () => {
   describe("rules property", () => {
     it.each(Object.values(RULE_SHORT_NAMES_MAP))(
-      "should contain rule '%s' with a defined create function",
+      "should contain rule '%s' with a create function",
       (ruleName) => {
-        expect(plugin.rules[ruleName].create).toBeDefined();
+        expect(typeof plugin.rules[ruleName].create).toBe("function");
       }
     );
 
@@ -54,7 +54,7 @@ describe("package", () => {
 
   describe("recommended config", () => {
     it("should enable only the canonical 'dependencies' rule, not the deprecated element-types/entry-point/external rules", () => {
-      const rules = plugin.configs.recommended.rules ?? {};
+      const { rules = {} } = plugin.configs.recommended;
 
       expect(rules[RULE_NAMES_MAP.DEPENDENCIES]).toBeDefined();
       expect(rules[RULE_NAMES_MAP.ELEMENT_TYPES]).toBeUndefined();
@@ -65,7 +65,7 @@ describe("package", () => {
 
   describe("strict config", () => {
     it("should not enable the deprecated element-types/entry-point/external rules either", () => {
-      const rules = plugin.configs.strict.rules ?? {};
+      const { rules = {} } = plugin.configs.strict;
 
       expect(rules[RULE_NAMES_MAP.DEPENDENCIES]).toBeDefined();
       expect(rules[RULE_NAMES_MAP.ELEMENT_TYPES]).toBeUndefined();
@@ -74,7 +74,7 @@ describe("package", () => {
     });
 
     it("should enable the canonical 'no-ignored-dependencies' and 'no-unknown-dependencies' rules, not their deprecated aliases", () => {
-      const rules = plugin.configs.strict.rules ?? {};
+      const { rules = {} } = plugin.configs.strict;
 
       expect(rules[RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES]).toBe(2);
       expect(rules[RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES]).toBe(2);
@@ -85,7 +85,7 @@ describe("package", () => {
 
   describe("strict-legacy config", () => {
     it("should not enable the deprecated element-types/entry-point/external rules either", () => {
-      const rules = plugin.configs["strict-legacy"].rules ?? {};
+      const { rules = {} } = plugin.configs["strict-legacy"];
 
       expect(rules[RULE_NAMES_MAP.DEPENDENCIES]).toBeDefined();
       expect(rules[RULE_NAMES_MAP.ELEMENT_TYPES]).toBeUndefined();
@@ -94,7 +94,7 @@ describe("package", () => {
     });
 
     it("should enable the deprecated 'no-ignored' and 'no-unknown' rule names instead of their canonical replacements", () => {
-      const rules = plugin.configs["strict-legacy"].rules ?? {};
+      const { rules = {} } = plugin.configs["strict-legacy"];
 
       expect(rules[RULE_NAMES_MAP.NO_IGNORED]).toBe(2);
       expect(rules[RULE_NAMES_MAP.NO_UNKNOWN]).toBe(2);

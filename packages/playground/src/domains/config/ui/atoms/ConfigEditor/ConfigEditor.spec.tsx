@@ -969,6 +969,23 @@ describe("ConfigEditor", () => {
     });
   });
 
+  describe("tab order", () => {
+    it.each([false, true])(
+      "should put the text in the order of the Tab key, so that the keyboard reaches the scroller around it, when readOnly is %s",
+      (readOnly) => {
+        // Arrange
+        render(<ConfigEditor {...createProps({ readOnly })} />);
+        const editor = new ConfigEditorPom();
+
+        // Act
+        const { tabIndex } = editor;
+
+        // Assert
+        expect(tabIndex).toBe(0);
+      }
+    );
+  });
+
   describe("label", () => {
     it("should follow the label", () => {
       // Arrange

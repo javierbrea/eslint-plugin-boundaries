@@ -35,27 +35,33 @@ const WITH_ERROR: Sketch = {
   ),
 };
 
-/** What {@link renderNode} returns: the render of the session, and the page object of the node. */
-type NodeRender = SessionRender & { readonly node: ConfigNodePom };
+/** What {@link renderNode} returns: the render of the session, the page object of the node and the spy of its close. */
+type NodeRender = SessionRender & {
+  readonly node: ConfigNodePom;
+  readonly onClose: jest.Mock;
+};
 
 /**
  * Renders the config node in a session, with the snapshot of the config editor that the shell provides.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change; everything when it is unset.
- * @returns The render, the store, the spy of the sketches and the page object of the node.
+ * @returns The render, the store, the spy of the sketches, the page object of the node and the spy of its close.
  */
 function renderNode(
   sketch: Sketch = QUICK_START,
   capabilities?: Parameters<typeof renderInSession>[1]["capabilities"]
 ): NodeRender {
+  const onClose = jest.fn();
+
   return {
     ...renderInSession(
       <ConfigEditorSnapshotProvider>
-        <ConfigNode frameLabel={FRAME_LABEL} />
+        <ConfigNode frameLabel={FRAME_LABEL} onClose={onClose} />
       </ConfigEditorSnapshotProvider>,
       { sketch, capabilities }
     ),
     node: new ConfigNodePom(),
+    onClose,
   };
 }
 
@@ -86,6 +92,17 @@ describe("ConfigNode", () => {
 
     // Assert
     expect(isNamedRegion).toBe(true);
+  });
+
+  it("should report that the user pressed the close button of the pane", () => {
+    // Arrange
+    const { node, onClose } = renderNode();
+
+    // Act
+    node.pane.closeButton.press();
+
+    // Assert
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("should show the text of the config in the editor", () => {

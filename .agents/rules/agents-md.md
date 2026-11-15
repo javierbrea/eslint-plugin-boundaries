@@ -23,6 +23,7 @@ This covers every file that configures an agent: `AGENTS.md` (and the `CLAUDE.md
 - **Each fact lives in one file.** The others point to it by path. Before adding a fact, search every `AGENTS.md`, `.agents/` and `.github/CONTRIBUTING.md` for it. When a fact is in `.github/CONTRIBUTING.md` (the human-facing source for branching, versioning and releases), agent files point to it instead of restating it.
 - **It names only what exists.** Every path, command, setting and tool it mentions is real. A change that renames or removes one updates the agent files that name it in the same change.
 - **It uses a plain register.** State the rule and, when it is not obvious, its reason. No `CRITICAL`, `MUST ALWAYS` or "this is a mandatory requirement": emphasis on some rules makes the rest read as optional.
+- **It says what to do, never who the agent is.** No "You are…", "Act as…" or role as a heading: the front matter `description` already decides when a skill or a subagent loads.
 - **It is normative and checkable.** Every statement is a rule ("source may never import `test` files"), never advice ("consider…").
 - **It changes by rewriting.** Rewrite the affected section rather than appending a caveat to it — growth by accretion is what turns these files into ADRs.
 

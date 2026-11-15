@@ -1,3 +1,5 @@
+import { fireEvent } from "@testing-library/react";
+
 import { RenameFieldPom } from "@/domains/project/ui/atoms/RenameField/RenameField.pom";
 import { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom";
 import { Pom } from "@/shared/testing/pom";
@@ -75,6 +77,14 @@ export class ProjectTreePom extends Pom {
   }
 
   /**
+   * The field that renames a node, which takes the place of its name.
+   * @returns The page object of the field, which is not rendered while no node is renamed.
+   */
+  get renameField(): RenameFieldPom {
+    return this.childPom(RenameFieldPom);
+  }
+
+  /**
    * How many fields rename a node in the tree.
    * @returns The number of text boxes within the tree: one while a node is renamed, none otherwise.
    */
@@ -91,6 +101,20 @@ export class ProjectTreePom extends Pom {
       { length: this.itemCount },
       (_, index) => this.childPom(ProjectTreeItemPom, { index }).row.buttonNames
     ).flat();
+  }
+
+  /**
+   * Right clicks the empty space of the tree, below its rows, as the user does to open the context menu of the root of the project.
+   * @param at Where the pointer is, in pixels from the top left corner of the viewport.
+   * @param at.x The distance from the left.
+   * @param at.y The distance from the top.
+   * @returns True when the page kept the menu of the browser from opening.
+   */
+  rightClickEmptySpace(at: { x: number; y: number } = { x: 0, y: 0 }): boolean {
+    return !fireEvent.contextMenu(this.root, {
+      clientX: at.x,
+      clientY: at.y,
+    });
   }
 
   /**

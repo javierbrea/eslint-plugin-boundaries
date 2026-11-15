@@ -122,15 +122,18 @@ export default [
   },
   {
     ...jestConfig,
-    files: ["test/**/*.js", "test/**/*.ts", "**/*.spec.ts"],
+    files: ["test/**/*.ts", "**/*.spec.ts"],
     rules: {
+      ...jestConfig.rules,
       "@typescript-eslint/no-require-imports": [0],
     },
   },
   {
     files: ["test/rules/**/*.spec.ts"],
     rules: {
-      "sonarjs/no-empty-test-file": [0], // NOTE: RuleTester registers the test cases of these specs.
+      // NOTE: RuleTester registers the test cases of these specs, from a call at the top level.
+      "sonarjs/no-empty-test-file": [0],
+      "jest/require-hook": [0],
     },
   },
   {

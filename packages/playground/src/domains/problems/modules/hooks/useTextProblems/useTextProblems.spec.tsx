@@ -133,12 +133,12 @@ describe("useTextProblems", () => {
     act(() => store.setTextDraft(`${UNREADABLE_LINE}\n`));
 
     // Act
-    act(() => store.open({ kind: "config" }));
+    act(() => store.open({ kind: "file", path: "src/index.js" }));
 
     // Assert
     const [last, previous] = [results.at(-1), results.at(-2)];
 
-    expect(last?.focus).toEqual({ kind: "config" });
+    expect(last?.focus).toEqual({ kind: "file", path: "src/index.js" });
     expect(last?.problems).toBe(previous?.problems);
   });
 
@@ -150,7 +150,7 @@ describe("useTextProblems", () => {
     }));
 
     // Act
-    act(() => store.open({ kind: "config" }));
+    act(() => store.open({ kind: "file", path: "src/index.js" }));
 
     // Assert
     expect(results[1].problems).toBe(results[0].problems);

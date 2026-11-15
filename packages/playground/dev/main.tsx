@@ -2,8 +2,8 @@ import { StrictMode, useState } from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
-import "../../website/src/css/tokens.css";
-import "../../website/src/css/fonts.css";
+import "@boundaries/design-tokens/tokens.css";
+import "@boundaries/design-tokens/fonts.css";
 import "./harness.css";
 import {
   HashStore,

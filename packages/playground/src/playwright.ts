@@ -10,6 +10,8 @@ export { FilePanePom } from "@/domains/files/ui/organisms/FilePane/FilePane.pom.
 export { ProblemsPanePom } from "@/domains/problems/modules/ProblemsPane/ProblemsPane.pom.playwright";
 export { ProblemsPanelPom } from "@/domains/problems/ui/molecules/ProblemsPanel/ProblemsPanel.pom.playwright";
 export { ProjectPanePom } from "@/domains/project/modules/ProjectPane/ProjectPane.pom.playwright";
+export { ProjectTreeMenuPom } from "@/domains/project/ui/atoms/ProjectTreeMenu/ProjectTreeMenu.pom.playwright";
+export { RenameFieldPom } from "@/domains/project/ui/atoms/RenameField/RenameField.pom.playwright";
 export { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom.playwright";
 export { ProjectTreePom } from "@/domains/project/ui/organisms/ProjectTree/ProjectTree.pom.playwright";
 export { InspectorPanePom } from "@/domains/shell/modules/InspectorPane/InspectorPane.pom.playwright";

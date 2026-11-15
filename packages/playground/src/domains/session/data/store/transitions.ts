@@ -67,7 +67,7 @@ const NONE_CLOSED: ReadonlySet<string> = new Set();
 const NEW_NAMES = { file: "new-file.js", folder: "new-folder" } as const;
 
 /**
- * Creates the state an instance starts with: the sketch, whose evaluation is on its way, with nothing in focus, the project as a tree with every folder open, and the problems panel open on the sketch.
+ * Creates the state an instance starts with: the sketch, whose evaluation is on its way, with the config in focus, so that the config is the first thing the user reads, the project as a tree with every folder open, and the problems panel open on the sketch, which sums up the problems of the config and of the files.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change in the project.
  * @returns The first state.
@@ -81,7 +81,7 @@ export function createSessionState(
     evaluation: undefined,
     evaluationStatus: "pending",
     capabilities,
-    focus: NO_FOCUS,
+    focus: CONFIG_FOCUS,
     tab: "sketch",
     problemsCollapsed: false,
     reveal: undefined,
@@ -204,6 +204,16 @@ function applyEdit(
 }
 
 /**
+ * Tells whether a path is a folder of the sketch.
+ * @param sketch The sketch.
+ * @param path The path.
+ * @returns True when the sketch has a node at the path and it is not a file.
+ */
+function isFolder(sketch: Sketch, path: string): boolean {
+  return hasNode(sketch, path) && !getFiles(sketch).includes(path);
+}
+
+/**
  * Gets the folder that a new node goes in: the folder the user selected, the folder of the file in focus, or the root.
  * @param state The state.
  * @param state.sketch
@@ -217,11 +227,7 @@ function getTargetFolder({
   focus: openNode,
 }: SessionState): string {
   // The selected folder can be gone, or be a file, after an edit of the text
-  if (
-    pickedFolder !== undefined &&
-    hasNode(sketch, pickedFolder) &&
-    !getFiles(sketch).includes(pickedFolder)
-  ) {
+  if (pickedFolder !== undefined && isFolder(sketch, pickedFolder)) {
     return pickedFolder;
   }
   // A dependency in focus is a line of its file, which is the open one
@@ -352,6 +358,15 @@ export function openTarget(state: SessionState, target: Target): SessionState {
 }
 
 /**
+ * Closes what is in focus, as the close button of the node pane does: nothing stays in focus, and the problems panel goes back to the tab of the sketch. The node pane shows that nothing is open, and the inspector the numbers of the sketch.
+ * @param state The state before.
+ * @returns The state after, or the same one when nothing is in focus.
+ */
+export function closeNode(state: SessionState): SessionState {
+  return state.focus.kind === "none" ? state : closeFocus(state);
+}
+
+/**
  * Handles the selection of an item of the tree. A file and the config open; a folder is only selected, and is where the next node goes.
  * @param state The state before.
  * @param id The id of the item: `eslint.config.js` for the config node, or the path of a node.
@@ -404,22 +419,27 @@ export function setView(state: SessionState, view: ProjectView): SessionState {
 }
 
 /**
- * Adds a file or a folder with a free name and starts renaming it, from the tree or from the pane of nothing open alike. It goes in the folder the user selected, the folder of the file in focus or the root; the tree shows, with the folders above it open. A new file opens; a new folder is selected.
+ * Adds a file or a folder with a free name and starts renaming it, from the tree or from the pane of nothing open alike. It goes in the folder asked for, such as the one whose menu the user opened, or else in the folder the user selected, the folder of the file in focus or the root; the tree shows, with the folders above it open. A new file opens; a new folder is selected.
  * @param state The state before.
  * @param kind Whether to add a file or a folder.
- * @returns The state after, or the same one without `editTree`.
+ * @param folder The folder to add the node in, or an empty string for the root. Without it, the node goes where the state says.
+ * @returns The state after, or the same one without `editTree`, or when the folder asked for is not a folder of the sketch: it was gone or turned into a file while the user chose.
  */
 export function addNode(
   state: SessionState,
-  kind: "file" | "folder"
+  kind: "file" | "folder",
+  folder?: string
 ): SessionState {
-  if (!state.capabilities.editTree) {
+  if (
+    !state.capabilities.editTree ||
+    (folder !== undefined && folder !== "" && !isFolder(state.sketch, folder))
+  ) {
     return state;
   }
 
   const path = getUniquePath(
     state.sketch,
-    getTargetFolder(state),
+    folder ?? getTargetFolder(state),
     NEW_NAMES[kind]
   );
 

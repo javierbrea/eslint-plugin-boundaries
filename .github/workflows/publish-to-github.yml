@@ -2,6 +2,12 @@ name: publish-to-github
 on:
   release:
     types: [created]
+
+# NOTE: The token publishes the package to GitHub Packages
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest

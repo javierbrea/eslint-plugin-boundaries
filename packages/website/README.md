@@ -87,16 +87,16 @@ website/
 ├── docs/                    # Documentation pages for the current ("next") version
 ├── versioned_docs/          # Snapshotted documentation for each released version
 ├── versioned_sidebars/      # Sidebar configuration for each released version
-├── scripts/                 # Maintenance scripts (font sync, visual check)
+├── scripts/                 # Maintenance scripts (social card, visual check)
 ├── src/
 │   ├── client/              # Client modules loaded on every page
 │   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
-│   ├── css/                 # Design tokens, fonts, Infima mapping and global styles
+│   ├── css/                 # Infima mapping and global styles; the design tokens and fonts come from @boundaries/design-tokens
 │   ├── data/                # Site constants, links and live GitHub/npm stats
 │   ├── pages/               # Custom pages, including the home page
 │   ├── prism/               # Code highlighting theme
 │   └── theme/               # Swizzled/overridden Docusaurus theme components
-├── static/                  # Static assets (images, fonts, etc.)
+├── static/                  # Static assets (images, etc.)
 ├── sidebars.ts              # Sidebar configuration for the current ("next") version
 ├── docusaurus.config.ts     # Docusaurus configuration
 ├── versions.json            # List of released documentation versions
@@ -145,7 +145,7 @@ For every pull request opened against the `master` branch, Netlify automatically
 
 ## Versioning
 
-The website follows the same versioning strategy as the main JS Boundaries project. Each release of the JS Boundaries library corresponds to a specific version of the documentation.
+The website's version, and the releases that create a new version of the documentation, are defined in step 2 of "Publishing" in the [contributing guide](../../.github/CONTRIBUTING.md#publishing).
 
 Read the Docusaurus [versioning documentation](https://docusaurus.io/docs/versioning) for more details.
 
@@ -164,9 +164,6 @@ pnpm run version <current-version>
 This command will create a new versioned documentation set based on the current content. Then you can update the content of the `docs/` folder to reflect changes in the new version, which will be accessible at `/docs/next/` until the next release.
 
 When the new version is ready to be released, create a new versioned docs set by running the command above with the appropriate version number.
-
-> [!INFO]
-> A new documentation version is created only when a release actually changes the website's `docs/` content, following the same version number as the corresponding `eslint-plugin` release. If a release — patch or minor — doesn't touch `docs/`, skip this command entirely: the website package version and its versioned docs stay as they are.
 
 ## Social Card
 
@@ -188,7 +185,6 @@ Commit the HTML and the image together. The build does not regenerate the image,
 | `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) |
 | `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html` |
 | `pnpm swizzle` | Customize Docusaurus components |
-| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts`. `pnpm lint` fails while they differ |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |
 
 `pnpm screenshots` and `pnpm social-card` run on the Chromium of the `@playwright/test` version in the root `package.json`, which they download the first time.

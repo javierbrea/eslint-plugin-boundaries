@@ -8,6 +8,7 @@ import { EVALUATION_DELAY } from "@/domains/session/data/store";
 import type { SessionStore } from "@/domains/session/data/store";
 import {
   NO_CAPABILITIES,
+  leaveNothingOpen,
   renderInSession,
 } from "@/domains/session/data/store/store.mock";
 import type { SessionRender } from "@/domains/session/data/store/store.mock";
@@ -199,7 +200,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(names).toEqual([
-        "eslint.config.js",
+        "eslint.config.js 1 problem",
         "src/",
         "components/",
         "Button.js",
@@ -296,7 +297,9 @@ describe("ProjectPane", () => {
 
     it("should open the config when it is clicked", () => {
       // Arrange
-      const { store, pane } = renderPane();
+      const { store, pane } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
 
       // Act
       pane.click("eslint.config.js");
@@ -320,24 +323,16 @@ describe("ProjectPane", () => {
 
     it("should select the config when it is in focus", () => {
       // Arrange
-      const { pane } = renderPane({ focus: { kind: "config" } });
+      const { pane, store } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
+      act(() => store.open({ kind: "config" }));
 
       // Act
       const config = pane.item("eslint.config.js");
 
       // Assert
       expect(config.ariaSelected).toBe("true");
-    });
-
-    it("should select nothing when nothing is in focus", () => {
-      // Arrange
-      const { pane } = renderPane();
-
-      // Act
-      const selected = pane.tree.selectedPaths;
-
-      // Assert
-      expect(selected).toEqual([]);
     });
 
     it("should select a folder the user clicked, and keep what is in focus", () => {
@@ -372,7 +367,9 @@ describe("ProjectPane", () => {
 
     it("should drop the selected folder when something else takes the focus", () => {
       // Arrange
-      const { store, pane } = renderPane();
+      const { store, pane } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
       pane.click("src");
 
       // Act
@@ -673,6 +670,8 @@ describe("ProjectPane", () => {
     it("should outline nothing while a file, the config or nothing is in focus", () => {
       // Arrange
       const { pane, store } = renderPane({ sketch: QUICK_START });
+      leaveNothingOpen(store);
+      const focusAtStart = getFocus(store);
       const none = getTargets(pane);
       act(() => store.open({ kind: "file", path: CHECKOUT }));
       const file = getTargets(pane);
@@ -681,6 +680,7 @@ describe("ProjectPane", () => {
       act(() => store.open({ kind: "config" }));
 
       // Assert
+      expect(focusAtStart).toEqual({ kind: "none" });
       expect([none, file, getTargets(pane)]).toEqual([[], [], []]);
     });
 
@@ -767,7 +767,7 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(pane.tree.itemPaths).toContain("src/components/Button.js");
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should not pass the keys of the field to the tree", () => {
@@ -780,7 +780,7 @@ describe("ProjectPane", () => {
       field.pressKey(" ");
 
       // Assert
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should follow the rename with the focus", () => {
@@ -1137,7 +1137,7 @@ describe("ProjectPane", () => {
       expect(pane.item("src/index.js").isFocused).toBe(true);
     });
 
-    it("should announce the F2 and Delete shortcuts on the rows that can be edited, and not on the config", () => {
+    it("should announce the F2, Delete and Shift+F10 shortcuts on the rows that can be edited, and not on the config", () => {
       // Arrange
       const { pane } = renderPane();
 
@@ -1147,7 +1147,11 @@ describe("ProjectPane", () => {
       );
 
       // Assert
-      expect(shortcuts).toEqual(["F2 Delete", "F2 Delete", null]);
+      expect(shortcuts).toEqual([
+        "F2 Delete Shift+F10",
+        "F2 Delete Shift+F10",
+        null,
+      ]);
     });
 
     it("should have no row actions, rename or delete for the config", () => {
@@ -1174,7 +1178,7 @@ describe("ProjectPane", () => {
       pane.item("src/index.js").renameAction.press();
 
       // Assert
-      expect(getFocus(store)).toEqual({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should ignore the keys that come from inside the item", () => {
@@ -1453,7 +1457,7 @@ describe("ProjectPane", () => {
       await pane.waitUntilDeleteDialogGone();
 
       // Assert
-      expect(pane.tree.selectedPaths).toEqual([]);
+      expect(pane.tree.selectedPaths).toEqual(["eslint.config.js"]);
     });
 
     it("should keep the selection of a folder when another is removed", () => {
@@ -1547,9 +1551,10 @@ describe("ProjectPane", () => {
 
     it("should add the file at the root when the config is in focus", () => {
       // Arrange
-      const { onSketchChange, pane } = renderPane({
-        focus: { kind: "config" },
+      const { onSketchChange, pane, store } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
       });
+      act(() => store.open({ kind: "config" }));
 
       // Act
       pane.foot.addFile();
@@ -1699,6 +1704,200 @@ describe("ProjectPane", () => {
       expect(
         changes.mock.calls.every(([viewAfter]) => viewAfter === "tree")
       ).toBe(true);
+    });
+  });
+
+  describe("menu", () => {
+    it("should open the menu of a node where the user right clicked, with what it can do", () => {
+      // Arrange
+      const { pane } = renderPane();
+
+      // Act
+      pane.item("src/index.js").row.rightClickName({ x: 40, y: 60 });
+
+      // Assert
+      const { menu } = pane;
+
+      expect(menu.isMenuNamed("Actions for src/index.js")).toBe(true);
+      expect(menu.groups).toEqual([
+        ["New file", "New folder"],
+        ["Rename", "Delete"],
+      ]);
+      expect(menu.position).toEqual({ top: "60px", left: "40px" });
+    });
+
+    it("should not open the file that was right clicked", () => {
+      // Arrange
+      const { store, pane } = renderPane();
+
+      // Act
+      pane.item("src/index.js").row.rightClickName();
+
+      // Assert
+      expect(getFocus(store)).toEqual({ kind: "config" });
+      expect(pane.tree.selectedPaths).toEqual(["eslint.config.js"]);
+    });
+
+    it("should rename the node in place once the menu is gone, with the keyboard in the field", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      // The browser gives the keyboard focus to the row that the user right clicks, and the menu gives it back to the row when it closes
+      pane.item("src/index.js").focus();
+      pane.item("src/index.js").row.rightClickName();
+
+      // Act
+      await pane.pickFromMenu("Rename");
+      const { field } = pane.item("src/index.js");
+      const isFocused = field.isFocused;
+      field.type("main.js");
+      field.pressKey("Enter");
+
+      // Assert
+      expect(isFocused).toBe(true);
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
+        "src/main.js"
+      );
+      expect(pane.tree.renameFieldCount).toBe(0);
+    });
+
+    it("should remove a file once the menu is gone", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.item("index.js").row.rightClickName();
+
+      // Act
+      await pane.pickFromMenu("Delete");
+
+      // Assert
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
+        "index.js"
+      );
+    });
+
+    it("should rename the node in place from F2 in its menu, with the keyboard in the field", async () => {
+      // Arrange
+      const { pane } = renderPane();
+      pane.openMenuWithKeyboard("src/index.js");
+
+      // Act
+      pane.menu.pressKey("F2");
+      await pane.menu.waitUntilGone();
+
+      // Assert
+      expect(pane.item("src/index.js").field.isFocused).toBe(true);
+    });
+
+    it("should remove a file from Delete in its menu", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.openMenuWithKeyboard("index.js");
+
+      // Act
+      pane.menu.pressKey("Delete");
+      await pane.menu.waitUntilGone();
+
+      // Assert
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
+        "index.js"
+      );
+    });
+
+    it("should ask before it removes a folder with files, and give the keyboard back to the folder when the user cancels", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.openMenuWithKeyboard("src");
+
+      // Act
+      await pane.pickFromMenu("Delete");
+      const { title } = pane.deleteDialog.dialog;
+      pane.deleteDialog.cancel();
+      await pane.waitUntilDeleteDialogGone();
+
+      // Assert
+      expect(title).toBe("Delete src/ and its 3 files?");
+      expect(pane.item("src").isFocused).toBe(true);
+      expect(onSketchChange).not.toHaveBeenCalled();
+    });
+
+    it("should add a file in the folder whose menu was opened, and start renaming it", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
+      pane.item("src/components").row.rightClickName();
+
+      // Act
+      await pane.pickFromMenu("New file");
+
+      // Assert
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
+        "src/components/new-file.js"
+      );
+      expect(pane.item("src/components/new-file.js").field.isFocused).toBe(
+        true
+      );
+    });
+
+    it("should add a folder in the folder of the file whose menu was opened", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.item("src/components/Button.js").row.rightClickName();
+
+      // Act
+      await pane.pickFromMenu("New folder");
+
+      // Assert
+      expect(getLastSketch(onSketchChange).tree).toContainEqual({
+        path: "src/components/new-folder",
+        kind: "folder",
+      });
+    });
+
+    it("should add a file at the root from the menu of the empty space of the tree, whatever is open", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
+      });
+      pane.tree.rightClickEmptySpace();
+      const isNamed = pane.menu.isMenuNamed("Actions for the project");
+
+      // Act
+      await pane.pickFromMenu("New file");
+
+      // Assert
+      expect(isNamed).toBe(true);
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
+        "new-file.js"
+      );
+    });
+
+    it("should change nothing and give the keyboard back to the node when the menu closes without a pick", async () => {
+      // Arrange
+      const { onSketchChange, pane } = renderPane();
+      pane.openMenuWithKeyboard("src/index.js");
+
+      // Act
+      pane.menu.pressKey("Escape");
+      await pane.menu.waitUntilGone();
+
+      // Assert
+      expect(pane.item("src/index.js").isFocused).toBe(true);
+      expect(pane.tree.renameFieldCount).toBe(0);
+      expect(onSketchChange).not.toHaveBeenCalled();
+    });
+
+    it("should open the menu again on another node after one closed", async () => {
+      // Arrange
+      const { pane } = renderPane();
+      pane.item("src/index.js").row.rightClickName();
+      pane.menu.clickOutside();
+      await pane.menu.waitUntilGone();
+
+      // Act
+      pane.item("src").row.rightClickName();
+
+      // Assert
+      expect(pane.menu.isMenuNamed("Actions for src")).toBe(true);
     });
   });
 
@@ -1857,6 +2056,21 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(shortcuts).toEqual(Array(7).fill(null));
+    });
+
+    it("should open no menu, and keep the menu of the browser", () => {
+      // Arrange
+      const { pane } = renderPane({ capabilities: NO_CAPABILITIES });
+
+      // Act
+      const isRowPrevented = pane.item("src/index.js").row.rightClickName();
+      const isTreePrevented = pane.tree.rightClickEmptySpace();
+      pane.item("src/index.js").pressKey("F10", { shiftKey: true });
+
+      // Assert
+      expect(isRowPrevented).toBe(false);
+      expect(isTreePrevented).toBe(false);
+      expect(pane.menu.isRendered).toBe(false);
     });
 
     it("should neither rename nor remove with the keyboard or the mouse", () => {

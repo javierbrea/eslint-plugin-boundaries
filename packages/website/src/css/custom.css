@@ -1,7 +1,7 @@
 /**
- * Site-specific global rules, grouped by component. Design tokens live in
- * `tokens.css`, the typefaces in `fonts.css` and the Infima variable mapping
- * in `infima-bridge.css`.
+ * Site-specific global rules, grouped by component. The design tokens and the
+ * typefaces come from `@boundaries/design-tokens` (`tokens.css` and
+ * `fonts.css`), and the Infima variable mapping lives in `infima-bridge.css`.
  */
 
 /* Layout: content width shared by the sections of the home and the 404 page */

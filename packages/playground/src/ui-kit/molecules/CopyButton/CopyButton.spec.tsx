@@ -8,6 +8,16 @@ import { CopyButton } from "./CopyButton";
 import { CopyButtonPom } from "./CopyButton.pom";
 import type { CopyButtonProps } from "./CopyButton.types";
 
+/** The `transition` that MUI gives every button, as jsdom reads it: its background, shadow, border and text fade in 250 ms. */
+const MUI_BUTTON_TRANSITION = [
+  "background-color",
+  "box-shadow",
+  "border-color",
+  "color",
+]
+  .map((property) => `${property} 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms`)
+  .join(",");
+
 /** What a spec gets from the button it renders. */
 type Page = {
   /** The page object of the button. */
@@ -50,6 +60,21 @@ function renderButton(changes: Partial<CopyButtonProps> = {}): Page {
 }
 
 describe("CopyButton", () => {
+  beforeEach(() => {
+    // React logs a prop that a styled part leaks to the DOM as an attribute it does not know, once for each name, and sets no attribute when its value is a boolean
+    jest.spyOn(console, "error").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    const logged = [...jest.mocked(console.error).mock.calls];
+
+    jest.mocked(console.error).mockRestore();
+
+    if (logged.length > 0) {
+      throw new Error(`React logged to the console: ${JSON.stringify(logged)}`);
+    }
+  });
+
   describe("label face", () => {
     it("should say its label with its icon while it has not copied", () => {
       // Arrange
@@ -146,6 +171,43 @@ describe("CopyButton", () => {
     });
   });
 
+  describe("color", () => {
+    it("should fill the button with the color of the theme while it has not copied", () => {
+      // Arrange
+      const { button } = renderButton();
+
+      // Act
+      const { backgroundColor } = button;
+
+      // Assert
+      expect(backgroundColor).toBe("var(--variant-containedBg)");
+    });
+
+    it("should turn the button green while it is true, darkened or lightened by the ink so that its text passes 4.5:1 in both color schemes", () => {
+      // Arrange
+      const { button } = renderButton({ isCopied: true });
+
+      // Act
+      const { backgroundColor } = button;
+
+      // Assert
+      expect(backgroundColor).toBe(
+        "color-mix(in srgb, var(--jsb-ok) 85%, var(--jsb-ink))"
+      );
+    });
+
+    it("should give the button the color of the theme back when it goes back to false", () => {
+      // Arrange
+      const { button, update } = renderButton({ isCopied: true });
+
+      // Act
+      update({ isCopied: false });
+
+      // Assert
+      expect(button.backgroundColor).toBe("var(--variant-containedBg)");
+    });
+  });
+
   describe("accessible name", () => {
     it("should be the label while it has not copied, without the confirmation", () => {
       // Arrange
@@ -238,6 +300,72 @@ describe("CopyButton", () => {
       // Assert
       expect(check.always).toContain("transform 240ms");
       expect(check.reducedMotion).toBe("none");
+    });
+
+    it("should turn green as fast as the faces swap, and fade back with the transition that MUI gives every button, which its hover takes too", () => {
+      // Arrange
+      const { button, update } = renderButton({ isCopied: true });
+
+      // Act
+      const whileCopied = button.colorMotion.transition;
+      update({ isCopied: false });
+      const afterCopied = button.colorMotion.transition;
+
+      // Assert
+      expect(whileCopied).toBe("background-color 180ms var(--jsb-ease)");
+      expect(afterCopied).toBe(MUI_BUTTON_TRANSITION);
+    });
+
+    it("should fade its color also for a user who asks for less motion, since a color is not motion", () => {
+      // Arrange
+      const { button, update } = renderButton();
+
+      // Act
+      const whileLabel = button.colorMotion.reducedMotionTransition;
+      update({ isCopied: true });
+      const whileCopied = button.colorMotion.reducedMotionTransition;
+
+      // Assert
+      expect(whileLabel).toBeUndefined();
+      expect(whileCopied).toBeUndefined();
+    });
+
+    it("should send a green ring out of its edge when it turns green, which fades as it grows", () => {
+      // Arrange
+      const { button } = renderButton({ isCopied: true });
+
+      // Act
+      const { colorMotion, ring } = button;
+
+      // Assert
+      expect(colorMotion.animation).toMatch(/^\S+ 600ms var\(--jsb-ease\)$/);
+      expect(ring).toEqual({
+        from: "0 0 0 0 color-mix(in srgb, var(--jsb-ok) 55%, transparent)",
+        to: "0 0 0 6px color-mix(in srgb, var(--jsb-ok) 0%, transparent)",
+      });
+    });
+
+    it("should not send the ring out for a user who asks for less motion", () => {
+      // Arrange
+      const { button } = renderButton({ isCopied: true });
+
+      // Act
+      const { reducedMotionAnimation } = button.colorMotion;
+
+      // Assert
+      expect(reducedMotionAnimation).toBe("none");
+    });
+
+    it("should send no ring out while it has not copied", () => {
+      // Arrange
+      const { button, update } = renderButton({ isCopied: true });
+
+      // Act
+      update({ isCopied: false });
+
+      // Assert
+      expect(button.colorMotion.animation).toBe("");
+      expect(button.ring).toEqual({ from: undefined, to: undefined });
     });
   });
 

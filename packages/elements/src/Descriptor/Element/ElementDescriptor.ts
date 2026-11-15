@@ -325,10 +325,10 @@ export class ElementsDescriptor {
       parents,
     };
 
-    interface State {
+    type State = {
       pathSegmentsAccumulator: string[];
       lastPathSegmentMatching: number;
-    }
+    };
 
     const state: State = {
       pathSegmentsAccumulator: [],

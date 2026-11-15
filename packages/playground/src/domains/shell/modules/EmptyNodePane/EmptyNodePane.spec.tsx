@@ -22,17 +22,19 @@ type PaneRender = SessionRender & { readonly pane: EmptyNodePanePom };
  * Renders the empty node pane in a session.
  * @param sketch The sketch to start from.
  * @param capabilities What the user can change; everything when it is unset.
+ * @param autoFocus Whether the pane gives the keyboard focus to its first button.
  * @returns The render, the store, the spy of the sketches and the page object of the pane.
  */
 function renderPane(
   sketch: Sketch = QUICK_START,
-  capabilities?: Parameters<typeof renderInSession>[1]["capabilities"]
+  capabilities?: Parameters<typeof renderInSession>[1]["capabilities"],
+  autoFocus?: boolean
 ): PaneRender {
   return {
-    ...renderInSession(<EmptyNodePane frameLabel={FRAME_LABEL} />, {
-      sketch,
-      capabilities,
-    }),
+    ...renderInSession(
+      <EmptyNodePane frameLabel={FRAME_LABEL} autoFocus={autoFocus} />,
+      { sketch, capabilities }
+    ),
     pane: new EmptyNodePanePom(),
   };
 }
@@ -48,6 +50,24 @@ describe("EmptyNodePane", () => {
     // Assert
     expect(isNamedRegion).toBe(true);
   });
+
+  it.each([
+    [true, true],
+    [false, false],
+    [undefined, false],
+  ])(
+    "should give the keyboard focus to the button that opens the config when autoFocus is %s: %s",
+    (autoFocus, isFocused) => {
+      // Arrange
+      const { pane } = renderPane(QUICK_START, undefined, autoFocus);
+
+      // Act
+      const focused = pane.openConfigButton.isFocused;
+
+      // Assert
+      expect(focused).toBe(isFocused);
+    }
+  );
 
   it("should put the config in focus when the user chooses to open it", () => {
     // Arrange

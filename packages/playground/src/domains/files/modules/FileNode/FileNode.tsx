@@ -22,11 +22,13 @@ const CLOSED: PickerRequest = { isOpen: false, index: undefined };
  * @param props FileNode props.
  * @param props.path The path of the open file.
  * @param props.frameLabel The accessible name of the landmark of the pane.
+ * @param props.onClose Called when the user presses the close button of the pane.
  * @returns The file pane, which carries the test id of the node, and the picker while it is open.
  */
 function FileNodeContent({
   path,
   frameLabel,
+  onClose,
 }: Readonly<FileNodeProps>): ReactNode {
   const lines = useDependencyLines(path);
   const selectedIndex = useSelectedDependency(path);
@@ -68,6 +70,7 @@ function FileNodeContent({
         onEdit={edit}
         onRemove={remove}
         onAdd={add}
+        onClose={onClose}
         testId={FILE_NODE_TEST_ID}
       />
       <DependencyPickerDialog

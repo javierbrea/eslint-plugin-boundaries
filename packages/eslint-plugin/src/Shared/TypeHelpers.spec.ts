@@ -73,14 +73,12 @@ describe("TypeHelpers", () => {
       expect(isObject({ key: "value" })).toBe(true);
     });
 
-    it("should return false for arrays, null, and primitives", () => {
-      expect(isObject([])).toBe(false);
-      expect(isObject(null)).toBe(false);
-      expect(isObject(undefined)).toBe(false);
-      expect(isObject("string")).toBe(false);
-      expect(isObject(123)).toBe(false);
-      expect(isObject(true)).toBe(false);
-    });
+    it.each([[[]], [null], [undefined], ["string"], [123], [true]])(
+      "should return false for arrays, null, and primitives, such as %p",
+      (value) => {
+        expect(isObject(value)).toBe(false);
+      }
+    );
   });
 
   describe("isUndefined", () => {
@@ -114,6 +112,7 @@ describe("TypeHelpers", () => {
   describe("getArrayOrNull", () => {
     it("should return the value when it is an array", () => {
       const arr = [1, 2, 3];
+
       expect(getArrayOrNull<number>(arr)).toBe(arr);
       expect(getArrayOrNull<never>([])).toEqual([]);
     });

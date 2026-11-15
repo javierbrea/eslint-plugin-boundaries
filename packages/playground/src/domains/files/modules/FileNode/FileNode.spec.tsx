@@ -47,10 +47,11 @@ const CHECKOUT_STATEMENTS = [
   '4import React from "react";',
 ];
 
-/** What {@link renderNode} returns: the render of the session, the page object of the node and the spy of the renders. */
+/** What {@link renderNode} returns: the render of the session, the page object of the node, the spy of the renders and the spy of its close. */
 type NodeRender = SessionRender & {
   readonly node: FileNodePom;
   readonly onRender: jest.Mock;
+  readonly onClose: jest.Mock;
 };
 
 /**
@@ -59,7 +60,7 @@ type NodeRender = SessionRender & {
  * @param options.path The path of the file.
  * @param options.sketch The sketch to start from.
  * @param options.capabilities What the user can change.
- * @returns The render, the store, the spy of the sketches, the page object of the node and the spy of the renders of the node.
+ * @returns The render, the store, the spy of the sketches, the page object of the node, the spy of the renders of the node and the spy of its close.
  */
 function renderNode({
   path = FILE,
@@ -71,18 +72,20 @@ function renderNode({
   capabilities?: ProjectCapabilities;
 } = {}): NodeRender {
   const onRender = jest.fn();
+  const onClose = jest.fn();
 
   return {
     ...renderInSession(
       <ThemeRoot>
         <RenderProfiler id="file-node" onRender={onRender}>
-          <FileNode path={path} frameLabel={FRAME_LABEL} />
+          <FileNode path={path} frameLabel={FRAME_LABEL} onClose={onClose} />
         </RenderProfiler>
       </ThemeRoot>,
       { sketch, capabilities }
     ),
     node: new FileNodePom(),
     onRender,
+    onClose,
   };
 }
 
@@ -144,6 +147,17 @@ describe("FileNode", () => {
       // Assert
       expect(node.head.label).toBe("File");
       expect(node.head.path).toBe(FILE);
+    });
+
+    it("should report that the user pressed its close button", () => {
+      // Arrange
+      const { node, onClose } = renderNode();
+
+      // Act
+      node.closeButton.press();
+
+      // Assert
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 

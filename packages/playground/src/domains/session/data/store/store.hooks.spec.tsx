@@ -13,6 +13,7 @@ import {
   useCancelRename,
   useCapabilities,
   useChangeConfig,
+  useClose,
   useClosedFolders,
   useConfig,
   useConfigProblems,
@@ -101,6 +102,7 @@ describe("store hooks", () => {
       ["useClosedFolders", useClosedFolders],
       ["useRenaming", useRenaming],
       ["useOpen", useOpen],
+      ["useClose", useClose],
       ["useSelectItem", useSelectItem],
       ["useToggleFolder", useToggleFolder],
       ["useChangeConfig", useChangeConfig],
@@ -225,9 +227,9 @@ describe("store hooks", () => {
       [
         "useFocus",
         useFocus,
-        (store) => store.open({ kind: "config" }),
-        { kind: "none" },
+        (store) => store.open({ kind: "file", path: "src/index.js" }),
         { kind: "config" },
+        { kind: "file", path: "src/index.js" },
       ],
       ["useView", useView, (store) => store.setView("text"), "tree", "text"],
       [
@@ -369,7 +371,7 @@ describe("store hooks", () => {
       const { store, results } = renderHookInSession(useView);
 
       // Act
-      act(() => store.open({ kind: "config" }));
+      act(() => store.open({ kind: "file", path: "src/index.js" }));
 
       // Assert
       expect(results).toHaveLength(1);
@@ -437,7 +439,7 @@ describe("store hooks", () => {
       const before = seen[seen.length - 1];
 
       // Act
-      act(() => store.open({ kind: "config" }));
+      act(() => store.open({ kind: "file", path: "src/index.js" }));
 
       // Assert
       const after = seen[seen.length - 1];
@@ -486,6 +488,7 @@ describe("store hooks", () => {
   describe("commands", () => {
     it.each<[string, () => unknown, (store: SessionStore) => unknown]>([
       ["useOpen", useOpen, (store) => store.open],
+      ["useClose", useClose, (store) => store.close],
       ["useSelectItem", useSelectItem, (store) => store.selectItem],
       ["useToggleFolder", useToggleFolder, (store) => store.toggleFolder],
       ["useChangeConfig", useChangeConfig, (store) => store.changeConfig],
@@ -534,7 +537,7 @@ describe("store hooks", () => {
       }));
 
       // Act
-      act(() => store.open({ kind: "config" }));
+      act(() => store.open({ kind: "file", path: "src/index.js" }));
 
       // Assert
       expect(results[1].open).toBe(results[0].open);

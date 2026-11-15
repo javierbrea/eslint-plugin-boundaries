@@ -9,6 +9,7 @@ export {
   useCancelRename,
   useCapabilities,
   useChangeConfig,
+  useClose,
   useClosedFolders,
   useConfig,
   useConfigProblems,

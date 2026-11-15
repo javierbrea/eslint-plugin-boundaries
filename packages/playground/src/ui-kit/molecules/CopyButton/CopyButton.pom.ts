@@ -1,6 +1,6 @@
 import { act, fireEvent } from "@testing-library/react";
 
-import { getStyle } from "@/shared/testing/emittedStyle";
+import { getKeyframes, getStyle } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
@@ -14,6 +14,24 @@ const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 type Transitions = {
   readonly always: string | undefined;
   readonly reducedMotion: string | undefined;
+};
+
+/** How the button changes its color, and the ring it sends out of its edge. */
+type CopyButtonColorMotion = {
+  /** The computed `transition` of the button, which fades its color. */
+  readonly transition: string;
+  /** The `transition` that the button declares for a user who asks for less motion, or undefined when it declares none. */
+  readonly reducedMotionTransition: string | undefined;
+  /** The computed `animation` of the button, which sends the ring out, or an empty string while there is none. */
+  readonly animation: string;
+  /** The `animation` that the button declares for a user who asks for less motion, or undefined when it declares none. */
+  readonly reducedMotionAnimation: string | undefined;
+};
+
+/** The shadow of the ring at the first and at the last step of its animation. */
+type CopyButtonRing = {
+  readonly from: string | undefined;
+  readonly to: string | undefined;
 };
 
 /** How the faces and the button lay themselves out. */
@@ -234,6 +252,46 @@ export class CopyButtonPom extends Pom {
   }
 
   /**
+   * The color that fills the button.
+   * @returns The computed `background-color`.
+   */
+  get backgroundColor(): string {
+    return getComputedStyle(this.root).backgroundColor;
+  }
+
+  /**
+   * How the button fades its color and sends a ring out.
+   * @returns What its `transition` and its `animation` are, and what it declares for each for a user who asks for less motion.
+   */
+  get colorMotion(): CopyButtonColorMotion {
+    const { transition, animation } = getComputedStyle(this.root);
+    const reducedMotion = getStyle(this.root, undefined, REDUCED_MOTION);
+
+    return {
+      transition,
+      reducedMotionTransition: reducedMotion.transition,
+      animation,
+      reducedMotionAnimation: reducedMotion.animation,
+    };
+  }
+
+  /**
+   * The ring that the animation of the button sends out of its edge.
+   * @returns The `box-shadow` of the first and of the last step of the animation, which are undefined while the button has no animation.
+   */
+  get ring(): CopyButtonRing {
+    const [animationName = ""] = getComputedStyle(this.root).animation.split(
+      " "
+    );
+    const steps = getKeyframes(animationName);
+
+    return {
+      from: steps.from?.["box-shadow"],
+      to: steps.to?.["box-shadow"],
+    };
+  }
+
+  /**
    * What the button does with the face that is not drawn, which sits outside the button.
    * @returns The computed `overflow` of the button.
    */
@@ -254,7 +312,7 @@ export class CopyButtonPom extends Pom {
    * @returns The name of each such attribute found in the button, in document order; empty when there is none.
    */
   get leakedPropAttributes(): string[] {
-    return ["isShown", "shift"].flatMap((attribute) =>
+    return ["isShown", "shift", "isCopied"].flatMap((attribute) =>
       [this.root, ...Array.from(this.root.querySelectorAll("*"))]
         .filter((element) => element.hasAttribute(attribute))
         .map(() => attribute)

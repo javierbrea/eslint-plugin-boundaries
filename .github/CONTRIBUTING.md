@@ -10,6 +10,7 @@
 - [Release process](#release-process)
    - [Versioning](#versioning)
    - [Publishing](#publishing)
+   - [Trusted publishing](#trusted-publishing)
 - [License](#license)
   - [Licensing of new files](#licensing-of-new-files)
   - [Public Domain](#public-domain)
@@ -123,7 +124,10 @@ When you're finished with the changes, please ensure the following:
 * You have added tests for your changes.
 * You have updated the documentation if necessary.
 * You have run the linter and fixed any issues.
-* __You have added the necessary changes to the `CHANGELOG.md` file__ of each affected package: under the "Unreleased" section at the beginning of the file, or under the section of the new version if your PR also bumps the package version.
+* __You have added the necessary changes to the `CHANGELOG.md` file__ of each affected package: under the "Unreleased" section at the beginning of the file, or under the section of the new version if your PR also bumps the package version. The changes of the website always go under "Unreleased": its version is set during the release (step 2 of [publishing](#publishing)).
+   * A check of the PRs into `release` fails when a PR changes what a package publishes or deploys and adds no entry to its changelog. The `website` changelog also covers the `playground` and `design-tokens` packages, which the website deploys, and the `eslint-plugin` changelog covers the root `README.md`, which the plugin publishes. Renovate writes no changelog entries, so its PRs are not checked.
+   * When a PR needs no entry, for example because it only changes a feature that is not released yet, a maintainer adds the `skip-changelog` label to it.
+* If you change the documentation of a released version, change only the snapshot of the latest version in `packages/website/versioned_docs/`, as [the website's `AGENTS.md`](../packages/website/AGENTS.md) describes. A check of the PRs into `release` fails when a PR changes another snapshot, unless a maintainer adds the `skip-versioned-docs` label to it.
 * If your PR bumps the version of a package in its `package.json` file, the bump follows the [versioning](#versioning) section. Bumping the version is not required: depending on other ongoing PRs, it can also be done later, during the release.
 
 When you have checked these points, then you are ready to submit your pull request. To do so, follow these steps:
@@ -160,27 +164,29 @@ Once the PR is approved and merged into the release branch, a project maintainer
 
 The release process is as follows:
 
-1. Prepare the release, either directly on the `release` branch or on a branch. For every package that has changes in the "Unreleased" section of its `CHANGELOG.md`, or in a version section that has not been released yet:
+1. Prepare the release, either directly on the `release` branch or on a branch. For every package except `website` that has changes in the "Unreleased" section of its `CHANGELOG.md`, or in a version section that has not been released yet:
    * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
    * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
    * Check that every version named in those changes, or in the website docs written for them, is that same version, because a contributor PR that doesn't bump the version may still name the one it expects. If one doesn't match, update it everywhere it appears.
    * For `elements`, `config`, `policies` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
    * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).
-2. Decide if the website needs a new version. A `website` version is one of two kinds:
-   * __Code release__: the version is the `eslint-plugin` version, and it only changes when the release changes the website's documentation (`packages/website/docs/`). If the release doesn't touch `packages/website/docs/`, leave the website package, its changelog and its Docusaurus versioned docs untouched. Otherwise:
-      * Set the `eslint-plugin` version in the `version` field of `packages/website/package.json`.
+2. Give the website a version. Merging `release` into `master` deploys the website, so this release publishes the changes in the "Unreleased" section of `packages/website/CHANGELOG.md`. The current version of the website is the `version` field of `packages/website/package.json`, which is also the first entry of `packages/website/versions.json`.
+   * __New version__: when the release bumps `eslint-plugin` and `packages/website/docs/` differs from `packages/website/versioned_docs/version-<current version>/`, the website takes the new `eslint-plugin` version:
+      * Set it in the `version` field of `packages/website/package.json`.
       * Run `pnpm nx version website <version>` to create the Docusaurus versioned docs snapshot. Read the [website README](../packages/website/README.md) for more information about versioning.
-      * Move the changes in the "Unreleased" section of `packages/website/CHANGELOG.md` to a new version section.
-   * __Documentation-only release__: the version is `<eslint-plugin version>-docs.N` (for example, `7.0.0-docs.1`), and the release includes no code changes.
-3. Commit the changes with a message such as `chore(release): Release eslint-plugin v7.2.1 and elements v3.1.2`. If the release was prepared on a branch, open a PR into `release` and squash-merge it (see the [merging strategy](#merging-strategy)) before opening the PR to `master`.
+      * Move the changes in the "Unreleased" section of `packages/website/CHANGELOG.md` to a section of that version with the release date (`## [X.Y.Z] - YYYY-MM-DD`).
+   * __Revision__: otherwise, when the "Unreleased" section has changes, the website takes its current version with a `+rev.N` suffix, where `N` is 1 in the first revision of that version and goes up by one in each following one (for example, `7.4.1+rev.1`, then `7.4.1+rev.2`). Move those changes to a section of that version with the release date (`## [X.Y.Z+rev.N] - YYYY-MM-DD`), and leave `packages/website/package.json` and the versioned docs as they are. The suffix starts with `+`, the build metadata of [Semantic Versioning](https://semver.org/#semantic-versioning-specification-semver): with `-`, it would be a pre-release, which comes before the version it names.
+   * When the "Unreleased" section has no changes and the website gets no new version, leave the website package, its changelog and its versioned docs untouched.
+3. Commit the changes with a message such as `chore(release): Release eslint-plugin v7.2.1 and elements v3.1.2`, or `chore(release): Release website v7.4.1+rev.2` when the release only deploys the website. If the release was prepared on a branch, open a PR into `release` and squash-merge it (see the [merging strategy](#merging-strategy)) before opening the PR to `master`.
 4. Open a PR from the `release` branch to the `master` branch:
-   * Title: `Release vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package.
-   * Body: built from the [PR template](./PULL_REQUEST_TEMPLATE.md), in this order: the heading `# Release vX.Y.Z`; one section per released package, copied from its `CHANGELOG.md` (for example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`); a `## chore` section listing the repository-level changes that are in no package changelog; the template's Agreement; and a `closes #N` line for every issue the release fixes. Closing keywords only take effect when a PR is merged into the default branch (`master`), so this is the PR that closes the issues fixed by the release.
+   * Title: `Release vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, or `Release website vX.Y.Z+rev.N` when the release only deploys the website.
+   * Body: built from the [PR template](./PULL_REQUEST_TEMPLATE.md), in this order: the title as a heading, such as `# Release vX.Y.Z`; one section per released package, copied from its `CHANGELOG.md` (for example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`, and `## website v7.2.1` or `## website v7.1.0+rev.1` when the website gets a version); a `## chore` section listing the repository-level changes that are in no package changelog; the template's Agreement; and a `closes #N` line for every issue the release fixes. Closing keywords only take effect when a PR is merged into the default branch (`master`), so this is the PR that closes the issues fixed by the release.
    * Once the PR is approved and merged (with a merge commit, see the [merging strategy](#merging-strategy)), the build pipeline will run in the `master` branch, but packages will not be published yet.
    * If the release changed the website's documentation, verify that the Algolia search index was successfully updated. If the index is not updated, manually trigger the workflow from GitHub's Actions tab by selecting "Update Website Search Index" and clicking "Run workflow".
 
      **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
-5. Create a single release in GitHub for the whole release, following these instructions:
+   * A release that only deploys the website ends with this step: it gets no GitHub release, because the publishing workflows of step 6 would fail on an `eslint-plugin` version that is already published.
+5. Create a single release in GitHub for the whole release. `publish.yml` has no npm token, so every package the release publishes to npm needs a trusted publisher first (see [trusted publishing](#trusted-publishing)). Follow these instructions:
    * Tag: `vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, which is the main entry point of the repository.
    * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
    * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
@@ -198,6 +204,17 @@ If another package becomes a main entry point of the repository, it may get its 
 
 > [!NOTE]
 > For publishing beta versions, remember to set the corresponding package versions with the `-beta.X` suffix, and to create the release following the same instructions as for stable releases. The only difference is that the tag should include the `-beta.X` suffix (for example, `v7.0.0-beta.2`), and the title should include the `Beta` word to make it clear that it is a beta release. What a beta tag publishes differs from a stable one, see step 6.
+
+## Trusted publishing
+
+`publish.yml` publishes to npm with [trusted publishing](https://docs.npmjs.com/trusted-publishers): npm authenticates the workflow with OpenID Connect (OIDC) instead of a token, and adds a provenance attestation to every version it publishes.
+
+* Any step of a job with the `id-token: write` permission can obtain a token that publishes. So the `check` job runs `check:all` without it, and the `publish` and `publish-beta` jobs, which have it, restore no cache and only install, build the published packages and publish them.
+* Those two jobs run in the `npm` environment of the repository, which only allows deployments from the `v*` tags.
+* Each package published to npm (`@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/eslint-plugin` and `eslint-plugin-boundaries`) has a trusted publisher in its settings on the npm website: publisher GitHub Actions, user `javierbrea`, repository `eslint-plugin-boundaries`, workflow `publish.yml`, environment `npm`, and `npm publish` allowed. A trusted publisher cannot be edited, so renaming the workflow file or the environment means deleting it and creating it again in every package.
+* A trusted publisher that publishes nothing in the 2 days after its creation expires, and an expired one is deleted before creating it again. So a package whose last published version shows nothing in `npm view <package>@<version> _npmUser.trustedPublisher`, because it has not published with trusted publishing yet, gets its trusted publisher less than 2 days before the GitHub release of step 5.
+* Instead of the npm website, a maintainer logged in with 2FA on npm 11.15.0 or later can create a trusted publisher with `npm trust github <package> --file publish.yml --repo javierbrea/eslint-plugin-boundaries --env npm --allow-publish`.
+* A trusted publisher can only be added to a package that already exists on npm: a maintainer publishes the first version of a new package from their machine, with 2FA, and then adds its trusted publisher.
 
 # License
 

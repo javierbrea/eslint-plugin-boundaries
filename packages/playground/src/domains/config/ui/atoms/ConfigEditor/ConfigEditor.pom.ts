@@ -179,6 +179,14 @@ export class ConfigEditorPom extends Pom {
   }
 
   /**
+   * Where the text is in the order of the Tab key.
+   * @returns The `tabIndex` of the element that holds the text: 0 when Tab reaches it in the order of the page, -1 when Tab skips it.
+   */
+  get tabIndex(): number {
+    return this.scope.getByRole("textbox").tabIndex;
+  }
+
+  /**
    * Whether the text cannot be edited.
    * @returns True when the editor is read only.
    */

@@ -16,7 +16,19 @@ import type {
   warnOnce,
 } from "./Debug";
 
-jest.mock("chalk", () => ({
+/** Returns the text it receives, as the chalk colors do without the color */
+type Paint = (text: string) => string;
+
+jest.mock<{
+  __esModule: true;
+  default: {
+    hex: () => Paint;
+    blue: Paint;
+    green: Paint;
+    gray: Paint;
+    yellow: Paint;
+  };
+}>("chalk", () => ({
   __esModule: true,
   default: {
     hex: () => (text: string) => text,
@@ -214,8 +226,15 @@ describe("Debug", () => {
 
     expect(debugModule.warnOnce("Only once")).toBe(true);
     expect(debugModule.warnOnce("Only once")).toBe(false);
-
     expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should print a message of warnOnce as a warning of boundaries", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+
+    debugModule.warnOnce("Only once");
+
     expect(warnSpy).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("[boundaries]")

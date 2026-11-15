@@ -20,6 +20,8 @@ export type FilePaneProps = {
   readonly onRemove: (index: number) => void;
   /** Called when the user presses `+ Dependency`. */
   readonly onAdd: () => void;
+  /** Called when the user presses the close button of the head. */
+  readonly onClose: () => void;
   /** The test id of the root element, for a component that is the pane to give it its own. It defaults to the test id of the pane. */
   readonly testId?: string;
 };

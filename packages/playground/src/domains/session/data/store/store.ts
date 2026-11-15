@@ -15,6 +15,7 @@ import {
   createSessionState,
   setEvaluation,
   openTarget,
+  closeNode,
   selectItem,
   toggleFolder,
   changeConfig,
@@ -153,11 +154,12 @@ export function createSessionStore(
       evaluator.dispose();
     },
     open: (target) => set(openTarget(state, target)),
+    close: () => set(closeNode(state)),
     selectItem: (id) => set(selectItem(state, id)),
     toggleFolder: (path, isOpen) => set(toggleFolder(state, path, isOpen)),
     changeConfig: (config, highlight) =>
       set(changeConfig(state, config, highlight)),
-    addNode: (kind) => set(addNode(state, kind)),
+    addNode: (kind, folder) => set(addNode(state, kind, folder)),
     startRename: (path) => set(startRename(state, path)),
     renameNode: (path, typedName) => {
       const result = renameNode(state, path, typedName);

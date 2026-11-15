@@ -75,6 +75,17 @@ describe("ConfigInspector", () => {
     ]);
   });
 
+  it("should draw the headings of the groups as h2, which follow the h1 of the host page without skipping a level", () => {
+    // Arrange
+    const { inspector } = renderInspector();
+
+    // Act
+    const { groupTags } = inspector;
+
+    // Assert
+    expect(groupTags).toEqual(["H2", "H2", "H2"]);
+  });
+
   it("should list each element type with its files and its patterns", () => {
     // Arrange
     const { inspector } = renderInspector();

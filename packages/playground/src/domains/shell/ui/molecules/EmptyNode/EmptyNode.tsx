@@ -53,6 +53,7 @@ const Actions = styled("div")({
  * @param props.canAddFile Whether the project can have files added.
  * @param props.onOpenConfig Called when the user asks to open the config.
  * @param props.onAddFile Called when the user asks to add a file.
+ * @param props.autoFocusOpenConfig Whether the button that opens the config takes the keyboard focus when it is first rendered.
  * @param props.frameLabel The accessible name of the landmark of the pane.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The pane.
@@ -61,6 +62,7 @@ export function EmptyNode({
   canAddFile,
   onOpenConfig,
   onAddFile,
+  autoFocusOpenConfig = false,
   frameLabel,
   testId = EMPTY_NODE_TEST_ID,
 }: Readonly<EmptyNodeProps>): ReactNode {
@@ -74,7 +76,11 @@ export function EmptyNode({
           or open <Mono>{CONFIG_PATH}</Mono> to edit the settings and the rules.
         </Message>
         <Actions>
-          <Button variant="outlined" onClick={onOpenConfig}>
+          <Button
+            variant="outlined"
+            autoFocus={autoFocusOpenConfig}
+            onClick={onOpenConfig}
+          >
             Open {CONFIG_PATH}
           </Button>
           {canAddFile ? (

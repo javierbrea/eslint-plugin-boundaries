@@ -6,6 +6,7 @@ import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import { Mono } from "@/ui-kit/atoms/Mono";
 import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
 import { PaneHead } from "@/ui-kit/atoms/PaneHead";
+import { CloseButton } from "@/ui-kit/molecules/CloseButton";
 
 import { CONFIG_PANE_LABEL, CONFIG_PANE_TEST_ID } from "./ConfigPane.constants";
 import type { ConfigPaneProps } from "./ConfigPane.types";
@@ -14,7 +15,7 @@ import type { ConfigPaneProps } from "./ConfigPane.types";
 const EditorSlot = styled("div")({ flex: 1, minHeight: 0 });
 
 /**
- * The node pane when the config is open: the editor of its text, with the problems marked at their ranges.
+ * The node pane when the config is open: the head with the path of the config and the button that closes it, and the editor of its text, with the problems marked at their ranges.
  * @param props ConfigPane props.
  * @param props.config The config text.
  * @param props.problems The problems of the config.
@@ -23,6 +24,7 @@ const EditorSlot = styled("div")({ flex: 1, minHeight: 0 });
  * @param props.snapshot Where the editor leaves its snapshot and starts from.
  * @param props.highlight The range to mark.
  * @param props.onChange Called with the text and with where the highlight is after each edit of the user.
+ * @param props.onClose Called when the user presses the close button of the head.
  * @param props.frameLabel The accessible name of the landmark of the pane.
  * @param props.testId The test id of the root element, in place of the default one.
  * @returns The pane.
@@ -35,6 +37,7 @@ export function ConfigPane({
   snapshot,
   highlight,
   onChange,
+  onClose,
   frameLabel,
   testId = CONFIG_PANE_TEST_ID,
 }: Readonly<ConfigPaneProps>): ReactNode {
@@ -43,6 +46,7 @@ export function ConfigPane({
       <PaneHead
         label={CONFIG_PANE_LABEL}
         path={CONFIG_PATH}
+        end={<CloseButton subject={CONFIG_PATH} onClose={onClose} />}
         hint={
           <>
             JSON5 · the <Mono>settings</Mono> and <Mono>rules</Mono> of an

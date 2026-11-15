@@ -1,7 +1,7 @@
 import type { PrismTheme } from "prism-react-renderer";
 
 /**
- * Always-dark code palette of the site, identical in both color modes. Literal colors mirror the `--jsb-code*` tokens in `src/css/tokens.css`, because Prism themes are JS objects.
+ * Always-dark code palette of the site, identical in both color modes. Literal colors mirror the `--jsb-code*` tokens in `tokens.css` of `@boundaries/design-tokens`, because Prism themes are JS objects.
  */
 export const blueprintTheme: PrismTheme = {
   plain: {

@@ -1,8 +1,9 @@
 import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
+import { keyframes, styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { Icon } from "@/ui-kit/atoms/Icon";
+import { STATE_TEXT } from "@/ui-kit/helpers/tone";
 
 import {
   COPY_BUTTON_COPIED_LABEL,
@@ -12,8 +13,31 @@ import type { CopyButtonProps } from "./CopyButton.types";
 
 const REDUCED_MOTION = "@media (prefers-reduced-motion: reduce)";
 
-// The face that leaves slides out of the button and is cut by it
-const Root = styled(Button)({ overflow: "hidden" });
+// The green of a copy that worked is the text of the ok state, which passes 4.5:1 on `--jsb-card`. The text of the button, `--jsb-accent-ink`, is `--jsb-card` in the light scheme and darker in the dark one, so it passes 4.5:1 on that green in both
+const COPIED_BACKGROUND = STATE_TEXT.ok;
+
+// A ring of that green leaves the edge of the button and fades as it grows
+const COPIED_PULSE = keyframes({
+  from: {
+    boxShadow: "0 0 0 0 color-mix(in srgb, var(--jsb-ok) 55%, transparent)",
+  },
+  to: {
+    boxShadow: "0 0 0 6px color-mix(in srgb, var(--jsb-ok) 0%, transparent)",
+  },
+});
+
+// The face that leaves slides out of the button and is cut by it. The button turns green as fast as the faces swap and sends a ring out, then fades back to its color with the transition that MUI gives every button, while the label comes back. The color is not motion, so it fades for every user, and only the ring stops for a user who asks for less motion
+const Root = styled(Button, {
+  shouldForwardProp: (prop) => prop !== "isCopied",
+})<{ isCopied: boolean }>(({ isCopied }) => ({
+  overflow: "hidden",
+  ...(isCopied && {
+    backgroundColor: COPIED_BACKGROUND,
+    transition: "background-color 180ms var(--jsb-ease)",
+    animation: `${COPIED_PULSE} 600ms var(--jsb-ease)`,
+    [REDUCED_MOTION]: { animation: "none" },
+  }),
+}));
 
 // Both faces sit in the same cell, so the button is always as wide as the wider one and nothing around it moves when they swap
 const Faces = styled("span")({ display: "grid" });
@@ -44,7 +68,7 @@ const Check = styled("span", {
 }));
 
 /**
- * A contained button that copies something and says so: while `isCopied`, a check and `Copied` take the place of its icon and label, then they come back. Both faces are always laid out in the same place, so the button never changes its width. Its accessible name is always the label: the caller tells screen readers that the copy worked, such as with a live region.
+ * A contained button that copies something and says so: while `isCopied`, the button turns green and a check and `Copied` take the place of its icon and label, then its color, its icon and its label come back. Both faces are always laid out in the same place, so the button never changes its width. Its accessible name is always the label: the caller tells screen readers that the copy worked, such as with a live region.
  * @param props CopyButton props.
  * @param props.label What the button says, which is also its accessible name.
  * @param props.icon The icon before the label, if any.
@@ -66,6 +90,7 @@ export function CopyButton({
     <Root
       ref={buttonRef}
       variant="contained"
+      isCopied={isCopied}
       onClick={onClick}
       data-testid={testId}
     >

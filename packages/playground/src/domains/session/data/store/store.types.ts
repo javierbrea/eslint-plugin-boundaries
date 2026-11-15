@@ -26,14 +26,16 @@ export type SessionStore = {
   readonly dispose: () => void;
   /** Opens a target: the focus, the tab of the problems panel and the reveal in the config change together. */
   readonly open: (target: Target) => void;
+  /** Closes what is in focus: nothing stays open, and the tab of the problems panel goes back to the sketch's. */
+  readonly close: () => void;
   /** Handles the selection of an item of the tree: a file and the config open, a folder is selected. */
   readonly selectItem: (id: string) => void;
   /** Remembers that a folder of the tree was opened or closed. */
   readonly toggleFolder: (path: string, isOpen: boolean) => void;
   /** Replaces the config text. The editor passes where the highlighted policy is after its edit, so that the text and the range change together: `null` drops the highlight, and without it the highlight stays as it was. */
   readonly changeConfig: (config: string, highlight?: TextRange | null) => void;
-  /** Adds a file or a folder with a free name, and starts renaming it. */
-  readonly addNode: (kind: "file" | "folder") => void;
+  /** Adds a file or a folder with a free name, and starts renaming it: in the folder asked for, or an empty string for the root, or else where the state says, which is the selected folder, the folder of the file in focus or the root. */
+  readonly addNode: (kind: "file" | "folder", folder?: string) => void;
   /** Starts renaming a node. */
   readonly startRename: (path: string) => void;
   /** Renames a node in its folder with the name typed, or says why it cannot. */

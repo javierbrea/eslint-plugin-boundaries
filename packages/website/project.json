@@ -8,9 +8,11 @@
   "targets": {
     "lint": {
       "cache": true,
+      // The config and the social card import @boundaries/design-tokens, which has no build to depend on, so its files are inputs
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
-        "default"
+        "default",
+        { "input": "assets", "projects": ["design-tokens"] }
       ],
       "dependsOn": [
         {
@@ -39,6 +41,12 @@
       ]
     },
     "check:types": {
+      // The config type-checks against the types of @boundaries/design-tokens, which has no build to depend on, so its files are inputs
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        { "input": "assets", "projects": ["design-tokens"] }
+      ],
       // The page imports the built playground; the default `^build` would also build the workspace eslint-plugin, which only `lint` uses
       "dependsOn": [
         {
@@ -66,6 +74,8 @@
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
         "default",
         "production",
+        // The site bundles the tokens of @boundaries/design-tokens and serves its fonts, and the package has no build to depend on
+        { "input": "assets", "projects": ["design-tokens"] },
         // The Playwright page objects build on their own (build:playwright), and nothing the site imports reaches them
         "!{projectRoot}/tsup.playwright.config.js",
         "!{projectRoot}/src/playwright.ts",

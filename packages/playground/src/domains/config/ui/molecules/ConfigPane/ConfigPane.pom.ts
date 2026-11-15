@@ -3,6 +3,7 @@ import { Pom } from "@/shared/testing/pom";
 import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
 import { PaneFramePom } from "@/ui-kit/atoms/PaneFrame/PaneFrame.pom";
 import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
+import { CloseButtonPom } from "@/ui-kit/molecules/CloseButton/CloseButton.pom";
 
 import { CONFIG_PANE_TEST_ID } from "./ConfigPane.constants";
 
@@ -24,6 +25,14 @@ export class ConfigPanePom extends Pom {
    */
   get head(): PaneHeadPom {
     return this.childPom(PaneHeadPom);
+  }
+
+  /**
+   * The button of the head that closes the pane.
+   * @returns The page object of the button.
+   */
+  get closeButton(): CloseButtonPom {
+    return this.childPom(CloseButtonPom);
   }
 
   /**

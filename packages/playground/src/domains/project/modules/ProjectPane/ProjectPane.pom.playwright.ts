@@ -1,10 +1,11 @@
+import { ProjectTreeMenuPom } from "@/domains/project/ui/atoms/ProjectTreeMenu/ProjectTreeMenu.pom.playwright";
 import type { ProjectTreeItemPom } from "@/domains/project/ui/molecules/ProjectTreeItem/ProjectTreeItem.pom.playwright";
 import { ProjectTreePom } from "@/domains/project/ui/organisms/ProjectTree/ProjectTree.pom.playwright";
 import { Pom } from "@/shared/testing/pom/pom.playwright";
 
 import { PROJECT_PANE_TEST_ID } from "./ProjectPane.constants";
 
-/** Page object of the project pane, in a browser, which is its layout: the tree or the text, the foot, and the dialog that asks before a folder with files is removed. It composes the page objects of the tree and has shortcuts for what a spec does most. */
+/** Page object of the project pane, in a browser, which is its layout: the tree or the text, the foot, the context menu of the tree, and the dialog that asks before a folder with files is removed. It composes the page objects of the tree and of its menu, and has shortcuts for what a spec does most. */
 export class ProjectPanePom extends Pom {
   protected readonly defaultTestId = PROJECT_PANE_TEST_ID;
 
@@ -14,6 +15,14 @@ export class ProjectPanePom extends Pom {
    */
   get tree(): ProjectTreePom {
     return this.childPom(ProjectTreePom);
+  }
+
+  /**
+   * The context menu of the tree. It is rendered outside the pane, next to it, so it is searched in the whole page.
+   * @returns The page object of the menu, which is not rendered until the user opens it.
+   */
+  get menu(): ProjectTreeMenuPom {
+    return this.childPom(ProjectTreeMenuPom, { portal: true });
   }
 
   /**

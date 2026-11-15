@@ -8,9 +8,11 @@
 
 /* global document -- used inside a callback that runs in the page */
 
+import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { STATIC_DIR as DESIGN_TOKENS_STATIC_DIR } from "@boundaries/design-tokens";
 import { chromium } from "@playwright/test";
 
 const WEBSITE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -18,16 +20,25 @@ const OUTPUT = resolve(WEBSITE_ROOT, "static/img/og-image.png");
 const CARD = { width: 1200, height: 630 };
 // Nothing listens on this origin: the route below answers its requests from the website files, and a request to any other origin fails the render, so the card never depends on the network
 const ORIGIN = "http://social-card.local";
+// The CSS of @boundaries/design-tokens, which the card links under this path
+const DESIGN_TOKENS_PATH = "/design-tokens/";
+// The static folders of the site, in the order of `staticDirectories` in docusaurus.config.ts
+const STATIC_DIRS = [resolve(WEBSITE_ROOT, "static"), DESIGN_TOKENS_STATIC_DIR];
 
-// The card itself, the site CSS it links under /src/, and anything else from static/, as Docusaurus serves it
+// The card itself, the CSS of @boundaries/design-tokens, resolved through the exports of the package, and anything else from the static folders, as Docusaurus serves them
 function sourceFile(pathname) {
   if (pathname === "/") {
     return resolve(WEBSITE_ROOT, "scripts/social-card.html");
   }
-  if (pathname.startsWith("/src/")) {
-    return resolve(WEBSITE_ROOT, `.${pathname}`);
+  if (pathname.startsWith(DESIGN_TOKENS_PATH)) {
+    return fileURLToPath(
+      import.meta.resolve(
+        `@boundaries/design-tokens/${pathname.slice(DESIGN_TOKENS_PATH.length)}`
+      )
+    );
   }
-  return resolve(WEBSITE_ROOT, `static${pathname}`);
+  const files = STATIC_DIRS.map((dir) => resolve(dir, `.${pathname}`));
+  return files.find((file) => existsSync(file)) ?? files[0];
 }
 
 const browser = await chromium.launch();
@@ -41,12 +52,12 @@ await page.route("**/*", async (route) => {
     await route.abort();
     return;
   }
-  const file = sourceFile(decodeURIComponent(url.pathname));
+  const pathname = decodeURIComponent(url.pathname);
   try {
-    // The content type is inferred from the file extension
-    await route.fulfill({ path: file });
+    // The content type is inferred from the file extension. A path that the package does not export throws too
+    await route.fulfill({ path: sourceFile(pathname) });
   } catch {
-    missing.push(file);
+    missing.push(pathname);
     await route.fulfill({ status: 404 });
   }
 });

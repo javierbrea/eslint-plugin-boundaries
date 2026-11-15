@@ -4,6 +4,8 @@ export type FileNodeProps = {
   readonly path: string;
   /** The accessible name of the landmark of the pane. */
   readonly frameLabel: string;
+  /** Called when the user presses the close button of the pane. */
+  readonly onClose: () => void;
 };
 
 /** The state of the picker, which belongs to the page: whether it is open and which dependency of the file it edits. */

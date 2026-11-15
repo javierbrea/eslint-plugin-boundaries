@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 // The text styles of the panes, by role. MUI only knows its own variants, so the theme declares these to read `theme.typography.mono` with its type
 declare module "@mui/material/styles" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Declaration merging needs an interface
   interface TypographyVariants {
     /** The label that floats over the border of a field */
     fieldLabel: CSSProperties;
@@ -31,6 +32,7 @@ declare module "@mui/material/styles" {
     figure: CSSProperties;
   }
 
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Declaration merging needs an interface
   interface TypographyVariantsOptions {
     fieldLabel?: CSSProperties;
     paneLabel?: CSSProperties;

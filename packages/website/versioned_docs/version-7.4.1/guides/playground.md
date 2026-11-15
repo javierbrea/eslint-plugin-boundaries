@@ -28,7 +28,7 @@ The playground needs a wide screen: on a narrow one, its page shows a note inste
 
 ## Sketch a project
 
-With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Every edit evaluates the project again: there is no run button.
+With no project in its URL, the playground opens with the example of the [Quick start](../quick-start.mdx), or with the project you left in it when you come back from another page of the site without reloading. Each project it opens, such as an example or a link, starts with `eslint.config.js` open in the middle pane. The cross after the name of the open file or of the config, in the head of that pane, closes it. Every edit evaluates the project again: there is no run button.
 
 ### Files and folders
 
@@ -36,6 +36,7 @@ The `Project` pane shows the files as a tree, with `eslint.config.js` first.
 
 - **`+ File` and `+ Folder`**, at the foot of the pane, add a file or a folder in the selected folder, the folder of the open file or the root, and let you name it.
 - **Rename and delete** show at the end of a row (or press F2 and Delete). A name with `/`, such as `utils/format.js`, moves the node into that folder. The dependencies follow a file that is renamed or moved, and the ones from or to a file go with it when it is deleted.
+- **Right-click a file or a folder** for its menu: `New file` and `New folder` add a node in that folder, or in the folder of that file, and `Rename` and `Delete` do what the row actions do. Right-click the empty space below the rows to add a node at the root. With the keyboard, Shift+F10 opens the menu of the row in focus.
 
 The paths of the tree start at the folder of `eslint.config.js`, which the playground takes as the working directory of ESLint.
 
@@ -111,7 +112,7 @@ The inspector, on the right, describes what the middle pane has open.
   - `to` is the file or the external module that the dependency in focus points to, with the same boxes. Click a line of the file to put its dependency in focus.
   - `dependency` is the dependency in focus: `kind`, `nodeKind`, `source`, `specifiers` and `relationship`, the properties of a [dependency selector](../selectors/dependency.md).
 - **The config:** its `Element types` and `File categories` with how many files each matches, and its `Policies` with how many dependencies each one decided, then the `default`. Another rule of the plugin reads `not evaluated here`. A row opens its entry in the config.
-- **Nothing:** the numbers of the project.
+- **Nothing**, once you close the open file or the config: the numbers of the project.
 
 ### Verdicts
 
@@ -154,7 +155,7 @@ A row opens what it points to: a problem of the config opens the config at its p
 
 `Share`, in the top bar, copies a link to the playground. The part of the link after `#` holds the whole project, compressed: its config, its files and its dependencies. A browser does not send that part of a URL to the server, so the project is never uploaded: it travels inside the link. The address bar holds the project too, a moment after each edit, so reloading the page keeps it.
 
-When the link is copied and is short enough for any app, the button reads `Copied` for a moment. Otherwise a dialog says what happened:
+When the link is copied and is short enough for any app, the button turns green and reads `Copied` for a moment. Otherwise a dialog says what happened:
 
 - `Long link copied`, for a link of more than 8,192 characters: some apps cut links that long when they are pasted, so check that the link you pasted opens the whole project.
 - `The link could not be copied`, when the browser refuses access to the clipboard. The dialog shows the link, selected, to copy it by hand, and `Copy link` tries again. For a link of more than 8,192 characters, it also warns that some apps cut it.

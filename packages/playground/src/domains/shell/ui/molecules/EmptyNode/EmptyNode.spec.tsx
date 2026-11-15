@@ -121,6 +121,25 @@ describe("EmptyNode", () => {
     expect(fontWeight).toBe("600");
   });
 
+  it.each([
+    [true, true],
+    [false, false],
+    [undefined, false],
+  ])(
+    "should give the keyboard focus to the button that opens the config when autoFocusOpenConfig is %s: %s",
+    (autoFocusOpenConfig, isFocused) => {
+      // Arrange
+      render(<EmptyNode {...createProps({ autoFocusOpenConfig })} />);
+      const pane = new EmptyNodePom();
+
+      // Act
+      const focused = pane.openConfigButton.isFocused;
+
+      // Assert
+      expect(focused).toBe(isFocused);
+    }
+  );
+
   it("should call onOpenConfig when the user chooses to open the config", () => {
     // Arrange
     const props = createProps();

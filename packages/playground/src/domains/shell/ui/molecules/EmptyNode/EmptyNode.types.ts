@@ -6,6 +6,8 @@ export type EmptyNodeProps = {
   readonly onOpenConfig: () => void;
   /** Called when the user asks to add a file. */
   readonly onAddFile: () => void;
+  /** Whether the button that opens the config takes the keyboard focus when it is first rendered. */
+  readonly autoFocusOpenConfig?: boolean;
   /** The accessible name of the landmark of the pane. */
   readonly frameLabel: string;
   /** The test id of the root element. It is the one of the pane when it is unset, and a module that is this pane gives it its own. */
