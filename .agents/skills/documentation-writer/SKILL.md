@@ -7,14 +7,13 @@ metadata:
     github-tree-sha: 016d8040a3f91c8360b1003e74fbf29f34c283f5
 name: documentation-writer
 ---
-# Diátaxis Documentation Expert
+# Diátaxis documentation
 
-You are an expert technical writer specializing in creating high-quality software documentation.
-Your work is strictly guided by the principles and structure of the Diátaxis Framework (https://diataxis.fr/).
+Documentation follows the principles and structure of the Diátaxis Framework (https://diataxis.fr/).
 
-## YOUR TASK: The Four Document Types
+## The four document types
 
-You will create documentation across the four Diátaxis quadrants. You must understand the distinct purpose of each:
+Each page belongs to one of the four Diátaxis quadrants, each with a distinct purpose:
 
 - **Tutorials:** Learning-oriented, practical steps to guide a newcomer to a successful outcome. A lesson.
 - **How-to Guides:** Problem-oriented, steps to solve a specific problem. A recipe.

@@ -18,7 +18,7 @@ Gather from the request and the conversation:
 - **Milestone**, when the work already has one. Otherwise propose one (see "Bookkeeping").
 - **Assignee**: the maintainer unless told otherwise.
 
-Before drafting, search the open issues (`gh issue list --state open --search "<words>"`) so that an existing issue is reused or linked instead of duplicated.
+Before drafting, search the open issues so that an existing issue is reused or linked instead of duplicated.
 
 ## Structure
 
@@ -38,13 +38,13 @@ A tracking issue (the parent of sub-issues) replaces `Proposal` with `## Plan`: 
 
 ## Bookkeeping
 
-Check the labels, milestones and board fields on GitHub before using them (`gh label list`, `gh api repos/{owner}/{repo}/milestones`, `gh project field-list 7 --owner javierbrea`); the lists below are the ones in use and are not updated by this skill.
+Check the labels, milestones and board fields on GitHub before using them; the lists below are the ones in use and are not updated by this skill.
 
 - **Labels.** One `type:` label: `type: feature` for new behavior, `type: bug` for a defect, `type: task` for work with no new behavior; a sub-issue takes the type of its own work. `type: feature request` and `type: support` are for issues opened by users. Add the `scope:` labels of the files the work touches: `scope: code` (source under `packages/*/src`), `scope: tests` (`test/`, `*.spec.*`, `*.test.*`), `scope: documentation` (docs, website content, `*.md`), `scope: CI-CD`, `scope: dependencies`, `scope: refactor`. Add `status: blocked` when a `Blocked by` section exists. Match the strings exactly, including the space after the colon.
-- **Milestone.** Work shipped by a package release goes in the version milestone `vX.Y.Z`. Work that spans releases and comes from an RFC gets a milestone named after the feature, with the RFC in its description. Create a missing milestone with `gh api repos/{owner}/{repo}/milestones -f title=... -f description=...`.
-- **Project board.** Every issue goes to the user project "JS Boundaries" (number 7) with `Status` set to `Backlog`: `gh project item-add 7 --owner javierbrea --url <issue url> --format json --jq .id` returns the item id, then `gh project item-edit --project-id <project id> --id <item id> --field-id <status field id> --single-select-option-id <backlog option id>`. The project id comes from `gh project view 7 --owner javierbrea --format json --jq .id`, and the `Status` field and `Backlog` option ids from `gh project field-list 7 --owner javierbrea --format json`; the commands need the `project` token scope (`gh auth refresh -s project`). Leave the board's `Priority` and `Size` fields to the maintainer.
-- **Assignee.** `--assignee` on creation.
-- **Parent issue.** A sub-issue is attached to its parent with the GraphQL mutation `addSubIssue(input: { issueId, subIssueId })`, using the node ids from `gh issue view N --json id`; `gh issue create` has no option for it.
+- **Milestone.** Work shipped by a package release goes in the version milestone `vX.Y.Z`. Work that spans releases and comes from an RFC gets a milestone named after the feature, with the RFC in its description. A missing milestone is created with that title and description.
+- **Project board.** Every issue goes to the user project "JS Boundaries" (number 7) of the user `javierbrea` with `Status` set to `Backlog`; changing the board needs a token with the `project` scope. Leave the board's `Priority` and `Size` fields to the maintainer.
+- **Assignee.** Set when the issue is created.
+- **Parent issue.** A sub-issue is attached to its parent as a GitHub sub-issue, not only linked from its body.
 
 ## Procedure
 
@@ -55,7 +55,7 @@ Check the labels, milestones and board fields on GitHub before using them (`gh l
 5. When a tracking issue gets new sub-issues, update its `Plan` section with their numbers.
 6. Report the URLs, the milestone and the board column.
 
-Prefer the GitHub MCP tools when they are available and fall back to `gh`. Treat an authentication or authorization error as terminal: stop, report it, and include the drafted titles and bodies in the response so that they can be filed by hand.
+Treat an authentication or authorization error as terminal: stop, report it, and include the drafted titles and bodies in the response so that they can be filed by hand.
 
 ## Notes
 

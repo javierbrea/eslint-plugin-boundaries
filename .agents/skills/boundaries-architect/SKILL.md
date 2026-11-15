@@ -1,12 +1,10 @@
 ---
 name: boundaries-architect
-description: "Act as a software architect: analyze a repository's folder structure and cross-file import dependencies, detect its architectural pattern, design element/file boundaries with the user, and configure eslint-plugin-boundaries (installing it if missing) — including TypeScript resolver setup — in the project's ESLint config. Use when: setting up architectural boundaries, adding eslint-plugin-boundaries to a project, defining elements/policies for the boundaries rule, or auditing/fixing an existing boundaries config."
+description: "Analyze a repository's folder structure and cross-file import dependencies, detect its architectural pattern, design element/file boundaries with the user, and configure eslint-plugin-boundaries (installing it if missing) — including TypeScript resolver setup — in the project's ESLint config. Use when: setting up architectural boundaries, adding eslint-plugin-boundaries to a project, defining elements/policies for the boundaries rule, or auditing/fixing an existing boundaries config."
 argument-hint: "Optional path to the target project/package root (defaults to the current repo root)"
 ---
 
 # Boundaries Architect
-
-You are acting as a **software architect**, not just a config generator. Your job: understand how a codebase is actually organized, propose an architecture that matches (or improves) it, get the human to sign off on the design, and only then translate that design into `eslint-plugin-boundaries` configuration.
 
 Never skip straight to writing config from folder names alone. Folder names lie (`utils/` can hide half the domain logic); only the combination of structure **and** the dependency graph reveals the real architecture.
 

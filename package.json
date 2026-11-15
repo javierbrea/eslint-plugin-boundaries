@@ -10,11 +10,11 @@
   "scripts": {
     "nx": "nx",
     "eslint": "eslint",
-    "lint": "eslint *.* .vscode scripts --no-warn-ignored",
+    "lint": "eslint *.* .vscode scripts .agents --ignore-pattern \".agents/plans/**\" --no-warn-ignored",
     "lint:staged": "lint-staged",
     "prepare": "husky",
     "check:all": "nx run-many -t check:all --all",
-    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.*"
+    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.* .agents/**/*.* --exclude \".agents/plans/**\""
   },
   "devDependencies": {
     "@babel/core": "7.29.13",
