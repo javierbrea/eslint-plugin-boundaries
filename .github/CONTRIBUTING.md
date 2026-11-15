@@ -10,6 +10,7 @@
 - [Release process](#release-process)
    - [Versioning](#versioning)
    - [Publishing](#publishing)
+   - [Trusted publishing](#trusted-publishing)
 - [License](#license)
   - [Licensing of new files](#licensing-of-new-files)
   - [Public Domain](#public-domain)
@@ -185,7 +186,7 @@ The release process is as follows:
 
      **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
    * A release that only deploys the website ends with this step: it gets no GitHub release, because the publishing workflows of step 6 would fail on an `eslint-plugin` version that is already published.
-5. Create a single release in GitHub for the whole release, following these instructions:
+5. Create a single release in GitHub for the whole release. `publish.yml` has no npm token, so every package the release publishes to npm needs a trusted publisher first (see [trusted publishing](#trusted-publishing)). Follow these instructions:
    * Tag: `vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, which is the main entry point of the repository.
    * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
    * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
@@ -203,6 +204,17 @@ If another package becomes a main entry point of the repository, it may get its 
 
 > [!NOTE]
 > For publishing beta versions, remember to set the corresponding package versions with the `-beta.X` suffix, and to create the release following the same instructions as for stable releases. The only difference is that the tag should include the `-beta.X` suffix (for example, `v7.0.0-beta.2`), and the title should include the `Beta` word to make it clear that it is a beta release. What a beta tag publishes differs from a stable one, see step 6.
+
+## Trusted publishing
+
+`publish.yml` publishes to npm with [trusted publishing](https://docs.npmjs.com/trusted-publishers): npm authenticates the workflow with OpenID Connect (OIDC) instead of a token, and adds a provenance attestation to every version it publishes.
+
+* Any step of a job with the `id-token: write` permission can obtain a token that publishes. So the `check` job runs `check:all` without it, and the `publish` and `publish-beta` jobs, which have it, restore no cache and only install, build the published packages and publish them.
+* Those two jobs run in the `npm` environment of the repository, which only allows deployments from the `v*` tags.
+* Each package published to npm (`@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/eslint-plugin` and `eslint-plugin-boundaries`) has a trusted publisher in its settings on the npm website: publisher GitHub Actions, user `javierbrea`, repository `eslint-plugin-boundaries`, workflow `publish.yml`, environment `npm`, and `npm publish` allowed. A trusted publisher cannot be edited, so renaming the workflow file or the environment means deleting it and creating it again in every package.
+* A trusted publisher that publishes nothing in the 2 days after its creation expires, and an expired one is deleted before creating it again. So a package whose last published version shows nothing in `npm view <package>@<version> _npmUser.trustedPublisher`, because it has not published with trusted publishing yet, gets its trusted publisher less than 2 days before the GitHub release of step 5.
+* Instead of the npm website, a maintainer logged in with 2FA on npm 11.15.0 or later can create a trusted publisher with `npm trust github <package> --file publish.yml --repo javierbrea/eslint-plugin-boundaries --env npm --allow-publish`.
+* A trusted publisher can only be added to a package that already exists on npm: a maintainer publishes the first version of a new package from their machine, with 2FA, and then adds its trusted publisher.
 
 # License
 
