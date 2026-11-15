@@ -9,6 +9,9 @@ on:
       - 'packages/website/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   web-search-scraper:
     runs-on: ubuntu-latest

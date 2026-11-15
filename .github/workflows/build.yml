@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   check-root:
     runs-on: ubuntu-latest
@@ -250,11 +253,12 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
   # Consolidation job that depends on all other jobs
-  # Configure only this job as required status check in GitHub
+  # Of the jobs of this workflow, configure only this one as required status check in GitHub
+  # NOTE: It doesn't run in a run that a newer one cancels, so that the cancelled run reports no failure
   all-checks:
     runs-on: ubuntu-latest
     needs: [check-root, check-vulnerabilities, build, test-browsers, test-node-versions, build-windows, reports]
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Check all jobs status
         run: |
