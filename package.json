@@ -14,7 +14,7 @@
     "lint:staged": "lint-staged",
     "prepare": "husky",
     "check:all": "nx run-many -t check:all --all",
-    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.* .agents/**/*.* --exclude \".agents/plans/**\""
+    "check:spell": "cspell --quiet \"*.*\" \".vscode/*.*\" \".github/**/*.*\" \"docs/**/*.*\" \"scripts/**/*.*\" \".agents/**/*.*\" --exclude \".agents/plans/**\""
   },
   "devDependencies": {
     "@babel/core": "7.29.13",
