@@ -10,6 +10,10 @@ inputs:
     description: Whether to apply Windows-specific PNPM symlink fixes
     required: false
     default: 'false'
+  cache:
+    description: Whether to restore and save the caches of the pnpm store and node_modules. The jobs that publish disable it, so that no cached file runs in them
+    required: false
+    default: 'true'
 
 runs:
   using: composite
@@ -22,10 +26,10 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
-        cache: 'pnpm'
-        registry-url: 'https://registry.npmjs.org/'
+        cache: ${{ inputs.cache == 'true' && 'pnpm' || '' }}
 
     - name: Cache dependencies
+      if: ${{ inputs.cache == 'true' }}
       id: cache-pnpm
       uses: actions/cache@v6.1.0
       with:

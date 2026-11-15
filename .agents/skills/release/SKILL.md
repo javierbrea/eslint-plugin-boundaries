@@ -10,7 +10,7 @@ argument-hint: "[eslint-plugin version]"
 
 Use this skill when the maintainer asks to prepare or publish a release. The procedure itself is written once, in the "Release process" section of `.github/CONTRIBUTING.md`; this skill executes it and adds the preconditions, the checks and the confirmations an agent needs. Read that section and `.agents/rules/changelog-and-versioning.md` before starting, and follow `CONTRIBUTING.md` for what each release step changes.
 
-What a GitHub release publishes is in step 6 of "Publishing" in `.github/CONTRIBUTING.md`, and a published version cannot be replaced. Remind the maintainer of both before the release step.
+What a GitHub release publishes is in step 6 of "Publishing" in `.github/CONTRIBUTING.md`, a published version cannot be replaced, and each package it publishes to npm needs a trusted publisher ("Trusted publishing" in the same file). Remind the maintainer of the three before the release step.
 
 ## Inputs
 
@@ -58,7 +58,7 @@ Start when the maintainer confirms the PR from phase 2 is merged into `master`.
 1. Check that `origin/master` contains the release commit.
 2. If the release changed the website's documentation, check that the "Update Website Search Index" workflow (`web-search-index.yml`) ran for the merge. If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
 3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
-4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), and ask for explicit confirmation. Never create a tag or a release without it.
+4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), list the packages it publishes to npm that have not published with trusted publishing yet, by the check of "Trusted publishing", so that the maintainer adds their trusted publishers before confirming, and ask for explicit confirmation. Never create a tag or a release without it.
 5. Create the release targeting `master`. Report the URL, and that the publish workflows were triggered. Continue with phase 4.
 
 ### Phase 4: close the release
