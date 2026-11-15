@@ -63,23 +63,23 @@ function createModuleDescription(
   };
 }
 
-interface ElementsDescriptorMock {
+type ElementsDescriptorMock = {
   describeElement: jest.Mock;
-}
+};
 
-interface FilesDescriptorMock {
+type FilesDescriptorMock = {
   describeFile: jest.Mock;
-}
+};
 
-interface ModulesDescriptorMock {
+type ModulesDescriptorMock = {
   describeModule: jest.Mock;
-}
+};
 
-interface DescriptorMocks {
+type DescriptorMocks = {
   elementsDescriptor: ElementsDescriptorMock;
   filesDescriptor: FilesDescriptorMock;
   modulesDescriptor: ModulesDescriptorMock;
-}
+};
 
 function createDescriptorMocks(
   overrides?: Partial<{

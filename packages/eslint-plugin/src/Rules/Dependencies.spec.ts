@@ -21,13 +21,20 @@ import type { EslintDependencyNode } from "../Elements";
 import type { DependenciesRuleOptions, SettingsNormalized } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
-jest.mock("@boundaries/policies", () => ({
-  ...jest.requireActual("@boundaries/policies"),
-  evaluatePolicies: jest.fn(),
-  getMatcher: jest.fn(),
-}));
+jest.mock<{ evaluatePolicies: jest.Mock; getMatcher: jest.Mock }>(
+  "@boundaries/policies",
+  () => ({
+    ...jest.requireActual("@boundaries/policies"),
+    evaluatePolicies: jest.fn(),
+    getMatcher: jest.fn(),
+  })
+);
 
-jest.mock("../Debug", () => {
+jest.mock<{
+  warnOnce: jest.Mock;
+  warnDiagnostics: jest.Mock;
+  printDependenciesRuleResult: jest.Mock;
+}>("../Debug", () => {
   const mockWarnOnce = jest.fn();
   return {
     warnOnce: mockWarnOnce,
@@ -43,7 +50,7 @@ jest.mock("../Debug", () => {
   };
 });
 
-jest.mock("./Support", () => ({
+jest.mock<{ dependencyRule: jest.Mock }>("./Support", () => ({
   dependencyRule: jest.fn(
     (
       meta: unknown,

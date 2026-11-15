@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- chore(#514): A local type of the element descriptor is a `type` alias instead of an interface. The published code doesn't change.
+
 ## [3.3.3] - 2026-11-12
 
 ### Changed

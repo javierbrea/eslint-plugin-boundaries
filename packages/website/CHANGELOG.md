@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: The `Share` button of the playground, and `Copy link` in its dialog, turn green while they say `Copied`, and fade back to their color afterwards.
 - feat: The project tree of the playground has a context menu. Right-click a folder to add a file or a folder inside it, a file to add one next to it, either one to rename or delete it, and the empty space below the rows to add one at the root; Shift+F10 opens it from the keyboard.
 - chore(#647): The design tokens and the self-hosted fonts come from the private `@boundaries/design-tokens` workspace package, and the site serves the fonts at the same URLs.
+- chore(#514): The `ProjectSource` and `StateStore` types of the playground are `type` aliases instead of interfaces.
 
 ### Fixed
 

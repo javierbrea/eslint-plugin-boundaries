@@ -18,12 +18,7 @@ These apply to every `.ts`/`.tsx` file across `packages/elements`, `packages/con
 
 ## `type` vs `interface`
 
-Prefer a `type` alias by default. Use `interface` only when a real interface is warranted:
-
-- an object contract meant to be `implements`-ed by a class
-- a shape that intentionally relies on declaration merging or `extends` chains
-
-Plain object shapes, unions, DTOs, entity/descriptor shapes, options, configs, and internal helpers are always `type`, never `interface`. This codebase does not prefix interfaces with `I` — name them the same way a `type` would be named (e.g. `Config`, `PluginBoundaries`), never `IConfig`.
+Lint requires a `type` alias and forbids an `I` prefix on interface names (`support/eslint-config/index.js`). An `interface` stays only where declaration merging needs one: a module augmentation, `declare global`, or an exported interface of a published package, which users may merge declarations into. It gets an `eslint-disable-next-line @typescript-eslint/consistent-type-definitions` comment that gives that reason.
 
 ## Colocated `*.types.ts` files
 

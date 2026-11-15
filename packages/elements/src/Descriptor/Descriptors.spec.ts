@@ -118,7 +118,7 @@ function createDependencyDescription(
   };
 }
 
-interface SubDescriptorMocks {
+type SubDescriptorMocks = {
   elements: {
     describeElement: jest.Mock;
     serializeCache: jest.Mock;
@@ -149,7 +149,7 @@ interface SubDescriptorMocks {
     setCacheFromSerialized: jest.Mock;
     clearCache: jest.Mock;
   };
-}
+};
 
 function setupSubDescriptorMocks(): SubDescriptorMocks {
   const mocks: SubDescriptorMocks = {

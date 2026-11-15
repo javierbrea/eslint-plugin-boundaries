@@ -1,7 +1,7 @@
 import type { Sketch } from "./Sketch.types";
 
 /** Where the state of the playground is kept and shared, such as the URL on the website or memory in a local app */
-export interface StateStore {
+export type StateStore = {
   /**
    * Loads the saved sketch.
    * @returns The saved sketch, or `undefined` when nothing is saved.
@@ -28,4 +28,4 @@ export interface StateStore {
    * @returns A function that removes the listener.
    */
   subscribe?(listener: () => void): () => void;
-}
+};
