@@ -48,7 +48,7 @@
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@types/react": "19.3.0",
-    "baseline-browser-mapping": "2.11.35",
+    "baseline-browser-mapping": "2.11.36",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
     "tsup": "8.5.1",
     "typescript": "5.9.3"
