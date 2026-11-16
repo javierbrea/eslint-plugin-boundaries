@@ -4,7 +4,12 @@ const { createConfig } = require("../../support/cspell-config/index.js");
 module.exports = createConfig({
   words: [
     "blockquotes",
+    "contentinfo",
+    "cookieconsent",
+    "darkmode",
+    "haspopup",
     "networkidle",
+    "npmjs",
     "nums",
     "Sora",
     "sublabel",

@@ -8,5 +8,6 @@ Sanity suite of the website and the playground: `@playwright/test` in Chromium, 
 - The suite serves `packages/website/build` as it is: `pnpm nx test:e2e website-e2e` builds the site and both entries first (the `repo-architecture` skill), while `playwright test` run in this folder does not.
 - `test:e2e` needs Chromium, so every CI job that runs this project installs the browsers first with `.github/actions/install-browsers`: the `test-browsers` job of `.github/workflows/build.yml` and the jobs of the publishing workflows that run `pnpm check:all`. The `build` job leaves the project out.
 - The narrow spec recognizes the chunk of the playground by `PLAYGROUND_CHUNK_MARKER` of `test/support/script-responses.ts`, whose TSDoc says why it stays true.
+- The consent library hides its banner from Playwright (`navigator.webdriver`), so no spec sees it unless it sets `consentBanner: true`; `test/consent.spec.ts` holds the production-host control that sees Google Analytics load.
 
 Primary checks: `lint`, `check:types`, `test:e2e`.
