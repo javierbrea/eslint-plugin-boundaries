@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - feat: The site asks for your consent before it loads Google Analytics, which runs only on www.jsboundaries.dev, and the Cookie settings button of the footer changes your choice at any time. Visits from deploy previews, local builds and the test suite are no longer counted.
+- chore: The site tells browsers not to show it inside any frame, not to guess the type of its files, and to send other sites only its origin as the referrer.
+
+### Fixed
+
+- fix: The playground says that the evaluation failed when its engine cannot check the options of a rule, instead of leaving the rule out and showing a project without problems.
 
 ## [7.4.1+rev.2] - 2026-11-15
 

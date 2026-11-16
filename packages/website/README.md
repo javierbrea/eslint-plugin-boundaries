@@ -120,7 +120,7 @@ This command generates a static website optimized for deployment.
 
 The website deployment is fully automated using **[Netlify](https://www.netlify.com/)**, which handles both production deployments and preview environments.
 
-The build settings live in the Netlify UI, not in this repository: base directory `/`, package directory `packages/website`, publish directory `packages/website/build`, and build command `pnpm nx run website:build`. The build goes through Nx, so the `dependsOn` of the website's `build` target in `project.json` decides what is built before the site, such as the playground.
+The build settings live in the Netlify UI, not in this repository: base directory `/`, package directory `packages/website`, publish directory `packages/website/build`, and build command `pnpm nx run website:build`. The build goes through Nx, so the `dependsOn` of the website's `build` target in `project.json` decides what is built before the site, such as the playground. `static/_redirects` and `static/_headers` hold the redirects and the response headers that Netlify applies, and the build copies them to the root of the publish directory.
 
 ### Production Deployment
 

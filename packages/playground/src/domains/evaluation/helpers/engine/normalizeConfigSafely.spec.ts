@@ -24,6 +24,11 @@ jest.mock<{
   };
 });
 
+/** The real normalization, which each test starts with */
+const { normalizeConfig: actualNormalizeConfig } = jest.requireActual<{
+  normalizeConfig: typeof normalizeConfig;
+}>("@boundaries/config");
+
 const SETTINGS = {
   "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }],
 };
@@ -64,7 +69,45 @@ function createConfig(
   return { settings, rules };
 }
 
+/**
+ * Makes `normalizeConfig` throw a new error for every config with rules, which the real one does only for a rule of the plugin with a valid severity, where the validator of the rule options cannot compile its schema. It keeps the real one for a config without rules.
+ * @returns The errors that it throws, in the order of the calls, so that a test tells the one of the first call from the others.
+ */
+function failSchemaCompilation(): Error[] {
+  const errors: Error[] = [];
+  jest.mocked(normalizeConfig).mockImplementation((config, options) => {
+    const { rules } = config as { rules: Record<string, unknown> };
+    if (Object.keys(rules).length > 0) {
+      const error = new Error("Error compiling schema");
+      errors.push(error);
+      throw error;
+    }
+    return actualNormalizeConfig(config, options);
+  });
+  return errors;
+}
+
+/**
+ * Normalizes a config safely and catches what it throws.
+ * @param config The config object, as written.
+ * @returns What it throws.
+ * @throws When it throws nothing, so that a test that expects a throw fails.
+ */
+function getThrown(config: ReturnType<typeof createConfig>): unknown {
+  try {
+    normalizeConfigSafely(config);
+  } catch (error) {
+    return error;
+  }
+  throw new Error("normalizeConfigSafely threw nothing");
+}
+
 describe("NormalizeConfigSafely", () => {
+  beforeEach(() => {
+    // A test may make normalizeConfig throw for every config with rules, which would last for the tests after it
+    jest.mocked(normalizeConfig).mockImplementation(actualNormalizeConfig);
+  });
+
   describe("normalizeConfigSafely", () => {
     describe("when nothing throws", () => {
       it("should return what normalizeConfig returns, normalizing the config once", () => {
@@ -348,6 +391,124 @@ describe("NormalizeConfigSafely", () => {
           expect(diagnostics).toEqual([]);
         }
       );
+    });
+
+    describe("when normalizeConfig throws for a reason that no policy explains", () => {
+      it("should throw the error of normalizeConfig, the same object, when no policy of the entry throws", () => {
+        // Arrange
+        const config = createConfig({
+          "boundaries/dependencies": [2, { policies: [VALID_POLICY] }],
+        });
+        const errors = failSchemaCompilation();
+
+        // Act
+        const thrown = getThrown(config);
+
+        // Assert
+        expect(thrown).toBe(errors[0]);
+      });
+
+      it.each([
+        ["an entry without options", "boundaries/dependencies", [2]],
+        [
+          "options without a list of policies",
+          "boundaries/dependencies",
+          [2, {}],
+        ],
+        [
+          "a legacy rules option that is not a list",
+          "boundaries/element-types",
+          [2, { rules: {} }],
+        ],
+      ])(
+        "should throw the error of normalizeConfig, and not one of its own, for %s",
+        (_title, ruleId, entry) => {
+          // Arrange
+          const config = createConfig({ [ruleId]: entry });
+          const errors = failSchemaCompilation();
+
+          // Act
+          const thrown = getThrown(config);
+
+          // Assert
+          expect(thrown).toBe(errors[0]);
+        }
+      );
+
+      it("should throw the error of normalizeConfig for a rule whose options normalizeConfig keeps as written, even when a policy in them throws", () => {
+        // Arrange
+        const config = createConfig({
+          "boundaries/no-private": [2, { policies: [{ disallow: {} }] }],
+        });
+        const errors = failSchemaCompilation();
+
+        // Act
+        const thrown = getThrown(config);
+
+        // Assert
+        expect(thrown).toBe(errors[0]);
+      });
+
+      it("should throw the error of normalizeConfig when another entry is explained by a policy that throws", () => {
+        // Arrange
+        const config = createConfig({
+          "boundaries/element-types": [2, { policies: [{ disallow: {} }] }],
+          "boundaries/dependencies": [2, { policies: [VALID_POLICY] }],
+        });
+        const errors = failSchemaCompilation();
+
+        // Act
+        const thrown = getThrown(config);
+
+        // Assert
+        expect(thrown).toBe(errors[0]);
+      });
+
+      it.each([["off"], [0]])(
+        "should leave out the entry and report nothing for severity %p",
+        (severity) => {
+          // Arrange
+          const config = createConfig({
+            "boundaries/dependencies": [severity, { policies: [VALID_POLICY] }],
+          });
+          failSchemaCompilation();
+
+          // Act
+          const { value, diagnostics } = normalizeConfigSafely(config);
+
+          // Assert
+          expect(value.rules).toEqual({});
+          expect(diagnostics).toEqual([]);
+        }
+      );
+
+      it.each([["off"], [0]])(
+        "should leave out an entry that is the severity %p alone and report nothing",
+        (severity) => {
+          // Arrange
+          const config = createConfig({ "boundaries/dependencies": severity });
+          failSchemaCompilation();
+
+          // Act
+          const { value, diagnostics } = normalizeConfigSafely(config);
+
+          // Assert
+          expect(value.rules).toEqual({});
+          expect(diagnostics).toEqual([]);
+        }
+      );
+
+      it("should throw the error of normalizeConfig, the same object, for an entry that is a severity alone and on", () => {
+        // Arrange
+        const config = createConfig({ "boundaries/dependencies": "error" });
+        const errors = failSchemaCompilation();
+
+        // Act
+        const thrown = getThrown(config);
+
+        // Assert
+        expect(thrown).toBe(errors[0]);
+      });
     });
 
     describe("when what is thrown is not an error", () => {
