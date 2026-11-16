@@ -3,6 +3,11 @@ import { STATIC_DIR as DESIGN_TOKENS_STATIC_DIR } from "@boundaries/design-token
 import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
 
+import {
+  COOKIE_SETTINGS_ATTRIBUTE,
+  COOKIE_SETTINGS_LABEL,
+  PRODUCTION_HOSTNAME,
+} from "./src/client/consent.constants";
 import { blueprintTheme } from "./src/prism/blueprintTheme";
 
 const IS_DEV = process.env.NODE_ENV === "development";
@@ -20,7 +25,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://www.jsboundaries.dev",
+  url: `https://${PRODUCTION_HOSTNAME}`,
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -114,7 +119,7 @@ const config: Config = {
       },
     }),
   ],
-  clientModules: ["./src/client/motion.ts"],
+  clientModules: ["./src/client/motion.ts", "./src/client/consent.ts"],
   customFields: {
     // Build year, used by useCurrentYear as its SSR and hydration snapshot
     buildYear: new Date().getFullYear(),
@@ -145,13 +150,12 @@ const config: Config = {
           customCss: [
             require.resolve("@boundaries/design-tokens/tokens.css"),
             require.resolve("@boundaries/design-tokens/fonts.css"),
+            require.resolve("vanilla-cookieconsent/dist/cookieconsent.css"),
+            // Right after the library CSS, which declares its defaults on `:root`, so the bridge wins by source order
+            "./src/css/cookieconsent-bridge.css",
             "./src/css/infima-bridge.css",
             "./src/css/custom.css",
           ],
-        },
-        gtag: {
-          trackingID: "G-QDP350TYF0",
-          anonymizeIP: true,
         },
       } satisfies Preset.Options,
     ],
@@ -272,6 +276,19 @@ const config: Config = {
               label: "Search powered by Algolia",
               to: "https://www.algolia.com/ref/docsearch/?utm_source=www.jsboundaries.dev&utm_medium=referral&utm_content=powered_by&utm_campaign=docsearch",
               className: "footer-acknowledgement",
+            },
+          ],
+        },
+        {
+          title: "Legal",
+          items: [
+            {
+              label: "Privacy",
+              to: "/privacy/",
+            },
+            {
+              // A button, not a link: it opens the cookie preferences instead of navigating. Not `data-cc`: the library binds that attribute only when it runs, and the footer re-renders on every client-side navigation, so src/client/consent.ts listens for clicks on its own attribute instead
+              html: `<button type="button" class="footer__link-item jsb-footer-button" aria-haspopup="dialog" ${COOKIE_SETTINGS_ATTRIBUTE}>${COOKIE_SETTINGS_LABEL}</button>`,
             },
           ],
         },

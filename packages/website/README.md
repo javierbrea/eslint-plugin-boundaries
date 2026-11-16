@@ -89,11 +89,11 @@ website/
 ├── versioned_sidebars/      # Sidebar configuration for each released version
 ├── scripts/                 # Maintenance scripts (social card, visual check)
 ├── src/
-│   ├── client/              # Client modules loaded on every page
+│   ├── client/              # Client modules loaded on every page: the JS marker and the consent banner that loads Google Analytics
 │   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
-│   ├── css/                 # Infima mapping and global styles; the design tokens and fonts come from @boundaries/design-tokens
+│   ├── css/                 # Infima and cookieconsent mappings and global styles; the design tokens and fonts come from @boundaries/design-tokens
 │   ├── data/                # Site constants, links and live GitHub/npm stats
-│   ├── pages/               # Custom pages, including the home page
+│   ├── pages/               # Custom pages, including the home page and the Privacy page
 │   ├── prism/               # Code highlighting theme
 │   └── theme/               # Swizzled/overridden Docusaurus theme components
 ├── static/                  # Static assets (images, etc.)

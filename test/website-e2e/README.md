@@ -20,6 +20,13 @@ This private project is the sanity suite of the website and the playground: it o
 | `test/share.spec.ts` | `desktop` | Share reads `Copied`, and the copied link opens the same project and config in a browser context with empty storage. |
 | `test/playground-chunk.spec.ts` | `narrow` | `/playground/` shows the desktop-only note, renders no playground, starts no web worker and never requests the chunk of the playground. |
 | `test/playground-chunk.spec.ts` | `desktop` | The control of the test above: on a wide screen the same detection finds the chunk, and the page starts one web worker. |
+| `test/consent.spec.ts` | `desktop` | A first visit shows the consent banner, and no request reaches Google before or after Accept all on the local host. |
+| `test/consent.spec.ts` | `desktop` | Accept all hides the banner and is remembered: after a reload the banner is not rendered and the preferences opened from the footer show Analytics on. |
+| `test/consent.spec.ts` | `desktop` | Reject all hides the banner and is remembered: after a reload the preferences show Analytics off. |
+| `test/consent.spec.ts` | `desktop` | The Cookie settings button of the footer opens the preferences after a client-side navigation, and a saved choice stays saved. |
+| `test/consent.spec.ts` | `desktop` | The control of the first case: on the production host gtag.js is not requested before a choice, is requested once after Accept all, withdrawing analytics deletes its cookies, and a reload requests it no more. |
+| `test/consent.spec.ts` | `desktop` | The control of the suite: without `consentBanner: true` the library builds no banner for Playwright, which keeps it out of every other spec. |
+| `test/consent.spec.ts` | `desktop` | The footer links to the privacy page. |
 
 The playground keeps the last project in memory, per page document, never in the storage of the browser. So a spec that needs a project the page remembers picks another example on the same page and then navigates without loading a document, which `documentLoads` checks. It waits for the project to reach the hash before it leaves.
 
@@ -54,7 +61,7 @@ pnpm exec playwright test test/playground-chunk.spec.ts --project=narrow
 ## Adding a spec
 
 1. Add `test/<name>.spec.ts`. Import `test` and `expect` from `./fixtures`, and reach the page through the page objects the fixtures give, such as `playgroundPage`, `navbar` or `docItem`. Open another tab or a fresh browser context with `openPlaygroundTab` or `openPlaygroundInFreshContext`, which return the page object of the page they open. Steps that several specs share, made of page object calls, go in `test/support/`, such as `test/support/playground.ts`. No file of `test/` holds a locator, selector or fixed wait, no spec imports `@playwright/test`, no file but `test/fixtures.ts` takes `test` from it, and no file imports the playground or the site other than through their `./playwright` entries: `eslint.config.js` fails them.
-2. Name the test after what the user sees. Tag it `{ tag: "@desktop" }` when it needs the panes of the playground, or `{ tag: "@narrow" }` when it needs the narrow page.
+2. Name the test after what the user sees. Tag it `{ tag: "@desktop" }` when it needs the panes of the playground, or `{ tag: "@narrow" }` when it needs the narrow page. A spec that tests the consent banner sets `test.use({ consentBanner: true })`: the library hides the banner from Playwright (`navigator.webdriver`), so no spec sees it otherwise.
 3. A page that a spec visits is reached with `page.goto("/path/")`. Wait for what settles through a waiting method of a page object or `expect.poll` over a value getter of one.
 
 ## Adding a page object
