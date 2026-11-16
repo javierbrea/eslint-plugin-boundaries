@@ -28,7 +28,7 @@
     "@types/node": "24.19.2",
     "@typescript-eslint/parser": "8.72.2",
     "cross-env": "10.1.0",
-    "cspell": "10.4.1",
+    "cspell": "10.5.0",
     "eslint": "9.39.5",
     "husky": "9.1.7",
     "is-ci": "4.1.0",
