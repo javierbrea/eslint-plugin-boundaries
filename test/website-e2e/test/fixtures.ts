@@ -1,8 +1,11 @@
 import { test as base, expect } from "@playwright/test";
 import type { BrowserContext } from "@playwright/test";
 import {
+  CookieBannerPom,
+  CookiePreferencesPom,
   DocItemPom,
   DocSidebarPom,
+  FooterPom,
   NavbarPom,
   NotFoundContentPom,
   PlaygroundPagePom,
@@ -13,6 +16,15 @@ import { ClipboardWrites } from "./support/clipboard-writes";
 import { DocumentLoads } from "./support/document-loads";
 import { NOT_FOUND_PATH, PageErrors } from "./support/page-errors";
 import {
+  ANALYTICS_COOKIE_NAMES,
+  ANALYTICS_TRACKING_ID,
+  GTAG_REQUEST_URL,
+  PRODUCTION_ORIGIN,
+  type ProductionHost,
+  routeProductionHost,
+} from "./support/production-host";
+import { GOOGLE_URL_PATTERN, RequestedHosts } from "./support/requested-hosts";
+import {
   PLAYGROUND_CHUNK_MARKER,
   ScriptResponses,
 } from "./support/script-responses";
@@ -21,7 +33,24 @@ import { StartedWorkers } from "./support/started-workers";
 /** Opens a URL in a page of its own and gives the page object of the page at `/playground/`. */
 type OpenPlayground = (url: string) => Promise<PlaygroundPagePom>;
 
+/** Installs the routing of the production host in the context of the test and gives the requests to Google and the gtag commands it records. */
+type InstallProductionHost = () => Promise<ProductionHost>;
+
 type Fixtures = {
+  /** Whether the consent library sees a visitor it shows the banner to. A spec that tests the banner sets it to true; the default keeps the banner hidden, as in every other spec. */
+  consentBanner: boolean;
+  /** Applies the `consentBanner` option to the context of the test before any page loads. */
+  consentBannerSetup: void;
+  /** The consent banner, which asks for consent on a first visit. */
+  cookieBanner: CookieBannerPom;
+  /** The cookie preferences dialog. */
+  cookiePreferences: CookiePreferencesPom;
+  /** The footer of a page, with its Cookie settings button. */
+  footer: FooterPom;
+  /** The hostnames that the pages request, to tell whether one of them reached Google. */
+  requestedHosts: RequestedHosts;
+  /** Installs the production-host routing on first call, only in the tests that use it. */
+  productionHost: InstallProductionHost;
   /** Fails the test when a page logs an error to the console or throws one. It runs in every test. */
   pageErrors: PageErrors;
   /** The texts that the pages write to the clipboard, which the runner keeps in place of the system clipboard. */
@@ -52,6 +81,47 @@ type Fixtures = {
 
 /** The `test` of the suite: the one of Playwright, with the page objects of the site and the records of what its pages do. A spec imports it from here, never from `@playwright/test`. */
 export const test = base.extend<Fixtures>({
+  consentBanner: [false, { option: true }],
+  consentBannerSetup: [
+    async ({ consentBanner, context }, use) => {
+      // The consent library keeps its default `hideFromBots` and builds no banner for a browser it takes for a bot, which `navigator.webdriver` marks Playwright as. Only a spec that sets `consentBanner` gets a visitor the library shows the banner to; every other spec never sees it
+      if (consentBanner) {
+        await context.addInitScript(() => {
+          Object.defineProperty(Navigator.prototype, "webdriver", {
+            get: () => false,
+          });
+        });
+        // With the banner the library runs and a spec can accept analytics, so a gate broken on purpose would download the real gtag.js and send real hits to Google; every request to a Google host is aborted instead. The production-host routing is registered later, in the tests that use it, and Playwright runs the last matching route first, so its stub of gtag.js still answers there. Aborted requests still emit `request`, so `RequestedHosts` keeps seeing them
+        await context.route(GOOGLE_URL_PATTERN, (route) => route.abort());
+      }
+      await use();
+    },
+    { auto: true },
+  ],
+  cookieBanner: async ({ page }, use) => {
+    await use(new CookieBannerPom({ page }));
+  },
+  cookiePreferences: async ({ page }, use) => {
+    await use(new CookiePreferencesPom({ page }));
+  },
+  footer: async ({ page }, use) => {
+    await use(new FooterPom({ page }));
+  },
+  requestedHosts: async ({ context }, use) => {
+    await use(new RequestedHosts(context));
+  },
+  productionHost: async ({ baseURL, context }, use) => {
+    let routing: Promise<ProductionHost> | undefined;
+    await use(() => {
+      if (baseURL === undefined) {
+        throw new Error("The production host routing needs a baseURL");
+      }
+      if (!routing) {
+        routing = routeProductionHost(context, baseURL);
+      }
+      return routing;
+    });
+  },
   pageErrors: [
     async ({ context }, use) => {
       const pageErrors = new PageErrors(context);
@@ -130,4 +200,12 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-export { expect, NOT_FOUND_PATH, PLAYGROUND_CHUNK_MARKER };
+export {
+  ANALYTICS_COOKIE_NAMES,
+  ANALYTICS_TRACKING_ID,
+  expect,
+  GTAG_REQUEST_URL,
+  NOT_FOUND_PATH,
+  PLAYGROUND_CHUNK_MARKER,
+  PRODUCTION_ORIGIN,
+};

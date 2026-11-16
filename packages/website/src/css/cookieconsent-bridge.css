@@ -1,0 +1,64 @@
+/**
+ * Maps the `--cc-*` variables of vanilla-cookieconsent onto the `--jsb-*`
+ * design tokens. The tokens already flip under `[data-theme="dark"]`, so one
+ * mapping serves both color modes and the library's own `cc--darkmode` class
+ * is never used. It loads right after `cookieconsent.css`, which declares its
+ * defaults on `:root`, so this mapping wins by source order.
+ */
+
+:root {
+  /* type and shape */
+  --cc-font-family: var(--jsb-font-body);
+  --cc-modal-border-radius: var(--jsb-radius-xl);
+  --cc-btn-border-radius: var(--jsb-radius);
+
+  /* surfaces, text and separators */
+  --cc-bg: var(--jsb-paper-2);
+  --cc-primary-color: var(--jsb-ink);
+  --cc-secondary-color: var(--jsb-muted);
+  --cc-link-color: var(--jsb-accent);
+  --cc-separator-border-color: var(--jsb-line);
+  --cc-section-category-border: var(--jsb-line);
+  --cc-overlay-bg: color-mix(in srgb, var(--jsb-ink) 60%, transparent);
+  --cc-webkit-scrollbar-bg: var(--jsb-line);
+  --cc-webkit-scrollbar-hover-bg: var(--jsb-line-strong);
+
+  /* primary buttons */
+  --cc-btn-primary-bg: var(--jsb-accent);
+  --cc-btn-primary-color: var(--jsb-accent-ink);
+  --cc-btn-primary-border-color: var(--jsb-accent);
+  --cc-btn-primary-hover-bg: color-mix(
+    in srgb,
+    var(--jsb-accent) 82%,
+    var(--jsb-accent-ink)
+  );
+  --cc-btn-primary-hover-color: var(--jsb-accent-ink);
+  --cc-btn-primary-hover-border-color: var(--jsb-accent);
+
+  /* secondary buttons, as the bordered controls of the site */
+  --cc-btn-secondary-bg: var(--jsb-paper-2);
+  --cc-btn-secondary-color: var(--jsb-ink);
+  --cc-btn-secondary-border-color: var(--jsb-line-strong);
+  --cc-btn-secondary-hover-bg: var(--jsb-accent-soft);
+  --cc-btn-secondary-hover-color: var(--jsb-accent);
+  --cc-btn-secondary-hover-border-color: var(--jsb-accent);
+
+  /* category toggles */
+  --cc-toggle-on-bg: var(--jsb-accent);
+  --cc-toggle-on-knob-bg: var(--jsb-accent-ink);
+  --cc-toggle-off-bg: var(--jsb-faint);
+  --cc-toggle-off-knob-bg: var(--jsb-paper-2);
+  --cc-toggle-enabled-icon-color: var(--jsb-accent-ink);
+  --cc-toggle-disabled-icon-color: var(--jsb-paper-2);
+  --cc-toggle-readonly-bg: var(--jsb-line-strong);
+  --cc-toggle-readonly-knob-bg: var(--jsb-paper-2);
+  --cc-toggle-readonly-knob-icon-color: var(--jsb-muted);
+
+  /* the collapsible blocks of the preferences modal */
+  --cc-cookie-category-block-bg: var(--jsb-card);
+  --cc-cookie-category-block-border: var(--jsb-line);
+  --cc-cookie-category-block-hover-bg: var(--jsb-accent-soft);
+  --cc-cookie-category-block-hover-border: var(--jsb-accent);
+  --cc-cookie-category-expanded-block-bg: var(--jsb-paper);
+  --cc-cookie-category-expanded-block-hover-bg: var(--jsb-paper);
+}

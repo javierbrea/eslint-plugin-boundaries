@@ -89,11 +89,11 @@ website/
 ├── versioned_sidebars/      # Sidebar configuration for each released version
 ├── scripts/                 # Maintenance scripts (social card, visual check)
 ├── src/
-│   ├── client/              # Client modules loaded on every page
+│   ├── client/              # Client modules loaded on every page: the JS marker and the consent banner that loads Google Analytics
 │   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
-│   ├── css/                 # Infima mapping and global styles; the design tokens and fonts come from @boundaries/design-tokens
+│   ├── css/                 # Infima and cookieconsent mappings and global styles; the design tokens and fonts come from @boundaries/design-tokens
 │   ├── data/                # Site constants, links and live GitHub/npm stats
-│   ├── pages/               # Custom pages, including the home page
+│   ├── pages/               # Custom pages, including the home page and the Privacy page
 │   ├── prism/               # Code highlighting theme
 │   └── theme/               # Swizzled/overridden Docusaurus theme components
 ├── static/                  # Static assets (images, etc.)
@@ -120,7 +120,7 @@ This command generates a static website optimized for deployment.
 
 The website deployment is fully automated using **[Netlify](https://www.netlify.com/)**, which handles both production deployments and preview environments.
 
-The build settings live in the Netlify UI, not in this repository: base directory `/`, package directory `packages/website`, publish directory `packages/website/build`, and build command `pnpm nx run website:build`. The build goes through Nx, so the `dependsOn` of the website's `build` target in `project.json` decides what is built before the site, such as the playground.
+The build settings live in the Netlify UI, not in this repository: base directory `/`, package directory `packages/website`, publish directory `packages/website/build`, and build command `pnpm nx run website:build`. The build goes through Nx, so the `dependsOn` of the website's `build` target in `project.json` decides what is built before the site, such as the playground. `static/_redirects` and `static/_headers` hold the redirects and the response headers that Netlify applies, and the build copies them to the root of the publish directory.
 
 ### Production Deployment
 

@@ -1,0 +1,7 @@
+# cspell:ignore nosniff -- the value of X-Content-Type-Options
+# Security headers for every path. Netlify applies `_headers` to every deploy, deploy previews included.
+# Format: a path, then its headers indented as `Name: value`
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

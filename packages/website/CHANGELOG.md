@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Each version is a deployment of the website. A version without a suffix is deployed with the `eslint-plugin-boundaries` release of the same number, and adds the documentation of that release. A version with a `+rev.N` suffix, such as `7.4.1+rev.1`, is a later deployment that keeps the documentation of that version and changes the site or fixes its pages.
 
+## [7.4.1+rev.3] - 2026-11-16
+
+### Added
+
+- feat: A Privacy page at `/privacy/` says what the site collects and what it keeps in your browser; the footer links to it.
+
+### Changed
+
+- feat: The site asks for your consent before it loads Google Analytics, which runs only on www.jsboundaries.dev, and the Cookie settings button of the footer changes your choice at any time. Visits from deploy previews, local builds and the test suite are no longer counted.
+- chore: The site tells browsers not to show it inside any frame, not to guess the type of its files, and to send other sites only its origin as the referrer.
+- chore: Upgrade `@codemirror/lint` in the playground from `6.9.7` to `6.9.8`.
+
+### Fixed
+
+- fix: The playground says that the evaluation failed when its engine cannot check the options of a rule, instead of leaving the rule out and showing a project without problems.
+
 ## [7.4.1+rev.2] - 2026-11-15
 
 ### Changed

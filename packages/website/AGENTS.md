@@ -11,7 +11,7 @@ The website's version and the release steps that change it are in step 2 of "Pub
 - `docs/` is the current, unreleased documentation, organized by topic (`classification`, `guides`, `policies`, `rules`, `selectors`, `settings`, …); `sidebars.ts` defines its navigation.
 - `versioned_docs/version-<X.Y.Z>/` + `versioned_sidebars/` + `versions.json` are per-release snapshots created by Docusaurus' own versioning command. The snapshot of the latest release (the first entry in `versions.json`) is the published documentation: a change to it (a fix, a clarification, a missing page) is made in that snapshot and its sidebar, and the same change is made in `docs/`, so both stay aligned and the next release keeps it. A change that only describes unreleased behavior goes in `docs/` alone. Snapshots of older releases are never edited.
 - `algolia-config.json` is the configuration of the Algolia search index scraper.
-- The design tokens and the fonts come from `@boundaries/design-tokens` (`packages/design-tokens`), which `docusaurus.config.ts` loads in `customCss` and serves in `staticDirectories`; `src/css/` holds only the Infima mapping and the site's own rules.
+- The design tokens and the fonts come from `@boundaries/design-tokens` (`packages/design-tokens`), which `docusaurus.config.ts` loads in `customCss` and serves in `staticDirectories`; `src/css/` holds only the Infima mapping, the mapping of the `--cc-*` variables of vanilla-cookieconsent, and the site's own rules.
 
 ## Source layering
 
@@ -25,6 +25,15 @@ The code of the playground lives in `packages/playground` only. The site loads t
 - `@boundaries/playground/share` is the light entry that docs components import statically, such as `src/components/OpenInPlayground`, which computes its link while the page renders.
 
 The docs of the playground, its guide and its "Open in playground" buttons, go in `docs/` and in the snapshot of the latest release alike, because the playground is deployed with the site and not released with a package.
+
+## Consent and analytics
+
+- Google Analytics is not a Docusaurus plugin. `src/client/consent.ts` is the only code that loads it, through `src/client/analytics.ts`, only when the `analytics` category is accepted and `location.hostname` is `PRODUCTION_HOSTNAME`; deploy previews, local builds and the test suite are never counted.
+- `src/client/consent.constants.ts` is shared by `docusaurus.config.ts` (which builds `url` from `PRODUCTION_HOSTNAME`), the client module and the Playwright page objects.
+- The consent library (vanilla-cookieconsent) hides the banner from bots and from Playwright (`navigator.webdriver`), which the e2e suite and the screenshots script rely on. `respectGpc` keeps Analytics off and the banner closed while the browser sends Global Privacy Control and the visitor has made no choice.
+- The comments of `src/client/consent.ts` say how it fits the library to Docusaurus: the footer button's own attribute with a delegated listener, and the `show--*` classes kept on `<html>`.
+- When a purpose of the analytics changes, add a `revision` to the config of `consent.ts`, or raise it: it asks everyone for consent again, as `src/pages/privacy.md` promises.
+- `src/pages/privacy.md` is outside the versioned docs and changes whenever a purpose, a cookie or a storage key changes.
 
 ## Playwright page objects
 

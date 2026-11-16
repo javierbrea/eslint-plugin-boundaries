@@ -293,6 +293,21 @@
   font-size: 12px;
 }
 
+/* Footer: the "Cookie settings" button looks like the footer links next to it */
+
+.jsb-footer-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The button opens the consent preferences, so without JavaScript it does nothing: it stays hidden until motion.ts marks <html> with data-jsb-js */
+html:not([data-jsb-js]) [data-jsb-cookie-settings] {
+  display: none;
+}
+
 /* Docs: heading rhythm and paragraph spacing */
 
 .markdown {
