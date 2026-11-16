@@ -33,7 +33,7 @@ The recipient of the data is Google. The data may be processed in the United Sta
 
 To withdraw your consent, open "Cookie settings" in the footer and turn Analytics off. The site then stops sending data to Google Analytics at once and deletes the `_ga` and `_ga_QDP350TYF0` cookies. If the Google script was already loaded, it stays in the page until you reload or leave it, but sends nothing.
 
-If your browser sends the Global Privacy Control signal, Analytics stays off and the banner does not open by itself. You can still turn Analytics on in "Cookie settings".
+If your browser sends the Global Privacy Control signal before you make a choice, Analytics stays off and the banner does not open by itself. You can still turn Analytics on in "Cookie settings".
 
 ## Hosting (Netlify)
 
@@ -67,13 +67,14 @@ The [Acknowledgments](/docs/misc/acknowledgments/) page, in every version of the
 | `_ga` | cookie | Google Analytics: distinguishes users. Set only after you accept Analytics | Up to 2 years |
 | `_ga_QDP350TYF0` | cookie | Google Analytics: keeps the session state. Set only after you accept Analytics | Up to 2 years |
 | `theme-244` | localStorage | Your color mode choice (light or dark) | Until you delete it |
-| `docs-preferred-version-default-244` | localStorage | The documentation version you last visited | Until you delete it |
+| `docs-preferred-version-default-244` | localStorage | The documentation version you last picked in the version menu, or through the banner of an older version | Until you delete it |
 | `__DOCSEARCH_RECENT_SEARCHES__jsboundaries` | localStorage | Your recent searches, so the search box can show them again | Until you delete it |
 | `__DOCSEARCH_FAVORITE_SEARCHES__jsboundaries` | localStorage | The searches you mark as favorites | Until you delete it |
 | `github-stars:javierbrea/eslint-plugin-boundaries` | localStorage | Cached GitHub star count | 24 hours |
 | `npm-downloads:eslint-plugin-boundaries` | localStorage | Cached npm monthly downloads | 24 hours |
+| `algolia-client-js-<version>-Q6XU3R4537` | localStorage | The state of the Algolia servers that answer the search, set on the first search | Until you delete it |
 
-Docusaurus, which builds the site, adds the `-244` suffix to the names of its own entries. The localStorage entries stay on your device and are not sent anywhere. The cookies are sent back to the site with every request, as all cookies are, but nothing on the server reads them; the Google Analytics script sends the identifier in `_ga` to Google, as the Analytics section says.
+Docusaurus, which builds the site, adds the `-244` suffix to the names of its own entries, and `<version>` is the version of the Algolia client that the search box uses. The localStorage entries stay on your device and are not sent anywhere. The cookies are sent back to the site with every request, as all cookies are, but nothing on the server reads them; the Google Analytics script sends the identifier in `_ga` to Google, as the Analytics section says.
 
 The playground at [/playground/](/playground/) stores nothing in the browser: it keeps the project in the URL.
 

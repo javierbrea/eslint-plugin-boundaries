@@ -30,7 +30,7 @@ The docs of the playground, its guide and its "Open in playground" buttons, go i
 
 - Google Analytics is not a Docusaurus plugin. `src/client/consent.ts` is the only code that loads it, through `src/client/analytics.ts`, only when the `analytics` category is accepted and `location.hostname` is `PRODUCTION_HOSTNAME`; deploy previews, local builds and the test suite are never counted.
 - `src/client/consent.constants.ts` is shared by `docusaurus.config.ts` (which builds `url` from `PRODUCTION_HOSTNAME`), the client module and the Playwright page objects.
-- The consent library (vanilla-cookieconsent) hides the banner from bots and from Playwright (`navigator.webdriver`), which the e2e suite and the screenshots script rely on. `respectGpc` keeps Analytics off and the banner closed while the browser sends Global Privacy Control.
+- The consent library (vanilla-cookieconsent) hides the banner from bots and from Playwright (`navigator.webdriver`), which the e2e suite and the screenshots script rely on. `respectGpc` keeps Analytics off and the banner closed while the browser sends Global Privacy Control and the visitor has made no choice.
 - The comments of `src/client/consent.ts` say how it fits the library to Docusaurus: the footer button's own attribute with a delegated listener, and the `show--*` classes kept on `<html>`.
 - When a purpose of the analytics changes, add a `revision` to the config of `consent.ts`, or raise it: it asks everyone for consent again, as `src/pages/privacy.md` promises.
 - `src/pages/privacy.md` is outside the versioned docs and changes whenever a purpose, a cookie or a storage key changes.

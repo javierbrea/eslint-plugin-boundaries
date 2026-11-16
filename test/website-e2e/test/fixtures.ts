@@ -17,6 +17,7 @@ import { DocumentLoads } from "./support/document-loads";
 import { NOT_FOUND_PATH, PageErrors } from "./support/page-errors";
 import {
   ANALYTICS_COOKIE_NAMES,
+  ANALYTICS_TRACKING_ID,
   GTAG_REQUEST_URL,
   PRODUCTION_ORIGIN,
   type ProductionHost,
@@ -32,7 +33,7 @@ import { StartedWorkers } from "./support/started-workers";
 /** Opens a URL in a page of its own and gives the page object of the page at `/playground/`. */
 type OpenPlayground = (url: string) => Promise<PlaygroundPagePom>;
 
-/** Installs the routing of the production host in the context of the test and gives the requests to Google it records. */
+/** Installs the routing of the production host in the context of the test and gives the requests to Google and the gtag commands it records. */
 type InstallProductionHost = () => Promise<ProductionHost>;
 
 type Fixtures = {
@@ -201,6 +202,7 @@ export const test = base.extend<Fixtures>({
 
 export {
   ANALYTICS_COOKIE_NAMES,
+  ANALYTICS_TRACKING_ID,
   expect,
   GTAG_REQUEST_URL,
   NOT_FOUND_PATH,

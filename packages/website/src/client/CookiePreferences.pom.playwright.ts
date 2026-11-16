@@ -33,6 +33,14 @@ export class CookiePreferencesPom extends Pom {
   }
 
   /**
+   * Turns the Analytics category on, as the user does with its checkbox.
+   * @returns A promise that settles when the checkbox is checked.
+   */
+  async turnAnalyticsOn(): Promise<void> {
+    await this.analyticsCheckbox.check();
+  }
+
+  /**
    * Turns the Analytics category off, as the user does with its checkbox.
    * @returns A promise that settles when the checkbox is unchecked.
    */

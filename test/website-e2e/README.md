@@ -24,7 +24,7 @@ This private project is the sanity suite of the website and the playground: it o
 | `test/consent.spec.ts` | `desktop` | Accept all hides the banner and is remembered: after a reload the banner is not rendered and the preferences opened from the footer show Analytics on. |
 | `test/consent.spec.ts` | `desktop` | Reject all hides the banner and is remembered: after a reload the preferences show Analytics off. |
 | `test/consent.spec.ts` | `desktop` | The Cookie settings button of the footer opens the preferences after a client-side navigation, and a saved choice stays saved. |
-| `test/consent.spec.ts` | `desktop` | The control of the first case: on the production host gtag.js is not requested before a choice, is requested once after Accept all, withdrawing analytics deletes its cookies, and a reload requests it no more. |
+| `test/consent.spec.ts` | `desktop` | The control of the first case: on the production host gtag.js is not requested before a choice, is requested once after Accept all and queues its `config` and a `page_view` for a client-side navigation, withdrawing analytics deletes its cookies and queues no `page_view` for the next navigation (proved by the one the navigation after re-enabling queues), and a reload with analytics rejected requests it no more. |
 | `test/consent.spec.ts` | `desktop` | The control of the suite: without `consentBanner: true` the library builds no banner for Playwright, which keeps it out of every other spec. |
 | `test/consent.spec.ts` | `desktop` | The footer links to the privacy page. |
 

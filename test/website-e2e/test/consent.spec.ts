@@ -1,5 +1,6 @@
 import {
   ANALYTICS_COOKIE_NAMES,
+  ANALYTICS_TRACKING_ID,
   expect,
   GTAG_REQUEST_URL,
   PRODUCTION_ORIGIN,
@@ -123,6 +124,7 @@ test.describe("the consent banner", () => {
       page,
       context,
       site,
+      navbar,
       cookieBanner,
       cookiePreferences,
       footer,
@@ -140,6 +142,22 @@ test.describe("the consent banner", () => {
       await cookieBanner.acceptAll();
 
       await expect.poll(() => host.gtagRequests).toEqual([GTAG_REQUEST_URL]);
+
+      // The stand-in of gtag.js reports each command it reads from dataLayer, which only Arguments objects reach: the config proves the snippet queued its calls the way the real script reads them
+      await expect
+        .poll(() => host.gtagCommands)
+        .toContainEqual(["config", ANALYTICS_TRACKING_ID]);
+
+      await navbar.link("Getting Started").follow();
+      await expect(page).toHaveURL(`${PRODUCTION_ORIGIN}/docs/overview/`);
+
+      // A client-side navigation queues a page_view of the new path, right after the `set` of its page_path
+      await expect
+        .poll(() => host.gtagCommands.slice(-2))
+        .toEqual([
+          ["set", "page_path", "/docs/overview/"],
+          ["event", "page_view"],
+        ]);
 
       // The cookies that a loaded gtag.js sets, which the consent library deletes when analytics is withdrawn
       await context.addCookies(
@@ -160,6 +178,36 @@ test.describe("the consent banner", () => {
       await expect
         .poll(async () => (await context.cookies()).map(({ name }) => name))
         .toEqual(["cc_cookie"]);
+
+      // With analytics withdrawn a client-side navigation queues no page_view; the check of that absence waits for the command of a later navigation with Analytics on again, so it reads the record only once it could hold one. The page view of /docs/overview/ above is the control that proves the check can fail
+      await footer.privacyLink.follow();
+      await expect(page).toHaveURL(`${PRODUCTION_ORIGIN}/privacy/`);
+
+      await footer.openCookieSettings();
+      await cookiePreferences.waitUntilShown();
+      await cookiePreferences.turnAnalyticsOn();
+      await cookiePreferences.save();
+      await cookiePreferences.waitUntilHidden();
+
+      await navbar.link("Classification").follow();
+      await expect(page).toHaveURL(`${PRODUCTION_ORIGIN}/docs/classification/`);
+
+      await expect
+        .poll(() => host.gtagCommands)
+        .toContainEqual(["set", "page_path", "/docs/classification/"]);
+
+      expect(
+        host.gtagCommands
+          .filter(([command, key]) => command === "set" && key === "page_path")
+          .map(([, , path]) => path)
+      ).toEqual(["/docs/overview/", "/docs/classification/"]);
+
+      // Analytics is on again: turn it off once more before the reload, which keeps checking that a saved rejection requests no gtag.js
+      await footer.openCookieSettings();
+      await cookiePreferences.waitUntilShown();
+      await cookiePreferences.turnAnalyticsOff();
+      await cookiePreferences.save();
+      await cookiePreferences.waitUntilHidden();
 
       await page.reload();
       await site.waitUntilHydrated();
