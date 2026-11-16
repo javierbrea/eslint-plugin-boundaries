@@ -15,13 +15,8 @@ export const ANALYTICS_COOKIE_NAMES = [
   `_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}`,
 ] as const;
 
-/** The endpoint the stand-in of gtag.js reports every command to. Its pattern answers the beacons, and the stand-in takes the URL as its argument, so the address is written once. */
+/** The endpoint the stand-in of gtag.js reports every command to. A URL predicate answers the beacons, and the stand-in takes the URL as its argument, so the address is written once. */
 const COLLECT_URL = "https://www.google-analytics.com/g/collect?command=";
-
-/** The request URL pattern of the collect endpoint, which matches the beacons of the stand-in. */
-const COLLECT_URL_PATTERN = new RegExp(
-  `^${COLLECT_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`
-);
 
 /**
  * The stand-in for gtag.js that the routing serves in place of the real script, which runs in the page: as gtag.js does, it reads `window.dataLayer`, handles only the entries that are `Arguments` objects (`Object.prototype.toString` tells them apart, which is how gtag.js knows its commands from other pushes), both those queued before it loads and those pushed afterwards, and reports each one through the network only, as a `command` parameter of a beacon to the collect endpoint. It is served as `(<this function>)(<endpoint>)`, so the code the page runs is type-checked and linted here. Only its own source reaches the page: it reads nothing but its parameters and the globals of the page, since a module-level constant or an imported helper would type-check here and throw a `ReferenceError` in the browser.
@@ -102,13 +97,18 @@ export async function routeProductionHost(
   await context.route(/google-analytics\.com\//, (route) => route.abort());
 
   // Registered last so that it runs first: the beacons of the stand-in are answered here and never aborted or sent
-  await context.route(COLLECT_URL_PATTERN, async (route) => {
-    const command = new URL(route.request().url()).searchParams.get("command");
-    if (command !== null) {
-      gtagCommands.push(JSON.parse(command) as string[]);
+  await context.route(
+    (url) => url.href.startsWith(COLLECT_URL),
+    async (route) => {
+      const command = new URL(route.request().url()).searchParams.get(
+        "command"
+      );
+      if (command !== null) {
+        gtagCommands.push(JSON.parse(command) as string[]);
+      }
+      await route.fulfill({ status: 204 });
     }
-    await route.fulfill({ status: 204 });
-  });
+  );
 
   return { gtagRequests, gtagCommands };
 }
