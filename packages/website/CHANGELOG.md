@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Each version is a deployment of the website. A version without a suffix is deployed with the `eslint-plugin-boundaries` release of the same number, and adds the documentation of that release. A version with a `+rev.N` suffix, such as `7.4.1+rev.1`, is a later deployment that keeps the documentation of that version and changes the site or fixes its pages.
 
-## [Unreleased]
+## [7.4.1+rev.4] - 2026-11-19
 
 ### Added
 
@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: The consent banner is one sentence long and offers only Accept all and Reject all; the Cookie settings button of the footer still opens the preferences.
 - chore: Two build settings change how the site loads Google Analytics: `DISABLE_CONSENT_BANNER=true` loads it without a consent banner while Cookie settings can still turn it off, and `DISABLE_GOOGLE_ANALYTICS=true` leaves it, the banner and Cookie settings out of the site. The Privacy page describes the mode the site was built with.
 - docs: The Privacy page and Cookie settings no longer name the host where Google Analytics runs; where it loads has not changed.
+- chore: Upgrade `@mui/x-tree-view` in the playground from `9.17.0` to `9.18.0`, and `react-resizable-panels` from `4.16.1` to `4.22.1`.
 
 ## [7.4.1+rev.3] - 2026-11-16
 
