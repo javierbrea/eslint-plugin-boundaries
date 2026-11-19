@@ -99,13 +99,13 @@ Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking
 
 <GoogleAnalyticsModeContent modes={["opt-in", "opt-out"]}>
 
-Cloudflare Web Analytics stores and reads nothing in your browser: no cookies, localStorage, sessionStorage or IndexedDB (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). That is why it does not ask for your consent, and why neither your choice in "Cookie settings" nor the Global Privacy Control signal turns it off.
+Cloudflare Web Analytics stores nothing in your browser and reads none of its storage: no cookies, localStorage, sessionStorage or IndexedDB (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). That is why it does not ask for your consent, and why neither your choice in "Cookie settings" nor the Global Privacy Control signal turns it off.
 
 </GoogleAnalyticsModeContent>
 
 <GoogleAnalyticsModeContent modes={["disabled"]}>
 
-Cloudflare Web Analytics stores and reads nothing in your browser: no cookies, localStorage, sessionStorage or IndexedDB (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). That is why it does not ask for your consent, and why the Global Privacy Control signal does not turn it off.
+Cloudflare Web Analytics stores nothing in your browser and reads none of its storage: no cookies, localStorage, sessionStorage or IndexedDB (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). That is why it does not ask for your consent, and why the Global Privacy Control signal does not turn it off.
 
 </GoogleAnalyticsModeContent>
 

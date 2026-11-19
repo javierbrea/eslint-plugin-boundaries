@@ -158,8 +158,10 @@ Two environment variables of the build decide how the site loads Google Analytic
 | Variable | What a visitor gets |
 |---|---|
 | Neither | A consent banner asks before Google Analytics loads. While the browser sends Global Privacy Control, Analytics stays off and the banner stays closed until the visitor chooses in "Cookie settings" (footer). |
-| `DISABLE_CONSENT_BANNER=true` | No banner: Google Analytics loads on every visit until the visitor turns Analytics off in "Cookie settings" (footer). Global Privacy Control does not turn it off. A choice saved in the banner of an earlier build is kept. |
+| `DISABLE_CONSENT_BANNER=true` | No banner: Google Analytics loads on every visit until the visitor turns Analytics off in "Cookie settings" (footer). Global Privacy Control does not turn it off. |
 | `DISABLE_GOOGLE_ANALYTICS=true` | No Google Analytics, no banner and no "Cookie settings" button, and the build leaves the consent library out. |
+
+A choice that a visitor saved, in the banner or in "Cookie settings", keeps applying when the site switches between a build with neither variable and a `DISABLE_CONSENT_BANNER=true` build, in either direction: after a switch back to the banner, that visitor gets no banner and Google Analytics stays as they saved it.
 
 Whatever the variables, Google Analytics never loads outside www.jsboundaries.dev, nor for bots and automated browsers, and Cloudflare Web Analytics loads on every page of www.jsboundaries.dev. The [Privacy page](./src/pages/privacy.md) describes the mode the site was built with.
 

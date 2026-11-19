@@ -59,7 +59,7 @@ export function enableAnalytics(): void {
 }
 
 /**
- * Loads the Cloudflare Web Analytics beacon on the production hostname, whatever the consent choice, because the beacon stores and reads nothing in the browser. The beacon counts client-side navigations itself, as Cloudflare documents for single-page applications, so there is no page-view call per route. It does nothing outside the production hostname.
+ * Loads the Cloudflare Web Analytics beacon on the production hostname, whatever the consent choice, because the beacon stores nothing in the browser and reads none of the browser's storage. The beacon counts client-side navigations itself, as Cloudflare documents for single-page applications, so there is no page-view call per route. It does nothing outside the production hostname.
  */
 export function loadWebAnalytics(): void {
   if (!isProductionHost()) {
