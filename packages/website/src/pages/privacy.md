@@ -21,13 +21,13 @@ This page covers the website www.jsboundaries.dev only.
 
 <GoogleAnalyticsModeContent modes={["opt-in"]}>
 
-The site uses Google Analytics 4 only on www.jsboundaries.dev, and only after you accept the "Analytics" category in the cookie banner or in "Cookie settings" (footer). Until then the site does not load any Google script. Deploy previews and copies of the site running elsewhere never load it.
+The site uses Google Analytics 4 only after you accept the "Analytics" category in the cookie banner or in "Cookie settings" (footer). Until then the site does not load any Google script.
 
 </GoogleAnalyticsModeContent>
 
 <GoogleAnalyticsModeContent modes={["opt-out"]}>
 
-The site uses Google Analytics 4 only on www.jsboundaries.dev, and loads it on every visit, with no cookie banner, until you turn the "Analytics" category off in "Cookie settings" (footer). If you made a choice in the cookie banner of an earlier version of the site, the site keeps it: if you rejected Analytics there, it stays off. Deploy previews and copies of the site running elsewhere never load it.
+The site loads Google Analytics 4 on every visit, with no cookie banner, until you turn the "Analytics" category off in "Cookie settings" (footer). If you made a choice in the cookie banner of an earlier version of the site, the site keeps it: if you rejected Analytics there, it stays off.
 
 </GoogleAnalyticsModeContent>
 
@@ -81,19 +81,19 @@ Global Privacy Control does not turn Google Analytics off. You can turn it off i
 
 <GoogleAnalyticsModeContent modes={["opt-in"]}>
 
-Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor, including those who do not accept Google Analytics. Deploy previews and copies of the site running elsewhere never load it.
+Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor, including those who do not accept Google Analytics.
 
 </GoogleAnalyticsModeContent>
 
 <GoogleAnalyticsModeContent modes={["opt-out"]}>
 
-Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor, including those who turn Google Analytics off. Deploy previews and copies of the site running elsewhere never load it.
+Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor, including those who turn Google Analytics off.
 
 </GoogleAnalyticsModeContent>
 
 <GoogleAnalyticsModeContent modes={["disabled"]}>
 
-Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor. Deploy previews and copies of the site running elsewhere never load it.
+Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor.
 
 </GoogleAnalyticsModeContent>
 

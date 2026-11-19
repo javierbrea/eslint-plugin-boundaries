@@ -137,8 +137,8 @@ if (typeof document !== "undefined") {
                   {
                     title: CONSENT_LABELS.analyticsSection,
                     description: withoutBanner
-                      ? `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only on ${PRODUCTION_HOSTNAME} and only while it is on here, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`
-                      : `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only on ${PRODUCTION_HOSTNAME} and only if you accept, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`,
+                      ? `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only while it is on here, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`
+                      : `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only if you accept, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`,
                     linkedCategory: ANALYTICS_CATEGORY,
                   },
                   {
