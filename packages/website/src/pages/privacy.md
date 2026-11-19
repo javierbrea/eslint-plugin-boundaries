@@ -33,7 +33,23 @@ The recipient of the data is Google. The data may be processed in the United Sta
 
 To withdraw your consent, open "Cookie settings" in the footer and turn Analytics off. The site then stops sending data to Google Analytics at once and deletes the `_ga` and `_ga_QDP350TYF0` cookies. If the Google script was already loaded, it stays in the page until you reload or leave it, but sends nothing.
 
-If your browser sends the Global Privacy Control signal before you make a choice, Analytics stays off and the banner does not open by itself. You can still turn Analytics on in "Cookie settings".
+If your browser sends the Global Privacy Control signal before you make a choice, Google Analytics stays off and the banner does not open by itself. You can still turn it on in "Cookie settings".
+
+## Visit statistics (Cloudflare Web Analytics)
+
+Every page of www.jsboundaries.dev loads Cloudflare Web Analytics without asking, to count visits and page views and to measure how fast the pages load. It counts every visitor, including those who do not accept Google Analytics. Deploy previews and copies of the site running elsewhere never load it.
+
+Cloudflare Web Analytics stores and reads nothing in your browser: no cookies, localStorage, sessionStorage or IndexedDB (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). That is why it does not ask for your consent, and why neither your choice in "Cookie settings" nor the Global Privacy Control signal turns it off.
+
+For each page you visit, including those the site opens without a full reload, your browser sends Cloudflare the address of the page and of the previous page (the referrer), a random identifier of that page load, the engine and version of your browser and the version of your operating system, how much memory the page uses, and how fast the page loads and responds: its load and paint timings and its Core Web Vitals. Some of those measures point at the element of the page they measured, such as the largest element painted or the one you clicked. As any request does, it also gives Cloudflare your IP address and your browser's user agent.
+
+Cloudflare discards your IP address at the nearest Cloudflare data center and does not store it in its core databases or logs (source: [Cloudflare's documentation of the beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)).
+
+Cloudflare keeps the full data for 7 days; after that, it keeps the data aggregated down to around 10% (source: [Cloudflare Web Analytics FAQ](https://developers.cloudflare.com/web-analytics/faq/)).
+
+The legal basis is the legitimate interest in knowing how much the site is used (GDPR Art. 6(1)(f)).
+
+The recipient of the data is Cloudflare. The data may be processed in a country or region other than the one where it originated; Cloudflare, Inc. is certified under the EU-U.S. Data Privacy Framework. See [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
 
 ## Hosting (Netlify)
 
@@ -74,7 +90,7 @@ The [Acknowledgments](/docs/misc/acknowledgments/) page, in every version of the
 | `npm-downloads:eslint-plugin-boundaries` | localStorage | Cached npm monthly downloads | 24 hours |
 | `algolia-client-js-<version>-Q6XU3R4537` | localStorage | The state of the Algolia servers that answer the search, set on the first search | Until you delete it |
 
-Docusaurus, which builds the site, adds the `-244` suffix to the names of its own entries, and `<version>` is the version of the Algolia client that the search box uses. The localStorage entries stay on your device and are not sent anywhere. The cookies are sent back to the site with every request, as all cookies are, but nothing on the server reads them; the Google Analytics script sends the identifier in `_ga` to Google, as the Analytics section says.
+Docusaurus, which builds the site, adds the `-244` suffix to the names of its own entries, and `<version>` is the version of the Algolia client that the search box uses. The localStorage entries stay on your device and are not sent anywhere. The cookies are sent back to the site with every request, as all cookies are, but nothing on the server reads them; the Google Analytics script sends the identifier in `_ga` to Google, as the [Google Analytics section](#analytics-google-analytics-4) says.
 
 The playground at [/playground/](/playground/) stores nothing in the browser: it keeps the project in the URL.
 
@@ -85,11 +101,11 @@ The site has no accounts or forms, and its maintainer holds no data of his own a
 - **Withdraw your consent** at any time in "Cookie settings". It does not affect what was collected before.
 - **Delete what the site keeps in your browser**: clear the cookies and site data of www.jsboundaries.dev in your browser settings.
 - **See or erase your Google Analytics data**: Google Analytics knows you only by the random identifier in your `_ga` cookie. Send its value through the private channel of [Who runs this site](#who-runs-this-site), and the maintainer can show you or delete the data that Google Analytics keeps under it. Without it, he cannot find your data.
-- **The requests that Netlify, Algolia, GitHub and npm receive** are not linked to you on the maintainer's side. GitHub and npm receive them directly from your browser and handle them under their own privacy policies.
+- **The requests that Netlify, Cloudflare, Algolia, GitHub and npm receive** are not linked to you on the maintainer's side. GitHub and npm receive them directly from your browser and handle them under their own privacy policies.
 - **File a complaint** with the data protection authority of the EU country where you live or work.
 
 ## Changes to this page
 
-This page may change. If the purposes of the analytics change, the banner will ask for your consent again.
+This page may change. If the purposes of Google Analytics change, the banner will ask for your consent again.
 
-Last updated: November 16, 2026.
+Last updated: November 19, 2026.

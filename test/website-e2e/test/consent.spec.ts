@@ -1,21 +1,32 @@
 import {
   ANALYTICS_COOKIE_NAMES,
   ANALYTICS_TRACKING_ID,
+  BEACON_URL,
   expect,
   GTAG_REQUEST_URL,
   PRODUCTION_ORIGIN,
   test,
+  WEB_ANALYTICS_TOKEN,
 } from "./fixtures";
+
+// Copies of the texts of `CONSENT_LABELS` of `packages/website/src/client/consent.constants.ts` that the checks of the banner and of the preferences compare, since a test file cannot import it: the buttons of the banner, the question its description asks, and the titles of the section of Google Analytics and of the one of Cloudflare Web Analytics
+const BANNER_BUTTONS = ["Accept all", "Reject all"];
+const CONSENT_QUESTION =
+  "May we use Google Analytics to learn how the docs are used?";
+const ANALYTICS_SECTION = "Analytics";
+const WEB_ANALYTICS_SECTION = "Visit counts without cookies";
 
 // The banner and the preferences render the same at both viewports, in a corner
 // of the screen, so the desktop project covers them
 test.describe("the consent banner", () => {
   test.use({ consentBanner: true });
 
-  // A negative check: nothing reaches Google on the local host. Its control is
-  // the last case, which sees gtag.js load on the production host
+  // A negative check: nothing reaches Google or Cloudflare on the local host.
+  // Its controls are the cases on the production host, which see gtag.js load
+  // after consent and the beacon of Cloudflare Web Analytics load before any
+  // choice
   test(
-    "a first visit asks for consent and sends nothing to Google, before or after accepting all",
+    "a first visit asks for consent and sends nothing to Google or Cloudflare, before or after accepting all",
     { tag: "@desktop" },
     async ({
       page,
@@ -30,12 +41,17 @@ test.describe("the consent banner", () => {
       await site.waitUntilHydrated();
       await cookieBanner.waitUntilShown();
 
+      // The banner asks only about Google Analytics and offers only the two choices: the preferences open from the footer
+      expect(await cookieBanner.buttonNames).toEqual(BANNER_BUTTONS);
+      expect(await cookieBanner.description).toContain(CONSENT_QUESTION);
+
       expect(requestedHosts.requestedGoogle).toBe(false);
+      expect(requestedHosts.requestedCloudflare).toBe(false);
 
       await cookieBanner.acceptAll();
       await cookieBanner.waitUntilHidden();
 
-      // A broken hostname gate would request gtag.js a moment after the click, and the `request` event can reach the runner after `waitUntilHidden` settles; after a reload, opening the preferences proves the library has run and called its consent callback with Analytics accepted. The local host is not the production one, so even that consent loads nothing
+      // A broken hostname gate would request gtag.js a moment after the click, and the `request` event can reach the runner after `waitUntilHidden` settles; after a reload, opening the preferences proves the library has run and called its consent callback with Analytics accepted. The client module that loads the beacon of Cloudflare Web Analytics runs before the hydration of each page load, so its requests, if any, were made long before. The local host is not the production one, so neither the page loads nor that consent request anything from Google or Cloudflare
       await page.reload();
       await site.waitUntilHydrated();
       await footer.openCookieSettings();
@@ -43,6 +59,18 @@ test.describe("the consent banner", () => {
       await cookiePreferences.waitUntilAnalyticsOn();
 
       expect(requestedHosts.requestedGoogle).toBe(false);
+      expect(requestedHosts.requestedCloudflare).toBe(false);
+
+      // The preferences describe Cloudflare Web Analytics in a section that has no toggle, since no choice turns it off; the toggle of the Analytics section is the control that proves the check of its absence can fail
+      expect(
+        await cookiePreferences.isSectionShown(WEB_ANALYTICS_SECTION)
+      ).toBe(true);
+      expect(
+        await cookiePreferences.hasSectionToggle(WEB_ANALYTICS_SECTION)
+      ).toBe(false);
+      expect(await cookiePreferences.hasSectionToggle(ANALYTICS_SECTION)).toBe(
+        true
+      );
     }
   );
 
@@ -114,9 +142,46 @@ test.describe("the consent banner", () => {
     }
   );
 
-  // The control of the first case: on the production host the same consent
-  // loads Google Analytics, which proves the hostname gate and the consent
-  // gate of the negative checks above can both pass
+  // The control of the Cloudflare checks of the first case: on the production
+  // host the beacon of Cloudflare Web Analytics loads before any choice and
+  // again after Reject all, while gtag.js waits for consent
+  test(
+    "on the production host Cloudflare Web Analytics loads before any choice and after rejecting all",
+    { tag: "@desktop" },
+    async ({ page, site, cookieBanner, requestedHosts, productionHost }) => {
+      const host = await productionHost();
+
+      await page.goto(`${PRODUCTION_ORIGIN}/`);
+
+      await site.waitUntilHydrated();
+      await cookieBanner.waitUntilShown();
+
+      // The stand-in of the beacon reports the config it reads from the `data-cf-beacon` attribute of its script, as the real beacon reads it
+      await expect
+        .poll(() => host.beaconConfigs)
+        .toEqual([{ token: WEB_ANALYTICS_TOKEN }]);
+      expect(host.beaconRequests).toEqual([BEACON_URL]);
+      expect(requestedHosts.requestedCloudflare).toBe(true);
+      expect(host.gtagRequests).toEqual([]);
+
+      await cookieBanner.rejectAll();
+      await cookieBanner.waitUntilHidden();
+
+      await page.reload();
+      await site.waitUntilHydrated();
+
+      await expect
+        .poll(() => host.beaconConfigs)
+        .toEqual([
+          { token: WEB_ANALYTICS_TOKEN },
+          { token: WEB_ANALYTICS_TOKEN },
+        ]);
+    }
+  );
+
+  // The control of the Google checks of the first case: on the production host
+  // the same consent loads Google Analytics, which proves the hostname gate and
+  // the consent gate of the negative checks above can both pass
   test(
     "on the production host Google Analytics loads only after consent, and withdrawing it deletes its cookies",
     { tag: "@desktop" },
@@ -222,6 +287,45 @@ test.describe("the consent banner", () => {
   );
 });
 
+test.describe("a browser that sends Global Privacy Control", () => {
+  test.use({ consentBanner: true, globalPrivacyControl: true });
+
+  // A negative check: with Global Privacy Control the library builds no banner
+  // and keeps Google Analytics off. Its controls are the first case of the
+  // suite, which sees the banner without the signal, and the Google Analytics
+  // case on the production host, which sees gtag.js load after Accept all
+  test(
+    "on the production host Cloudflare Web Analytics loads, and neither the banner nor Google Analytics does",
+    { tag: "@desktop" },
+    async ({
+      page,
+      site,
+      cookieBanner,
+      cookiePreferences,
+      footer,
+      productionHost,
+    }) => {
+      const host = await productionHost();
+
+      await page.goto(`${PRODUCTION_ORIGIN}/`);
+
+      await site.waitUntilHydrated();
+
+      await expect
+        .poll(() => host.beaconConfigs)
+        .toEqual([{ token: WEB_ANALYTICS_TOKEN }]);
+
+      // The library loads in its own chunk and builds the banner, when it does, in run(); opening the preferences proves it has run, since the client module opens them only then
+      await footer.openCookieSettings();
+      await cookiePreferences.waitUntilShown();
+      await cookiePreferences.waitUntilAnalyticsOff();
+
+      await expect.poll(() => cookieBanner.isRendered).toBe(false);
+      expect(host.gtagRequests).toEqual([]);
+    }
+  );
+});
+
 test.describe("the consent banner in an automated browser", () => {
   // A negative check: Playwright is a bot to the consent library, which builds
   // no banner for it. Its control is the first case of the suite, which sees
@@ -235,6 +339,25 @@ test.describe("the consent banner in an automated browser", () => {
       await site.waitUntilHydrated();
 
       await expect.poll(() => cookieBanner.isRendered).toBe(false);
+    }
+  );
+});
+
+test.describe("an automated browser", () => {
+  // Without `consentBanner` the browser keeps `navigator.webdriver`, which every other production-host case hides: the beacon of Cloudflare Web Analytics loads for a bot too, since nothing but the hostname gates it
+  test(
+    "on the production host Cloudflare Web Analytics loads in an automated browser too",
+    { tag: "@desktop" },
+    async ({ page, site, productionHost }) => {
+      const host = await productionHost();
+
+      await page.goto(`${PRODUCTION_ORIGIN}/`);
+
+      await site.waitUntilHydrated();
+
+      await expect
+        .poll(() => host.beaconConfigs)
+        .toEqual([{ token: WEB_ANALYTICS_TOKEN }]);
     }
   );
 });

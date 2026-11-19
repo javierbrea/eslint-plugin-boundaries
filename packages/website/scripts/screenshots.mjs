@@ -25,8 +25,14 @@ const VIEWPORTS = [
 const THEMES = ["light", "dark"];
 // The hero drawing finishes drawing itself 2.8s after load
 const SETTLE_MS = 3000;
-// Live stats fall back to static values when these APIs fail (rate limits), so their errors are expected
+// Live stats fall back to static values when these APIs fail (rate limits), so their errors are expected, the CORS block of an answer with no CORS header included. The same hosts as `test/website-e2e/test/support/page-errors.ts`
 const TOLERATED_ERROR_HOSTS = ["api.github.com", "api.npmjs.org"];
+// What Chromium logs when CORS blocks a fetch, with the page as the location of the message: the first URL it quotes is the one of the request, after any redirect. The same pattern as `test/website-e2e/test/support/page-errors.ts`
+const CORS_BLOCK_ERROR =
+  /^Access to fetch at '([^']+)' (?:\(redirected from '[^']*'\) )?from origin '[^']*' has been blocked by CORS policy: /;
+// The hosts of Cloudflare Web Analytics: the one that serves the beacon, which the site loads on the production host whatever the consent, and the one that collects its reports. The same pattern as `test/website-e2e/test/support/requested-hosts.ts`
+const CLOUDFLARE_URL_PATTERN =
+  /^https:\/\/([^/]*\.)?cloudflareinsights\.com(\/|$)/;
 // The only path allowed to answer 404, so that a mistyped path still fails
 const NOT_FOUND_PATH = "/this-page-does-not-exist/";
 
@@ -50,8 +56,19 @@ function pageName(path) {
   return path.replace(/^\/|\/$/g, "").replace(/\//g, "-") || "home";
 }
 
-function isTolerated(url = "") {
-  return TOLERATED_ERROR_HOSTS.some((host) => url.includes(host));
+function isToleratedHost(url) {
+  if (!url) {
+    return false;
+  }
+  try {
+    return TOLERATED_ERROR_HOSTS.includes(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isToleratedCorsBlock(text) {
+  return isToleratedHost(CORS_BLOCK_ERROR.exec(text)?.[1]);
 }
 
 async function capture(chrome, url, name, viewport, theme, expectNotFound) {
@@ -59,6 +76,10 @@ async function capture(chrome, url, name, viewport, theme, expectNotFound) {
     viewport: { width: viewport.width, height: viewport.height },
     colorScheme: theme,
   });
+  // A run against the production host would load the real beacon and count each capture as a visit; an empty answer stops it without the console error of an aborted request
+  await context.route(CLOUDFLARE_URL_PATTERN, (route) =>
+    route.fulfill({ contentType: "text/javascript", body: "" })
+  );
   // Docusaurus reads the stored choice before the first paint
   await context.addInitScript((value) => {
     try {
@@ -71,7 +92,11 @@ async function capture(chrome, url, name, viewport, theme, expectNotFound) {
   const errors = [];
   page.on("pageerror", (error) => errors.push({ text: error.message }));
   page.on("console", (message) => {
-    if (message.type() === "error" && !isTolerated(message.location().url)) {
+    if (
+      message.type() === "error" &&
+      !isToleratedHost(message.location().url) &&
+      !isToleratedCorsBlock(message.text())
+    ) {
       errors.push({ text: message.text(), url: message.location().url });
     }
   });

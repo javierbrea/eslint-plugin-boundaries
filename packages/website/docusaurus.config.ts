@@ -119,7 +119,11 @@ const config: Config = {
       },
     }),
   ],
-  clientModules: ["./src/client/motion.ts", "./src/client/consent.ts"],
+  clientModules: [
+    "./src/client/motion.ts",
+    "./src/client/web-analytics.ts",
+    "./src/client/consent.ts",
+  ],
   customFields: {
     // Build year, used by useCurrentYear as its SSR and hydration snapshot
     buildYear: new Date().getFullYear(),

@@ -98,10 +98,9 @@ if (typeof document !== "undefined") {
             en: {
               consentModal: {
                 title: CONSENT_LABELS.consentTitle,
-                description: `This site uses Google Analytics, only if you accept and only on ${PRODUCTION_HOSTNAME}, to learn how the documentation is used. The <a href="/privacy/">Privacy page</a> has the details.`,
+                description: `${CONSENT_LABELS.consentQuestion} Details in the <a href="/privacy/">Privacy page</a>.`,
                 acceptAllBtn: CONSENT_LABELS.acceptAll,
                 acceptNecessaryBtn: CONSENT_LABELS.rejectAll,
-                showPreferencesBtn: CONSENT_LABELS.managePreferences,
               },
               preferencesModal: {
                 title: CONSENT_LABELS.preferencesTitle,
@@ -125,6 +124,10 @@ if (typeof document !== "undefined") {
                     title: CONSENT_LABELS.analyticsSection,
                     description: `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only on ${PRODUCTION_HOSTNAME} and only if you accept, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`,
                     linkedCategory: ANALYTICS_CATEGORY,
+                  },
+                  {
+                    title: CONSENT_LABELS.webAnalyticsSection,
+                    description: `Cloudflare Web Analytics counts the visits and page views of ${PRODUCTION_HOSTNAME} and measures how fast its pages load, for every visitor. It sets no cookies and stores nothing in your browser, so it runs whatever you choose here.`,
                   },
                   {
                     title: "More information",

@@ -22,14 +22,53 @@ export class CookiePreferencesPom extends Pom {
   }
 
   /**
+   * The title of a section, as the library builds it: a heading when the section has no toggle, and the button that expands the section when it has one.
+   * @param title The title of the section, which must be the whole of it.
+   * @returns The locator of the title.
+   */
+  private sectionTitle(title: string): Locator {
+    const titleName = { name: title, exact: true };
+
+    return this.root
+      .getByRole("heading", titleName)
+      .or(this.root.getByRole("button", titleName));
+  }
+
+  /**
+   * The checkbox that turns on and off the category of a section, named with the title of the section. The library builds it only for a section linked to a category.
+   * @param title The title of the section, which must be the whole of it.
+   * @returns The locator of the checkbox.
+   */
+  private sectionToggle(title: string): Locator {
+    return this.root.getByRole("checkbox", { name: title, exact: true });
+  }
+
+  /**
    * The checkbox of the Analytics category, named with the title of its section.
    * @returns The locator of the checkbox.
    */
   private get analyticsCheckbox(): Locator {
-    return this.root.getByRole("checkbox", {
-      name: CONSENT_LABELS.analyticsSection,
-      exact: true,
-    });
+    return this.sectionToggle(CONSENT_LABELS.analyticsSection);
+  }
+
+  /**
+   * Whether the dialog shows a section with a given title. It reads once and does not wait.
+   * @param title The title of the section, which must be the whole of it, such as `Analytics`.
+   * @returns A promise of true when the title of the section is visible.
+   */
+  async isSectionShown(title: string): Promise<boolean> {
+    const visibleTitles = this.sectionTitle(title).filter({ visible: true });
+
+    return (await visibleTitles.count()) > 0;
+  }
+
+  /**
+   * Whether the section with a given title has a toggle, the checkbox that turns its category on and off. It reads once and does not wait.
+   * @param title The title of the section, which must be the whole of it, such as `Analytics`.
+   * @returns A promise of true when the dialog has a checkbox named with the title.
+   */
+  async hasSectionToggle(title: string): Promise<boolean> {
+    return (await this.sectionToggle(title).count()) > 0;
   }
 
   /**

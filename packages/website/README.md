@@ -89,7 +89,7 @@ website/
 ├── versioned_sidebars/      # Sidebar configuration for each released version
 ├── scripts/                 # Maintenance scripts (social card, visual check)
 ├── src/
-│   ├── client/              # Client modules loaded on every page: the JS marker and the consent banner that loads Google Analytics
+│   ├── client/              # Client modules loaded on every page: the JS marker, the loader of Cloudflare Web Analytics and the consent banner that loads Google Analytics
 │   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
 │   ├── css/                 # Infima and cookieconsent mappings and global styles; the design tokens and fonts come from @boundaries/design-tokens
 │   ├── data/                # Site constants, links and live GitHub/npm stats
