@@ -29,13 +29,10 @@
     },
     "test:unit": {
       "cache": true,
-      "inputs": [
-        { "dependentTasksOutputFiles": "**/*", "transitive": true },
-        "default"
-      ],
-      "dependsOn": [
-        "build"
-      ],
+      // The files of the project only: the target has no dependency whose outputs it reads
+      "inputs": ["default"],
+      // The specs import only sources of the site, so neither the site nor the packages it imports are built first
+      "dependsOn": [],
       "outputs": [
         "{projectRoot}/coverage"
       ]
@@ -76,6 +73,9 @@
         "production",
         // The site bundles the tokens of @boundaries/design-tokens and serves its fonts, and the package has no build to depend on
         { "input": "assets", "projects": ["design-tokens"] },
+        // The build reads them to choose the mode of Google Analytics, so a cached build of another mode is never reused
+        { "env": "DISABLE_CONSENT_BANNER" },
+        { "env": "DISABLE_GOOGLE_ANALYTICS" },
         // The Playwright page objects build on their own (build:playwright), and nothing the site imports reaches them
         "!{projectRoot}/tsup.playwright.config.js",
         "!{projectRoot}/src/playwright.ts",

@@ -25,7 +25,7 @@
     "social-card": "playwright install chromium && node scripts/social-card.mjs",
     "swizzle": "docusaurus swizzle",
     "clear": "docusaurus clear",
-    "test:unit": "jest --passWithNoTests",
+    "test:unit": "jest",
     "version": "docusaurus docs:version"
   },
   "dependencies": {

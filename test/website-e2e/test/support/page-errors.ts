@@ -7,8 +7,12 @@ import type {
 /** The only path that answers 404 on purpose, as in `packages/website/scripts/screenshots.mjs`. A spec visits it to see the 404 page of the site, and the browser logs the 404 status of its document as an error. */
 export const NOT_FOUND_PATH = "/this-page-does-not-exist/";
 
-// The live stats of the site fall back to static values when these APIs fail, such as when they rate-limit, so their errors are expected. The same hosts as `packages/website/scripts/screenshots.mjs`
+// The live stats of the site fall back to static values when these APIs fail, such as when they rate-limit, so their errors are expected, the CORS block of an answer that has no CORS header included. The same hosts as `packages/website/scripts/screenshots.mjs`
 const TOLERATED_ERROR_HOSTS = ["api.github.com", "api.npmjs.org"];
+
+// What Chromium logs when CORS blocks a fetch, with the URL of the page as the location of the message: the first URL it quotes is the one of the request, after any redirect. The live stats are requested with `fetch` only. The same pattern as `packages/website/scripts/screenshots.mjs`
+const CORS_BLOCK_ERROR =
+  /^Access to fetch at '([^']+)' (?:\(redirected from '[^']*'\) )?from origin '[^']*' has been blocked by CORS policy: /;
 
 // What Chromium logs for the response of a document that answers 404, with the URL of that document as the location of the message. An error that the document itself raises, such as an inline script that logs one, has the same URL and another text
 const NOT_FOUND_STATUS_ERROR =
@@ -28,10 +32,14 @@ function isToleratedHost(url: string | undefined): boolean {
   }
 }
 
+function isToleratedCorsBlock(text: string): boolean {
+  return isToleratedHost(CORS_BLOCK_ERROR.exec(text)?.[1]);
+}
+
 /**
  * The errors that the pages of a browser context log to the console or throw, which a test must not leave behind. It listens to every page of the context, the ones a spec opens included, from the moment it is built.
  *
- * Two kinds of error are expected and left out: those of a request to a host of {@link TOLERATED_ERROR_HOSTS}, and the error that the browser logs for the 404 status of the document of {@link NOT_FOUND_PATH}, which has the URL of that document and the text of that status. Any other error with the URL of that document, such as one that its own script logs, is not left out. A spec holds no selector or exception for them.
+ * Two kinds of error are expected and left out: those of a request to a host of {@link TOLERATED_ERROR_HOSTS}, whether the message has the URL of that request or, as the CORS block of a fetch does, has the URL of the page and quotes the URL of the request in its text, and the error that the browser logs for the 404 status of the document of {@link NOT_FOUND_PATH}, which has the URL of that document and the text of that status. Any other error with the URL of that document, such as one that its own script logs, is not left out. A spec holds no selector or exception for them.
  */
 export class PageErrors {
   private readonly errors: PageError[] = [];
@@ -55,10 +63,11 @@ export class PageErrors {
       return;
     }
 
+    const text = message.text();
     const { url } = message.location();
 
-    if (!isToleratedHost(url)) {
-      this.errors.push({ text: message.text(), url });
+    if (!isToleratedHost(url) && !isToleratedCorsBlock(text)) {
+      this.errors.push({ text, url });
     }
   }
 

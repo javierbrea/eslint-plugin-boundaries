@@ -1,6 +1,10 @@
 import type { ClientModule } from "@docusaurus/types";
+import siteConfig from "@generated/docusaurus.config";
+
+import { readGoogleAnalyticsMode } from "../data/site/googleAnalyticsMode";
 
 import { disableAnalytics, enableAnalytics, sendPageView } from "./analytics";
+import { getConsentModeOptions } from "./consent-options";
 import {
   ANALYTICS_CATEGORY,
   ANALYTICS_TRACKING_ID,
@@ -13,6 +17,13 @@ import {
 // document. The consent library is loaded with a dynamic import, so it stays a
 // chunk of its own and the server render never touches it.
 if (typeof document !== "undefined") {
+  // A client module cannot call hooks, so it reads the site config that
+  // useDocusaurusContext returns from its module
+  const consentModeOptions = getConsentModeOptions(
+    readGoogleAnalyticsMode(siteConfig.customFields)
+  );
+  const withoutBanner = consentModeOptions.mode === "opt-out";
+
   const cookieConsentReady = import("vanilla-cookieconsent")
     .then(async (cookieConsent) => {
       const { acceptedCategory, run } = cookieConsent;
@@ -62,15 +73,17 @@ if (typeof document !== "undefined") {
             readOnly: true,
           },
           [ANALYTICS_CATEGORY]: {
+            enabled: consentModeOptions.analyticsEnabled,
             // Erases the `_ga` cookies that gtag.js sets on the parent domain `.jsboundaries.dev`: the eraser reaches it only because PRODUCTION_HOSTNAME starts with `www.`
             autoClear: {
               cookies: [{ name: /^_ga/ }],
             },
           },
         },
-        // A browser that sends Global Privacy Control keeps the analytics
-        // category off and the consent modal closed until the user chooses
-        respectGpc: true,
+        // What each mode of Google Analytics sets, and why: consent-options.ts
+        mode: consentModeOptions.mode,
+        autoShow: consentModeOptions.autoShow,
+        respectGpc: consentModeOptions.respectGpc,
         onConsent: syncAnalytics,
         onChange: syncAnalytics,
         onModalShow: ({ modalName }) => {
@@ -98,10 +111,9 @@ if (typeof document !== "undefined") {
             en: {
               consentModal: {
                 title: CONSENT_LABELS.consentTitle,
-                description: `This site uses Google Analytics, only if you accept and only on ${PRODUCTION_HOSTNAME}, to learn how the documentation is used. The <a href="/privacy/">Privacy page</a> has the details.`,
+                description: `${CONSENT_LABELS.consentQuestion} Details in the <a href="/privacy/">Privacy page</a>.`,
                 acceptAllBtn: CONSENT_LABELS.acceptAll,
                 acceptNecessaryBtn: CONSENT_LABELS.rejectAll,
-                showPreferencesBtn: CONSENT_LABELS.managePreferences,
               },
               preferencesModal: {
                 title: CONSENT_LABELS.preferencesTitle,
@@ -117,14 +129,21 @@ if (typeof document !== "undefined") {
                   },
                   {
                     title: "Strictly necessary",
-                    description:
-                      "The <code>cc_cookie</code> cookie keeps your consent choice for 182 days, whatever you choose, so the banner does not ask again on every visit.",
+                    description: withoutBanner
+                      ? "The <code>cc_cookie</code> cookie keeps your choice for 182 days, so the site remembers it on every visit."
+                      : "The <code>cc_cookie</code> cookie keeps your consent choice for 182 days, whatever you choose, so the banner does not ask again on every visit.",
                     linkedCategory: "necessary",
                   },
                   {
                     title: CONSENT_LABELS.analyticsSection,
-                    description: `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only on ${PRODUCTION_HOSTNAME} and only if you accept, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`,
+                    description: withoutBanner
+                      ? `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only while it is on here, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`
+                      : `Google Analytics 4 collects aggregated statistics about how the documentation is used. It runs only if you accept, and it sets the <code>_ga</code> and <code>_ga_${ANALYTICS_TRACKING_ID.replace(/^G-/, "")}</code> cookies.`,
                     linkedCategory: ANALYTICS_CATEGORY,
+                  },
+                  {
+                    title: CONSENT_LABELS.webAnalyticsSection,
+                    description: `Cloudflare Web Analytics counts the visits and page views of ${PRODUCTION_HOSTNAME} and measures how fast its pages load, for every visitor. It sets no cookies and stores nothing in your browser, so it runs whatever you choose here.`,
                   },
                   {
                     title: "More information",
@@ -137,6 +156,13 @@ if (typeof document !== "undefined") {
           },
         },
       });
+
+      // In opt-out mode the library accepts the analytics category before any
+      // saved choice, but fires no onConsent: the end of its run() fires it
+      // only when the saved consent is valid. So the site syncs itself. In the
+      // default mode this only sets Google's disable flag, or repeats an
+      // enableAnalytics() that does nothing more once gtag.js is loaded
+      syncAnalytics();
 
       return cookieConsent;
     })
