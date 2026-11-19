@@ -22,6 +22,22 @@ export class CookieBannerPom extends Pom {
   }
 
   /**
+   * The text of each button of the banner, which is its accessible name, in the order of the page. It reads once and does not wait.
+   * @returns A promise of the texts, which is empty when the banner is not in the page.
+   */
+  get buttonNames(): Promise<string[]> {
+    return this.root.getByRole("button").allTextContents();
+  }
+
+  /**
+   * The description of the banner, the paragraph below its title. It reads once and does not wait.
+   * @returns A promise of the text of the paragraph, which is empty when the banner is not in the page.
+   */
+  get description(): Promise<string> {
+    return this.readText(this.root.getByRole("paragraph"));
+  }
+
+  /**
    * Accepts every category, as the user does with the Accept all button.
    * @returns A promise that settles when the button is clicked.
    */
@@ -38,19 +54,6 @@ export class CookieBannerPom extends Pom {
   async rejectAll(): Promise<void> {
     await this.root
       .getByRole("button", { name: CONSENT_LABELS.rejectAll, exact: true })
-      .click();
-  }
-
-  /**
-   * Opens the cookie preferences, as the user does with the Manage preferences button. The caller waits for the dialog with its page object.
-   * @returns A promise that settles when the button is clicked.
-   */
-  async openPreferences(): Promise<void> {
-    await this.root
-      .getByRole("button", {
-        name: CONSENT_LABELS.managePreferences,
-        exact: true,
-      })
       .click();
   }
 

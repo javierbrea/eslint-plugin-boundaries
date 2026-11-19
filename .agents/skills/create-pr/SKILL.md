@@ -57,6 +57,7 @@ Provide (optional; a sensible default applies):
 9. **Determine labels from the actual changes.** The labels and what each one covers are in the "Bookkeeping" section of the `create-issue` skill. For a pull request:
    - Type: `type: bug` (branch prefix `fix/`/`bug/`, or `fix(...)` commits) or `type: feature` (branch prefix `feat/`). For other prefixes, do not force `type: bug`/`type: feature`; ask the user if a type label should be applied (for example `type: task`).
    - Scope: the `scope:` labels of the files changed in the diff, one or more.
+   - Breaking: `breaking-change` when the issue from step 4 has it, or when the changes need a MAJOR version of a published package.
 
 10. **Create or update the pull request.** Check whether a pull request already exists for the current branch. If one exists, update it and leave its existing draft/ready state unchanged (never promote or demote it). Otherwise create a new pull request targeting `target_branch`, **explicitly as a draft**; do not switch a newly created pull request to ready for review.
 

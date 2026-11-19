@@ -1,6 +1,7 @@
 import {
   ANALYTICS_TRACKING_ID,
   PRODUCTION_HOSTNAME,
+  WEB_ANALYTICS_TOKEN,
 } from "./consent.constants";
 
 declare global {
@@ -15,13 +16,16 @@ declare global {
 
 const GA_DISABLE_FLAG = `ga-disable-${ANALYTICS_TRACKING_ID}`;
 
+const WEB_ANALYTICS_BEACON_URL =
+  "https://static.cloudflareinsights.com/beacon.min.js";
+
 // `window.gtag` is typed as always defined by the `Gtag` global of the vendored
 // types of @docusaurus/plugin-google-gtag (pulled in by the preset types), so a
 // module flag is the "loaded" signal instead
 let loaded = false;
 
 /**
- * Whether the site is being served from the production hostname. Google Analytics never loads anywhere else, so deploy previews, local builds and the test suite are not counted.
+ * Whether the site is being served from the production hostname. Google Analytics and Cloudflare Web Analytics never load anywhere else, so deploy previews, local builds and the test suite are not counted.
  *
  * @returns `true` only on `PRODUCTION_HOSTNAME`.
  */
@@ -52,6 +56,23 @@ export function enableAnalytics(): void {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_TRACKING_ID}`;
   document.head.appendChild(script);
   loaded = true;
+}
+
+/**
+ * Loads the Cloudflare Web Analytics beacon on the production hostname, whatever the consent choice, because the beacon stores nothing in the browser and reads none of the browser's storage. The beacon counts client-side navigations itself, as Cloudflare documents for single-page applications, so there is no page-view call per route. It does nothing outside the production hostname.
+ */
+export function loadWebAnalytics(): void {
+  if (!isProductionHost()) {
+    return;
+  }
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = WEB_ANALYTICS_BEACON_URL;
+  script.setAttribute(
+    "data-cf-beacon",
+    JSON.stringify({ token: WEB_ANALYTICS_TOKEN })
+  );
+  document.head.appendChild(script);
 }
 
 /**

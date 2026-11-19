@@ -28,6 +28,9 @@ const PLAYWRIGHT_MODULES = [
   },
 ];
 
+const CONSENT_LIBRARY_MESSAGE =
+  "Only src/client/consent.ts loads the consent library and only the customCss of docusaurus.config.ts loads its CSS, so that a build without Google Analytics bundles none of it.";
+
 export default [
   ...config,
   {
@@ -51,12 +54,12 @@ export default [
       "import/no-unresolved": [
         2,
         {
-          ignore: ["^@theme", "^@docusaurus", "^@site"],
+          ignore: ["^@theme", "^@docusaurus", "^@site", "^@generated"],
         },
       ],
     },
   },
-  // The main entry of the playground loads only in its own chunk, so no file imports a value from it statically; the docs components import `@boundaries/playground/share`, its light entry, statically
+  // The main entry of the playground loads only in its own chunk, so no file imports a value from it statically; the docs components import `@boundaries/playground/share`, its light entry, statically. The consent library is loaded only by `src/client/consent.ts`, with import(), and its CSS only by the `customCss` of `docusaurus.config.ts`, so no file imports it or one of its files statically, types aside: the builds without Google Analytics leave both out and bundle none of the library
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
@@ -69,6 +72,18 @@ export default [
               allowTypeImports: true,
               message:
                 "Load the playground with import() inside React.lazy, so that only its page requests the chunk.",
+            },
+            {
+              name: "vanilla-cookieconsent",
+              allowTypeImports: true,
+              message: CONSENT_LIBRARY_MESSAGE,
+            },
+          ],
+          patterns: [
+            {
+              group: ["vanilla-cookieconsent/*"],
+              allowTypeImports: true,
+              message: CONSENT_LIBRARY_MESSAGE,
             },
           ],
         },
@@ -161,6 +176,10 @@ export default [
             {
               from: { element: { type: "docs-component" } },
               allow: { to: { element: { type: ["prism", "ui", "data"] } } },
+            },
+            {
+              from: { element: { type: "client" } },
+              allow: { to: { element: { type: "data" } } },
             },
             // The Playwright files run in Node.js, in the Playwright runner, and never in the site: only they import each other, the entry and the packages of the browser tests. Each of them imports only those packages, the page objects of the site and constants files, so that its build holds no React, Docusaurus or component. These come last because the last policy that matches wins
             {

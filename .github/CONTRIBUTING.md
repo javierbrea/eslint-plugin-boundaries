@@ -147,7 +147,11 @@ First of all, you should know that the repository follows the [Semantic Versioni
  
 Please, follow these rules to update the version number:
 
-* __MAJOR__: When you make incompatible API changes.
+* __MAJOR__: When:
+   * You make incompatible API changes, such as removing an option or changing a default value.
+   * You change the published types so that code that type-checked against them stops type-checking, even if that code failed at runtime.
+   * You drop a Node.js version from the `engines.node` field of a published package.
+   * You stop publishing a package under one of its names.
 * __MINOR__: When you add functionality in a backwards-compatible manner.
 * __PATCH__: When:
    * You make backwards-compatible bug fixes.
