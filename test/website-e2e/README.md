@@ -56,6 +56,8 @@ pnpm exec playwright test test/playground-chunk.spec.ts --project=narrow
 
 `pnpm exec playwright test --ui` opens the Playwright UI, and `--debug` runs a test step by step. Run `pnpm nx build website` again after a change in the site or in the playground, since the suite serves the build.
 
+The suite covers only the default mode of Google Analytics, so run both `pnpm nx test:e2e website-e2e` and `pnpm nx build website` with neither `DISABLE_CONSENT_BANNER` nor `DISABLE_GOOGLE_ANALYTICS` set (the [website README](../../packages/website/README.md#google-analytics-settings) describes them).
+
 ## Reading a failure
 
 - A failure names the project (`[desktop]` or `[narrow]`), the spec and the test, and shows the line of the assertion that failed.

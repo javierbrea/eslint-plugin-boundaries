@@ -8,9 +8,16 @@ import {
   COOKIE_SETTINGS_LABEL,
   PRODUCTION_HOSTNAME,
 } from "./src/client/consent.constants";
+import {
+  GOOGLE_ANALYTICS_MODE_FIELD,
+  resolveGoogleAnalyticsMode,
+} from "./src/data/site/googleAnalyticsMode";
 import { blueprintTheme } from "./src/prism/blueprintTheme";
 
 const IS_DEV = process.env.NODE_ENV === "development";
+const GOOGLE_ANALYTICS_MODE = resolveGoogleAnalyticsMode(process.env);
+// A build without Google Analytics leaves out the consent module, the consent library with its styles and the Cookie settings button
+const HAS_GOOGLE_ANALYTICS = GOOGLE_ANALYTICS_MODE !== "disabled";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -122,11 +129,14 @@ const config: Config = {
   clientModules: [
     "./src/client/motion.ts",
     "./src/client/web-analytics.ts",
-    "./src/client/consent.ts",
+    // The only module that imports the consent library, so without it the library is not bundled
+    ...(HAS_GOOGLE_ANALYTICS ? ["./src/client/consent.ts"] : []),
   ],
   customFields: {
     // Build year, used by useCurrentYear as its SSR and hydration snapshot
     buildYear: new Date().getFullYear(),
+    // The client reads the mode of Google Analytics here, never from `process.env`
+    [GOOGLE_ANALYTICS_MODE_FIELD]: GOOGLE_ANALYTICS_MODE,
   },
   presets: [
     [
@@ -140,12 +150,13 @@ const config: Config = {
             "https://github.com/javierbrea/eslint-plugin-boundaries/edit/master/packages/website/",
         },
         pages: {
-          // Every file under `src/pages/` that this list misses becomes a route, so a Playwright page object or a constants file would be published as a page. Setting `exclude` replaces the defaults of Docusaurus (`GlobExcludeDefault` in `@docusaurus/utils`), so they are listed again before the globs of those files
+          // Every file under `src/pages/` that this list misses becomes a route, so a Playwright page object, a constants file or a spec file would be published as a page. Setting `exclude` replaces the defaults of Docusaurus (`GlobExcludeDefault` in `@docusaurus/utils`), so they are listed again before the globs of those files
           exclude: [
             "**/_*.{js,jsx,ts,tsx,md,mdx}",
             "**/_*/**",
             "**/*.test.{js,jsx,ts,tsx}",
             "**/__tests__/**",
+            "**/*.spec.{js,jsx,ts,tsx}",
             "**/*.playwright.ts",
             "**/*.constants.ts",
           ],
@@ -154,9 +165,15 @@ const config: Config = {
           customCss: [
             require.resolve("@boundaries/design-tokens/tokens.css"),
             require.resolve("@boundaries/design-tokens/fonts.css"),
-            require.resolve("vanilla-cookieconsent/dist/cookieconsent.css"),
-            // Right after the library CSS, which declares its defaults on `:root`, so the bridge wins by source order
-            "./src/css/cookieconsent-bridge.css",
+            ...(HAS_GOOGLE_ANALYTICS
+              ? [
+                  require.resolve(
+                    "vanilla-cookieconsent/dist/cookieconsent.css"
+                  ),
+                  // Right after the library CSS, which declares its defaults on `:root`, so the bridge wins by source order
+                  "./src/css/cookieconsent-bridge.css",
+                ]
+              : []),
             "./src/css/infima-bridge.css",
             "./src/css/custom.css",
           ],
@@ -290,10 +307,14 @@ const config: Config = {
               label: "Privacy",
               to: "/privacy/",
             },
-            {
-              // A button, not a link: it opens the cookie preferences instead of navigating. Not `data-cc`: the library binds that attribute only when it runs, and the footer re-renders on every client-side navigation, so src/client/consent.ts listens for clicks on its own attribute instead
-              html: `<button type="button" class="footer__link-item jsb-footer-button" aria-haspopup="dialog" ${COOKIE_SETTINGS_ATTRIBUTE}>${COOKIE_SETTINGS_LABEL}</button>`,
-            },
+            ...(HAS_GOOGLE_ANALYTICS
+              ? [
+                  {
+                    // A button, not a link: it opens the cookie preferences instead of navigating. Not `data-cc`: the library binds that attribute only when it runs, and the footer re-renders on every client-side navigation, so src/client/consent.ts listens for clicks on its own attribute instead
+                    html: `<button type="button" class="footer__link-item jsb-footer-button" aria-haspopup="dialog" ${COOKIE_SETTINGS_ATTRIBUTE}>${COOKIE_SETTINGS_LABEL}</button>`,
+                  },
+                ]
+              : []),
           ],
         },
       ],

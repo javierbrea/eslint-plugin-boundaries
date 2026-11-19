@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - feat: The consent banner is one sentence long and offers only Accept all and Reject all; the Cookie settings button of the footer still opens the preferences.
+- chore: Two build settings change how the site loads Google Analytics: `DISABLE_CONSENT_BANNER=true` loads it without a consent banner while Cookie settings can still turn it off, and `DISABLE_GOOGLE_ANALYTICS=true` leaves it, the banner and Cookie settings out of the site. The Privacy page describes the mode the site was built with.
 
 ## [7.4.1+rev.3] - 2026-11-16
 

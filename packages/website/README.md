@@ -89,7 +89,7 @@ website/
 ├── versioned_sidebars/      # Sidebar configuration for each released version
 ├── scripts/                 # Maintenance scripts (social card, visual check)
 ├── src/
-│   ├── client/              # Client modules loaded on every page: the JS marker, the loader of Cloudflare Web Analytics and the consent banner that loads Google Analytics
+│   ├── client/              # Client modules loaded on every page: the JS marker, the loader of Cloudflare Web Analytics and, unless the build disables Google Analytics, the consent banner that loads it
 │   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
 │   ├── css/                 # Infima and cookieconsent mappings and global styles; the design tokens and fonts come from @boundaries/design-tokens
 │   ├── data/                # Site constants, links and live GitHub/npm stats
@@ -112,6 +112,14 @@ pnpm build
 ```
 
 This command generates a static website optimized for deployment.
+
+The build reads the variables of [Google Analytics settings](#google-analytics-settings). To build another mode, set its variable, for example:
+
+```sh
+DISABLE_CONSENT_BANNER=true pnpm nx build website
+```
+
+A local build shows the banner and the footer button of its mode, but never loads Google Analytics.
 
 > [!TIP]
 > You should build the website and check it locally using `pnpm serve` before submitting a PR
@@ -142,6 +150,18 @@ For every pull request opened against the `master` branch, Netlify automatically
 
 > [!WARNING]
 > Always check the preview deployment link in your pull request before merging to ensure everything works as expected. The preview URL will be posted as a comment by the Netlify bot on your PR.
+
+### Google Analytics settings
+
+Two environment variables of the build decide how the site loads Google Analytics. Set them in the environment variables of the site in the Netlify UI. Only the value `true` turns one on, and `DISABLE_GOOGLE_ANALYTICS` wins when both are on. The build reads them, so a change applies on the next deploy: trigger a redeploy after changing one.
+
+| Variable | What a visitor gets |
+|---|---|
+| Neither | A consent banner asks before Google Analytics loads. While the browser sends Global Privacy Control, Analytics stays off and the banner stays closed until the visitor chooses in "Cookie settings" (footer). |
+| `DISABLE_CONSENT_BANNER=true` | No banner: Google Analytics loads on every visit until the visitor turns Analytics off in "Cookie settings" (footer). Global Privacy Control does not turn it off. A choice saved in the banner of an earlier build is kept. |
+| `DISABLE_GOOGLE_ANALYTICS=true` | No Google Analytics, no banner and no "Cookie settings" button, and the build leaves the consent library out. |
+
+Whatever the variables, Google Analytics never loads outside www.jsboundaries.dev, nor for bots and automated browsers, and Cloudflare Web Analytics loads on every page of www.jsboundaries.dev. The [Privacy page](./src/pages/privacy.md) describes the mode the site was built with.
 
 ## Versioning
 
@@ -182,6 +202,7 @@ Commit the HTML and the image together. The build does not regenerate the image,
 | `pnpm start` | Start the development server with hot-reload |
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
+| `pnpm test:unit` | Run the unit tests, the `*.spec.ts` files beside the sources in `src/` |
 | `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) |
 | `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html` |
 | `pnpm swizzle` | Customize Docusaurus components |
