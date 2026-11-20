@@ -144,5 +144,7 @@ test/eslint-plugin-e2e/test/fixtures/performance/
 test/browser-e2e/test-results/
 test/website-e2e/test-results/
 
-# Agent working plans (local only)
-.agents/plans/
+# Agent working plans (local only). The architecture-graph plan is shared on its integration branch and removed before the branch merges into release
+.agents/plans/*
+!.agents/plans/architecture-graph.md
+!.agents/plans/architecture-graph/

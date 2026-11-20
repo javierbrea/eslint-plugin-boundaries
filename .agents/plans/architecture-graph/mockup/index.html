@@ -1,0 +1,505 @@
+<title>Boundaries Architecture Graph</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;600&display=swap">
+<style>
+/* Layout: a host frame (tabs or toolbar) over a three-column workbench: filters, stage, inspector. Tokens are the --jsb-* ones of the website. */
+:root {
+  --paper: #f3f4f9; --card: #ffffff; --ink: #161a33; --muted: #5a6080; --faint: #9397b6;
+  --line: rgba(22, 26, 51, 0.13); --line-strong: rgba(22, 26, 51, 0.28);
+  --accent: #4c52d8; --accent-ink: #ffffff; --accent-soft: rgba(76, 82, 216, 0.1);
+  --ok: #0f8f7c; --bad: #d7442f; --warn: #b26b00; --bad-soft: rgba(215, 68, 47, 0.14);
+  --display: "Sora", "Avenir Next", "Helvetica Neue", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f1222; --card: #171b36; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+  --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+  --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14);
+  --ok: #3fd1b4; --bad: #ff7a66; --warn: #ffd479; --bad-soft: rgba(255, 122, 102, 0.16); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0f1222; --card: #171b36; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+  --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+  --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14);
+  --ok: #3fd1b4; --bad: #ff7a66; --warn: #ffd479; --bad-soft: rgba(255, 122, 102, 0.16); color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--body); padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+* { box-sizing: border-box; }
+h1 { font: 600 20px/1.2 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 13px/1.3 var(--display); margin: 0; }
+.mono, code { font-family: var(--mono); font-size: 12px; }
+.muted { color: var(--muted); }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.intro { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; margin-bottom: 14px; }
+.intro p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+.mock-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: var(--r); }
+.mock-controls b { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 4px 10px; cursor: pointer; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line-strong); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.host { border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); overflow: hidden; }
+.host-tabs { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.host-tabs button { border: 0; background: transparent; padding: 9px 12px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-weight: 500; }
+.host-tabs button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.bar .brand { font: 600 14px var(--display); margin-right: auto; }
+.btn { border: 1px solid var(--line-strong); background: transparent; border-radius: var(--r); padding: 4px 10px; cursor: pointer; }
+.btn:hover { background: var(--accent-soft); }
+.btn.small { padding: 1px 7px; font-size: 12px; }
+
+.placeholder { padding: 60px 20px; text-align: center; color: var(--muted); min-height: 420px; display: grid; place-content: center; gap: 8px; }
+.placeholder strong { color: var(--ink); font: 600 16px var(--display); }
+
+.metrics { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 10px 12px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.metrics div { display: flex; gap: 6px; align-items: baseline; }
+.metrics b { font: 600 15px var(--display); }
+.metrics .bad b { color: var(--bad); } .metrics .warn b { color: var(--warn); }
+.metrics span { color: var(--muted); font-size: 12px; }
+
+.bench { display: grid; grid-template-columns: 210px minmax(0, 1fr) 300px; min-height: 640px; }
+.filters, .inspector { padding: 12px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.filters { border-right: 1px solid var(--line); } .inspector { border-left: 1px solid var(--line); }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > label, .field > span.l { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.field select { width: 100%; padding: 4px 6px; background: var(--card); border: 1px solid var(--line-strong); border-radius: var(--r); }
+.check { display: flex; gap: 6px; align-items: center; }
+.stage-wrap { display: flex; flex-direction: column; min-width: 0; }
+.viewbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.viewbar .right { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.stage { position: relative; flex: 1; min-height: 590px; min-width: 0; }
+.canvas { position: absolute; inset: 0; }
+.scroll { position: absolute; inset: 0; overflow: auto; padding: 12px; }
+.legend { position: absolute; left: 10px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); background: var(--card); padding: 3px 8px; border-radius: var(--r); border: 1px solid var(--line); pointer-events: none; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--ok); vertical-align: middle; margin-right: 4px; }
+.legend i.bad { border-top: 2px dashed var(--bad); } .legend i.mut { border-top: 2px solid var(--warn); }
+
+.chip { display: inline-block; font: 500 11px var(--mono); padding: 0 6px; border-radius: 99px; border: 1px solid var(--line-strong); white-space: nowrap; }
+.chip.ok { color: var(--ok); border-color: var(--ok); } .chip.bad { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.chip.warn { color: var(--warn); border-color: var(--warn); }
+.inspector h2 { overflow-wrap: anywhere; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-variant-numeric: tabular-nums; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; text-align: right; }
+.list { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow: auto; }
+.dep { border-top: 1px solid var(--line); padding-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+.dep .p { font: 12px var(--mono); overflow-wrap: anywhere; }
+.dep .row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.rowlink { display: flex; justify-content: space-between; gap: 8px; border: 0; background: transparent; padding: 2px 4px; border-radius: 4px; cursor: pointer; text-align: left; width: 100%; font-variant-numeric: tabular-nums; }
+.rowlink:hover { background: var(--accent-soft); } .rowlink span:first-child { overflow-wrap: anywhere; }
+
+table.mx { border-collapse: collapse; font: 11px var(--mono); font-variant-numeric: tabular-nums; }
+table.mx th { font-weight: 400; color: var(--muted); white-space: nowrap; padding: 1px 6px; text-align: right; position: sticky; left: 0; background: var(--card); }
+table.mx thead th { vertical-align: bottom; text-align: left; padding: 0; height: 110px; position: static; }
+table.mx thead th div { writing-mode: vertical-rl; transform: rotate(180deg); padding: 4px 0; max-height: 110px; overflow: hidden; }
+table.mx td { width: 26px; min-width: 26px; height: 22px; text-align: center; border: 1px solid var(--line); padding: 0; cursor: default; }
+table.mx td.has { cursor: pointer; } table.mx td.self { background: var(--line); color: var(--muted); }
+table.mx td.bad { background: var(--bad-soft); color: var(--bad); font-weight: 500; box-shadow: inset 0 0 0 1px var(--bad); }
+table.mx td.mut { box-shadow: inset 0 0 0 2px var(--warn); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px 28px; }
+.cardc { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.cardc p { margin: 0; color: var(--muted); font-size: 12px; }
+.bars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 3px 8px; align-items: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+.bars .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; font-family: var(--mono); }
+.bars .b { height: 10px; border-radius: 2px; background: var(--accent); min-width: 1px; }
+.donut-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.donut-legend { display: grid; grid-template-columns: repeat(2, max-content); gap: 1px 12px; font-size: 11px; }
+.donut-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+svg text { font-family: var(--mono); }
+.notes { margin-top: 16px; color: var(--muted); font-size: 12.5px; max-width: 90ch; }
+.notes li { margin: 3px 0; }
+@media (max-width: 900px) { .bench { grid-template-columns: 1fr; } .filters, .inspector { border: 0; border-bottom: 1px solid var(--line); } .inspector { border-top: 1px solid var(--line); } }
+</style>
+
+<div class="intro">
+  <div>
+    <h1>Architecture graph, mockup</h1>
+    <p>Real data of <code>packages/playground</code>, read with the ESLint API and evaluated with the <code>@boundaries</code> packages. Violations are invented for the mockup: the package has none.</p>
+  </div>
+  <div class="mock-controls" aria-label="Mockup options">
+    <b>Mockup</b>
+    <span>Switch placement</span>
+    <span class="seg" id="swSeg"><button data-v="tabs">Host tabs</button><button data-v="slot">Toolbar slot</button></span>
+  </div>
+</div>
+
+<div class="host">
+  <nav class="host-tabs" id="hostTabs" aria-label="Views of the page">
+    <button data-v="pg">Playground</button><button data-v="arch">Architecture</button>
+  </nav>
+  <div class="bar" id="bar">
+    <span class="brand" id="brand">Playground</span>
+    <span id="pgButtons"><button class="btn" disabled>Examples</button> <button class="btn" disabled>Share</button></span>
+    <span class="seg" id="slotSeg"><button data-v="pg">Playground</button><button data-v="arch">Architecture</button></span>
+  </div>
+
+  <section id="pg" class="placeholder" hidden>
+    <strong>The playground, as it is today</strong>
+    <span id="pgMsg">It stays mounted while the architecture is on screen, so the session and the worker are kept.</span>
+  </section>
+
+  <section id="arch">
+    <div class="metrics" id="metrics"></div>
+    <div class="bench">
+      <aside class="filters" aria-label="Filters">
+        <div class="field"><label for="group">Group by</label>
+          <select id="group">
+            <option value="type">Element type</option><option value="element">Element</option>
+            <option value="domain">Captured value: domain</option><option value="category">File category</option>
+            <option value="folder">Folder</option>
+          </select></div>
+        <div class="field"><span class="l">Verdict</span>
+          <label class="check"><input type="checkbox" id="vA" checked> Allowed</label>
+          <label class="check"><input type="checkbox" id="vD" checked> Disallowed</label></div>
+        <div class="field"><span class="l">Kind</span>
+          <label class="check"><input type="checkbox" id="kV" checked> Value</label>
+          <label class="check"><input type="checkbox" id="kT" checked> Type only</label></div>
+        <div class="field"><label for="ext">External modules</label>
+          <select id="ext"><option value="hide">Hidden</option><option value="one">One node</option><option value="each">One node per package</option></select></div>
+        <div class="field"><span class="l">Files</span>
+          <label class="check"><input type="checkbox" id="tests"> Tests, mocks and page objects</label></div>
+        <div class="field"><label for="minw">Minimum weight: <span id="minwV">1</span></label>
+          <input type="range" id="minw" min="1" max="30" value="1"></div>
+        <div class="muted" id="aggTime" style="font-size:12px;margin-top:auto"></div>
+      </aside>
+
+      <div class="stage-wrap">
+        <div class="viewbar">
+          <span class="seg" id="viewSeg"><button data-v="map">Map</button><button data-v="focus">Focus</button><button data-v="matrix">Matrix</button><button data-v="comp">Composition</button></span>
+          <span class="right" id="mapOpts">
+            <span class="seg" id="libSeg"><button data-v="cy">Cytoscape</button><button data-v="sigma">Sigma</button></span>
+            <span class="seg" id="layoutSeg"><button data-v="layers">Layers</button><button data-v="force">Force</button></span>
+            <label class="check" id="nestL"><input type="checkbox" id="nest" checked> Nest in types</label>
+          </span>
+          <span class="right" id="focusOpts" hidden><label for="focusSel" class="muted">Node</label> <select id="focusSel" style="max-width:260px"></select></span>
+        </div>
+        <div class="stage">
+          <div class="canvas" id="cy"></div>
+          <div class="canvas" id="sigma" hidden></div>
+          <div class="scroll" id="focus" hidden></div>
+          <div class="scroll" id="matrix" hidden></div>
+          <div class="scroll" id="comp" hidden></div>
+          <div class="legend" id="legend"><span><i></i>allowed</span><span><i class="bad"></i>has disallowed</span><span><i class="mut"></i>both directions</span><span>width = dependencies</span></div>
+        </div>
+      </div>
+
+      <aside class="inspector" id="inspector" aria-label="Selection" aria-live="polite"></aside>
+    </div>
+  </section>
+</div>
+
+<ul class="notes" id="notes"></ul>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/graphology@0.25.4/dist/graphology.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/graphology-library@0.8.0/dist/graphology-library.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sigma@2.4.0/build/sigma.min.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hue = (i) => `hsl(${Math.round((i * 137.5) % 360)} 52% 52%)`;
+const short = (p) => p.replace(/^src\//, "");
+const TEST_CATS = new Set(["test", "mock", "pom", "playwright", "playwright-entry"]);
+const SEP = "\u0000";
+
+const state = { mode: "arch", sw: "tabs", view: "map", lib: "cy", layout: "layers", nest: true, group: "type",
+  vA: true, vD: true, kV: true, kT: true, ext: "hide", tests: false, minw: 1, sel: null, focus: null };
+let DATA, G, cy, sigmaInst;
+
+function groupOf(f) {
+  switch (state.group) {
+    case "type": return { id: f.t ?? "(unclassified)" };
+    case "element": return { id: f.e ?? "(unclassified)", label: f.e ? f.e.split("/").slice(-2).join("/") : "(unclassified)", parent: f.t ?? "(unclassified)" };
+    case "domain": return { id: f.c?.domain ?? f.c?.scope ?? "(no domain)" };
+    case "category": return { id: f.k[0] ?? "(no category)" };
+    default: return { id: f.p.split("/").slice(0, f.p.startsWith("src/domains/") ? 3 : 2).join("/").replace(/\/[^/]*\.\w+$/, "") };
+  }
+}
+
+function aggregate() {
+  const t0 = performance.now();
+  const { files, deps } = DATA;
+  const ok = files.map((f) => state.tests || !f.k.some((k) => TEST_CATS.has(k)));
+  const nodes = new Map();
+  const node = (g, ext) => {
+    let n = nodes.get(g.id);
+    if (!n) nodes.set(g.id, n = { id: g.id, label: g.label ?? g.id, parent: g.parent, ext: !!ext, files: 0, internal: 0, inner: [], in: 0, out: 0, bad: 0 });
+    return n;
+  };
+  const groups = files.map((f, i) => { if (!ok[i]) return null; const n = node(groupOf(f)); n.files++; return n; });
+  const edges = new Map();
+  let shown = 0, bad = 0, inv = 0;
+  for (const d of deps) {
+    if (!ok[d.f] || (d.t >= 0 && !ok[d.t])) continue;
+    if ((d.s === "a" && !state.vA) || (d.s === "d" && !state.vD)) continue;
+    if ((d.k === "value" && !state.kV) || (d.k === "type" && !state.kT)) continue;
+    const a = groups[d.f];
+    let b;
+    if (d.t >= 0) b = groups[d.t];
+    else if (state.ext === "hide") continue;
+    else b = node(state.ext === "one" ? { id: "external modules" } : { id: "ext:" + d.x, label: d.x, parent: state.group === "element" ? "external" : undefined }, true);
+    shown++; if (d.s === "d") { bad++; if (d.inv) inv++; }
+    if (a === b) { a.internal++; a.inner.push(d); continue; }
+    const key = a.id + SEP + b.id;
+    let e = edges.get(key);
+    if (!e) edges.set(key, e = { key, a: a.id, b: b.id, n: 0, bad: 0, deps: [] });
+    e.n++; e.deps.push(d); if (d.s === "d") e.bad++;
+  }
+  for (const [k, e] of edges) if (e.n < state.minw && !e.bad) edges.delete(k);
+  let mutual = 0;
+  for (const e of edges.values()) {
+    e.mut = edges.has(e.b + SEP + e.a); if (e.mut && e.a < e.b) mutual++;
+    nodes.get(e.a).out += e.n; nodes.get(e.b).in += e.n; if (e.bad) { nodes.get(e.a).bad += e.bad; }
+  }
+  const used = new Set(deps.filter((d) => d.pi !== null).map((d) => d.pi));
+  G = { nodes, edges, shown, bad, inv, mutual, unclassified: files.filter((f) => f.t === null).length,
+    unused: DATA.policies.filter((p) => !used.has(p.i)), ms: performance.now() - t0 };
+}
+
+/* ---------- Map: Cytoscape ---------- */
+function renderCy() {
+  if (cy) { cy.destroy(); cy = null; }
+  if (!window.cytoscape) { $("cy").innerHTML = '<p class="scroll muted">Cytoscape did not load.</p>'; return; }
+  try { if (window.cytoscapeDagre) cytoscape.use(window.cytoscapeDagre); } catch (e) { /* already registered */ }
+  const nest = state.group === "element" && state.nest;
+  const els = [];
+  if (nest) for (const p of new Set([...G.nodes.values()].map((n) => n.parent).filter(Boolean))) els.push({ data: { id: "P:" + p, label: p }, classes: "parent" });
+  const maxF = Math.max(...[...G.nodes.values()].map((n) => n.files), 1);
+  for (const n of G.nodes.values()) els.push({ data: { id: n.id, label: n.label, size: 22 + 44 * Math.sqrt(n.files / maxF), parent: nest && n.parent ? "P:" + n.parent : undefined }, classes: (n.ext ? "ext " : "") + (n.bad ? "bad" : "") });
+  const maxN = Math.max(...[...G.edges.values()].map((e) => e.n), 1);
+  for (const e of G.edges.values()) els.push({ data: { id: e.key, source: e.a, target: e.b, w: 1 + 6 * Math.log(1 + e.n) / Math.log(1 + maxN) }, classes: e.bad ? "bad" : e.mut ? "mut" : "" });
+  const ink = css("--ink"), muted = css("--muted"), line = css("--line-strong"), okc = css("--ok"), badc = css("--bad"), warn = css("--warn"), accent = css("--accent"), card = css("--card");
+  const layered = state.layout === "layers";
+  cy = cytoscape({
+    container: $("cy"), elements: els, minZoom: 0.15, maxZoom: 3, wheelSensitivity: 0.3,
+    style: [
+      { selector: "node", style: { label: "data(label)", width: "data(size)", height: "data(size)", "background-color": accent, color: ink, "font-family": "IBM Plex Mono, monospace", "font-size": 11, "text-valign": "bottom", "text-margin-y": 4, "text-background-color": card, "text-background-opacity": 0.75, "text-background-padding": 2 } },
+      { selector: "node.ext", style: { "background-color": muted, shape: "round-rectangle" } },
+      { selector: "node.bad", style: { "border-width": 3, "border-color": badc } },
+      { selector: "node.parent", style: { "background-color": accent, "background-opacity": 0.06, "border-width": 1, "border-color": line, shape: "round-rectangle", "text-valign": "top", "font-size": 12, color: muted, padding: 14 } },
+      { selector: "edge", style: { width: "data(w)", "line-color": okc, "target-arrow-color": okc, "target-arrow-shape": "triangle", "curve-style": "bezier", opacity: 0.55, "arrow-scale": 0.9 } },
+      { selector: "edge.mut", style: { "line-color": warn, "target-arrow-color": warn } },
+      { selector: "edge.bad", style: { "line-color": badc, "target-arrow-color": badc, "line-style": "dashed", opacity: 0.95, "z-index": 9 } },
+      { selector: ".dim", style: { opacity: 0.08 } },
+      { selector: ":selected", style: { "overlay-color": accent, "overlay-opacity": 0.18, "overlay-padding": 5 } },
+    ],
+    layout: layered && window.dagre ? { name: "dagre", rankDir: "TB", nodeSep: 26, rankSep: 60, padding: 24 } : { name: "cose", animate: false, padding: 24, nodeRepulsion: () => 90000, idealEdgeLength: () => 90, nestingFactor: 0.6 },
+  });
+  cy.on("tap", "node", (ev) => { const n = ev.target; if (n.hasClass("parent")) return; select({ type: "node", id: n.id() }); });
+  cy.on("tap", "edge", (ev) => select({ type: "edge", key: ev.target.id() }));
+  cy.on("tap", (ev) => { if (ev.target === cy) select(null); });
+  highlightCy();
+}
+function highlightCy() {
+  if (!cy) return;
+  cy.elements().removeClass("dim").unselect();
+  const s = state.sel; if (!s) return;
+  const el = cy.getElementById(s.type === "node" ? s.id : s.key); if (!el.length) return;
+  const keep = s.type === "node" ? el.closedNeighborhood().union(el.ancestors()) : el.union(el.connectedNodes());
+  cy.elements().not(keep).not(".parent").addClass("dim"); el.select();
+}
+
+/* ---------- Map: Sigma ---------- */
+function renderSigma() {
+  if (sigmaInst) { sigmaInst.kill(); sigmaInst = null; }
+  const box = $("sigma");
+  const Graph = window.graphology && (window.graphology.Graph || window.graphology);
+  const SigmaC = window.Sigma && (window.Sigma.Sigma || window.Sigma);
+  const lib = window.graphologyLibrary;
+  if (!Graph || !SigmaC) { box.innerHTML = '<p class="scroll muted">Sigma or graphology did not load.</p>'; return; }
+  box.innerHTML = "";
+  try {
+    const g = new Graph({ type: "directed", multi: false });
+    const parents = [...new Set([...G.nodes.values()].map((n) => n.parent ?? n.id))];
+    const maxF = Math.max(...[...G.nodes.values()].map((n) => n.files), 1);
+    let i = 0; const total = G.nodes.size;
+    for (const n of G.nodes.values()) {
+      const a = (2 * Math.PI * i++) / total;
+      g.addNode(n.id, { label: n.label, x: Math.cos(a) * 100, y: Math.sin(a) * 100, size: 4 + 14 * Math.sqrt(n.files / maxF), color: n.ext ? css("--faint") : state.group === "element" ? hue(parents.indexOf(n.parent)) : css("--accent") });
+    }
+    const maxN = Math.max(...[...G.edges.values()].map((e) => e.n), 1);
+    for (const e of G.edges.values()) g.addEdgeWithKey(e.key, e.a, e.b, { size: 0.6 + 4 * Math.log(1 + e.n) / Math.log(1 + maxN), color: e.bad ? css("--bad") : e.mut ? css("--warn") : css("--ok") + "88", type: "arrow", weight: e.n });
+    const fa2 = lib && (lib.layoutForceAtlas2 || (lib.layout && lib.layout.forceAtlas2));
+    if (fa2 && fa2.assign) fa2.assign(g, { iterations: 300, settings: { gravity: 1, scalingRatio: 12, barnesHutOptimize: total > 60, adjustSizes: true } });
+    sigmaInst = new SigmaC(g, box, { defaultEdgeType: "arrow", labelColor: { color: css("--ink") }, labelFont: "IBM Plex Mono, monospace", labelSize: 11, labelRenderedSizeThreshold: total > 60 ? 9 : 0, renderEdgeLabels: false });
+    sigmaInst.on("clickNode", ({ node }) => select({ type: "node", id: node }));
+    sigmaInst.on("clickStage", () => select(null));
+  } catch (error) { box.innerHTML = `<p class="scroll muted">Sigma failed: ${esc(error.message)}</p>`; }
+}
+
+/* ---------- Focus ---------- */
+function renderFocus() {
+  const ids = [...G.nodes.values()].sort((a, b) => b.in + b.out - a.in - a.out);
+  if (!state.focus || !G.nodes.has(state.focus)) state.focus = ids[0]?.id;
+  $("focusSel").innerHTML = ids.map((n) => `<option value="${esc(n.id)}"${n.id === state.focus ? " selected" : ""}>${esc(n.label)} (${n.in} in, ${n.out} out)</option>`).join("");
+  const c = G.nodes.get(state.focus); if (!c) { $("focus").innerHTML = ""; return; }
+  const inc = [...G.edges.values()].filter((e) => e.b === c.id).sort((a, b) => b.n - a.n);
+  const out = [...G.edges.values()].filter((e) => e.a === c.id).sort((a, b) => b.n - a.n);
+  const MAX = 16, rowH = 30, W = 900, colW = 250;
+  const rows = Math.max(Math.min(inc.length, MAX), Math.min(out.length, MAX), 3);
+  const H = rows * rowH + 70, cyY = H / 2 + 10, cx0 = W / 2 - 110, cx1 = W / 2 + 110;
+  const maxN = Math.max(...inc.map((e) => e.n), ...out.map((e) => e.n), 1);
+  const col = (list, left) => list.slice(0, MAX).map((e, i) => {
+    const y = 50 + i * rowH + (rows - Math.min(list.length, MAX)) * rowH / 2;
+    const other = G.nodes.get(left ? e.a : e.b), x = left ? colW : W - colW;
+    const stroke = e.bad ? "var(--bad)" : e.mut ? "var(--warn)" : "var(--ok)";
+    const w = 1 + 7 * e.n / maxN;
+    const path = left ? `M${x},${y} C${x + 80},${y} ${cx0 - 80},${cyY} ${cx0},${cyY}` : `M${cx1},${cyY} C${cx1 + 80},${cyY} ${x - 80},${y} ${x},${y}`;
+    return `<path d="${path}" fill="none" stroke="${stroke}" stroke-width="${w.toFixed(1)}" ${e.bad ? 'stroke-dasharray="6 4"' : ""} opacity="0.7" data-edge="${esc(e.key)}" style="cursor:pointer"><title>${e.n} dependencies</title></path>
+      <g data-node="${esc(other.id)}" style="cursor:pointer" tabindex="0"><rect x="${left ? 0 : x}" y="${y - 11}" width="${colW}" height="22" rx="4" fill="var(--accent-soft)" stroke="var(--line-strong)"/>
+      <text x="${left ? 8 : x + 8}" y="${y + 4}" font-size="11" fill="var(--ink)">${esc(other.label.length > 28 ? "…" + other.label.slice(-27) : other.label)}</text>
+      <text x="${left ? colW - 8 : W - 8}" y="${y + 4}" font-size="11" text-anchor="end" fill="${e.bad ? "var(--bad)" : "var(--muted)"}">${e.n}${e.bad ? " · " + e.bad + " ✕" : ""}</text></g>`;
+  }).join("") + (list.length > MAX ? `<text x="${left ? 0 : W - colW}" y="${H - 4}" font-size="11" fill="var(--muted)">+ ${list.length - MAX} more</text>` : "");
+  $("focus").innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:680px;height:auto" role="img" aria-label="Dependencies of ${esc(c.label)}">
+    <text x="0" y="16" font-size="11" fill="var(--muted)">DEPEND ON IT · ${inc.length} groups, ${c.in} dependencies</text>
+    <text x="${W}" y="16" font-size="11" text-anchor="end" fill="var(--muted)">IT DEPENDS ON · ${out.length} groups, ${c.out} dependencies</text>
+    ${col(inc, true)}${col(out, false)}
+    <rect x="${cx0}" y="${cyY - 34}" width="220" height="68" rx="8" fill="var(--accent)" />
+    <text x="${W / 2}" y="${cyY - 6}" font-size="13" font-weight="500" text-anchor="middle" fill="var(--accent-ink)">${esc(c.label.length > 26 ? "…" + c.label.slice(-25) : c.label)}</text>
+    <text x="${W / 2}" y="${cyY + 14}" font-size="11" text-anchor="middle" fill="var(--accent-ink)">${c.files} files · ${c.internal} internal dependencies</text></svg>`;
+  $("focus").querySelectorAll("[data-node]").forEach((el) => el.addEventListener("click", () => { state.focus = el.dataset.node; select({ type: "node", id: state.focus }); renderFocus(); }));
+  $("focus").querySelectorAll("[data-edge]").forEach((el) => el.addEventListener("click", () => select({ type: "edge", key: el.dataset.edge })));
+}
+
+/* ---------- Matrix ---------- */
+function renderMatrix() {
+  const ns = [...G.nodes.values()].sort((a, b) => (b.out - b.in) - (a.out - a.in) || a.label.localeCompare(b.label));
+  const maxN = Math.max(...[...G.edges.values()].map((e) => e.n), 1);
+  const head = ns.map((n) => `<th scope="col"><div title="${esc(n.id)}">${esc(n.label)}</div></th>`).join("");
+  const body = ns.map((r) => `<tr><th scope="row" title="${esc(r.id)}">${esc(r.label)}</th>` + ns.map((c) => {
+    if (r === c) return `<td class="self" title="${r.internal} internal dependencies">${r.internal || ""}</td>`;
+    const e = G.edges.get(r.id + SEP + c.id); if (!e) return "<td></td>";
+    const alpha = (0.12 + 0.6 * Math.log(1 + e.n) / Math.log(1 + maxN)).toFixed(2);
+    return `<td class="has${e.bad ? " bad" : ""}${e.mut ? " mut" : ""}" data-edge="${esc(e.key)}" tabindex="0" ${e.bad ? "" : `style="background:color-mix(in srgb, var(--accent) ${Math.round(alpha * 100)}%, transparent)"`} title="${esc(r.label)} → ${esc(c.label)}: ${e.n}${e.bad ? ", " + e.bad + " disallowed" : ""}${e.mut ? ", both directions" : ""}">${e.n}</td>`;
+  }).join("") + "</tr>").join("");
+  $("matrix").innerHTML = `<p class="muted" style="margin:0 0 8px;font-size:12px">A row depends on a column. Rows are sorted from the groups that mostly depend on others to the groups that others mostly depend on, so a layered architecture fills one side of the diagonal; a cell with an orange frame has dependencies in both directions.</p>
+    <table class="mx"><thead><tr><th></th>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  $("matrix").querySelectorAll("[data-edge]").forEach((el) => el.addEventListener("click", () => select({ type: "edge", key: el.dataset.edge })));
+}
+
+/* ---------- Composition ---------- */
+function count(list, fn) { const m = new Map(); for (const x of list) { const k = fn(x); m.set(k, (m.get(k) ?? 0) + 1); } return [...m].sort((a, b) => b[1] - a[1]); }
+function bars(rows, color) { const max = Math.max(...rows.map((r) => r[1]), 1); return `<div class="bars">${rows.map(([k, v]) => `<span class="t" title="${esc(k)}">${esc(k)}</span><span class="b" style="width:${(100 * v / max).toFixed(1)}%;${color ? "background:" + color : ""}"></span><span>${v}</span>`).join("")}</div>`; }
+function donut(rows) {
+  const total = rows.reduce((s, r) => s + r[1], 0); let a = -Math.PI / 2; const R = 70, r = 42, C = 80;
+  const arcs = rows.map(([k, v], i) => { const b = a + 2 * Math.PI * v / total, big = b - a > Math.PI ? 1 : 0;
+    const p = (ang, rad) => `${(C + rad * Math.cos(ang)).toFixed(2)},${(C + rad * Math.sin(ang)).toFixed(2)}`;
+    const d = `M${p(a, R)} A${R},${R} 0 ${big} 1 ${p(b, R)} L${p(b, r)} A${r},${r} 0 ${big} 0 ${p(a, r)} Z`; a = b;
+    return `<path d="${d}" fill="${hue(i)}" stroke="var(--card)" stroke-width="1"><title>${esc(k)}: ${v}</title></path>`; }).join("");
+  return `<div class="donut-row"><svg viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="Share of each group">${arcs}<text x="80" y="84" text-anchor="middle" font-size="14" fill="var(--ink)">${total}</text></svg>
+    <div class="donut-legend">${rows.map(([k, v], i) => `<span><i style="background:${hue(i)}"></i>${esc(k)} ${Math.round(100 * v / total)}%</span>`).join("")}</div></div>`;
+}
+function renderComp() {
+  const files = DATA.files.filter((f) => state.tests || !f.k.some((k) => TEST_CATS.has(k)));
+  const byType = count(files, (f) => f.t ?? "(unclassified)");
+  const byCat = count(files, (f) => f.k[0] ?? "(no category)");
+  const byDomain = count(files, (f) => f.c?.domain ?? f.c?.scope ?? "(no domain)");
+  const byPolicy = count(DATA.deps, (d) => d.pi === null ? "default" : "#" + d.pi + " " + DATA.policies[d.pi].text).slice(0, 14);
+  const violBy = count(DATA.deps.filter((d) => d.s === "d"), (d) => DATA.files[d.f].t ?? "(unclassified)");
+  $("comp").innerHTML = `<div class="cards">
+    <div class="cardc"><h2>Files by element type, as a donut</h2><p>The same numbers as the bars beside it, to compare how each one reads with ${byType.length} types.</p>${donut(byType)}</div>
+    <div class="cardc"><h2>Files by element type, as bars</h2><p>${files.length} files.</p>${bars(byType)}</div>
+    <div class="cardc"><h2>Files by captured domain</h2><p>The <code>domain</code> or <code>scope</code> that the element pattern captures.</p>${donut(byDomain)}</div>
+    <div class="cardc"><h2>Files by category</h2><p>The first category of each file.</p>${bars(byCat)}</div>
+    <div class="cardc"><h2>Dependencies by deciding policy</h2><p>The 14 policies that decide most, of ${DATA.policies.length}. ${G.unused.length} policies decide no dependency.</p>${bars(byPolicy)}</div>
+    <div class="cardc"><h2>Violations by element type</h2><p>Invented for the mockup.</p>${bars(violBy, "var(--bad)")}
+      <h2 style="margin-top:10px">Policies that decide nothing</h2><div class="list" style="max-height:150px">${G.unused.map((p) => `<span class="mono muted">#${p.i} ${esc(p.text)}</span>`).join("")}</div></div>
+  </div>`;
+}
+
+/* ---------- Inspector ---------- */
+function depRow(d) {
+  const f = DATA.files[d.f], to = d.t >= 0 ? short(DATA.files[d.t].p) : d.x;
+  const pol = d.pi === null ? "default" : `#${d.pi} ${DATA.policies[d.pi].text}`;
+  return `<div class="dep"><span class="p">${esc(short(f.p))}</span><span class="p muted">→ ${esc(to)}</span>
+    <span class="row"><span class="chip ${d.s === "d" ? "bad" : "ok"}">${d.s === "d" ? "disallowed" : "allowed"}</span><span class="chip">${d.k}</span><span class="chip">${esc(d.n)}</span>${d.inv ? '<span class="chip warn">invented</span>' : ""}
+    <button class="btn small" data-open="${esc(f.p)}">Open file</button></span>
+    <span class="mono muted" title="${esc(pol)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(pol)}</span></div>`;
+}
+function renderInspector() {
+  const box = $("inspector"), s = state.sel;
+  if (!s) { box.innerHTML = `<h2>Nothing selected</h2><p class="muted" style="margin:0">Select a node or an edge of the map, a row of the focus or a cell of the matrix to see the real dependencies behind it.</p>`; return; }
+  if (s.type === "node") {
+    const n = G.nodes.get(s.id); if (!n) { state.sel = null; return renderInspector(); }
+    const out = [...G.edges.values()].filter((e) => e.a === n.id).sort((a, b) => b.n - a.n);
+    const inc = [...G.edges.values()].filter((e) => e.b === n.id).sort((a, b) => b.n - a.n);
+    const link = (e, other) => `<button class="rowlink" data-edge="${esc(e.key)}"><span class="mono">${esc(G.nodes.get(other).label)}</span><span${e.bad ? ' style="color:var(--bad)"' : ""}>${e.n}</span></button>`;
+    box.innerHTML = `<h2>${esc(n.label)}</h2>${n.parent ? `<span class="chip">${esc(n.parent)}</span>` : ""}
+      <dl class="kv"><dt>Files</dt><dd>${n.files}</dd><dt>Internal dependencies</dt><dd>${n.internal}</dd><dt>Depend on it (fan-in)</dt><dd>${n.in}</dd><dt>It depends on (fan-out)</dt><dd>${n.out}</dd><dt>Disallowed from it</dt><dd>${n.bad}</dd></dl>
+      <button class="btn" id="toFocus">Show in Focus</button>
+      <div class="field"><span class="l">It depends on</span><div class="list" style="max-height:170px">${out.map((e) => link(e, e.b)).join("") || '<span class="muted">Nothing</span>'}</div></div>
+      <div class="field"><span class="l">Depend on it</span><div class="list" style="max-height:170px">${inc.map((e) => link(e, e.a)).join("") || '<span class="muted">Nothing</span>'}</div></div>`;
+    $("toFocus").onclick = () => { state.focus = n.id; setView("focus"); };
+  } else {
+    const e = G.edges.get(s.key); if (!e) { state.sel = null; return renderInspector(); }
+    const list = [...e.deps].sort((a, b) => (a.s === "d" ? 0 : 1) - (b.s === "d" ? 0 : 1));
+    box.innerHTML = `<h2>${esc(G.nodes.get(e.a).label)} → ${esc(G.nodes.get(e.b).label)}</h2>
+      <div><span class="chip">${e.n} dependencies</span> ${e.bad ? `<span class="chip bad">${e.bad} disallowed</span>` : ""} ${e.mut ? '<span class="chip warn">both directions</span>' : ""}</div>
+      <div class="list" style="max-height:470px">${list.slice(0, 80).map(depRow).join("")}${list.length > 80 ? `<span class="muted">+ ${list.length - 80} more</span>` : ""}</div>`;
+  }
+  box.querySelectorAll("[data-edge]").forEach((el) => el.onclick = () => select({ type: "edge", key: el.dataset.edge }));
+  box.querySelectorAll("[data-open]").forEach((el) => el.onclick = () => { $("pgMsg").textContent = `The playground would open ${el.dataset.open} here, with its dependencies and the inspector it already has.`; setMode("pg"); });
+}
+
+/* ---------- Wiring ---------- */
+function select(sel) { state.sel = sel; renderInspector(); if (state.view === "map" && state.lib === "cy") highlightCy(); }
+function renderMetrics() {
+  $("metrics").innerHTML = `<div><b>${[...G.nodes.values()].reduce((s, n) => s + n.files, 0)}</b><span>files</span></div><div><b>${G.nodes.size}</b><span>groups</span></div>
+    <div><b>${G.shown}</b><span>dependencies shown</span></div><div class="bad"><b>${G.bad}</b><span>disallowed (${G.inv} invented)</span></div>
+    <div class="warn"><b>${G.mutual}</b><span>pairs depending both ways</span></div><div><b>${G.unclassified}</b><span>unclassified files</span></div><div><b>${G.unused.length}</b><span>policies deciding nothing</span></div>`;
+  $("aggTime").textContent = `Aggregated ${DATA.deps.length} dependencies in ${G.ms.toFixed(1)} ms.`;
+}
+function renderView() {
+  for (const id of ["cy", "sigma", "focus", "matrix", "comp"]) $(id).hidden = true;
+  const v = state.view;
+  $("mapOpts").hidden = v !== "map"; $("focusOpts").hidden = v !== "focus"; $("legend").hidden = v === "comp" || v === "matrix";
+  $("layoutSeg").hidden = state.lib !== "cy"; $("nestL").hidden = !(state.lib === "cy" && state.group === "element");
+  if (v === "map") { const id = state.lib === "cy" ? "cy" : "sigma"; $(id).hidden = false; state.lib === "cy" ? renderCy() : renderSigma(); }
+  else { $(v).hidden = false; ({ focus: renderFocus, matrix: renderMatrix, comp: renderComp })[v](); }
+}
+function refresh() { aggregate(); renderMetrics(); renderView(); renderInspector(); }
+function seg(id, key, after) {
+  const el = $(id), paint = () => el.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === state[key])));
+  el.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { state[key] = b.dataset.v; paintAll(); after(); }));
+  seg.paints.push(paint);
+}
+seg.paints = []; const paintAll = () => seg.paints.forEach((p) => p());
+function setView(v) { state.view = v; paintAll(); renderView(); }
+function setMode(m) { state.mode = m; paintAll(); frame(); }
+function frame() {
+  const arch = state.mode === "arch", tabs = state.sw === "tabs";
+  $("hostTabs").hidden = !tabs; $("slotSeg").hidden = tabs;
+  $("bar").hidden = arch && tabs; $("pgButtons").hidden = arch; $("brand").textContent = arch ? "Architecture" : "Playground";
+  $("pg").hidden = arch; $("arch").hidden = !arch;
+  if (arch) renderView();
+}
+seg("swSeg", "sw", frame); seg("hostTabs", "mode", frame); seg("slotSeg", "mode", frame);
+seg("viewSeg", "view", renderView); seg("libSeg", "lib", renderView); seg("layoutSeg", "layout", renderView);
+const bind = (id, key, prop = "checked") => $(id).addEventListener("input", () => { state[key] = prop === "checked" ? $(id).checked : prop === "num" ? +$(id).value : $(id).value; if (key === "minw") $("minwV").textContent = state.minw; if (key === "nest") return renderView(); state.sel = null; refresh(); });
+bind("group", "group", "value"); bind("ext", "ext", "value"); bind("vA", "vA"); bind("vD", "vD"); bind("kV", "kV"); bind("kT", "kT"); bind("tests", "tests"); bind("minw", "minw", "num"); bind("nest", "nest");
+$("focusSel").addEventListener("change", () => { state.focus = $("focusSel").value; select({ type: "node", id: state.focus }); renderFocus(); });
+const retheme = () => { if (DATA && state.mode === "arch" && state.view === "map") renderView(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+$("notes").innerHTML = [
+  "Read on 2026-11-20 from <code>packages/playground/src</code>: 725 files, 119 elements, 2740 dependencies, 56 policies, one boundaries config for every file.",
+  "Reading took 2.1 s for the config of every file through the ESLint API, 0.9 s for the imports and 0.6 s to describe and evaluate them, in Node.js on one machine, one run.",
+  "The imports of the mockup are read and resolved with TypeScript, not with the plugin, so a dependency may differ from what the plugin reads.",
+  "The package has no violation: 19 allowed dependencies are marked as disallowed and labelled as invented. The pairs that depend on each other are real.",
+  "The inspector, the filters and the frame are plain HTML here; the real ones would be the MUI components of the playground.",
+].map((t) => `<li>${t}</li>`).join("");
+
+paintAll();
+fetch("data.json").then((r) => r.json()).then((d) => { DATA = d; refresh(); frame(); })
+  .catch((e) => { $("inspector").innerHTML = `<p>The data did not load: ${esc(e.message)}</p>`; });
+</script>
