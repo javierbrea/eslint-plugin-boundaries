@@ -108,6 +108,31 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/analysis:
+    dependencies:
+      '@boundaries/config':
+        specifier: workspace:*
+        version: link:../config
+      '@boundaries/elements':
+        specifier: workspace:*
+        version: link:../elements
+      '@boundaries/policies':
+        specifier: workspace:*
+        version: link:../policies
+    devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      eslint-plugin-boundaries:
+        specifier: workspace:@boundaries/eslint-plugin@*
+        version: link:../eslint-plugin
+      tsup:
+        specifier: 8.5.1
+        version: 8.5.1(@swc/core@1.15.43)(jiti@1.21.7)(postcss@8.5.32)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/config:
     dependencies:
       '@boundaries/elements':
@@ -212,15 +237,12 @@ importers:
 
   packages/playground:
     dependencies:
+      '@boundaries/analysis':
+        specifier: workspace:*
+        version: link:../analysis
       '@boundaries/config':
         specifier: workspace:*
         version: link:../config
-      '@boundaries/elements':
-        specifier: workspace:*
-        version: link:../elements
-      '@boundaries/policies':
-        specifier: workspace:*
-        version: link:../policies
       '@codemirror/commands':
         specifier: 6.11.1
         version: 6.11.1
@@ -264,6 +286,12 @@ importers:
       '@boundaries/design-tokens':
         specifier: workspace:*
         version: link:../design-tokens
+      '@boundaries/elements':
+        specifier: workspace:*
+        version: link:../elements
+      '@boundaries/policies':
+        specifier: workspace:*
+        version: link:../policies
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.3.0)(react@19.3.1)
@@ -458,6 +486,9 @@ importers:
 
   test/browser-e2e:
     dependencies:
+      '@boundaries/analysis':
+        specifier: workspace:*
+        version: link:../../packages/analysis
       '@boundaries/config':
         specifier: workspace:*
         version: link:../../packages/config

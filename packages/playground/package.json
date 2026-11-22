@@ -48,9 +48,8 @@
     "test:unit": "jest"
   },
   "dependencies": {
+    "@boundaries/analysis": "workspace:*",
     "@boundaries/config": "workspace:*",
-    "@boundaries/elements": "workspace:*",
-    "@boundaries/policies": "workspace:*",
     "@codemirror/commands": "6.11.1",
     "@codemirror/language": "6.13.1",
     "@codemirror/lint": "6.9.8",
@@ -74,6 +73,8 @@
   "devDependencies": {
     "@babel/preset-react": "7.29.7",
     "@boundaries/design-tokens": "workspace:*",
+    "@boundaries/elements": "workspace:*",
+    "@boundaries/policies": "workspace:*",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/material": "9.5.0",

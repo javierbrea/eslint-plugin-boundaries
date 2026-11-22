@@ -1,10 +1,7 @@
 import { normalizeConfig } from "@boundaries/config";
 import type { SettingsNormalized } from "@boundaries/config";
 
-import {
-  getAdditionalNodesProblems,
-  getReadNodeKinds,
-} from "./dependencyNodes";
+import { getAdditionalNodesProblems } from "./dependencyNodes";
 import { parseConfig } from "./parseConfig";
 import type { ConfigRead } from "./parseConfig.types";
 
@@ -50,125 +47,7 @@ function configWith(nodes?: string, additional?: string): string {
 }`;
 }
 
-/**
- * Lists the node kinds that are read, sorted.
- * @param text The config text.
- * @returns The names of the node kinds.
- */
-function readKindsOf(text: string): string[] {
-  return [...getReadNodeKinds(analyze(text).settings)].sort((a, b) =>
-    a.localeCompare(b)
-  );
-}
-
 describe("DependencyNodes", () => {
-  describe("getReadNodeKinds", () => {
-    it("should read the four kinds while the setting is not written", () => {
-      // Act
-      const kinds = readKindsOf(configWith());
-
-      // Assert
-      expect(kinds).toEqual(["dynamic-import", "export", "import", "require"]);
-    });
-
-    it.each([
-      ['["import"]', ["import"]],
-      ['["require", "export"]', ["export", "require"]],
-      [
-        '["dynamic-import", "import", "require", "export"]',
-        ["dynamic-import", "export", "import", "require"],
-      ],
-      ["[]", []],
-    ])("should read only the kinds of the setting %s", (nodes, expected) => {
-      // Act
-      const kinds = readKindsOf(configWith(nodes));
-
-      // Assert
-      expect(kinds).toEqual(expected);
-    });
-
-    it.each([
-      [
-        "import",
-        "ImportDeclaration:not([importKind=type]) > Literal",
-        "import",
-      ],
-      [
-        "import, by its type selector",
-        "ImportDeclaration[importKind=type] > Literal",
-        "import",
-      ],
-      [
-        "export",
-        "ExportNamedDeclaration:not([exportKind=type]) > Literal",
-        "export",
-      ],
-      ["require", "CallExpression[callee.name=require] > Literal", "require"],
-      [
-        "require, by a selector that is not the first of the kind",
-        "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
-        "require",
-      ],
-      ["dynamic-import", "ImportExpression > Literal", "dynamic-import"],
-    ])(
-      "should read the kind of a built-in selector that an additional node repeats: %s",
-      (_title, selector, nodeName) => {
-        // Arrange
-        const additional = `[{ selector: ${JSON.stringify(selector)}, kind: "value", name: "${nodeName}" }]`;
-
-        // Act
-        const kinds = readKindsOf(configWith("[]", additional));
-
-        // Assert
-        expect(kinds).toEqual([nodeName]);
-      }
-    );
-
-    it("should not read a kind through a selector of an additional node that is not a built-in one, even when it has the name of the kind", () => {
-      // Arrange
-      const additional = `[{ selector: "CallExpression[callee.name='jest.mock'] > Literal", kind: "value", name: "require" }]`;
-
-      // Act
-      const kinds = readKindsOf(configWith('["import"]', additional));
-
-      // Assert
-      expect(kinds).toEqual(["import"]);
-    });
-
-    it("should not read a kind through a built-in selector that an additional node gives another name", () => {
-      // Arrange
-      const additional = `[{ selector: "CallExpression[callee.name=require] > Literal", kind: "value", name: "custom" }]`;
-
-      // Act
-      const kinds = readKindsOf(configWith("[]", additional));
-
-      // Assert
-      expect(kinds).toEqual([]);
-    });
-
-    it("should not read a kind through a built-in selector that an additional node gives no name", () => {
-      // Arrange
-      const additional = `[{ selector: "CallExpression[callee.name=require] > Literal", kind: "value" }]`;
-
-      // Act
-      const kinds = readKindsOf(configWith("[]", additional));
-
-      // Assert
-      expect(kinds).toEqual([]);
-    });
-
-    it("should not read a kind through the selector of another kind that an additional node names after this kind", () => {
-      // Arrange
-      const additional = `[{ selector: "ImportExpression > Literal", kind: "value", name: "import" }]`;
-
-      // Act
-      const kinds = readKindsOf(configWith("[]", additional));
-
-      // Assert
-      expect(kinds).toEqual([]);
-    });
-  });
-
   describe("getAdditionalNodesProblems", () => {
     const WARNING = {
       level: "warning",

@@ -5,28 +5,19 @@ import { SETTINGS_KEY } from "./engine.constants";
 import type { ConfigProblem } from "./engine.types";
 import { getRangeOf } from "./locations";
 import type { ConfigRead } from "./parseConfig.types";
-import { readSettings } from "./writtenConfig";
 
 /**
- * Finds the node kinds that the playground reads from the dependency nodes of the settings.
- * @param settings The normalized settings, whose `dependencyNodes` hold the selectors of `boundaries/dependency-nodes` followed by the valid ones of `boundaries/additional-dependency-nodes`.
- * @returns The names of the node kinds, such as `require`, of which the nodes hold at least one built-in selector, with the same `selector` and the same `name`. The plugin visits every selector and passes the `name` of its node as the node kind, and the playground cannot run a selector: it reads a syntax only through the built-in selectors, so a selector of an additional node that is not one of them, whatever its name is, reads nothing.
+ * Reads the `boundaries/dependency-nodes` setting as written.
+ * @param config The config as written.
+ * @returns The value of the setting, or `undefined` when the settings are not an object.
  */
-export function getReadNodeKinds(
-  settings: SettingsNormalized
-): ReadonlySet<string> {
-  return new Set(
-    Object.entries(SETTINGS.DEFAULT_DEPENDENCY_NODES)
-      .filter(([, builtIn]) =>
-        builtIn.some((builtInNode) =>
-          settings.dependencyNodes.some(
-            ({ selector, name: nodeName }) =>
-              selector === builtInNode.selector && nodeName === builtInNode.name
-          )
-        )
-      )
-      .map(([kind]) => kind)
-  );
+function readDependencyNodes(config: ConfigRead): unknown {
+  const settings = config.value[SETTINGS_KEY];
+  return typeof settings === "object" &&
+    settings !== null &&
+    !Array.isArray(settings)
+    ? (settings as Record<string, unknown>)[SETTINGS.DEPENDENCY_NODES]
+    : undefined;
 }
 
 /**
@@ -41,8 +32,7 @@ export function getAdditionalNodesProblems(
 ): ConfigProblem[] {
   // The nodes of `boundaries/dependency-nodes` alone, to count what the additional setting adds to them
   const { dependencyNodes } = normalizeSettings({
-    [SETTINGS.DEPENDENCY_NODES]:
-      readSettings(config)[SETTINGS.DEPENDENCY_NODES],
+    [SETTINGS.DEPENDENCY_NODES]: readDependencyNodes(config),
   }).value;
   if (settings.dependencyNodes.length === dependencyNodes.length) {
     return [];

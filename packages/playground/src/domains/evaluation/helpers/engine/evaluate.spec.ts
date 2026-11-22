@@ -559,6 +559,155 @@ describe("Evaluate", () => {
           },
         ]);
       });
+
+      it("should place each element type at its descriptor", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const { elementTypes } = evaluate(sketch);
+
+        // Assert
+        expect(
+          elementTypes.map(({ range }) =>
+            JSON.parse(slice(QUICK_START_CONFIG, range))
+          )
+        ).toEqual(QUICK_START_SETTINGS["boundaries/elements"]);
+        expect(elementTypes[1].range.line).toBe(8);
+        expect(elementTypes[1].range.column).toBe(7);
+      });
+
+      it("should place each file category at its descriptor", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const { fileCategories } = evaluate(sketch);
+
+        // Assert
+        expect(
+          fileCategories.map(({ index, range }) => [
+            index,
+            JSON.parse(slice(QUICK_START_CONFIG, range)),
+          ])
+        ).toEqual([
+          [0, QUICK_START_SETTINGS["boundaries/files"][0]],
+          [1, QUICK_START_SETTINGS["boundaries/files"][1]],
+        ]);
+      });
+
+      it("should place each file category at its descriptor, with the index it has in the text, when an invalid descriptor is between them", () => {
+        // Arrange
+        const [testFiles, styleFiles] =
+          QUICK_START_SETTINGS["boundaries/files"];
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/files": [
+                testFiles,
+                { pattern: "**/*.md" },
+                styleFiles,
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { fileCategories } = evaluate(sketch);
+
+        // Assert
+        expect(
+          fileCategories.map(({ index, range }) => [
+            index,
+            range.line,
+            JSON.parse(slice(config, range)),
+          ])
+        ).toEqual([
+          [0, 18, testFiles],
+          [2, 25, styleFiles],
+        ]);
+      });
+
+      it("should place the rule at its entry", () => {
+        // Arrange
+        const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const { rules } = evaluate(sketch);
+
+        // Assert
+        expect(rules[0].range).toMatchObject({ line: 29, column: 32 });
+        expect(JSON.parse(slice(QUICK_START_CONFIG, rules[0].range))).toEqual(
+          QUICK_START_RULES["boundaries/dependencies"]
+        );
+      });
+
+      it("should place each policy and the default at their text, and give each verdict the place of the policy that decided it", () => {
+        // Arrange
+        const componentPolicy =
+          '{ from: { element: { type: "component" } }, allow: { to: { element: { type: "helper" } } } }';
+        const modulePolicy =
+          '{ from: { element: { type: "module" } }, allow: { to: { element: { types: ["component", "helper"] } } } }';
+        const testPolicy =
+          '{ disallow: { to: { file: { categories: "test" } } } }';
+        const config = [
+          "{",
+          `  settings: ${JSON.stringify(QUICK_START_SETTINGS)},`,
+          "  rules: {",
+          '    "boundaries/dependencies": [2, {',
+          '      default: "disallow",',
+          "      policies: [",
+          `        ${componentPolicy},`,
+          `        ${modulePolicy},`,
+          `        ${testPolicy},`,
+          "      ],",
+          "    }],",
+          "  },",
+          "}",
+        ].join("\n");
+        const sketch = createSketch(
+          config,
+          QUICK_START_FILES,
+          QUICK_START_DEPENDENCIES
+        );
+
+        // Act
+        const { policies, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(policies.map(({ range }) => slice(config, range))).toEqual([
+          componentPolicy,
+          modulePolicy,
+          testPolicy,
+          '"disallow"',
+        ]);
+        expect(policies.map(({ range }) => [range.line, range.column])).toEqual(
+          [
+            [7, 9],
+            [8, 9],
+            [9, 9],
+            [5, 16],
+          ]
+        );
+        expect(dependencies.map((result) => policyOf(result)?.range)).toEqual([
+          undefined,
+          policies[0].range,
+          undefined,
+          policies[3].range,
+          policies[1].range,
+          policies[1].range,
+          policies[2].range,
+          undefined,
+          undefined,
+        ]);
+        expect(policyOf(dependencies[1])?.range).toBe(policies[0].range);
+        expect(policyOf(dependencies[3])?.range).toBe(policies[3].range);
+      });
     });
 
     describe("with the problems of the config state of the mockup", () => {
@@ -1912,6 +2061,24 @@ describe("Evaluate", () => {
           }),
         ]);
       });
+
+      it("should place a legacy element descriptor written as a string at its string, in the deprecated setting", () => {
+        // Arrange
+        const config =
+          '{ settings: { "boundaries/types": ["helper", "component"] } }';
+        const sketch = createSketch(config);
+
+        // Act
+        const { elementTypes } = evaluate(sketch);
+
+        // Assert
+        expect(
+          elementTypes.map(({ type, range }) => [type, slice(config, range)])
+        ).toEqual([
+          ["helper", '"helper"'],
+          ["component", '"component"'],
+        ]);
+      });
     });
 
     describe("with the rule that is evaluated", () => {
@@ -2329,6 +2496,149 @@ describe("Evaluate", () => {
           "disallowed",
           "allowed",
         ]);
+      });
+
+      it("should place the policies of the deprecated rules key of the element-types rule at their text, and give each verdict the place of the policy that decided it", () => {
+        // Arrange
+        const policy =
+          '{ from: { element: { type: "module" } }, allow: { to: { element: { type: "component" } } } }';
+        const config = [
+          "{",
+          `  settings: ${JSON.stringify(QUICK_START_SETTINGS)},`,
+          "  rules: {",
+          `    "boundaries/element-types": [2, { default: "disallow", rules: [${policy}] }],`,
+          "  },",
+          "}",
+        ].join("\n");
+        const sketch = createSketch(
+          config,
+          CHECKOUT_FILES,
+          CHECKOUT_DEPENDENCIES
+        );
+
+        // Act
+        const { policies, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(
+          policies.map(({ index, range }) => [index, slice(config, range)])
+        ).toEqual([
+          [0, policy],
+          [null, '"disallow"'],
+        ]);
+        expect(dependencies.map((result) => policyOf(result)?.range)).toEqual([
+          policies[0].range,
+          policies[0].range,
+          policies[1].range,
+        ]);
+      });
+
+      it("should place the policies at policies when the options write both policies and the deprecated rules", () => {
+        // Arrange
+        const config =
+          '{ rules: { "boundaries/dependencies": [2, { rules: [{ from: "x", allow: "y" }], policies: [{ from: "a", allow: "b" }] }] } }';
+        const sketch = createSketch(config);
+
+        // Act
+        const { policies } = evaluate(sketch);
+
+        // Assert
+        expect(policies).toHaveLength(2);
+        expect(slice(config, policies[0].range)).toBe(
+          '{ from: "a", allow: "b" }'
+        );
+      });
+
+      it.each([
+        ["off", '"off"'],
+        ["off by its number", "0"],
+        ["off with options", '["off", { default: "allow" }]'],
+        [
+          "off with options that fail the schema, as ESLint does not validate them",
+          '["off", { default: "maybe" }]',
+        ],
+        [
+          "off with a policy that cannot be normalized, which the normalized rules leave out",
+          '["off", { policies: [{ disallow: {} }] }]',
+        ],
+        ["a severity alone", "2"],
+        ["a list with only the severity", "[1]"],
+      ])(
+        "should place the policies of the deprecated rules key of the element-types rule at their text when the dependencies rule is %s",
+        (_title, entry) => {
+          // Arrange
+          const config = `{
+  rules: {
+    "boundaries/dependencies": ${entry},
+    "boundaries/element-types": [2, { default: "disallow", rules: [{ from: "a", allow: "b" }] }],
+  },
+}`;
+          const sketch = createSketch(config);
+
+          // Act
+          const { policies, notEvaluated } = evaluate(sketch);
+
+          // Assert
+          expect(notEvaluated).toBeUndefined();
+          expect(slice(config, policies[0].range)).toBe(
+            '{ from: "a", allow: "b" }'
+          );
+        }
+      );
+
+      it("should place the default at the options when it is not written, and give each verdict of the default that place", () => {
+        // Arrange
+        const config = `{ settings: ${JSON.stringify(QUICK_START_SETTINGS)}, rules: { "boundaries/dependencies": [2, { policies: [] }] } }`;
+        const sketch = createSketch(config, CHECKOUT_FILES, [
+          CHECKOUT_DEPENDENCIES[0],
+        ]);
+
+        // Act
+        const { policies, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(
+          policies.map(({ index, range }) => [index, slice(config, range)])
+        ).toEqual([[null, "{ policies: [] }"]]);
+        expect(policyOf(dependencies[0])?.range).toBe(policies[0].range);
+      });
+
+      it("should place the default at the options when they are an empty object, and give each verdict of the default that place", () => {
+        // Arrange
+        const config = `{ settings: ${JSON.stringify(QUICK_START_SETTINGS)}, rules: { "boundaries/dependencies": [2, {}] } }`;
+        const sketch = createSketch(config, CHECKOUT_FILES, [
+          CHECKOUT_DEPENDENCIES[0],
+        ]);
+
+        // Act
+        const { policies, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(
+          policies.map(({ index, range }) => [index, slice(config, range)])
+        ).toEqual([[null, "{}"]]);
+        expect(policyOf(dependencies[0])?.range).toBe(policies[0].range);
+      });
+
+      it("should place the default that allows a dependency at its value", () => {
+        // Arrange
+        const config = configWithRule("boundaries/dependencies", [
+          2,
+          { default: "allow", policies: [] },
+        ]);
+        const sketch = createSketch(config, CHECKOUT_FILES, [
+          CHECKOUT_DEPENDENCIES[2],
+        ]);
+
+        // Act
+        const { policies, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies[0].verdict).toEqual({
+          status: "allowed",
+          policy: { index: null, range: policies[0].range },
+        });
+        expect(slice(config, policies[0].range)).toBe('"allow"');
       });
     });
 
