@@ -33,7 +33,7 @@ The phases after the first one come from the finished design and are added by ph
 
 ## Decisions
 
-Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 34). They have no public link: the issues of phase 1 record the ones their readers need.
+Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 35). They have no public link: the issues of phase 1 record the ones their readers need.
 
 1. The graph is first drawn on the website, over the sketch that the user edits in the playground. The local app is out of this plan.
 2. `@boundaries/analysis` evaluates a whole project: it takes the config as an object, the files and the dependencies, and returns the descriptions and the verdicts. It is extracted from the playground from the start, so that no later refactor is needed.
@@ -69,6 +69,7 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 32. The graph is desktop only, as the playground is, with the same notice on a phone.
 33. Accessibility: the Map is operable with the keyboard, the matrix and the lists of the inspector are a complete reading of the same data, and the graph passes the checks that the rest of the website passes. The maintainer accepts a lower bar in a part where reaching it costs too much, decided case by case.
 34. The four views stay. In its first version the Map has the layered layout only, with no force layout, and Composition draws sorted bars, not pies. The maintainer took it before opening the React Flow mockup, so the look of each view is still open to what they say of the mockups.
+35. The Map opens as a summary and gives the detail on demand. It starts with one circle per element type, as big as its files are many, with tests, mocks and page objects hidden, and thin translucent edges with no numbers; selecting a node dims what it does not touch, and a type expands into its elements. The maintainer found the first React Flow mockup, which drew boxes, every file and numbered routed edges, too hard to read, and preferred this look, which is the one of the first mockup.
 
 ## Open questions
 

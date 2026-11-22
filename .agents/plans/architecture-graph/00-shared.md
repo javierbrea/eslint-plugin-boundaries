@@ -50,6 +50,7 @@ The public interface of `@boundaries/analysis` is in `engine-cut.md`, "Proposed 
 - Filters: verdict, deciding policy, kind, syntax, relationship, externals, test files, minimum weight, path glob.
 - Metrics: groups that depend on each other, fan-in and fan-out, policies that decide nothing, unclassified files.
 - A selection lists the real dependencies behind a node or an edge.
+- The Map opens as a summary: one circle per element type, tests hidden, thin edges with no numbers, and the detail on demand by selecting or expanding (decision 35).
 - The four views stay. The Map has the layered layout only in its first version, and Composition draws sorted bars (decision 34). TODO: what the maintainer says of each view in the mockups (step 2 of `01-design-and-issues.md`).
 - A graph too big for the layered layout starts collapsed by element type, its layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight (decision 31). TODO: the threshold, from the measurement below.
 

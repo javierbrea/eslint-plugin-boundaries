@@ -62,10 +62,12 @@ Every view answers an architecture question. The mockup draws the four.
 
 `mockup/react-flow/` draws the Map with React Flow and ELK, over the same `data.json`. `node build.mjs <folder with node_modules>` writes `dist/` (git-ignored): the page with its script inlined, the ELK worker and the data. The packages are the ones of `spike/graph-libraries/package.json`.
 
-- A type is one node, or a group with its elements when expanded; the edges are aggregated between whatever is visible, and drawn along the spline routes that ELK returns (`elk.json.edgeCoords: ROOT`).
+- Its look is the one of decision 35, in its second version: the first one drew boxes, every file and numbered edges along the routes of ELK, and the maintainer found it too hard to read.
+- A type is one circle, or a group with its elements when expanded. The edges are aggregated between whatever is visible and drawn as one curve from circle to circle; the routes that ELK can return are not used.
 - It shows the time of each layout and the longest time the page did not respond meanwhile, and it can switch to dagre on the page thread and to synthetic projects of 600 and 5000 links to compare. A layout in the worker can be cancelled and stops after 30 s.
-- Seen rendered on 2026-11-22 in headless Chromium, in both themes: with one type expanded, 22 nodes and 111 edges were laid out in about 200 ms; with every type expanded, 137 nodes and 604 edges in about 1 s, with no frame of the page longer than 17 ms.
-- Missing: the filters other than the minimum weight, the other "group by" values, externals, and the views other than the Map.
+- Seen rendered on 2026-11-22 in headless Chromium, in both themes: 18 nodes and 65 edges were laid out in about 160 ms; with every type expanded, 137 nodes and 371 edges in about 0.5 s, with no frame of the page longer than 17 ms.
+- Not liked yet: the drawing is tall and narrow, so the names are small until the user zooms, and the arrow heads are hard to see from far.
+- Missing: the filters other than the minimum weight and the tests, the other "group by" values, externals, and the views other than the Map.
 
 ### The data and the spike
 

@@ -1,14 +1,12 @@
 // Mockup of the Map view with React Flow and ELK in a web worker. Not production code: it only shows the drawing, the nesting and how the page behaves while a layout runs.
 import { createRoot } from "react-dom/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ReactFlow, Handle, Position, MarkerType, Controls, BaseEdge, getBezierPath } from "@xyflow/react";
+import { ReactFlow, Handle, Position, MarkerType, Controls, BaseEdge } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
 import ELK from "elkjs/lib/elk-api.js";
 
-const ELEMENT_WIDTH = 168;
-const ELEMENT_HEIGHT = 34;
-const TYPE_WIDTH = 176;
-const TYPE_HEIGHT = 48;
+const LABEL_HEIGHT = 18;
+const TEST_CATEGORIES = new Set(["test", "mock", "pom", "playwright", "playwright-entry"]);
 const TIME_LIMIT = 30000;
 const UNCLASSIFIED = "unclassified";
 
@@ -24,13 +22,14 @@ function createRandom(seed) {
 }
 
 /** The real project: files grouped into elements, and dependencies aggregated between elements */
-function readProject(data) {
+function readProject(data, withTests) {
   const elements = new Map();
   const fileElement = data.files.map((file) => {
+    if (!withTests && file.k.some((category) => TEST_CATEGORIES.has(category))) return undefined;
     const id = file.e ?? UNCLASSIFIED;
     if (!elements.has(id)) {
       const parts = id.split("/");
-      elements.set(id, { id, type: file.t ?? UNCLASSIFIED, label: parts.slice(-2).join("/"), files: 0, internal: 0 });
+      elements.set(id, { id, type: file.t ?? UNCLASSIFIED, label: parts.slice(-2).join("/"), short: parts.at(-1), files: 0, internal: 0 });
     }
     elements.get(id).files += 1;
     return id;
@@ -40,6 +39,7 @@ function readProject(data) {
     if (dep.t < 0) return;
     const from = fileElement[dep.f];
     const to = fileElement[dep.t];
+    if (from === undefined || to === undefined) return;
     if (from === to) {
       elements.get(from).internal += 1;
       return;
@@ -59,7 +59,7 @@ function makeProject(elementCount, typeCount, linkCount) {
   const random = createRandom(elementCount * 31 + linkCount);
   const elements = Array.from({ length: elementCount }, (_, index) => {
     const layer = index % typeCount;
-    return { id: `e${index}`, type: `layer-${String(layer + 1).padStart(2, "0")}`, layer, label: `element-${index}`, files: 1 + Math.floor(random() * 9), internal: 0 };
+    return { id: `e${index}`, type: `layer-${String(layer + 1).padStart(2, "0")}`, layer, label: `element-${index}`, short: `element-${index}`, files: 1 + Math.floor(random() * 9), internal: 0 };
   });
   const links = new Map();
   while (links.size < linkCount) {
@@ -112,12 +112,30 @@ function aggregate(project, expanded, minWeight) {
   return { types: [...types.values()].sort((a, b) => a.name.localeCompare(b.name)), links: kept };
 }
 
+/** A node is a circle as big as its files are many, with its name below */
+function getSize(files, most, label) {
+  const diameter = Math.round(22 + 44 * Math.sqrt(files / most));
+  const text = Math.min(label.length, 22) * 6.7 + 8;
+  return { diameter, width: Math.max(diameter, text), height: diameter + LABEL_HEIGHT };
+}
+
+function sizeGraph(graph, expanded) {
+  const mostType = Math.max(1, ...graph.types.map((type) => type.files));
+  const mostElement = Math.max(1, ...graph.types.flatMap((type) => type.elements.map((element) => element.files)));
+  const sizes = new Map();
+  for (const type of graph.types) {
+    if (!isExpanded(type, expanded)) sizes.set(type.id, getSize(type.files, mostType, type.name));
+    else for (const element of type.elements) sizes.set(`e:${element.id}`, getSize(element.files, mostElement, element.short));
+  }
+  return sizes;
+}
+
 function isExpanded(type, expanded) {
   return expanded.has(type.name);
 }
 
 /** Layered layout with ELK, in a worker. Returns positions relative to the parent, and a function that stops the worker */
-function layoutWithElk(graph, expanded) {
+function layoutWithElk(graph, expanded, sizes) {
   const elk = new ELK({ workerUrl: "elk-worker.min.js", workerFactory: (url) => new Worker(url) });
   const promise = elk
     .layout({
@@ -126,20 +144,17 @@ function layoutWithElk(graph, expanded) {
         "elk.algorithm": "layered",
         "elk.direction": "DOWN",
         "elk.hierarchyHandling": "INCLUDE_CHILDREN",
-        "elk.layered.spacing.nodeNodeBetweenLayers": "64",
-        "elk.spacing.nodeNode": "26",
-        "elk.edgeRouting": "SPLINES",
-        // The route of every edge in the coordinates of the whole drawing, whatever group its ends are in
-        "elk.json.edgeCoords": "ROOT",
+        "elk.layered.spacing.nodeNodeBetweenLayers": "70",
+        "elk.spacing.nodeNode": "34",
       },
       children: graph.types.map((type) =>
         isExpanded(type, expanded)
           ? {
               id: type.id,
-              layoutOptions: { "elk.padding": "[top=44,left=16,bottom=16,right=16]" },
-              children: type.elements.map((element) => ({ id: `e:${element.id}`, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })),
+              layoutOptions: { "elk.padding": "[top=40,left=18,bottom=14,right=18]" },
+              children: type.elements.map((element) => ({ id: `e:${element.id}`, width: sizes.get(`e:${element.id}`).width, height: sizes.get(`e:${element.id}`).height })),
             }
-          : { id: type.id, width: TYPE_WIDTH, height: TYPE_HEIGHT }
+          : { id: type.id, width: sizes.get(type.id).width, height: sizes.get(type.id).height }
       ),
       edges: graph.links.map((link) => ({ id: link.id, sources: [link.source], targets: [link.target] })),
     })
@@ -149,15 +164,6 @@ function layoutWithElk(graph, expanded) {
         boxes.set(type.id, { x: type.x, y: type.y, width: type.width, height: type.height });
         for (const child of type.children ?? []) boxes.set(child.id, { x: child.x, y: child.y, width: child.width, height: child.height });
       }
-      const routes = new Map();
-      (function collect(node) {
-        for (const edge of node.edges ?? []) {
-          const section = edge.sections?.[0];
-          if (section) routes.set(edge.id, [section.startPoint, ...(section.bendPoints ?? []), section.endPoint]);
-        }
-        for (const child of node.children ?? []) collect(child);
-      })(result);
-      boxes.routes = routes;
       elk.terminateWorker();
       return boxes;
     });
@@ -165,7 +171,7 @@ function layoutWithElk(graph, expanded) {
 }
 
 /** Layered layout with dagre, on the thread of the page: nothing responds while it runs */
-function layoutWithDagre(graph, expanded) {
+function layoutWithDagre(graph, expanded, sizes) {
   const g = new dagre.graphlib.Graph({ compound: true });
   g.setGraph({ rankdir: "TB", nodesep: 26, ranksep: 64 });
   g.setDefaultEdgeLabel(() => ({}));
@@ -173,11 +179,11 @@ function layoutWithDagre(graph, expanded) {
     if (isExpanded(type, expanded)) {
       g.setNode(type.id, {});
       for (const element of type.elements) {
-        g.setNode(`e:${element.id}`, { width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT });
+        g.setNode(`e:${element.id}`, { width: sizes.get(`e:${element.id}`).width, height: sizes.get(`e:${element.id}`).height });
         g.setParent(`e:${element.id}`, type.id);
       }
     } else {
-      g.setNode(type.id, { width: TYPE_WIDTH, height: TYPE_HEIGHT });
+      g.setNode(type.id, { width: sizes.get(type.id).width, height: sizes.get(type.id).height });
     }
   }
   for (const link of graph.links) g.setEdge(link.source, link.target);
@@ -191,7 +197,7 @@ function layoutWithDagre(graph, expanded) {
     if (!isExpanded(type, expanded)) continue;
     for (const element of type.elements) {
       const child = g.node(`e:${element.id}`);
-      boxes.set(`e:${element.id}`, { x: child.x - ELEMENT_WIDTH / 2 - origin.x, y: child.y - ELEMENT_HEIGHT / 2 - origin.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT });
+      boxes.set(`e:${element.id}`, { x: child.x - child.width / 2 - origin.x, y: child.y - child.height / 2 - origin.y, width: child.width, height: child.height });
     }
   }
   return boxes;
@@ -202,35 +208,45 @@ function getTone(link) {
   return link.mutual ? "warn" : "ok";
 }
 
-function toFlow(graph, expanded, boxes, onToggle, withLabels) {
+/** The nodes and edges that React Flow draws. An edge goes straight from circle to circle, slightly bent so that the two directions of a pair do not overlap */
+function toFlow(graph, expanded, boxes, sizes, onToggle) {
   const nodes = [];
+  const circles = new Map();
+  const most = Math.max(1, ...graph.links.map((link) => link.allowed + link.disallowed));
   for (const type of graph.types) {
     const box = boxes.get(type.id);
     if (!box) continue;
     const open = isExpanded(type, expanded);
+    const size = sizes.get(type.id);
     nodes.push({
       id: type.id,
-      type: open ? "openType" : "closedType",
+      type: open ? "openType" : "circle",
       position: { x: box.x, y: box.y },
       width: box.width,
       height: box.height,
-      data: { name: type.name, elements: type.elements.length, files: type.files, onToggle },
-      ariaLabel: `Element type ${type.name}, ${type.elements.length} elements, ${open ? "expanded" : "collapsed"}`,
+      data: { name: type.name, label: type.name, files: type.files, elements: type.elements.length, diameter: size?.diameter, isType: true, onToggle },
+      ariaLabel: `Element type ${type.name}, ${type.elements.length} elements, ${type.files} files, ${open ? "expanded" : "collapsed"}`,
     });
-    if (!open) continue;
+    if (!open) {
+      circles.set(type.id, { x: box.x + box.width / 2, y: box.y + size.diameter / 2, r: size.diameter / 2 });
+      continue;
+    }
     for (const element of type.elements) {
-      const child = boxes.get(`e:${element.id}`);
+      const id = `e:${element.id}`;
+      const child = boxes.get(id);
+      const childSize = sizes.get(id);
       nodes.push({
-        id: `e:${element.id}`,
-        type: "element",
+        id,
+        type: "circle",
         parentId: type.id,
         extent: "parent",
         position: { x: child.x, y: child.y },
         width: child.width,
         height: child.height,
-        data: { label: element.label, files: element.files },
+        data: { label: element.short, title: element.id, files: element.files, diameter: childSize.diameter },
         ariaLabel: `Element ${element.id}, ${element.files} files`,
       });
+      circles.set(id, { x: box.x + child.x + child.width / 2, y: box.y + child.y + childSize.diameter / 2, r: childSize.diameter / 2 });
     }
   }
   const edges = graph.links.map((link) => {
@@ -240,16 +256,12 @@ function toFlow(graph, expanded, boxes, onToggle, withLabels) {
       id: link.id,
       source: link.source,
       target: link.target,
-      label: withLabels ? String(weight) : undefined,
+      type: "direct",
       className: `edge-${tone}`,
-      style: { stroke: `var(--${tone})`, strokeWidth: 1 + Math.min(5, Math.log2(weight)), strokeDasharray: tone === "bad" ? "7 5" : undefined },
-      markerEnd: { type: MarkerType.ArrowClosed, color: `var(--${tone})`, width: 14, height: 14 },
-      labelStyle: { fill: "var(--ink)", fontSize: 11, fontFamily: "var(--mono)" },
-      labelBgStyle: { fill: "var(--card)" },
-      labelBgPadding: [4, 2],
-      interactionWidth: 16,
-      type: "routed",
-      data: { link, points: boxes.routes?.get(link.id) },
+      style: { stroke: `var(--${tone})`, strokeWidth: 1 + (5 * Math.log(1 + weight)) / Math.log(1 + most), strokeDasharray: tone === "bad" ? "6 4" : undefined },
+      markerEnd: { type: MarkerType.ArrowClosed, color: `var(--${tone})`, width: 12, height: 12, markerUnits: "userSpaceOnUse" },
+      ariaLabel: `${weight} dependencies from ${describeNode(link.source)} to ${describeNode(link.target)}${link.disallowed ? `, ${link.disallowed} disallowed` : ""}`,
+      data: { link, from: circles.get(link.source), to: circles.get(link.target) },
     };
   });
   return { nodes, edges };
@@ -264,19 +276,18 @@ function HiddenHandles() {
   );
 }
 
-function ClosedType({ data }) {
+function CircleNode({ data }) {
   return (
-    <div className="node node-type">
+    <div className="node node-circle" title={`${data.title ?? data.label}: ${data.files} files`}>
       <HiddenHandles />
-      <button className="toggle nodrag" type="button" onClick={() => data.onToggle(data.name)} aria-label={`Expand ${data.name}`}>
-        +
-      </button>
-      <span className="node-text">
-        <b>{data.name}</b>
-        <small>
-          {data.elements} elements · {data.files} files
-        </small>
+      <span className="disc" style={{ width: data.diameter, height: data.diameter }}>
+        {data.isType ? (
+          <button className="toggle nodrag" type="button" onClick={(event) => (event.stopPropagation(), data.onToggle(data.name))} aria-label={`Expand ${data.name} into its ${data.elements} elements`}>
+            +
+          </button>
+        ) : null}
       </span>
+      <span className="name">{data.label}</span>
     </div>
   );
 }
@@ -284,7 +295,7 @@ function ClosedType({ data }) {
 function OpenType({ data }) {
   return (
     <div className="node node-group">
-      <button className="toggle nodrag" type="button" onClick={() => data.onToggle(data.name)} aria-label={`Collapse ${data.name}`}>
+      <button className="toggle nodrag" type="button" onClick={(event) => (event.stopPropagation(), data.onToggle(data.name))} aria-label={`Collapse ${data.name}`}>
         −
       </button>
       <b>{data.name}</b>
@@ -293,56 +304,42 @@ function OpenType({ data }) {
   );
 }
 
-function ElementNode({ data }) {
-  return (
-    <div className="node node-element" title={data.label}>
-      <HiddenHandles />
-      <span>{data.label}</span>
-      <small>{data.files}</small>
-    </div>
-  );
+/** Draws an edge from the border of a circle to the border of the other, as one gentle curve */
+function DirectEdge({ id, data, style, markerEnd }) {
+  const { from, to } = data;
+  if (!from || !to) return null;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const bend = Math.min(40, length * 0.12);
+  const cx = (from.x + to.x) / 2 - (dy / length) * bend;
+  const cy = (from.y + to.y) / 2 + (dx / length) * bend;
+  const leave = Math.hypot(cx - from.x, cy - from.y) || 1;
+  const arrive = Math.hypot(to.x - cx, to.y - cy) || 1;
+  const x1 = from.x + ((cx - from.x) / leave) * (from.r + 2);
+  const y1 = from.y + ((cy - from.y) / leave) * (from.r + 2);
+  const x2 = to.x - ((to.x - cx) / arrive) * (to.r + 4);
+  const y2 = to.y - ((to.y - cy) / arrive) * (to.r + 4);
+  return <BaseEdge id={id} path={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`} style={style} markerEnd={markerEnd} interactionWidth={14} />;
 }
 
-/** Draws an edge along the route that ELK gave it, a chain of cubic curves, or as a plain curve when the layout gave none */
-function RoutedEdge({ id, data, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, ...rest }) {
-  const points = data.points;
-  let path;
-  let labelX;
-  let labelY;
-  if (points && points.length >= 2) {
-    const [start, ...others] = points;
-    path = `M ${start.x} ${start.y}`;
-    if (others.length % 3 === 0) {
-      for (let i = 0; i < others.length; i += 3) path += ` C ${others[i].x} ${others[i].y} ${others[i + 1].x} ${others[i + 1].y} ${others[i + 2].x} ${others[i + 2].y}`;
-    } else {
-      for (const point of others) path += ` L ${point.x} ${point.y}`;
-    }
-    const middle = points[Math.floor(points.length / 2)];
-    labelX = middle.x;
-    labelY = middle.y;
-  } else {
-    [path, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition });
+const EDGE_TYPES = { direct: DirectEdge };
+const NODE_TYPES = { circle: CircleNode, openType: OpenType };
+
+/** Dims what the focused node does not touch, as the first mockup did */
+function focusFlow(flow, focus) {
+  if (!flow || !focus) return flow;
+  const near = new Set([focus]);
+  for (const edge of flow.edges) {
+    if (edge.source === focus) near.add(edge.target);
+    if (edge.target === focus) near.add(edge.source);
   }
-  return (
-    <BaseEdge
-      id={id}
-      path={path}
-      labelX={labelX}
-      labelY={labelY}
-      label={rest.label}
-      labelStyle={rest.labelStyle}
-      labelShowBg
-      labelBgStyle={rest.labelBgStyle}
-      labelBgPadding={rest.labelBgPadding}
-      style={rest.style}
-      markerEnd={rest.markerEnd}
-      interactionWidth={16}
-    />
-  );
+  for (const node of flow.nodes) if (near.has(node.id) && node.parentId) near.add(node.parentId);
+  return {
+    nodes: flow.nodes.map((node) => (near.has(node.id) || node.type === "openType" ? node : { ...node, className: "is-dim" })),
+    edges: flow.edges.map((edge) => (edge.source === focus || edge.target === focus ? { ...edge, className: `${edge.className} is-lit` } : { ...edge, className: `${edge.className} is-dim` })),
+  };
 }
-
-const EDGE_TYPES = { routed: RoutedEdge };
-const NODE_TYPES = { closedType: ClosedType, openType: OpenType, element: ElementNode };
 
 /** Tracks the longest gap between two frames of the page, which is how long the page did not respond */
 function useFreezeMeter() {
@@ -372,12 +369,38 @@ function describeNode(id) {
   return id.replace(/^[te]:/, "");
 }
 
-function Inspector({ link, project }) {
+function NodeSummary({ node, graph }) {
+  const outgoing = graph.links.filter((link) => link.source === node);
+  const incoming = graph.links.filter((link) => link.target === node);
+  const row = (link, other) => (
+    <li key={link.id} className={link.disallowed ? "is-bad" : undefined}>
+      <code>{describeNode(other)}</code>
+      <small>
+        {link.allowed + link.disallowed} dependencies{link.disallowed ? `, ${link.disallowed} disallowed` : ""}
+      </small>
+    </li>
+  );
+  return (
+    <aside className="inspector">
+      <h2>Selection</h2>
+      <p>
+        <code>{describeNode(node)}</code>
+      </p>
+      <h2>Depends on ({outgoing.length})</h2>
+      <ul className="deps">{outgoing.map((link) => row(link, link.target))}</ul>
+      <h2>Used by ({incoming.length})</h2>
+      <ul className="deps">{incoming.map((link) => row(link, link.source))}</ul>
+    </aside>
+  );
+}
+
+function Inspector({ link, node, graph, project }) {
+  if (node && !link) return <NodeSummary node={node} graph={graph} />;
   if (!link) {
     return (
       <aside className="inspector">
         <h2>Selection</h2>
-        <p className="muted">Select an edge to list the dependencies behind it. The + and − buttons of a type expand it into its elements and collapse it again.</p>
+        <p className="muted">Select a circle to see only what it touches, or an edge to list the dependencies behind it. The + of a type expands it into its elements.</p>
         <h2>Legend</h2>
         <ul className="legend">
           <li>
@@ -390,7 +413,7 @@ function Inspector({ link, project }) {
             <i className="swatch warn"></i>Allowed in both directions
           </li>
         </ul>
-        <p className="muted">An edge is as thick as its dependencies are many.</p>
+        <p className="muted">A circle is as big as its files are many, and an edge as thick as its dependencies.</p>
       </aside>
     );
   }
@@ -431,20 +454,19 @@ function Inspector({ link, project }) {
 }
 
 function pickExpanded(project) {
-  const counts = new Map();
-  for (const element of project.elements) counts.set(element.type, (counts.get(element.type) ?? 0) + 1);
-  if (!project.data) return new Set(counts.keys());
-  // One small type starts expanded, so that the first drawing shows the nesting and stays readable
-  const small = [...counts].filter(([, count]) => count >= 4 && count <= 8).sort((a, b) => a[1] - b[1]);
-  return new Set(small.slice(0, 1).map(([type]) => type));
+  // The real project starts with one circle per type; a synthetic one starts expanded, to load the layout
+  return project.data ? new Set() : new Set(project.elements.map((element) => element.type));
 }
 
-function App({ real }) {
+function App({ data }) {
   const [datasetId, setDatasetId] = useState("real");
   const [engine, setEngine] = useState("elk");
   const [minWeight, setMinWeight] = useState(1);
-  const project = useMemo(() => (datasetId === "real" ? real : DATASETS.find((dataset) => dataset.id === datasetId).make()), [datasetId, real]);
-  const [expanded, setExpanded] = useState(() => pickExpanded(real));
+  const [withTests, setWithTests] = useState(false);
+  const project = useMemo(() => (datasetId === "real" ? readProject(data, withTests) : DATASETS.find((dataset) => dataset.id === datasetId).make()), [datasetId, data, withTests]);
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [focus, setFocus] = useState(null);
+  const [hover, setHover] = useState(null);
   const [layout, setLayout] = useState({ phase: "idle" });
   const [selected, setSelected] = useState(null);
   const [run, setRun] = useState(0);
@@ -461,20 +483,23 @@ function App({ real }) {
     meter.current.longest = 0;
     meter.current.last = 0;
     setSelected(null);
+    setFocus(null);
+    setHover(null);
+    const sizes = sizeGraph(graph, expanded);
     setLayout((previous) => ({ ...previous, phase: "running", started, engine: usedEngine }));
     const finish = (boxes) => {
       if (!current) return;
       const ms = performance.now() - started;
       // dagre runs on the page thread, so the page does not respond for as long as it takes. The render that follows is not counted
       const freeze = usedEngine === "dagre" ? ms : meter.current.longest;
-      setLayout({ phase: "done", ms, freeze, engine: usedEngine, flow: toFlow(graph, expanded, boxes, toggle, graph.links.length <= 800), id: started });
+      setLayout({ phase: "done", ms, freeze, engine: usedEngine, flow: toFlow(graph, expanded, boxes, sizes, toggle), id: started });
     };
     const fail = (message) => current && setLayout((previous) => ({ ...previous, phase: "stopped", message }));
     if (usedEngine === "dagre") {
       // Two frames first, so that "Computing" is painted before the page stops responding
       const timer = setTimeout(() => {
         try {
-          finish(layoutWithDagre(graph, expanded));
+          finish(layoutWithDagre(graph, expanded, sizes));
         } catch (error) {
           fail(String(error.message ?? error));
         }
@@ -484,7 +509,7 @@ function App({ real }) {
         clearTimeout(timer);
       };
     }
-    const { promise, stop } = layoutWithElk(graph, expanded);
+    const { promise, stop } = layoutWithElk(graph, expanded, sizes);
     const limit = setTimeout(() => {
       stop();
       fail(`Stopped after ${TIME_LIMIT / 1000} s, the limit of this mockup.`);
@@ -521,13 +546,12 @@ function App({ real }) {
   }
 
   function changeDataset(id) {
-    const next = id === "real" ? real : DATASETS.find((dataset) => dataset.id === id).make();
     setDatasetId(id);
-    setExpanded(pickExpanded(next));
+    setExpanded(id === "real" ? new Set() : pickExpanded(DATASETS.find((dataset) => dataset.id === id).make()));
     setMinWeight(1);
   }
 
-  const flow = layout.flow;
+  const flow = useMemo(() => focusFlow(layout.flow, focus ?? hover), [layout.flow, focus, hover]);
   const nodeCount = graph.types.reduce((sum, type) => sum + 1 + (isExpanded(type, expanded) ? type.elements.length : 0), 0);
 
   return (
@@ -556,6 +580,10 @@ function App({ real }) {
         <label htmlFor="weight">
           Minimum weight
           <input id="weight" type="number" min="1" max="99" value={minWeight} onChange={(event) => setMinWeight(Math.max(1, Number(event.target.value) || 1))} />
+        </label>
+        <label htmlFor="tests" className="check">
+          <input id="tests" type="checkbox" checked={withTests} disabled={datasetId !== "real"} onChange={(event) => setWithTests(event.target.checked)} />
+          Tests, mocks and page objects
         </label>
         <span className="spacer"></span>
         <button type="button" className="btn" onClick={() => setExpanded(new Set(graph.types.map((type) => type.name)))}>
@@ -619,7 +647,17 @@ function App({ real }) {
                 nodesConnectable={false}
                 onlyRenderVisibleElements={flow.edges.length > 1500}
                 onEdgeClick={(_, edge) => setSelected(edge.data.link)}
-                onPaneClick={() => setSelected(null)}
+                onNodeClick={(_, node) => {
+                  if (node.type === "openType") return;
+                  setSelected(null);
+                  setFocus((previous) => (previous === node.id ? null : node.id));
+                }}
+                onNodeMouseEnter={(_, node) => node.type !== "openType" && flow.edges.length <= 800 && setHover(node.id)}
+                onNodeMouseLeave={() => setHover(null)}
+                onPaneClick={() => {
+                  setSelected(null);
+                  setFocus(null);
+                }}
               >
                 <Controls showInteractive={false} />
               </ReactFlow>
@@ -627,7 +665,7 @@ function App({ real }) {
               <p className="placeholder">Computing the first layout.</p>
             )}
           </div>
-          <Inspector link={selected} project={project} />
+          <Inspector link={selected} node={focus} graph={graph} project={project} />
         </div>
       </div>
     </>
@@ -638,7 +676,7 @@ const root = document.getElementById("map-root");
 fetch("data.json")
   .then((response) => response.json())
   .then(
-    (data) => createRoot(root).render(<App real={readProject(data)} />),
+    (data) => createRoot(root).render(<App data={data} />),
     () => {
       root.textContent = "The data of the mockup could not be loaded. Serve this folder through a static server.";
     }
