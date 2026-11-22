@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged and no issue exists yet. The split into phases is agreed (decision 36) and the four views are confirmed (decision 37). No question is open and the design in `00-shared.md` is complete. What is left of phase 1 is the issues and the phase files. There is no RFC (decision 12): phase 1 files one issue per later phase in the milestone `architecture-graph` and writes their files.
+**Status (2026-11-22):** nothing is merged. The design in `00-shared.md` is complete and no question is open. The milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, all on the Backlog and with their dependencies marked. What is left of phase 1 is the phase files. There is no RFC (decision 12): phase 1 files one issue per later phase in the milestone `architecture-graph` and writes their files.
 
 ## Where it lives
 
@@ -24,17 +24,17 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | --- | --- | --- | --- | --- | --- | --- |
 | 1. Finish the design and file the issues | none: it creates the issues of the other phases | `feat/architecture-graph` | nothing | none: its result is the design, the milestone and the issues | none | none |
 
-| 2. Extract `@boundaries/analysis` | not filed | set with the issue | nothing | `release` | `refactor(analysis): extract the evaluation of a project from the playground` | none |
-| 3. Extract `@boundaries/ui-kit` | not filed | set with the issue | nothing | `release` | `refactor(ui-kit): extract the theme and the ui-kit from the playground` | none |
-| 4. The playground talks to the graph: `onEvaluationChange`, both forms in the reply of the worker, the input that opens a target | not filed | set with the issue | 2 | `release` | `feat(playground): emit the evaluation and open a target` | none |
-| 5. `@boundaries/graph-data` | not filed | set with the issue | 2 | `feat/architecture-graph` | `feat(graph-data): aggregate an evaluated project into a graph` | none |
-| 6. `@boundaries/graph`: the frame, the filters, the inspector and the Map | not filed | set with the issue | 3, 5 | `feat/architecture-graph` | `feat(graph): add the graph component with the Map` | none |
-| 7. The Focus, Matrix and Composition views, in one pull request | not filed | set with the issue | 6 | `feat/architecture-graph` | `feat(graph): add the Focus, Matrix and Composition views` | none |
-| 8. The graph on the website | not filed | set with the issue | 4, 6 | `feat/architecture-graph` | `feat(website): add the architecture graph to the playground page` | none |
-| 9. Docs and closing: the guide, a screenshot of the graph in the playground section of the home page, the graph in the README, the plan removed | not filed | set with the issue | 7, 8 | `feat/architecture-graph` | `docs(website): document the architecture graph` | none |
-| 10. A name for a policy (decision 39) | not filed | set with the issue | nothing; 7 reads the name when it exists | `release` | `feat(config): add a name to a policy` | none |
+| 2. Extract `@boundaries/analysis` | #686 | `refactor/686/analysis-package` | nothing | `release` | `refactor(analysis): extract the evaluation of a project from the playground` | none |
+| 3. Extract `@boundaries/ui-kit` | #687 | `refactor/687/ui-kit-package` | nothing | `release` | `refactor(ui-kit): extract the theme and the ui-kit from the playground` | none |
+| 4. The playground talks to the graph: `onEvaluationChange`, both forms in the reply of the worker, the input that opens a target | #688 | `feat/688/playground-emits-evaluation` | 2 | `release` | `feat(playground): emit the evaluation and open a target` | none |
+| 5. `@boundaries/graph-data` | #690 | `feat/690/graph-data` | 2 | `feat/architecture-graph` | `feat(graph-data): aggregate an evaluated project into a graph` | none |
+| 6. `@boundaries/graph`: the frame, the filters, the inspector and the Map | #691 | `feat/691/graph-map` | 3, 5 | `feat/architecture-graph` | `feat(graph): add the graph component with the Map` | none |
+| 7. The Focus, Matrix and Composition views, in one pull request | #692 | `feat/692/graph-views` | 6 | `feat/architecture-graph` | `feat(graph): add the Focus, Matrix and Composition views` | none |
+| 8. The graph on the website | #693 | `feat/693/website-graph` | 4, 6 | `feat/architecture-graph` | `feat(website): add the architecture graph to the playground page` | none |
+| 9. Docs and closing: the guide, a screenshot of the graph in the playground section of the home page, the graph in the README, the plan removed | #694 | `docs/694/architecture-graph` | 7, 8 | `feat/architecture-graph` | `docs(website): document the architecture graph` | none |
+| 10. A name for a policy (decision 39) | #689 | `feat/689/policy-name` | nothing; 7 reads the name when it exists | `release` | `feat(config): add a name to a policy` | none |
 
-The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added after, keeps the last number although it can run at any time. The issues and the phase files are added by phase 1.
+The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added after, keeps the last number although it can run at any time. The tracking issue is #685. The phase files are added by phase 1.
 
 ## Integration plan
 
@@ -67,7 +67,7 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 19. ELK (`elkjs`) lays out the Map, in a web worker, so that a slow layout never blocks the page and can be cancelled. Its license, `EPL-2.0 OR GPL-3.0-or-later`, is accepted on three conditions: `elkjs` is a dependency and is never bundled into a published package, the layout sits behind an adapter in `@boundaries/graph` so that the engine can change, and the website carries a third-party notice that links the source of `elkjs`. `@boundaries/graph` is private at first.
 20. A tracking issue sits above the issues of the phases, which are its sub-issues. It holds the summary of the design and the decisions, which outlive the plan and the branch there.
 21. The extractions of `@boundaries/analysis` and of the shared UI package go straight into `release`, before the graph.
-22. [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538) gets an amendment once the milestone exists: the graph is designed without an RFC, before the local app, and the amendment links the milestone.
+22. [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538) gets an amendment once the milestone exists: the graph is designed without an RFC, before the local app, and the amendment links the milestone. Posted on 2026-11-22 as [a comment of the discussion](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538#discussioncomment-19813686).
 23. `@boundaries/analysis` and `@boundaries/graph-data` are published. `@boundaries/graph` and the shared UI package are private.
 24. The aggregation package keeps the name `@boundaries/graph-data`, and the shared UI package is `@boundaries/ui-kit`, the name its folder has in the playground.
 25. The summaries of policies, element types, file categories and rules move to `@boundaries/analysis`, with config paths in place of text ranges.

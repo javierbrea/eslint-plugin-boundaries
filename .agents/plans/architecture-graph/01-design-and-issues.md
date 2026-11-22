@@ -118,7 +118,7 @@ What this plan adds to the `create-issue` skill:
 1. Done on 2026-11-22: the open questions are closed.
 2. Done on 2026-11-22: `00-shared.md` has no `TODO` and holds the public interface.
 3. Done on 2026-11-22: the split into phases is in the phases table of the index (decision 36).
-4. Create the milestone and the issues as "Filing the issues" says, and add the amendment to RFC #538 (decision 22).
+4. Done on 2026-11-22: milestone 49, the tracking issue #685, the phase issues #686 to #694 and the amendment to RFC #538.
 5. Write the phase files of this plan, with the index updated: the phases table with the issues and the dependencies, the status line, the files table. Delete this file and what no later phase uses, as "Finishing a phase" of the `write-plan` skill says. The facts of "The project reader, for later" and "The data and the spike", which no phase uses, first go to the tracking issue or to an issue of their own on the Backlog, for the later design of the reader.
 
 ## Verification
