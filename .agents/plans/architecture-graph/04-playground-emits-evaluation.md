@@ -54,7 +54,7 @@ Every change goes through the `implement-change` skill; this one adds public exp
    - A callback that changes between renders does not make the same value be emitted again, and a run of stale statuses emits `stale` once.
    - `Playground` mounts a new `Shell` for each sketch that comes from outside (`key={generation}` in `Playground.tsx`), with a new store: the emission of the new one starts as `stale`.
 6. **The input that opens a target.** The host's request reaches `SessionProvider`, which calls `open` of the store with a `Target` of kind `file` or `dependency`. Each request opens once; a later render with the same request opens nothing.
-7. **The agent docs.** `packages/playground/AGENTS.md`: "Host contract" describes the two additions, and the sentence of "Layering" that says the types the engine exports are the playground's own is rewritten: it holds for `@boundaries/elements` and `@boundaries/policies`, not for `@boundaries/analysis`, whose `ProjectAnalysis` is the shared model and reaches the contract as a type. The row of `contract` in the layers table says what it may import. `packages/playground/README.md` documents both additions if it documents the props.
+7. **The agent docs.** `packages/playground/AGENTS.md`: "Host contract" describes the two additions, and the sentence of "Layering" on the types the engine exports, which phase 2 rewrote for the description types it re-exports from `@boundaries/analysis` (decision 42), also says that `ProjectAnalysis`, the shared model, reaches the contract as a type. The row of `contract` in the layers table says what it may import. `packages/playground/README.md` documents both additions if it documents the props.
 
 ## Verification
 
@@ -82,6 +82,6 @@ To phase 8 (`08-website-graph.md`):
 - **A target that the sketch does not have.** What `openTarget` does with a path or an index that does not exist was not read. Default: the request is ignored and nothing opens; a spec states it.
 - **A request made while no shell is mounted,** such as while the sketch loads. Default: it is dropped, not kept for the next shell.
 - **The first emission.** Default: a new store emits `stale` once at start, before its first evaluation, so that a host that kept an analysis of the previous sketch marks it out of date.
-- **How the engine exposes the analysis.** Phase 2 left `engine.types.ts` and the entry of the engine unchanged, so `Engine.evaluate` returns the `Evaluation` only. Default: it returns both, and only `serveEvaluations` reads the second.
+- **How the engine exposes the analysis.** Phase 2 left the `Engine` type and the entry of the engine unchanged, so `Engine.evaluate` returns the `Evaluation` only. Default: it returns both, and only `serveEvaluations` reads the second.
 - **The chunk check on the built website.** Whether `playground-chunk.spec.ts` can assert that the page chunk holds no code of `@boundaries/analysis` was not read. Default: the `grep` on `dist` and the lint policy are the gate, and the website check is added only if the spec already inspects chunk contents.
 - **The memory pressure of the measurement.** `browser-cost.md` was measured on a machine short of memory. Default: report medians with the same number of runs, and the absolute times beside the percentage.

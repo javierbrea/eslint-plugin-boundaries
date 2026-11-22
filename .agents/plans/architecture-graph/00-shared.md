@@ -87,10 +87,11 @@ export function analyzeConfig(config: ProjectConfig): ConfigAnalysis;
 export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project, "files" | "dependencies">): ProjectAnalysis;
 ```
 
-- The summaries move to the package (decision 25) and keep the fields they have today, with `path: ConfigPath` in place of `range`. `ConfigAnalysis` is the one of `E/evaluate.types.ts` without `text`, `parsed` and `problems`.
+- The summaries move to the package (decision 25) and keep the fields they have today, with `path: ConfigPath` in place of `range`.
+- `ConfigAnalysis` holds what depends on the config only: the normalized config with its diagnostics, the validity of the rules, the rule chosen, and the summaries without the counts that depend on the project, which `evaluateProject` adds without reading the config as written (decision 41). It is public, and the adapter reads its diagnostics and normalized settings to place the problems in the text.
 - Two functions (decision 15) because they are the seam that exists today between `analyzeConfig` and `evaluateSketch`: the playground keeps memoizing the analysis by the config text (`E/evaluate.ts:148-151`).
 - The target kind is `file` (decision 26), where the `Sketch` of the playground says `node`: the adapter already builds each dependency again to add its source.
-- The engine of the playground becomes an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` of today: paths to ranges, one ranged `PolicyRef` per policy built once per analysis, and `config-unparsed` when the text does not parse. `E/engine.types.ts` and `E/index.ts` do not change, so no page code does.
+- The engine of the playground becomes an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` of today: paths to ranges, one ranged `PolicyRef` per policy built once per analysis, and `config-unparsed` when the text does not parse. `E/engine.types.ts` re-exports the description types of the package with their names and shapes (decision 42), and `E/index.ts` does not change, so no page code does.
 
 `@boundaries/graph-data` takes the `ProjectAnalysis` (decision 14); `engine-cut.md`, "Input of `@boundaries/graph-data`", lists what it reads of it.
 

@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is complete in `architecture-graph/00-shared.md` and no question is open, the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, on the Backlog and with their dependencies marked, and every phase has its file. Phases 2, 3 and 10 can start; the others wait for their blockers.
+**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is complete in `architecture-graph/00-shared.md` and no question is open, the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, on the Backlog and with their dependencies marked, and every phase has its file. Phase 2 started on 2026-11-22, with its file checked against the code and decisions 41 to 43 taken. Phases 3 and 10 can start; the others wait for their blockers.
 
 ## Where it lives
 
@@ -20,7 +20,7 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | `architecture-graph/08-website-graph.md` | Working on phase 8, #693 |
 | `architecture-graph/09-docs-and-closing.md` | Working on phase 9, #694 |
 | `architecture-graph/10-policy-name.md` | Working on phase 10, #689 |
-| `architecture-graph/engine-cut.md` | Designing or implementing `@boundaries/analysis`: where each export of the engine goes, its interface and its open questions |
+| `architecture-graph/engine-cut.md` | Designing or implementing `@boundaries/analysis`: where each export of the engine goes, what the playground emits and the risks of the cut, measured |
 | `architecture-graph/library-research.md` | Choosing or using the library of the Map: what was measured of Cytoscape.js, React Flow and Sigma |
 | `architecture-graph/browser-cost.md` | Sizing anything by the size of a project: what the evaluation, its reply and the aggregation cost in a browser |
 | `architecture-graph/mockup/` | Looking at or changing the mockups: `index.html`, the four views with Cytoscape.js and Sigma, and `react-flow/`, the Map with React Flow and ELK; both read `data.json` |
@@ -51,7 +51,7 @@ The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added
 
 ## Decisions
 
-Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 40). They have no public link: the issues of phase 1 record the ones their readers need.
+Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 43; 41 to 43 at the start of phase 2). They have no public link: the issues of phase 1 record the ones their readers need.
 
 1. The graph is first drawn on the website, over the sketch that the user edits in the playground. The local app is out of this plan.
 2. `@boundaries/analysis` evaluates a whole project: it takes the config as an object, the files and the dependencies, and returns the descriptions and the verdicts. It is extracted from the playground from the start, so that no later refactor is needed.
@@ -93,6 +93,9 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 38. The docs phase keeps the pitch of the home page and of the README as it is. It adds a screenshot of the graph to the playground section of the home page (`PlaygroundTeaser`), and turns the "Playground" section of the README into two bullets, one for the playground and one for the graph, with no image, in the root `README.md` only, since the build copies it into `packages/eslint-plugin`. A pitch around the visual analysis waits for the project reader.
 39. A policy of `boundaries/dependencies` gets an optional `name`, a short string, and no `description`. The default message names it (`Denied by policy "<name>" (index N)`) and stays as it is without one; a custom `message` gets the `{{policy.name}}` variable; two policies with the same name give a warning diagnostic; `@boundaries/analysis` carries it in its policy summaries, and the playground and the graph show it in place of the position. Nothing is done for the deprecated rules: `boundaries/element-types` and the `rules` alias accept the name only because they share the schema and the type of `boundaries/dependencies` (`packages/config/src/Schemas/Schemas.ts`), which is not split to prevent it. It is phase 10, into `release`, and blocks nothing: the graph falls back to the position.
 40. The graph has no notion of a test file. A filter by file category, with the categories that the config of the project defines, lets each user hide what they want, and nothing is hidden at start. The mockups hide a fixed list of the categories of this repository, which is not carried over.
+41. `analyzeConfig` reads the config as written and leaves in its `ConfigAnalysis` everything that depends on the config only, the summaries included without the counts that depend on the project. `evaluateProject` never reads the config as written: it adds those counts, from the files and the dependencies.
+42. The engine of the playground re-exports the description types of `@boundaries/analysis` (`EntityDescription`, `DependencyDescription`, the types they use and `SkipReason`) with `export type`, in place of declaring them again. Their names and shapes do not change, so no page code does.
+43. `@boundaries/analysis` exports no helper that reads the config as written, such as `readSettings`: the adapter reads the object it parsed itself.
 
 ## Open questions
 

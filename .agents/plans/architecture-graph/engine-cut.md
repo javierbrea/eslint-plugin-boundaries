@@ -1,6 +1,6 @@
 # The cut of the engine: `@boundaries/analysis`
 
-Read from the code on 2026-11-22, function by function. The maintainer decided its points the same day: decisions 13 to 17, 25 to 27 and 29 of the index. "The package" below is `@boundaries/analysis`. Paths are relative to `packages/playground/` unless they start with another package; `E/` is `src/domains/evaluation/helpers/engine/`.
+Read from the code on 2026-11-22, function by function. The maintainer decided its points the same day: decisions 13 to 17, 25 to 27 and 29 of the index, and decisions 41 to 43 at the start of phase 2. "The package" below is `@boundaries/analysis`. Paths are relative to `packages/playground/` unless they start with another package; `E/` is `src/domains/evaluation/helpers/engine/`.
 
 ## The seam
 
@@ -14,7 +14,7 @@ So `@boundaries/analysis` returns a config path wherever the playground has a `r
 | --- | --- | --- |
 | `E/engine.constants.ts` | `SETTINGS_KEY`, `RULES_KEY` | Both halves, copied |
 | `E/engine.types.ts` | `TextRange`, `ConfigTokenKind`, `ConfigToken`, `ProblemLevel`, `ConfigProblem`, `Evaluation`, `Engine` | Stays |
-| `E/engine.types.ts` | `ParentDescription`, `EntityDescription`, `DependencyRelationshipKind`, `DependencyRelationship`, `DependencyDescription`, `SkipReason` | The package, unchanged |
+| `E/engine.types.ts` | `ParentDescription`, `EntityDescription`, `DependencyRelationshipKind`, `DependencyRelationship`, `DependencyDescription`, `SkipReason` | The package, unchanged: `E/engine.types.ts` re-exports them with `export type`, so their names and shapes do not change for the pages (decision 42) |
 | `E/engine.types.ts` | `ElementTypeSummary`, `FileCategorySummary`, `RuleSummary`, `PolicySummary`, `PolicyRef` | Split: the package holds a `path`, the playground adds the `range` |
 | `E/engine.types.ts` | `DependencyVerdict`, `NotEvaluatedReason`, `DependencyResult` | Split: the package has no `pending` verdict and no `config-unparsed` reason, and its own dependency type |
 | `E/describeFiles.ts`, `E/descriptions.ts`, `E/rootPath.ts`, `E/selectorNames.ts` | all | The package |
@@ -24,12 +24,12 @@ So `@boundaries/analysis` returns a config path wherever the playground has a `r
 | `E/diagnostics.ts` | `toConfigProblems` | Stays |
 | `E/diagnostics.ts` | `pointsTo`, `hasErrorUnder`, `areRulesValid` | The package: they test diagnostic paths, no text |
 | `E/evaluate.ts` | `createEngine` | Stays, as the adapter over the new package |
-| `E/evaluate.ts` | `analyzeConfig` (private) | Split: normalizing, the validity of the rules and the rule choice (lines 42-49, 60) go to the package; parsing and the problems stay |
+| `E/evaluate.ts` | `analyzeConfig` (private) | Split: normalizing, the validity of the rules and the rule choice (lines 42-49, 60) go to the package, with the summaries without the counts that depend on the project (decision 41); parsing and the problems stay |
 | `E/evaluate.ts` | `evaluateSketch` (private) | The package, as `evaluateProject`; `getFiles` stays in the adapter |
 | `E/evaluatedRule.ts` | `selectRule` | The package, with paths: only lines 115 and 120 read positions |
 | `E/normalizeConfigSafely.ts` | `normalizeConfigSafely` | The package: an object in, diagnostics with paths out |
-| `E/policies.ts`, `E/summaries.ts` | the summaries | The package, with paths |
-| `E/writtenConfig.ts` | `asRecord`, `readSettings`, `getElementsKey`, `getKeptIndexes` | The package, with `readSettings` taking the object |
+| `E/policies.ts`, `E/summaries.ts` | the summaries | The package, with paths: `analyzeConfig` builds what depends on the config only, and `evaluateProject` adds the counts that depend on the project (decision 41) |
+| `E/writtenConfig.ts` | `asRecord`, `readSettings`, `getElementsKey`, `getKeptIndexes` | The package, with `readSettings` taking the object. `getAdditionalNodesProblems`, which stays, reads the written settings with `readSettings` (`E/dependencyNodes.ts:45`), so the adapter reads them from the object it parsed (decision 43) |
 | `E/locations.ts`, `E/parseConfig.ts`, `E/tokenizeConfig.ts` | all | Stays |
 | `E/index.ts` | the entry of the engine | Stays, unchanged |
 | `src/contract/Sketch.types.ts` | `Sketch`, `SketchNode` and the dependency types | Stay. The package declares the same shapes for the dependencies, renamed `Project*` |
@@ -63,7 +63,7 @@ Decisions 13 and 14 of the index.
 
 - A new prop, `onEvaluationChange`, goes from `Playground` to `Shell` to `SessionProvider`, where an effect over the evaluation and its status emits it. The worker, the evaluator and the store already carry the status it needs, and each gets a new field for the analysis, since the reply and the state hold an `Evaluation` only (`evaluator.types.ts`, `sessionState.types.ts`): the store keeps the last evaluation and `evaluationStatus`, one of 5 values (`src/domains/session/data/store/store.ts:110-137`).
 - It emits `{ status: "current"; analysis: ProjectAnalysis }`, `{ status: "stale" }` or the status of a config that does not parse, below. `current` is the status `current` of the store; `pending`, `late`, `stopped` and `failed` are `stale`. The graph keeps the last analysis and shows it as loading or out of date. The evaluation that the store aligns to a newer sketch, with its pending verdicts, is never emitted.
-- The emitted object is the `ProjectAnalysis` of the package, with config paths and no range. The contract imports its type from `@boundaries/analysis`, as a type only, so that no code of the package loads outside the worker. The paragraph of `AGENTS.md` that says the types of the engine are the playground's own is rewritten: it holds for `elements` and `policies`, not for the package that is the shared model.
+- The emitted object is the `ProjectAnalysis` of the package, with config paths and no range. The contract imports its type from `@boundaries/analysis`, as a type only, so that no code of the package loads outside the worker. The paragraph of `AGENTS.md` that says the types of the engine are the playground's own holds for `elements` and `policies`, not for the package that is the shared model: phase 2 rewrites it for the description types that the engine re-exports (decision 42), and phase 4 adds the contract.
 - The worker replies with both forms in one message: the `Evaluation` that the panes read, with ranges, and the `ProjectAnalysis`. The descriptions of the files and of the dependencies are the same objects in both, and the structured clone of a message copies an object once however many times the message references it. What is doubled is one small object per dependency and per policy, element type, file category and rule. `browser-cost.md` measures it: 3 ms more for a project of 725 files and 2740 dependencies, under 1% of the round trip.
 - The panes do not change. Making them read the `ProjectAnalysis` too, with the ranges in a table from path to range, is a later refactor that the graph would not notice: 13 production files and 25 spec and mock files outside the engine use ranges.
 - When the config text does not parse there is no analysis of it: the playground emits a third status with the detail of the error (decision 29), such as `{ status: "invalid"; problems }`, whose exact shape the phase that adds the prop settles.
@@ -98,5 +98,7 @@ About 4,900 lines of specs move and are rewritten.
 
 ## Risks
 
-- `E/evaluate.spec.ts` counts the calls to `normalizeConfig` through a mock of `@boundaries/config`. After the cut that call happens inside the built code of the package; whether the mock still reaches it was not tried.
-- The placeholder for a text that does not parse is normalized today without a root path. Through `analyzeConfig` it would get an empty one. A comment in `E/rootPath.ts` says that `elements` treats it as no root path; it was not proved.
+Both were measured on 2026-11-22, and neither blocks the cut.
+
+- `E/evaluate.spec.ts` counts the calls to `normalizeConfig` through a mock of `@boundaries/config`, which after the cut happen inside the build of the package. The mock reaches them: a playground spec that mocked `isDependencySelector` of `@boundaries/elements` counted the call that `@boundaries/policies` makes from its `dist`, which keeps its dependencies as imports, as tsup does by default.
+- The placeholder for a text that does not parse is normalized today without a root path, and through `analyzeConfig` with an empty one. Both give the same diagnostics, settings and descriptions, apart from `rootPath` itself: `@boundaries/elements` takes an empty root path as none (`packages/elements/src/Config/Config.ts:51`).
