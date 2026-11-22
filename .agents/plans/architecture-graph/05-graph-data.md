@@ -64,7 +64,7 @@ The names and the shape of the exports come from the design step. Whatever the s
 - **Nodes.** One per group of the "group by": element type, element, captured value, file category, module origin or folder. Each has a stable id, the kind and the key of its group, its parent when it has one, how many files it holds, whether it can expand, its fan-in and fan-out, and the dependencies inside it.
 - **Expansion.** A set of expanded nodes is an input. An expanded type gives its elements and an expanded element its files, and the edges are aggregated again between whatever is visible, as `aggregate` of `mockup/react-flow/src/main.jsx` does.
 - **Edges.** One per ordered pair of visible nodes, with how many dependencies it holds by verdict, whether the opposite edge exists, and the `DependencyRef` of each dependency behind it.
-- **Filters.** Verdict, deciding policy, kind (value or type), syntax, relationship, externals (hidden, one node, or one node per module), test files, minimum weight and path glob. An edge with a disallowed dependency is kept whatever the minimum weight, as in `mockup/index.html`.
+- **Filters.** Verdict, deciding policy, kind (value or type), syntax, relationship, externals (hidden, one node, or one node per module), file category (a list of the categories to hide, among the ones the analysis has; decision 40), minimum weight and path glob. An edge with a disallowed dependency is kept whatever the minimum weight, as in `mockup/index.html`.
 - **Metrics.** The pairs of groups that depend on each other, the fan-in and fan-out of each group, the policies that decide nothing, the unclassified files, and the number of visible nodes and edges.
 - **Breakdowns.** Files by element type, by captured value and by file category, and dependencies by deciding policy, each as sorted counts.
 - **Policies.** A policy is referred to by its index, with the `name` of its summary when the type of `@boundaries/analysis` has one (decision 39).
@@ -114,7 +114,6 @@ Also measured, for the pull request description: aggregating the analysis of `pa
 - **The first version.** Default: `1.0.0`, as `config` and `policies` started.
 - **How `@boundaries/analysis` is declared.** Its types appear in the published declarations. Default: a `dependency` with `workspace:*`, imported with `import type` only, and a check that the browser bundle of `test/browser-e2e` holds no code of it beyond what the scenario itself calls.
 - **Linting its own layering with the workspace plugin.** Default: what phase 2 settled for `analysis` (decision 27), read in `packages/analysis/AGENTS.md`; whichever it is, `pnpm nx graph` shows no cycle.
-- **Which files are test files.** The config does not say, and both mockups hard-code the category names of this repository. Default: the filter takes a list of file category names from the caller and the package has no list of its own; phase 6 chooses what the frame passes.
 - **Which captured value groups.** The mockup hard-codes `domain` and `scope`. Default: the "group by" takes the name of the captured key, and the result lists the keys that the analysis has, for the frame to offer.
 - **A file with several file categories.** Default: its first category, as the mockup does, said in the TSDoc.
 - **The depth of the folder grouping.** Default: an option in path segments, 2 when it is not given.

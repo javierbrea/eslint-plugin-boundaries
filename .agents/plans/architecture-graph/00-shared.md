@@ -112,10 +112,10 @@ export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project,
 | Composition | What is the project made of? | Files by type, captured value and category; dependencies by deciding policy |
 
 - Group by: element type, element, captured value, file category, module origin, folder.
-- Filters: verdict, deciding policy, kind, syntax, relationship, externals, test files, minimum weight, path glob.
+- Filters: verdict, deciding policy, kind, syntax, relationship, externals, file category, minimum weight, path glob. The file categories are the ones the config defines; the graph has no notion of a test file and hides nothing at start (decision 40).
 - Metrics: groups that depend on each other, fan-in and fan-out, policies that decide nothing, unclassified files.
 - A selection lists the real dependencies behind a node or an edge.
-- The Map opens as a summary: one circle per element type, tests hidden, thin edges with no numbers, and the detail on demand by selecting or expanding (decision 35).
+- The Map opens as a summary: one circle per element type, thin edges with no numbers, and the detail on demand by selecting or expanding (decision 35).
 - The four views stay, as the first mockup draws them (decision 37). The Map has the layered layout only in its first version (decision 34). Composition draws sorted bars, one breakdown at a time behind tabs: files by type, by captured value and by category, and dependencies by deciding policy.
 - A policy is shown by its name when it has one, and by its position when it has none. The name is a new optional property of a policy of `boundaries/dependencies` (decision 39).
 - A graph too big for the layered layout starts collapsed by element type, its layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight (decision 31). The notice shows above 1000 visible edges, a starting value that the phase of the Map tunes.

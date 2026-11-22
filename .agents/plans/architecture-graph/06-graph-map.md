@@ -77,7 +77,7 @@ Every change goes through the `implement-change` skill. The package, its entries
 
 ### The Map
 
-- It opens as decision 35 says: one circle per element type, as big as its files are many, test files hidden, thin translucent edges with no numbers. `getSize`, `CircleNode`, `OpenType`, `DirectEdge` and `focusFlow` of the mockup are the model: each edge is one curve from circle to circle, not the route that ELK returns.
+- It opens as decision 35 says: one circle per element type, as big as its files are many, no file category hidden (decision 40), thin translucent edges with no numbers. `getSize`, `CircleNode`, `OpenType`, `DirectEdge` and `focusFlow` of the mockup are the model: each edge is one curve from circle to circle, not the route that ELK returns.
 - Selecting a node dims what it does not touch. A type expands into its elements and collapses again, through a button inside the node with an accessible name.
 - Each node and edge has an accessible label that says what it is and its counts, as the `ariaLabel` values of the mockup do.
 - The React Flow attribution stays visible (decision 18): no option hides it.
@@ -140,5 +140,4 @@ Also checked:
 - **The time limit of a layout.** Default: the 30 s of the mockup, lowered if the measurement between 600 and 5000 edges supports it.
 - **What jsdom can test of the Map.** Whether React Flow renders nodes and handles keys in jsdom was not tried. Default: try it with the `ResizeObserver` support that the playground has in `src/shared/testing/resizeObserver`; what cannot run there is covered by a browser spec in phase 8 and listed in the hand-off.
 - **The analysis of the size of `packages/playground` for the harness.** `spike/read-project.mjs` reads the package but writes the shape of the mockup. Default: a script under `packages/graph/dev/` that reads it and calls `@boundaries/analysis`, generating the fixture on demand, with nothing of the plan referenced.
-- **The categories hidden as test files.** Default: a constant list of category names in the package, starting with `test`, `mock`, `pom`, `playwright` and `playwright-entry` as the mockup has, which the frame lets the user turn off.
 - **What is still not liked of the mockup.** The drawing is tall and narrow, and the arrow heads are hard to see from far. Default: try the ELK direction and spacing options and a larger marker, and show the result to the maintainer in the pull request.
