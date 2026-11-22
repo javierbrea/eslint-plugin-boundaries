@@ -1,6 +1,6 @@
 # Shared: the design of the architecture graph
 
-What every phase builds. Phase 1 (`01-design-and-issues.md`) completes it: it has no `TODO` left since 2026-11-22.
+What every phase builds. Phase 1 completed it on 2026-11-22.
 
 ## Summary
 
@@ -22,8 +22,8 @@ The view is a tool to analyze an architecture, so each of its parts answers a qu
 | --- | --- | --- |
 | `@boundaries/analysis` | Evaluates a whole project: the config as an object, the files and the dependencies in, the description of each file and the verdict of each dependency out. Extracted from the engine of the playground. | `config`, `policies`, `elements` |
 | `@boundaries/graph-data` | Aggregates an evaluated project into nodes and edges, by a "group by" and filters, with its metrics. Pure, no React. | the types of `analysis` |
-| `@boundaries/graph` | The React component: the views, the filters and the inspector. | `graph-data`, `ui-kit` |
-| `@boundaries/ui-kit` | The MUI theme, the theme root and the domain-free components that the playground has today. | `design-tokens` |
+| `@boundaries/graph` | The React component: the views, the filters and the inspector. | `graph-data`, `ui-kit`, the types of `analysis` |
+| `@boundaries/ui-kit` | The MUI theme, the theme root and the domain-free components that the playground has today. | nothing at run time: its components read the `--jsb-*` custom properties that `design-tokens` defines and the host loads |
 
 `analysis` and `graph-data` are published; `graph` and `ui-kit` are private. The extractions of `analysis` and `ui-kit` go straight into `release`, before the graph (decisions 21, 23 and 24).
 
@@ -120,6 +120,31 @@ export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project,
 - A policy is shown by its name when it has one, and by its position when it has none. The name is a new optional property of a policy of `boundaries/dependencies` (decision 39).
 - A graph too big for the layered layout starts collapsed by element type, its layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight (decision 31). The notice shows above 1000 visible edges, a starting value that the phase of the Map tunes.
 
+### Mockups
+
+Both are under `mockup/` and read `mockup/data.json`, the real dependencies of `packages/playground` with 19 invented violations marked `inv: 1`. They are models of the look and the behavior, not code to carry over.
+
+#### The first mockup: the four views
+
+`mockup/index.html` is a page fragment that fetches `mockup/data.json`, so it is opened through a static server (such as `python3 -m http.server` in `mockup/`), not from the file system. The maintainer saw it on 2026-11-20 and liked it; no view was confirmed or dropped yet.
+
+- It has the four views, the two placements of the switch, and the map with Cytoscape.js (layered with dagre, or force, and elements nested in their type) and with Sigma (force only).
+- It was never seen rendered by the session that wrote it: only the syntax of its script was checked.
+- Missing: the filters by deciding policy, relationship and path glob, the "module origin" grouping, and expanding a type into its elements with a click (it is done by changing "Group by").
+- React Flow is not in it: it needs React and its stylesheet, which a single page cannot load. Comparing it needs the Vite harness of the playground or a separate build.
+- Its frame, filters and inspector are plain HTML, not the MUI components of the playground.
+
+#### The React Flow mockup: the Map
+
+`mockup/react-flow/` draws the Map with React Flow and ELK, over the same `data.json`. `node build.mjs <folder with node_modules>` writes `dist/` (git-ignored): the page with its script inlined, the ELK worker and the data. The packages are the ones of `spike/graph-libraries/package.json`.
+
+- Its look is the one of decision 35, in its second version: the first one drew boxes, every file and numbered edges along the routes of ELK, and the maintainer found it too hard to read.
+- A type is one circle, or a group with its elements when expanded. The edges are aggregated between whatever is visible and drawn as one curve from circle to circle; the routes that ELK can return are not used.
+- It shows the time of each layout and the longest time the page did not respond meanwhile, and it can switch to dagre on the page thread and to synthetic projects of 600 and 5000 links to compare. A layout in the worker can be cancelled and stops after 30 s.
+- Seen rendered on 2026-11-22 in headless Chromium, in both themes: 18 nodes and 65 edges were laid out in about 160 ms; with every type expanded, 137 nodes and 371 edges in about 0.5 s, with no frame of the page longer than 17 ms.
+- Not liked yet: the drawing is tall and narrow, so the names are small until the user zooms, and the arrow heads are hard to see from far.
+- Missing: the filters other than the minimum weight and the tests, the other "group by" values, externals, and the views other than the Map.
+
 ### Rendering library
 
 React Flow (`@xyflow/react`) renders the Map, with its attribution visible (decision 18). Its nodes are React components styled with the tokens, and it brings keyboard and ARIA support. ELK (`elkjs`) computes the layered layout in a web worker, behind an adapter, and each edge is one curve between two circles, not the route that ELK returns (decision 35; decision 19 which also holds the conditions of its license). `mockup/react-flow/` shows both.
@@ -148,12 +173,13 @@ The Map is operable with the keyboard, which React Flow brings. The matrix and t
 
 Each item is an acceptance criterion of the issue of the phase named.
 
-- The extraction of `@boundaries/analysis` changes no behavior of the playground: its unit and e2e suites pass with no assertion changed other than the imports (phase 2). The same holds for `@boundaries/ui-kit` (phase 3).
+- The extraction of `@boundaries/analysis` changes no behavior of the playground: its unit suite and the e2e suite of the website (`test/website-e2e`) pass with no assertion changed other than the imports (phase 2). The same holds for `@boundaries/ui-kit` (phase 3).
 - With no `onEvaluationChange` prop, the playground behaves as today, and replying with both forms adds under 1% to the round trip of the evaluation of `packages/playground`, as `browser-cost.md` measured it (phase 4).
 - `@boundaries/graph-data` imports no React and no browser API, and runs in Node.js (phase 5).
 - The Map of an analysis as big as `packages/playground`, 725 files and 2740 dependencies, is laid out by element type in under 1 s and never blocks the page; above 1000 visible edges it shows the notice of decision 31 (phase 6).
 - The Map is operable with the keyboard, and every dependency that a view draws can be reached in the matrix or in the lists of the inspector (phases 6 and 7).
 - The code of the graph, React Flow and the ELK worker load only when the graph is opened, not with the home page or with the playground (phase 8).
 - The example that the playground opens with is drawn, a disallowed dependency of the sketch shows as one in the graph, and selecting it leads to its file in the editor (phase 8).
-- `check:all` passes, and the page with the graph open passes the accessibility checks that the playground page passes (phase 8).
-- A page of the docs explains the graph, and the website carries the third-party notice of `elkjs` (phase 9).
+- `check:all` passes, and the page with the graph open passes axe and Lighthouse as the playground page does, run by hand since the repository automates neither, with the results in the pull request (phase 8).
+- The website carries the third-party notice of `elkjs` (phase 8).
+- A page of the docs explains the graph (phase 9).

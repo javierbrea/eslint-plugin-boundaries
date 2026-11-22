@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged. The design in `00-shared.md` is complete and no question is open. The milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, all on the Backlog and with their dependencies marked. What is left of phase 1 is the phase files. There is no RFC (decision 12): phase 1 files one issue per later phase in the milestone `architecture-graph` and writes their files.
+**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is complete in `architecture-graph/00-shared.md` and no question is open, the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, on the Backlog and with their dependencies marked, and every phase has its file. Phases 2, 3 and 10 can start; the others wait for their blockers.
 
 ## Where it lives
 
@@ -10,8 +10,16 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 
 | File | Read it when |
 | --- | --- |
-| `architecture-graph/00-shared.md` | Working on any phase: the design of the graph, which phase 1 completes |
-| `architecture-graph/01-design-and-issues.md` | Working on phase 1: what is left to analyze, the open questions and how the issues are filed |
+| `architecture-graph/00-shared.md` | Working on any phase: the design of the graph, its acceptance and what the mockups are |
+| `architecture-graph/02-analysis-package.md` | Working on phase 2, #686 |
+| `architecture-graph/03-ui-kit-package.md` | Working on phase 3, #687 |
+| `architecture-graph/04-playground-emits-evaluation.md` | Working on phase 4, #688 |
+| `architecture-graph/05-graph-data.md` | Working on phase 5, #690 |
+| `architecture-graph/06-graph-map.md` | Working on phase 6, #691 |
+| `architecture-graph/07-graph-views.md` | Working on phase 7, #692 |
+| `architecture-graph/08-website-graph.md` | Working on phase 8, #693 |
+| `architecture-graph/09-docs-and-closing.md` | Working on phase 9, #694 |
+| `architecture-graph/10-policy-name.md` | Working on phase 10, #689 |
 | `architecture-graph/engine-cut.md` | Designing or implementing `@boundaries/analysis`: where each export of the engine goes, its interface and its open questions |
 | `architecture-graph/library-research.md` | Choosing or using the library of the Map: what was measured of Cytoscape.js, React Flow and Sigma |
 | `architecture-graph/browser-cost.md` | Sizing anything by the size of a project: what the evaluation, its reply and the aggregation cost in a browser |
@@ -22,8 +30,7 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 
 | Phase | Issue | Branch | Depends on | PR target | PR title | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1. Finish the design and file the issues | none: it creates the issues of the other phases | `feat/architecture-graph` | nothing | none: its result is the design, the milestone and the issues | none | none |
-
+| 1. Finish the design and file the issues | #685, the tracking issue it created | `feat/architecture-graph` | nothing | none | none | none: done on 2026-11-22 with commits on the branch |
 | 2. Extract `@boundaries/analysis` | #686 | `refactor/686/analysis-package` | nothing | `release` | `refactor(analysis): extract the evaluation of a project from the playground` | none |
 | 3. Extract `@boundaries/ui-kit` | #687 | `refactor/687/ui-kit-package` | nothing | `release` | `refactor(ui-kit): extract the theme and the ui-kit from the playground` | none |
 | 4. The playground talks to the graph: `onEvaluationChange`, both forms in the reply of the worker, the input that opens a target | #688 | `feat/688/playground-emits-evaluation` | 2 | `release` | `feat(playground): emit the evaluation and open a target` | none |
@@ -34,7 +41,7 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | 9. Docs and closing: the guide, a screenshot of the graph in the playground section of the home page, the graph in the README, the plan removed | #694 | `docs/694/architecture-graph` | 7, 8 | `feat/architecture-graph` | `docs(website): document the architecture graph` | none |
 | 10. A name for a policy (decision 39) | #689 | `feat/689/policy-name` | nothing; 7 reads the name when it exists | `release` | `feat(config): add a name to a policy` | none |
 
-The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added after, keeps the last number although it can run at any time. The tracking issue is #685. The phase files are added by phase 1.
+The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added after, keeps the last number although it can run at any time. The tracking issue is #685.
 
 ## Integration plan
 
@@ -44,7 +51,7 @@ The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added
 
 ## Decisions
 
-Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 35). They have no public link: the issues of phase 1 record the ones their readers need.
+Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 39). They have no public link: the issues of phase 1 record the ones their readers need.
 
 1. The graph is first drawn on the website, over the sketch that the user edits in the playground. The local app is out of this plan.
 2. `@boundaries/analysis` evaluates a whole project: it takes the config as an object, the files and the dependencies, and returns the descriptions and the verdicts. It is extracted from the playground from the start, so that no later refactor is needed.
@@ -83,8 +90,8 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 35. The Map opens as a summary and gives the detail on demand. It starts with one circle per element type, as big as its files are many, with tests, mocks and page objects hidden, and thin translucent edges with no numbers; selecting a node dims what it does not touch, and a type expands into its elements. The maintainer found the first React Flow mockup, which drew boxes, every file and numbered routed edges, too hard to read, and preferred this look, which is the one of the first mockup.
 36. The phases are the ones of the table above. Phase 4 goes into `release`, not into the integration branch: it changes the playground only and nothing reads what it emits until the graph does. The three views of phase 7 are one issue and one pull request.
 37. The Focus, Matrix and Composition views stay as the first mockup draws them. Composition shows one breakdown at a time, behind tabs (files by type, by captured value, by category; dependencies by deciding policy), in place of all of them stacked.
-38. The docs phase keeps the pitch of the home page and of the README as it is. It adds a screenshot of the graph to the playground section of the home page (`PlaygroundTeaser`), and turns the "Playground" section of the README into two bullets, one for the playground and one for the graph, with no image. A pitch around the visual analysis waits for the project reader.
-39. A policy of `boundaries/dependencies` gets an optional `name`, a short string, and no `description`. The default message names it (`Denied by policy "<name>" (index N)`) and stays as it is without one; a custom `message` gets the `{{policy.name}}` variable; two policies with the same name give a warning diagnostic; `@boundaries/analysis` carries it in its policy summaries, and the playground and the graph show it in place of the position. The deprecated rules do not take it. It is phase 10, into `release`, and blocks nothing: the graph falls back to the position.
+38. The docs phase keeps the pitch of the home page and of the README as it is. It adds a screenshot of the graph to the playground section of the home page (`PlaygroundTeaser`), and turns the "Playground" section of the README into two bullets, one for the playground and one for the graph, with no image, in the root `README.md` only, since the build copies it into `packages/eslint-plugin`. A pitch around the visual analysis waits for the project reader.
+39. A policy of `boundaries/dependencies` gets an optional `name`, a short string, and no `description`. The default message names it (`Denied by policy "<name>" (index N)`) and stays as it is without one; a custom `message` gets the `{{policy.name}}` variable; two policies with the same name give a warning diagnostic; `@boundaries/analysis` carries it in its policy summaries, and the playground and the graph show it in place of the position. Nothing is done for the deprecated rules: `boundaries/element-types` and the `rules` alias accept the name only because they share the schema and the type of `boundaries/dependencies` (`packages/config/src/Schemas/Schemas.ts`), which is not split to prevent it. It is phase 10, into `release`, and blocks nothing: the graph falls back to the position.
 
 ## Open questions
 
