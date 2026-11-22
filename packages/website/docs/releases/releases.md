@@ -48,6 +48,14 @@ Describes files and dependencies and evaluates the policies of the `dependencies
 - [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/policies/CHANGELOG.md)
 - [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
 
+### @boundaries/analysis
+
+Evaluates a whole project, given the config as an object, its files and its dependencies, and returns the description of each file and the verdict of each dependency, without ESLint.
+
+- [Docs](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/analysis/README.md)
+- [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/analysis/CHANGELOG.md)
+- [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
+
 ## Upgrade Notes
 
 Some patch and minor releases fix behaviors that a configuration may rely on. Their upgrade notes explain how to check whether your project is affected, and how to adapt your configuration:

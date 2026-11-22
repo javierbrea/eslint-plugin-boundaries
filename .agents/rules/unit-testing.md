@@ -15,6 +15,7 @@ Use `.spec.ts` for all test files, or `.spec.tsx` for those that render React co
 | `elements` | Colocated with source (`src/Cache/Cache.spec.ts`) |
 | `config` | Colocated with source (`src/Config/Config.spec.ts`) |
 | `policies` | Colocated with source (`src/Evaluation/Evaluation.spec.ts`) |
+| `analysis` | Colocated with source (`src/Config/Config.spec.ts`) |
 | `playground` | Colocated with source (`src/app/Playground.spec.tsx`), in the environment that `packages/playground/AGENTS.md` ("Host contract") gives; page objects in `.agents/rules/playground-testing.md` |
 | `eslint-plugin` | Rule tests in `test/rules/<scenario>/`, run against the fixture projects in `test/fixtures/<scenario>/`; a test may use another scenario's fixtures. Everything else (e.g. `src/index.spec.ts`) is colocated with source |
 | `website` | Colocated with source (`src/data/site/googleAnalyticsMode.spec.ts`), for pure modules only: `packages/website/jest.config.js` runs only `.spec.ts` files, in Node, so a `.spec.tsx` never runs |
@@ -59,7 +60,7 @@ Lint forbids `any`, in tests too. A partial mock is cast with `as unknown as T`,
 
 ## Coverage — 100% required
 
-The Jest config of `packages/elements`, `packages/config`, `packages/policies`, `packages/eslint-plugin` and `packages/playground` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements), and so does `packages/website` on the files that its `collectCoverageFrom` lists; a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
+The Jest config of `packages/elements`, `packages/config`, `packages/policies`, `packages/analysis`, `packages/eslint-plugin` and `packages/playground` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements), and so does `packages/website` on the files that its `collectCoverageFrom` lists; a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
 
 ## Anti-patterns
 

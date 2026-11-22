@@ -2,7 +2,7 @@
 
 Package-scoped agent instructions for `@boundaries/policies` (Nx project `policies`). See `.agents/rules/unit-testing.md` and `typescript-conventions.md` for conventions that apply here too.
 
-The package evaluates what the user wrote, as `@boundaries/config` normalizes it: it describes files and dependencies from their paths, decides which dependencies the `dependencies` rule checks, evaluates its policies and builds the messages. `@boundaries/eslint-plugin` reads the AST, resolves modules, prints the diagnostics and the debug output and reports; other hosts, such as the website playground, call the same functions.
+The package evaluates what the user wrote, as `@boundaries/config` normalizes it: it describes files and dependencies from their paths, decides which dependencies the `dependencies` rule checks, evaluates its policies and builds the messages. `@boundaries/eslint-plugin` reads the AST, resolves modules, prints the diagnostics and the debug output and reports; `@boundaries/analysis` calls the same functions to evaluate a whole project, and the website playground evaluates through it.
 
 ## Layering
 
@@ -13,7 +13,7 @@ Folders under `src/`, bottom to top. Each one imports only from the folders befo
 3. `Descriptions` — `getMatcher`, `describeEntity` and `describeDependency`.
 4. `Evaluation` — the dependency selectors of each policy, `getDependencySkipReason`, `evaluatePolicies` and `evaluateDependency`.
 
-The layering is not lint-enforced: linting this package with the workspace plugin would make the plugin its devDependency, and Nx refuses the cycle between their `^build` targets.
+The layering is not lint-enforced, and the package has no project edge to `eslint-plugin`, neither an `implicitDependencies` entry nor a dependency that Nx infers, because the plugin depends on this package and Nx refuses the cycle between their `^build` targets.
 
 ## Hard constraints
 

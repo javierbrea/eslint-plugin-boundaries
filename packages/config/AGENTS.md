@@ -16,7 +16,7 @@ Folders under `src/`, bottom to top. Each one imports only from the folders befo
 6. `RuleOptions` — `validateRuleOptions` and `normalizeDependenciesRuleOptions`.
 7. `Config` — `normalizeConfig`, which composes the folders above.
 
-The layering is not lint-enforced: linting this package with the workspace plugin would make the plugin its devDependency, and Nx refuses the cycle between their `^build` targets.
+The layering is not lint-enforced, and the package has no project edge to `eslint-plugin`, neither an `implicitDependencies` entry nor a dependency that Nx infers, because the plugin depends on this package and Nx refuses the cycle between their `^build` targets.
 
 ## Hard constraints
 

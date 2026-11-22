@@ -6,6 +6,8 @@ paths:
   - "packages/config/**/*.tsx"
   - "packages/policies/**/*.ts"
   - "packages/policies/**/*.tsx"
+  - "packages/analysis/**/*.ts"
+  - "packages/analysis/**/*.tsx"
   - "packages/eslint-plugin/**/*.ts"
   - "packages/eslint-plugin/**/*.tsx"
   - "packages/playground/**/*.ts"
@@ -14,7 +16,7 @@ paths:
 
 # TypeScript conventions
 
-These apply to every `.ts`/`.tsx` file across `packages/elements`, `packages/config`, `packages/policies`, `packages/eslint-plugin` and `packages/playground`.
+These apply to every `.ts`/`.tsx` file across `packages/elements`, `packages/config`, `packages/policies`, `packages/analysis`, `packages/eslint-plugin` and `packages/playground`.
 
 ## `type` vs `interface`
 
