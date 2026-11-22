@@ -99,7 +99,9 @@ What the spike did not prove: the imports are read by TypeScript, not by the plu
 
 ## Open questions
 
-None. The maintainer closed them on 2026-11-22, decisions 12 to 35 of the index, and `browser-cost.md` holds the measurement that was the last one.
+None. The maintainer closed them on 2026-11-22, decisions 12 to 39 of the index.
+
+What was read in code for decision 39, which phase 10 needs: a policy has no name today, `DependenciesPolicy` (`packages/config/src/Shared/Settings.types.ts`) has selectors, `importKind` and `message`, and it is referred to by its position, "Denied by policy at index N" (`packages/policies/src/Messages/Messages.ts`). Its schema has `additionalProperties: false` (`packages/config/src/Schemas/Schemas.ts`), so a config with a `name` fails on every version released before, and adding the optional property is a MINOR of `@boundaries/config`, `@boundaries/policies` and `eslint-plugin-boundaries`.
 
 ## Filing the issues
 
@@ -113,9 +115,9 @@ What this plan adds to the `create-issue` skill:
 
 ## Steps
 
-1. Show the maintainer the views other than the Map and record what they say of each. Add what "The mockup" and "The React Flow mockup" list as missing when their answer depends on it.
-2. Complete `00-shared.md` until no `TODO` is left, moving into it the public interface of `engine-cut.md` with decisions 25 and 26 applied, and show it to the maintainer.
-3. Split the design into phases with the maintainer: what each one delivers, its pull request target and what it depends on.
+1. Done on 2026-11-22: the open questions are closed.
+2. Done on 2026-11-22: `00-shared.md` has no `TODO` and holds the public interface.
+3. Done on 2026-11-22: the split into phases is in the phases table of the index (decision 36).
 4. Create the milestone and the issues as "Filing the issues" says, and add the amendment to RFC #538 (decision 22).
 5. Write the phase files of this plan, with the index updated: the phases table with the issues and the dependencies, the status line, the files table. Delete this file and what no later phase uses, as "Finishing a phase" of the `write-plan` skill says. The facts of "The project reader, for later" and "The data and the spike", which no phase uses, first go to the tracking issue or to an issue of their own on the Backlog, for the later design of the reader.
 

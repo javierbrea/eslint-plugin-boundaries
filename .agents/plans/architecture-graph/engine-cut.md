@@ -39,66 +39,7 @@ Today `eslint.config.mjs:82` lets `contract` import nothing, and only the engine
 
 ## Proposed public interface
 
-```ts
-// Input
-/** The boundaries part of an ESLint config object, as written; only settings and rules are read */
-export type ProjectConfig = { readonly settings?: unknown; readonly rules?: unknown };
-export type ProjectDependencyTarget =
-  | { readonly kind: "file"; readonly path: string }
-  | { readonly kind: "external"; readonly name: string };
-export type ProjectSpecifier = { readonly kind: "default" | "named" | "namespace"; readonly name: string; readonly alias?: string };
-export type ProjectDependencySyntax = "import" | "export-from" | "require" | "dynamic-import";
-export type ProjectDependency = {
-  readonly from: string;
-  readonly target: ProjectDependencyTarget;
-  readonly syntax: ProjectDependencySyntax;
-  readonly importKind: "value" | "type";
-  readonly specifiers: readonly ProjectSpecifier[];
-  /** New and required (decision 16): the source as the statement writes it */
-  readonly source: string;
-};
-export type Project = {
-  readonly config: ProjectConfig;
-  readonly files: readonly string[];
-  readonly dependencies: readonly ProjectDependency[];
-};
-
-// Output
-export type ConfigPath = readonly (string | number)[];
-export type DependencyRef = { readonly path: string; readonly index: number };
-export type PolicyRef = { readonly index: number | null; readonly path: ConfigPath };
-export type NotEvaluatedReason = "rules-invalid" | "no-rule" | "rule-off" | "no-options";
-export type DependencyVerdict =
-  | { readonly status: "allowed"; readonly policy: PolicyRef }
-  | { readonly status: "disallowed"; readonly policy: PolicyRef | undefined; readonly message: string; readonly level: "error" | "warning" }
-  | { readonly status: "not-checked"; readonly reason: SkipReason }
-  | { readonly status: "not-evaluated" };
-export type DependencyResult = {
-  readonly dependency: ProjectDependency;
-  readonly ref: DependencyRef;
-  readonly source: string;
-  readonly description: DependencyDescription | undefined;
-  readonly verdict: DependencyVerdict;
-};
-export type ProjectAnalysis = {
-  readonly files: ReadonlyMap<string, EntityDescription>;
-  readonly dependencies: readonly DependencyResult[];
-  readonly diagnostics: readonly Diagnostic[];
-  readonly rulesValid: boolean;
-  readonly notEvaluated: NotEvaluatedReason | undefined;
-  readonly policies: readonly PolicySummary[];
-  readonly elementTypes: readonly ElementTypeSummary[];
-  readonly fileCategories: readonly FileCategorySummary[];
-  readonly rules: readonly RuleSummary[];
-};
-export function analyzeConfig(config: ProjectConfig): ConfigAnalysis;
-export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project, "files" | "dependencies">): ProjectAnalysis;
-```
-
-- The summaries move to the package (decision 25) and keep the fields they have today, with `path: ConfigPath` in place of `range`. `ConfigAnalysis` is the one of `E/evaluate.types.ts` without `text`, `parsed` and `problems`.
-- Two functions (decision 15) because they are the seam that exists today between `analyzeConfig` and `evaluateSketch`: the playground keeps memoizing the analysis by the config text (`E/evaluate.ts:148-151`).
-- The target kind is `file` (decision 26), where the `Sketch` of the playground says `node`: the adapter already builds each dependency again to add its source.
-- The engine of the playground becomes an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` of today: paths to ranges, one ranged `PolicyRef` per policy built once per analysis, and `config-unparsed` when the text does not parse. `E/engine.types.ts` and `E/index.ts` do not change, so no page code does.
+It is in `00-shared.md`, "The interface of `@boundaries/analysis`". `E/` below and there is `packages/playground/src/domains/evaluation/helpers/engine/`.
 
 ## Does a real project fit?
 

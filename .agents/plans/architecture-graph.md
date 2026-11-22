@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged and no issue exists yet. The design is not complete: No question is open. What is left of phase 1 is the split into phases, which the maintainer has a proposal of, the complete design in `00-shared.md`, and the issues. There is no RFC (decision 12): phase 1 completes the design in `architecture-graph/00-shared.md`, then files one issue per later phase in the milestone `architecture-graph`. The phases after it are written by phase 1.
+**Status (2026-11-22):** nothing is merged and no issue exists yet. The split into phases is agreed (decision 36) and the four views are confirmed (decision 37). No question is open and the design in `00-shared.md` is complete. What is left of phase 1 is the issues and the phase files. There is no RFC (decision 12): phase 1 files one issue per later phase in the milestone `architecture-graph` and writes their files.
 
 ## Where it lives
 
@@ -24,12 +24,22 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | --- | --- | --- | --- | --- | --- | --- |
 | 1. Finish the design and file the issues | none: it creates the issues of the other phases | `feat/architecture-graph` | nothing | none: its result is the design, the milestone and the issues | none | none |
 
-The phases after the first one come from the finished design and are added by phase 1, each with its issue.
+| 2. Extract `@boundaries/analysis` | not filed | set with the issue | nothing | `release` | `refactor(analysis): extract the evaluation of a project from the playground` | none |
+| 3. Extract `@boundaries/ui-kit` | not filed | set with the issue | nothing | `release` | `refactor(ui-kit): extract the theme and the ui-kit from the playground` | none |
+| 4. The playground talks to the graph: `onEvaluationChange`, both forms in the reply of the worker, the input that opens a target | not filed | set with the issue | 2 | `release` | `feat(playground): emit the evaluation and open a target` | none |
+| 5. `@boundaries/graph-data` | not filed | set with the issue | 2 | `feat/architecture-graph` | `feat(graph-data): aggregate an evaluated project into a graph` | none |
+| 6. `@boundaries/graph`: the frame, the filters, the inspector and the Map | not filed | set with the issue | 3, 5 | `feat/architecture-graph` | `feat(graph): add the graph component with the Map` | none |
+| 7. The Focus, Matrix and Composition views, in one pull request | not filed | set with the issue | 6 | `feat/architecture-graph` | `feat(graph): add the Focus, Matrix and Composition views` | none |
+| 8. The graph on the website | not filed | set with the issue | 4, 6 | `feat/architecture-graph` | `feat(website): add the architecture graph to the playground page` | none |
+| 9. Docs and closing: the guide, a screenshot of the graph in the playground section of the home page, the graph in the README, the plan removed | not filed | set with the issue | 7, 8 | `feat/architecture-graph` | `docs(website): document the architecture graph` | none |
+| 10. A name for a policy (decision 39) | not filed | set with the issue | nothing; 7 reads the name when it exists | `release` | `feat(config): add a name to a policy` | none |
+
+The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added after, keeps the last number although it can run at any time. The issues and the phase files are added by phase 1.
 
 ## Integration plan
 
 - `feat/architecture-graph` starts from `release` and merges `release`, never rebases. Each later phase is one pull request into it, and it goes into `release` at the end with one pull request. The issues of the milestone are closed by the release pull request into `master` (`.github/CONTRIBUTING.md`, "Publishing").
-- The extractions that do not depend on the graph, `@boundaries/analysis` and `@boundaries/ui-kit`, go straight into `release`, each in its own pull request, as the extractions of the playground did (decision 21).
+- What does not depend on the graph goes straight into `release`, each in its own pull request, as the extractions of the playground did: `@boundaries/analysis` and `@boundaries/ui-kit` (decision 21), what the playground emits and its input to open a target (decision 36), and the name of a policy.
 - The branching model and the release procedure are in `.github/CONTRIBUTING.md`.
 
 ## Decisions
@@ -71,7 +81,11 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 33. Accessibility: the Map is operable with the keyboard, the matrix and the lists of the inspector are a complete reading of the same data, and the graph passes the checks that the rest of the website passes. The maintainer accepts a lower bar in a part where reaching it costs too much, decided case by case.
 34. The four views stay. In its first version the Map has the layered layout only, with no force layout, and Composition draws sorted bars, not pies. The maintainer took it before opening the React Flow mockup, so the look of each view is still open to what they say of the mockups.
 35. The Map opens as a summary and gives the detail on demand. It starts with one circle per element type, as big as its files are many, with tests, mocks and page objects hidden, and thin translucent edges with no numbers; selecting a node dims what it does not touch, and a type expands into its elements. The maintainer found the first React Flow mockup, which drew boxes, every file and numbered routed edges, too hard to read, and preferred this look, which is the one of the first mockup.
+36. The phases are the ones of the table above. Phase 4 goes into `release`, not into the integration branch: it changes the playground only and nothing reads what it emits until the graph does. The three views of phase 7 are one issue and one pull request.
+37. The Focus, Matrix and Composition views stay as the first mockup draws them. Composition shows one breakdown at a time, behind tabs (files by type, by captured value, by category; dependencies by deciding policy), in place of all of them stacked.
+38. The docs phase keeps the pitch of the home page and of the README as it is. It adds a screenshot of the graph to the playground section of the home page (`PlaygroundTeaser`), and turns the "Playground" section of the README into two bullets, one for the playground and one for the graph, with no image. A pitch around the visual analysis waits for the project reader.
+39. A policy of `boundaries/dependencies` gets an optional `name`, a short string, and no `description`. The default message names it (`Denied by policy "<name>" (index N)`) and stays as it is without one; a custom `message` gets the `{{policy.name}}` variable; two policies with the same name give a warning diagnostic; `@boundaries/analysis` carries it in its policy summaries, and the playground and the graph show it in place of the position. The deprecated rules do not take it. It is phase 10, into `release`, and blocks nothing: the graph falls back to the position.
 
 ## Open questions
 
-All are decided by the maintainer in phase 1, which lists them with what is known about each: `architecture-graph/01-design-and-issues.md`, "Open questions".
+None.
