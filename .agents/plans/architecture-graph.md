@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged and no issue exists yet. The design is not complete: One question is open, the cost in a browser, which is a measurement. What is left of phase 1 is that measurement, a last look at the mockups with the maintainer, the split into phases and the issues. There is no RFC (decision 12): phase 1 completes the design in `architecture-graph/00-shared.md`, then files one issue per later phase in the milestone `architecture-graph`. The phases after it are written by phase 1.
+**Status (2026-11-22):** nothing is merged and no issue exists yet. The design is not complete: No question is open. What is left of phase 1 is the split into phases, which the maintainer has a proposal of, the complete design in `00-shared.md`, and the issues. There is no RFC (decision 12): phase 1 completes the design in `architecture-graph/00-shared.md`, then files one issue per later phase in the milestone `architecture-graph`. The phases after it are written by phase 1.
 
 ## Where it lives
 
@@ -14,8 +14,9 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | `architecture-graph/01-design-and-issues.md` | Working on phase 1: what is left to analyze, the open questions and how the issues are filed |
 | `architecture-graph/engine-cut.md` | Designing or implementing `@boundaries/analysis`: where each export of the engine goes, its interface and its open questions |
 | `architecture-graph/library-research.md` | Choosing or using the library of the Map: what was measured of Cytoscape.js, React Flow and Sigma |
+| `architecture-graph/browser-cost.md` | Sizing anything by the size of a project: what the evaluation, its reply and the aggregation cost in a browser |
 | `architecture-graph/mockup/` | Looking at or changing the mockups: `index.html`, the four views with Cytoscape.js and Sigma, and `react-flow/`, the Map with React Flow and ELK; both read `data.json` |
-| `architecture-graph/spike/` | Reading a real project again, or measuring it: the two scripts that produced the data of the mockup, and `graph-libraries/`, the benchmarks of `library-research.md` |
+| `architecture-graph/spike/` | Reading a real project again, or measuring it: the two scripts that produced the data of the mockup, `graph-libraries/`, the benchmarks of `library-research.md`, and `browser-cost/`, the scripts of `browser-cost.md` |
 
 ## Phases
 
@@ -65,7 +66,7 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 28. The switch between the playground and the graph is a row of tabs that the host draws above both.
 29. When the config text does not parse, the playground emits a third status with the detail of the error, so that the graph says why it draws nothing.
 30. Opening a project from a file on the website is out of this plan: it comes with the project reader.
-31. A graph too big for the layered layout: the Map starts collapsed by element type, a layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight. The threshold comes from the measurement of the cost in a browser.
+31. A graph too big for the layered layout: the Map starts collapsed by element type, a layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight. The threshold is a number of visible edges, 1000 to start with (`architecture-graph/browser-cost.md`).
 32. The graph is desktop only, as the playground is, with the same notice on a phone.
 33. Accessibility: the Map is operable with the keyboard, the matrix and the lists of the inspector are a complete reading of the same data, and the graph passes the checks that the rest of the website passes. The maintainer accepts a lower bar in a part where reaching it costs too much, decided case by case.
 34. The four views stay. In its first version the Map has the layered layout only, with no force layout, and Composition draws sorted bars, not pies. The maintainer took it before opening the React Flow mockup, so the look of each view is still open to what they say of the mockups.

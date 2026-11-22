@@ -52,7 +52,7 @@ The public interface of `@boundaries/analysis` is in `engine-cut.md`, "Proposed 
 - A selection lists the real dependencies behind a node or an edge.
 - The Map opens as a summary: one circle per element type, tests hidden, thin edges with no numbers, and the detail on demand by selecting or expanding (decision 35).
 - The four views stay. The Map has the layered layout only in its first version, and Composition draws sorted bars (decision 34). TODO: what the maintainer says of each view in the mockups (step 2 of `01-design-and-issues.md`).
-- A graph too big for the layered layout starts collapsed by element type, its layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight (decision 31). TODO: the threshold, from the measurement below.
+- A graph too big for the layered layout starts collapsed by element type, its layout has a time limit and can be cancelled, and a notice suggests a higher minimum weight (decision 31). The notice shows above 1000 visible edges, a starting value that the phase of the Map tunes.
 
 ### Rendering library
 
@@ -60,7 +60,7 @@ React Flow (`@xyflow/react`) renders the Map, with its attribution visible (deci
 
 ### Cost in a browser
 
-TODO: the measurement (the open question of `01-design-and-issues.md`).
+`browser-cost.md` holds the measurement. For `packages/playground`, 725 files and 2740 dependencies, the evaluation in the worker takes about 0.4 s and grows with the dependencies; replying with both forms adds 3 ms, and the aggregation takes 0.3 ms. A sketch of the website, with tens of files, is far under that. What limits the Map is the number of edges that the layout has to place.
 
 ### Accessibility
 

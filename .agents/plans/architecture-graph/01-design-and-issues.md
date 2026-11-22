@@ -99,9 +99,7 @@ What the spike did not prove: the imports are read by TypeScript, not by the plu
 
 ## Open questions
 
-The maintainer closed every question but one on 2026-11-22: decisions 12 to 34 of the index.
-
-- **How long do the evaluation in the worker and the aggregation take on a big project, in a browser?** The spike measured Node.js only. The measurement also covers what the worker reply costs with both forms (decision 14), and gives the threshold of decision 31. It is a measurement, not a choice: its result goes into `00-shared.md`.
+None. The maintainer closed them on 2026-11-22, decisions 12 to 35 of the index, and `browser-cost.md` holds the measurement that was the last one.
 
 ## Filing the issues
 
@@ -115,16 +113,15 @@ What this plan adds to the `create-issue` skill:
 
 ## Steps
 
-1. Measure the cost in a browser (the open question) and write the result into `00-shared.md`.
-2. Show the maintainer both mockups and record what they say of each view. Add what "The mockup" and "The React Flow mockup" list as missing when their answer depends on it.
-3. Complete `00-shared.md` until no `TODO` is left, moving into it the public interface of `engine-cut.md` with decisions 25 and 26 applied, and show it to the maintainer.
-4. Split the design into phases with the maintainer: what each one delivers, its pull request target and what it depends on.
-5. Create the milestone and the issues as "Filing the issues" says, and add the amendment to RFC #538 (decision 22).
-6. Write the phase files of this plan, with the index updated: the phases table with the issues and the dependencies, the status line, the files table. Delete this file and what no later phase uses, as "Finishing a phase" of the `write-plan` skill says. The facts of "The project reader, for later" and "The data and the spike", which no phase uses, first go to the tracking issue or to an issue of their own on the Backlog, for the later design of the reader.
+1. Show the maintainer the views other than the Map and record what they say of each. Add what "The mockup" and "The React Flow mockup" list as missing when their answer depends on it.
+2. Complete `00-shared.md` until no `TODO` is left, moving into it the public interface of `engine-cut.md` with decisions 25 and 26 applied, and show it to the maintainer.
+3. Split the design into phases with the maintainer: what each one delivers, its pull request target and what it depends on.
+4. Create the milestone and the issues as "Filing the issues" says, and add the amendment to RFC #538 (decision 22).
+5. Write the phase files of this plan, with the index updated: the phases table with the issues and the dependencies, the status line, the files table. Delete this file and what no later phase uses, as "Finishing a phase" of the `write-plan` skill says. The facts of "The project reader, for later" and "The data and the spike", which no phase uses, first go to the tracking issue or to an issue of their own on the Backlog, for the later design of the reader.
 
 ## Verification
 
-- The open question has its measurement, and `00-shared.md` has no `TODO`.
+- `00-shared.md` has no `TODO`.
 - Every number in the design and in the issues is measured, with how it was measured, or read in code.
 - Every phase after the first one has an issue in the milestone `architecture-graph` and on the Backlog of the board, and the dependencies on GitHub match the "Depends on" column.
 - No issue and no plan file names a private repository or a file outside this repository.
