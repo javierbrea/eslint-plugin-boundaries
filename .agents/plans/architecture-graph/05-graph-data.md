@@ -19,7 +19,7 @@ A new published package, `packages/graph-data` (`@boundaries/graph-data`, Nx pro
 - `engine-cut.md`, "Input of `@boundaries/graph-data`": the fields of the analysis that the package reads.
 - `browser-cost.md`, "Aggregation and what it gives the layout": the numbers that the package reproduces for `packages/playground`.
 - `mockup/index.html` (`groupOf`, `aggregate`, `renderComp`) and `mockup/react-flow/src/main.jsx` (`aggregate`): models of the aggregation, of the edges between whatever is visible and of the breakdowns. They read the compact `mockup/data.json`, not a `ProjectAnalysis`, so their field names do not carry over.
-- `packages/analysis/src/index.ts` and `packages/analysis/AGENTS.md`, which phase 2 creates: the exported types as they are. They win over the sketch of `00-shared.md`.
+- `packages/analysis/src/index.ts` and `packages/analysis/AGENTS.md` (phase 2, #695): the exported types as they are. They win over the sketch of `00-shared.md`.
 - `packages/policies/`: the model of a published package that runs in browsers, file by file, and its `AGENTS.md`.
 - `.agents/rules/browser-code.md`, `mutation-testing.md`, `sonar.md`, `typescript-conventions.md`, `unit-testing.md`, `nx-project-config.md`, `changelog-and-versioning.md` and `agents-md.md`.
 - `test/browser-e2e/README.md`, "Adding a scenario": how a new package and its scenario are added.
@@ -56,6 +56,7 @@ Every change goes through the `implement-change` skill. The package, its public 
 - Create `packages/graph-data` after `packages/policies`: `package.json` (`publishConfig.access` public, the `browser`, `node` and `default` export conditions, `engines.node` as `policies` has it, exact versions), `project.json`, `tsup.config.js` with the two builds, the `tsconfig` files, `jest.config.js` (Node.js environment, 100% thresholds), `stryker.config.mjs` (the thresholds of `policies`, dashboard module `graph-data`), `sonar-project.properties`, `eslint.config.mjs` with `createBrowserConfig`, `cspell.config.js`, `babel.config.js`, the two `serve.*.json`, `LICENSE`, `.gitignore`, `CLAUDE.md` and `test/e2e/builds.spec.mjs`.
 - `src/index.ts` is the public interface, as in `policies`: a symbol is public only when it lists it.
 - `README.md` documents the interface for a consumer with no React, with one example in Node.js. `AGENTS.md` holds the layering and the hard constraints, under the limits of `.agents/rules/agents-md.md`.
+- The package lints its own layering with the workspace plugin as `packages/analysis` does (decision 44): the devDependency `"eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*"`, a task dependency of `lint` on the `build` of `eslint-plugin` in `project.json`, and no `eslint-plugin` in `implicitDependencies`. `pnpm nx graph` shows no edge to the plugin, and only `lint` builds it.
 
 ### The aggregation
 
@@ -78,13 +79,14 @@ Constraints:
 
 ### The repository
 
-`policies` is named in each of these today, and phase 2 adds `analysis` beside it. Add `graph-data` the same way:
+`policies` and `analysis` are named in each of these. Add `graph-data` the same way:
 
 - `test/browser-e2e`: the dependency in `package.json`, `PACKAGES` in `scripts/build.js`, a scenarios module in `src/scenarios/` listed in `src/scenarios/index.js`, with at least one scenario that aggregates the analysis of the quick-start example.
-- `.github/workflows/build.yml`: the coverage and build artifacts, the unit tests of `test-node-versions`, Coveralls and the SonarCloud scan. `.github/workflows/test-mutation.yml`: the matrix. `.github/workflows/publish.yml`: the two build commands.
+- `.github/workflows/build.yml`: the coverage artifact, the unit tests of `test-node-versions`, Coveralls and the SonarCloud scan. No build artifact: only `build-windows` downloads them, and it runs other packages. `.github/workflows/test-mutation.yml`: the matrix. `.github/workflows/publish.yml`: the two build commands.
 - `scripts/check-changelogs.js`: an entry of `CHANGELOGS`.
 - `.github/CONTRIBUTING.md` ("Publishing", steps 1 and 6, and "Trusted publishing") and the `release` skill, where they list the published packages.
-- The root `AGENTS.md` (the count and the list of published libraries), the `repo-architecture` skill (component map, dependency graph, what `browser-e2e` runs), and the `paths` of the rules `browser-code`, `mutation-testing`, `sonar` and `typescript-conventions`, plus the placement table of `unit-testing`.
+- The root `AGENTS.md` (the count and the list of published libraries), the `repo-architecture` skill (component map, dependency graph, what `browser-e2e` runs), and the `paths` of the rules `browser-code`, `mutation-testing`, `sonar` and `typescript-conventions`, plus the placement table and the coverage sentence of `unit-testing`.
+- The package table of the root `README.md`, which the build copies into `packages/eslint-plugin` and so takes a `chore` entry in its changelog, and `packages/website/docs/releases/releases.md`, which takes a `docs` entry in the website changelog.
 
 ## Verification
 
@@ -113,7 +115,6 @@ Also measured, for the pull request description: aggregating the analysis of `pa
 
 - **The first version.** Default: `1.0.0`, as `config` and `policies` started.
 - **How `@boundaries/analysis` is declared.** Its types appear in the published declarations. Default: a `dependency` with `workspace:*`, imported with `import type` only, and a check that the browser bundle of `test/browser-e2e` holds no code of it beyond what the scenario itself calls.
-- **Linting its own layering with the workspace plugin.** Default: what phase 2 settled for `analysis` (decision 27), read in `packages/analysis/AGENTS.md`; whichever it is, `pnpm nx graph` shows no cycle.
 - **Which captured value groups.** The mockup hard-codes `domain` and `scope`. Default: the "group by" takes the name of the captured key, and the result lists the keys that the analysis has, for the frame to offer.
 - **A file with several file categories.** Default: its first category, as the mockup does, said in the TSDoc.
 - **The depth of the folder grouping.** Default: an option in path segments, 2 when it is not given.

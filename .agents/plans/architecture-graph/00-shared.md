@@ -29,7 +29,7 @@ The view is a tool to analyze an architecture, so each of its parts answers a qu
 
 ### The interface of `@boundaries/analysis`
 
-`E/` is `packages/playground/src/domains/evaluation/helpers/engine/`, which the package is cut from; `engine-cut.md` says where each export goes. The description types (`EntityDescription`, `DependencyDescription`, `SkipReason`) and the summaries are the ones the engine has today.
+`packages/analysis/src/index.ts` is the interface, and its types and their TSDoc win over this summary of them, which is what #695 implements. `E/` is `packages/playground/src/domains/evaluation/helpers/engine/`, the engine that the package was cut from and that is now an adapter over it. The description types (`EntityDescription`, `DependencyDescription`), `SkipReason` and the summaries are the ones the engine had.
 
 ```ts
 // Input
@@ -58,17 +58,36 @@ export type Project = {
 // Output
 export type ConfigPath = readonly (string | number)[];
 export type DependencyRef = { readonly path: string; readonly index: number };
+/** The path of the default is always [<options path>, "default"], also when `default` is not written */
 export type PolicyRef = { readonly index: number | null; readonly path: ConfigPath };
 export type NotEvaluatedReason = "rules-invalid" | "no-rule" | "rule-off" | "no-options";
+export type EvaluatedRule = {
+  readonly level: "error" | "warning";
+  readonly options: DependenciesRuleOptionsNormalized;
+  readonly policies: readonly PolicyRef[];
+  readonly defaultPolicy: PolicyRef;
+};
+export type ConfigAnalysis = {
+  readonly settings: SettingsNormalized;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly rulesValid: boolean;
+  readonly elementTypes: readonly Omit<ElementTypeSummary, "files">[];
+  readonly fileCategories: readonly Omit<FileCategorySummary, "files">[];
+  readonly rules: readonly RuleSummary[];
+  readonly policies: readonly Omit<PolicySummary, "decided" | "disallowed" | "errors">[];
+} & (
+  | { readonly rule: EvaluatedRule; readonly notEvaluated: undefined }
+  | { readonly rule: undefined; readonly notEvaluated: NotEvaluatedReason }
+);
 export type DependencyVerdict =
   | { readonly status: "allowed"; readonly policy: PolicyRef }
   | { readonly status: "disallowed"; readonly policy: PolicyRef | undefined; readonly message: string; readonly level: "error" | "warning" }
   | { readonly status: "not-checked"; readonly reason: SkipReason }
   | { readonly status: "not-evaluated" };
 export type DependencyResult = {
+  /** The dependency of the input, the same object; its source is `dependency.source` (decision 45) */
   readonly dependency: ProjectDependency;
   readonly ref: DependencyRef;
-  readonly source: string;
   readonly description: DependencyDescription | undefined;
   readonly verdict: DependencyVerdict;
 };
@@ -88,10 +107,10 @@ export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project,
 ```
 
 - The summaries move to the package (decision 25) and keep the fields they have today, with `path: ConfigPath` in place of `range`.
-- `ConfigAnalysis` holds what depends on the config only: the normalized config with its diagnostics, the validity of the rules, the rule chosen, and the summaries without the counts that depend on the project, which `evaluateProject` adds without reading the config as written (decision 41). It is public, and the adapter reads its diagnostics and normalized settings to place the problems in the text.
-- Two functions (decision 15) because they are the seam that exists today between `analyzeConfig` and `evaluateSketch`: the playground keeps memoizing the analysis by the config text (`E/evaluate.ts:148-151`).
+- `ConfigAnalysis` holds what depends on the config only: the normalized settings with the diagnostics, the validity of the rules, the rule chosen with its normalized options or why none is, and the summaries without the counts that depend on the project, which `evaluateProject` adds without reading the config as written (decision 41, lint-enforced in the package). It is public, and the adapter reads its diagnostics and settings to place the problems in the text.
+- Two functions (decision 15) because they are the seam that exists today between `analyzeConfig` and `evaluateSketch`: the playground keeps memoizing the analysis by the config text (`createEngine` of `E/evaluate.ts`).
 - The target kind is `file` (decision 26), where the `Sketch` of the playground says `node`: the adapter already builds each dependency again to add its source.
-- The engine of the playground becomes an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` of today: paths to ranges, one ranged `PolicyRef` per policy built once per analysis, and `config-unparsed` when the text does not parse. `E/engine.types.ts` re-exports the description types of the package with their names and shapes (decision 42), and `E/index.ts` does not change, so no page code does.
+- The engine of the playground is an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` the panes read: paths to ranges (the default at the options when `default` is not written), one ranged `PolicyRef` per policy built once per config text, and `config-unparsed` when the text does not parse, which it analyzes as an empty config. `E/engine.types.ts` re-exports the description types and `SkipReason` of the package with their names and shapes (decision 42), and `E/index.ts` did not change, so no page code did.
 
 `@boundaries/graph-data` takes the `ProjectAnalysis` (decision 14); `engine-cut.md`, "Input of `@boundaries/graph-data`", lists what it reads of it.
 

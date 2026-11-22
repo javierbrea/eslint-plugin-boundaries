@@ -15,7 +15,7 @@ Measured on 2026-11-22 in headless Chromium 159 (playwright-core 1.65.1), on one
 - The worker is the built `packages/playground/dist/evaluation.worker.js`, with its bare imports bundled by esbuild as a host does, not minified. A wrapper times the real handler, from its call until it posts the reply.
 - The sketch is `packages/playground` itself, read as `spike/read-project.mjs` does: one boundaries config (31 element descriptors, 57 policies), 2209 dependencies to files and 531 to external modules, all allowed.
 - A bigger project is N copies of it under `c1/` to `cN/`, with the patterns of the config prefixed so that the copies classify. One copy gives the same verdicts and edges as the real one.
-- The second form is simulated in the worker from the real `Evaluation`, after the type sketch of `engine-cut.md`. "Thin" shares the dependency objects; "thick" also builds each dependency again, as the adapter does to add its source.
+- The second form is simulated in the worker from the real `Evaluation`, after the type sketch of `00-shared.md`, "The interface of `@boundaries/analysis`". "Thin" shares the dependency objects; "thick" also builds each dependency again, as the adapter does to add its source.
 - The aggregation is a function modeled on `aggregate` of `mockup/react-flow/src/main.jsx`.
 - Medians. Fresh workers and warm runs per worker: 5 and 5 up to five copies, 3 and 3 for ten, 2 and 2 for twenty, 1 and 1 for forty.
 - The scripts are in `spike/browser-cost/sources.tar.gz`. `cost-all.sh` runs everything and `cost-tables.mjs` prints the tables.

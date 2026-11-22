@@ -28,7 +28,7 @@ The host contract of `@boundaries/playground` has two additions. A new optional 
 
 ## Preconditions
 
-- #686 is merged into `release` (phase 2): the emitted type is its `ProjectAnalysis`. The hand-offs of phase 2 are in this file by then; until they are, read `packages/analysis/src/index.ts` on `release`.
+- #686 is merged into `release` (phase 2, #695): the emitted type is the `ProjectAnalysis` of `packages/analysis/src/index.ts`.
 - Decisions 6, 8, 13, 14, 29 and 36 of the index are taken.
 
 ## Scope
@@ -47,6 +47,9 @@ Every change goes through the `implement-change` skill; this one adds public exp
    - `PlaygroundProps` gains `onEvaluationChange` and the input, both optional, with TSDoc that says when each is called or read.
 2. **The lint config.** `packages/playground/eslint.config.mjs` lets the `contract` element import `@boundaries/analysis` as a type only, and nothing else changes for it: a value import from the contract, and any import of the package from an element other than the engine and the contract, still fail. `@boundaries/analysis` is already a dependency of the playground since phase 2.
 3. **The reply with both forms.** The engine gives the `ProjectAnalysis` it already computes beside the `Evaluation` it maps from it, `serveEvaluations` posts both in one message, and `EvaluationReply`, the evaluator and its `evaluated` outcome carry the analysis. The descriptions of the files and of the dependencies are the same objects in both forms, so that the structured clone copies them once (`engine-cut.md`). The `Evaluation` and what the panes read do not change.
+   - The analysis is `project`, a local of `evaluateSketch` in `E/evaluate.ts` (`packages/playground/src/domains/evaluation/helpers/engine/`), which the adapter maps into the `Evaluation`. The `WeakMap` of `createEngine` keeps the `Evaluation` only, so a second evaluation of the same sketch has no analysis unless the engine keeps it beside the `Evaluation`.
+   - For a config text that does not parse, `project` is the analysis of an empty config (`EMPTY_CONFIG`). It is never emitted: the third status is emitted in its place (decision 29).
+   - Each `DependencyResult` of the analysis holds the `ProjectDependency` that the adapter built from the dependency of the sketch (a file target has the kind `file`, and it carries its `source`), not the `SketchDependency` itself, and has no `source` of its own (decision 45).
 4. **The store.** It keeps the analysis of the last evaluation beside the evaluation. `receive` of `store.ts` already tells an evaluation of the sketch on screen (status `current`) from one of an older sketch; the analysis is never aligned to a newer sketch as the evaluation is (`alignEvaluation`).
 5. **The emission.** `Playground` passes the prop to `Shell`, and `Shell` to `SessionProvider`, where an effect over the status and the analysis calls it, after the render that shows them, as the `onSketchChange` effect does.
    - `current` of the store emits `{ status: "current", analysis }`, or the third status when the config text of that sketch does not parse (`Evaluation.configParsed` is `false`).

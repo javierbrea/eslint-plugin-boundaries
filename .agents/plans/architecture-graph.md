@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is complete in `architecture-graph/00-shared.md` and no question is open, the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694, on the Backlog and with their dependencies marked, and every phase has its file. Phase 2 started on 2026-11-22, with its file checked against the code and decisions 41 to 43 taken. Phases 3 and 10 can start; the others wait for their blockers.
+**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is in `architecture-graph/00-shared.md`, and the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694. Phase 2 is in review as the draft pull request #695 into `release`, with decisions 44 and 45 taken during it; the plan is ready for the phases after it, and its own file is gone. Phases 3 and 10 can start; phases 4 and 5 wait for #695 to merge, and the others for their blockers.
 
 ## Where it lives
 
@@ -11,7 +11,6 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | File | Read it when |
 | --- | --- |
 | `architecture-graph/00-shared.md` | Working on any phase: the design of the graph, its acceptance and what the mockups are |
-| `architecture-graph/02-analysis-package.md` | Working on phase 2, #686 |
 | `architecture-graph/03-ui-kit-package.md` | Working on phase 3, #687 |
 | `architecture-graph/04-playground-emits-evaluation.md` | Working on phase 4, #688 |
 | `architecture-graph/05-graph-data.md` | Working on phase 5, #690 |
@@ -20,7 +19,7 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | `architecture-graph/08-website-graph.md` | Working on phase 8, #693 |
 | `architecture-graph/09-docs-and-closing.md` | Working on phase 9, #694 |
 | `architecture-graph/10-policy-name.md` | Working on phase 10, #689 |
-| `architecture-graph/engine-cut.md` | Designing or implementing `@boundaries/analysis`: where each export of the engine goes, what the playground emits and the risks of the cut, measured |
+| `architecture-graph/engine-cut.md` | Working on phase 4 or 5: what the playground emits, what `@boundaries/graph-data` reads of the analysis, and whether a real project fits the input of `@boundaries/analysis` |
 | `architecture-graph/library-research.md` | Choosing or using the library of the Map: what was measured of Cytoscape.js, React Flow and Sigma |
 | `architecture-graph/browser-cost.md` | Sizing anything by the size of a project: what the evaluation, its reply and the aggregation cost in a browser |
 | `architecture-graph/mockup/` | Looking at or changing the mockups: `index.html`, the four views with Cytoscape.js and Sigma, and `react-flow/`, the Map with React Flow and ELK; both read `data.json` |
@@ -31,7 +30,7 @@ The plan is committed on the integration branch `feat/architecture-graph`, throu
 | Phase | Issue | Branch | Depends on | PR target | PR title | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1. Finish the design and file the issues | #685, the tracking issue it created | `feat/architecture-graph` | nothing | none | none | none: done on 2026-11-22 with commits on the branch |
-| 2. Extract `@boundaries/analysis` | #686 | `refactor/686/analysis-package` | nothing | `release` | `refactor(analysis): extract the evaluation of a project from the playground` | none |
+| 2. Extract `@boundaries/analysis` | #686 | `refactor/686/analysis-package` | nothing | `release` | `refactor(analysis): Extract the evaluation of a project from the playground` | #695 |
 | 3. Extract `@boundaries/ui-kit` | #687 | `refactor/687/ui-kit-package` | nothing | `release` | `refactor(ui-kit): extract the theme and the ui-kit from the playground` | none |
 | 4. The playground talks to the graph: `onEvaluationChange`, both forms in the reply of the worker, the input that opens a target | #688 | `feat/688/playground-emits-evaluation` | 2 | `release` | `feat(playground): emit the evaluation and open a target` | none |
 | 5. `@boundaries/graph-data` | #690 | `feat/690/graph-data` | 2 | `feat/architecture-graph` | `feat(graph-data): aggregate an evaluated project into a graph` | none |
@@ -51,7 +50,7 @@ The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added
 
 ## Decisions
 
-Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 43; 41 to 43 at the start of phase 2). They have no public link: the issues of phase 1 record the ones their readers need.
+Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 45; 41 to 43 at the start of phase 2, 44 and 45 during it, recorded in #695). They have no public link: the issues of phase 1 record the ones their readers need.
 
 1. The graph is first drawn on the website, over the sketch that the user edits in the playground. The local app is out of this plan.
 2. `@boundaries/analysis` evaluates a whole project: it takes the config as an object, the files and the dependencies, and returns the descriptions and the verdicts. It is extracted from the playground from the start, so that no later refactor is needed.
@@ -96,6 +95,8 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 41. `analyzeConfig` reads the config as written and leaves in its `ConfigAnalysis` everything that depends on the config only, the summaries included without the counts that depend on the project. `evaluateProject` never reads the config as written: it adds those counts, from the files and the dependencies.
 42. The engine of the playground re-exports the description types of `@boundaries/analysis` (`EntityDescription`, `DependencyDescription`, the types they use and `SkipReason`) with `export type`, in place of declaring them again. Their names and shapes do not change, so no page code does.
 43. `@boundaries/analysis` exports no helper that reads the config as written, such as `readSettings`: the adapter reads the object it parsed itself.
+44. A published package that lints its own layering with the workspace plugin builds the plugin through a task dependency of its `lint` on the `build` of `eslint-plugin`, with no project edge, as `packages/analysis/project.json` does: `nx graph` shows no dependency on the plugin, so the release check of dependent packages does not flag the package and no other target builds the plugin.
+45. The `DependencyResult` of `@boundaries/analysis` has no `source`: the source of a dependency is `dependency.source`, the input object itself.
 
 ## Open questions
 
