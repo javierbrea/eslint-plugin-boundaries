@@ -1,0 +1,25 @@
+chromium 159.0.8154.6
+{"size":"small","lib":"cy","layout":"dagre","layoutMs":2017,"renderMs":78,"totalMs":2176,"deterministic":"true,true,true","samePosAcrossPages":true}
+{"size":"small","lib":"cy","layout":"dagre","webgl":true,"layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"timeout 240s"}
+{"size":"small","lib":"cy","layout":"fcose","layoutMs":121,"renderMs":79,"totalMs":279,"deterministic":"false,false,false","samePosAcrossPages":false}
+{"size":"small","lib":"cy","layout":"fcose-norandom","layoutMs":217,"renderMs":78,"totalMs":379,"deterministic":"true,true,true","samePosAcrossPages":true}
+{"size":"small","lib":"cy","layout":"cose","layoutMs":78,"renderMs":72,"totalMs":230,"deterministic":"false,false,false","samePosAcrossPages":false}
+{"size":"small","lib":"cy","layout":"elk","layoutMs":841,"renderMs":60,"totalMs":979,"deterministic":"true,true,true","samePosAcrossPages":true}
+{"size":"small","lib":"rf","layout":"elk","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: TypeError: this.worker.terminate is not a function\n    at Q.value (http://127.0.0.1:61934/rf.js:728:53583)\n    at le.value (http://127.0.0.1:61934/rf.js:728:52909)\n    at D3t (http://127.0.0.1:61934/rf.js:753:6483)\n    at async S (http://127.0.0.1:61934/rf.js:753:7364)\n    at async wi"}
+{"size":"small","lib":"rf","layout":"elk-worker","layoutMs":897,"renderMs":114,"totalMs":1017,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"size":"small","lib":"rf","layout":"dagre","layoutMs":2093,"renderMs":117,"totalMs":2209,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"size":"small","lib":"rf","layout":"elk-worker","visibleOnly":true,"layoutMs":888,"renderMs":108,"totalMs":1001,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"size":"small","lib":"sg","layout":"fa2","layoutMs":26,"renderMs":756,"totalMs":782,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
+{"size":"small","lib":"sg","layout":"dagre","layoutMs":1540,"renderMs":779,"totalMs":2323,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
+{"size":"big","lib":"cy","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: Target crashed "}
+{"size":"big","lib":"cy","layout":"dagre","webgl":true,"layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: Target crashed "}
+{"size":"big","lib":"cy","layout":"fcose","layoutMs":1308,"renderMs":502,"totalMs":2299,"deterministic":"false,false","samePosAcrossPages":false}
+{"size":"big","lib":"cy","layout":"fcose-norandom","layoutMs":7393,"renderMs":393,"totalMs":8195,"deterministic":"true,true","samePosAcrossPages":true}
+{"size":"big","lib":"cy","layout":"cose","layoutMs":2187,"renderMs":390,"totalMs":2992,"deterministic":"false,false","samePosAcrossPages":false}
+{"size":"big","lib":"cy","layout":"elk","layoutMs":18892,"renderMs":640,"totalMs":19943,"deterministic":"true,true","samePosAcrossPages":true}
+{"size":"big","lib":"rf","layout":"elk","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: TypeError: this.worker.terminate is not a function\n    at Q.value (http://127.0.0.1:61934/rf.js:728:53583)\n    at le.value (http://127.0.0.1:61934/rf.js:728:52909)\n    at D3t (http://127.0.0.1:61934/rf.js:753:6483)\n    at async S (http://127.0.0.1:61934/rf.js:753:7364)\n    at async wi"}
+{"size":"big","lib":"rf","layout":"elk-worker","layoutMs":16749,"renderMs":1096,"totalMs":17882,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":1012,"edges":5000,"all":38029}}
+{"size":"big","lib":"rf","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: Target crashed "}
+{"size":"big","lib":"rf","layout":"elk-worker","visibleOnly":true,"layoutMs":16691,"renderMs":508,"totalMs":17231,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":341,"edges":3976,"all":28862}}
+{"size":"big","lib":"sg","layout":"fa2","layoutMs":946,"renderMs":1089,"totalMs":2037,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
+{"size":"big","lib":"sg","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"page.evaluate: Target crashed "}

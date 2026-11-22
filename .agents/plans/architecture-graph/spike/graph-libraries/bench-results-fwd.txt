@@ -1,0 +1,19 @@
+chromium 159.0.8154.6
+{"fwd":0.9,"size":"small","lib":"cy","layout":"dagre","layoutMs":1405,"renderMs":74,"totalMs":1561,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"noRenderEvent":false,"canvases":0}}
+  console: [.WebGL-0x10400836000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+  console: [.WebGL-0x10400836000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+  console: [.WebGL-0x12c00833600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+  console: [.WebGL-0x12c00833600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+{"fwd":0.9,"size":"small","lib":"cy","layout":"dagre","webgl":true,"layoutMs":1405,"renderMs":15038,"totalMs":16561,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"noRenderEvent":true,"canvases":0}}
+{"fwd":0.9,"size":"small","lib":"cy","layout":"elk","layoutMs":738,"renderMs":55,"totalMs":876,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"noRenderEvent":false,"canvases":0}}
+{"fwd":0.9,"size":"small","lib":"rf","layout":"elk","layoutMs":697,"renderMs":109,"totalMs":838,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"fwd":0.9,"size":"small","lib":"rf","layout":"elk-worker","layoutMs":774,"renderMs":103,"totalMs":883,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"fwd":0.9,"size":"small","lib":"rf","layout":"dagre","layoutMs":1088,"renderMs":112,"totalMs":1207,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"nodes":132,"edges":600,"all":4589}}
+{"fwd":0.9,"size":"small","lib":"sg","layout":"dagre","layoutMs":970,"renderMs":822,"totalMs":1793,"deterministic":"true,true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
+{"fwd":0.9,"size":"big","lib":"cy","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"timeout 240s"}
+{"fwd":0.9,"size":"big","lib":"cy","layout":"dagre","webgl":true,"layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"timeout 240s"}
+{"fwd":0.9,"size":"big","lib":"cy","layout":"elk","layoutMs":12655,"renderMs":636,"totalMs":13720,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"noRenderEvent":false,"canvases":0}}
+{"fwd":0.9,"size":"big","lib":"rf","layout":"elk","layoutMs":12030,"renderMs":1064,"totalMs":13142,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":1012,"edges":5000,"all":38029}}
+{"fwd":0.9,"size":"big","lib":"rf","layout":"elk-worker","layoutMs":12574,"renderMs":1039,"totalMs":13663,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":1012,"edges":5000,"all":38029}}
+{"fwd":0.9,"size":"big","lib":"rf","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"timeout 240s"}
+{"fwd":0.9,"size":"big","lib":"sg","layout":"dagre","layoutMs":"-","renderMs":"-","totalMs":"-","deterministic":"","samePosAcrossPages":false,"err":"timeout 240s"}

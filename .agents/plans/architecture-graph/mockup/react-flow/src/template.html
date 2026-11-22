@@ -1,0 +1,118 @@
+<title>Architecture Map Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;600&display=swap">
+<style>
+/*RF_CSS*/
+</style>
+<style>
+/* Layout: a strip of mockup controls over a host frame with a status line, the map and an inspector. Tokens are the ones of the first mockup, taken from the website. */
+:root {
+  --paper: #f3f4f9; --card: #ffffff; --ink: #161a33; --muted: #5a6080; --faint: #9397b6;
+  --line: rgba(22, 26, 51, 0.13); --line-strong: rgba(22, 26, 51, 0.28);
+  --accent: #4c52d8; --accent-ink: #ffffff; --accent-soft: rgba(76, 82, 216, 0.1);
+  --ok: #0f8f7c; --bad: #d7442f; --warn: #b26b00; --bad-soft: rgba(215, 68, 47, 0.14);
+  --group: rgba(76, 82, 216, 0.05);
+  --display: "Sora", "Avenir Next", "Helvetica Neue", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f1222; --card: #171b36; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+  --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+  --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14);
+  --ok: #3fd1b4; --bad: #ff7a66; --warn: #ffd479; --bad-soft: rgba(255, 122, 102, 0.16);
+  --group: rgba(143, 148, 255, 0.07); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0f1222; --card: #171b36; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+  --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+  --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14);
+  --ok: #3fd1b4; --bad: #ff7a66; --warn: #ffd479; --bad-soft: rgba(255, 122, 102, 0.16);
+  --group: rgba(143, 148, 255, 0.07); color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--body); padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+* { box-sizing: border-box; }
+h1 { font: 600 20px/1.2 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 13px/1.3 var(--display); margin: 0; }
+code { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ok-text { color: var(--ok); } .bad-text { color: var(--bad); }
+
+.intro { margin-bottom: 14px; }
+.intro p { margin: 4px 0 0; color: var(--muted); max-width: 75ch; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 8px 10px; margin-bottom: 12px; border: 1px dashed var(--line-strong); border-radius: var(--r); }
+.controls > b { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+.controls label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.controls select, .controls input { background: var(--card); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 3px 6px; color: var(--ink); max-width: 100%; }
+.controls input { width: 4.5em; }
+.spacer { flex: 1 1 0; }
+.btn { border: 1px solid var(--line-strong); background: transparent; border-radius: var(--r); padding: 4px 10px; cursor: pointer; }
+.btn:hover { background: var(--accent-soft); }
+.btn.small { padding: 1px 7px; font-size: 12px; margin-left: 8px; }
+
+.host { border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); overflow: hidden; }
+.status { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; min-height: 42px; }
+.status b { color: var(--ink); font-weight: 600; }
+.status .bad-text b { color: var(--bad); }
+.running { display: inline-flex; align-items: center; gap: 6px; }
+.pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); animation: pulse 0.9s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 0.25; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 300px; }
+.stage { height: 640px; min-width: 0; transition: opacity 0.15s; }
+.stage.is-stale { opacity: 0.45; }
+.placeholder { height: 100%; display: grid; place-content: center; color: var(--muted); margin: 0; }
+.inspector { border-left: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; max-height: 640px; overflow-y: auto; }
+.inspector p { margin: 0; }
+.pair { display: flex; flex-direction: column; gap: 2px; }
+.pair span { color: var(--muted); font-size: 12px; }
+.legend, .deps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.swatch { flex: none; width: 26px; height: 0; border-top: 3px solid var(--ok); }
+.swatch.bad { border-top: 3px dashed var(--bad); } .swatch.warn { border-top-color: var(--warn); }
+.deps li { display: flex; flex-direction: column; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); }
+.deps li.is-bad { border-color: var(--bad); background: var(--bad-soft); }
+.deps small { color: var(--muted); }
+@media (max-width: 860px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .stage { height: 460px; }
+  .inspector { border-left: 0; border-top: 1px solid var(--line); max-height: none; }
+  .spacer { display: none; }
+}
+
+/* React Flow, on the tokens of the page */
+.react-flow { --xy-background-color: var(--card); --xy-edge-stroke: var(--ok); --xy-attribution-background-color: var(--card);
+  --xy-controls-button-background-color: var(--card); --xy-controls-button-background-color-hover: var(--paper);
+  --xy-controls-button-color: var(--ink); --xy-controls-button-border-color: var(--line-strong); --xy-focus-background-color: transparent;
+  background: var(--card); font-family: var(--body); }
+.react-flow__attribution a { color: var(--muted); }
+.react-flow__node { cursor: default; }
+.react-flow__node:focus-visible, .react-flow__edge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.react-flow__handle { opacity: 0; pointer-events: none; min-width: 1px; min-height: 1px; width: 1px; height: 1px; }
+.react-flow__edge.selected .react-flow__edge-path, .react-flow__edge:hover .react-flow__edge-path { filter: drop-shadow(0 0 3px var(--accent)); }
+.react-flow__edge { cursor: pointer; }
+.node { width: 100%; height: 100%; color: var(--ink); }
+.node small { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.node-type { display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--card); border: 1.5px solid var(--accent); border-radius: var(--r); }
+.node-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.node-text b, .node-group b { font: 600 12px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node-group { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; background: var(--group); border: 1.5px solid var(--accent); border-radius: 8px; }
+.node-element { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; background: var(--card); border: 1px solid var(--line-strong); border-radius: var(--r); }
+.node-element span { font: 400 11.5px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toggle { flex: none; width: 20px; height: 20px; line-height: 1; padding: 0; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--card); color: var(--ink); cursor: pointer; }
+.toggle:hover { background: var(--accent-soft); }
+</style>
+
+<header class="intro">
+  <h1>The Map, drawn with React Flow and ELK</h1>
+  <p>The real dependencies of <code>packages/playground</code>, grouped by element type. A type expands into its elements. The layout is computed by ELK in a web worker, so the page keeps responding while it runs: switch the layout to dagre, or the project to a synthetic one, to compare.</p>
+</header>
+<div id="map-root"></div>
+<script>
+/*BUNDLE*/
+</script>

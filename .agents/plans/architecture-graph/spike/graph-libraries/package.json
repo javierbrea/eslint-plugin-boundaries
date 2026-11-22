@@ -1,0 +1,34 @@
+{
+  "name": "graph-lib-research",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@dagrejs/dagre": "^3.1.3",
+    "@react-sigma/core": "^6.0.0",
+    "@xyflow/react": "^13.0.2",
+    "cytoscape": "^3.35.0",
+    "cytoscape-dagre": "^4.1.0",
+    "cytoscape-elk": "^2.4.0",
+    "cytoscape-expand-collapse": "^4.1.1",
+    "cytoscape-fcose": "^2.2.0",
+    "elkjs": "^0.12.1",
+    "esbuild": "^0.28.2",
+    "graphology": "^0.26.0",
+    "graphology-layout": "^0.6.1",
+    "graphology-layout-forceatlas2": "^0.10.1",
+    "playwright-core": "^1.65.1",
+    "react": "^19.3.1",
+    "react-cytoscapejs": "^2.0.0",
+    "react-dom": "^19.3.1",
+    "sigma": "^4.0.6",
+    "web-worker": "^1.5.0"
+  }
+}

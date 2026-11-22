@@ -1,0 +1,7 @@
+chromium 159.0.8154.6
+{"fwd":0.9,"size":"tiny","lib":"cy","layout":"dagre","layoutMs":170,"renderMs":52,"totalMs":270,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"noRenderEvent":false,"canvases":0}}
+{"fwd":0.9,"size":"tiny","lib":"cy","layout":"fcose","layoutMs":45,"renderMs":43,"totalMs":128,"deterministic":"false,false","samePosAcrossPages":false,"extra":{"noRenderEvent":false,"canvases":0}}
+{"fwd":0.9,"size":"tiny","lib":"rf","layout":"elk-worker","layoutMs":298,"renderMs":76,"totalMs":377,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":48,"edges":150,"all":1195}}
+{"fwd":0.9,"size":"tiny","lib":"rf","layout":"dagre","layoutMs":172,"renderMs":67,"totalMs":242,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"nodes":48,"edges":150,"all":1195}}
+{"fwd":0.9,"size":"tiny","lib":"sg","layout":"fa2","layoutMs":8,"renderMs":886,"totalMs":894,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
+{"fwd":0.9,"size":"tiny","lib":"sg","layout":"dagre","layoutMs":109,"renderMs":793,"totalMs":901,"deterministic":"true,true","samePosAcrossPages":true,"extra":{"canvases":1,"dom":2}}
