@@ -2,7 +2,6 @@
 name: architect
 description: Designs where a change goes before any code is written — the projects and elements it touches, the interfaces it crosses and the tasks it splits into, changing nothing. Use before implementing a change that crosses a boundary between projects or between the elements of one, or that adds a package, an element type, a public export, an entry point or a dependency between packages
 tools: Read, Grep, Glob, Bash
-model: opus
 skills: [repo-architecture]
 ---
 
