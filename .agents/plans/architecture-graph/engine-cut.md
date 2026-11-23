@@ -13,6 +13,7 @@ Checked against what the spike reads (`spike/read-project.mjs`).
 | The syntax is one of 4 values, mapped to a node kind | Additional dependency nodes have names that the user chooses | Not solved; an optional `nodeKind` can be added later without breaking |
 | `importKind` is `value` or `type` | The `typeof` kind exists in the descriptions | Not solved; it can be added later the same way |
 | A file target is a file of the project | A resolved file outside the root | The reader writes it as `external`, as the spike does |
+| An external target is a module name, with no resolved path | ESLint passes the resolved path, so `inNodeModules` of `boundaries/flag-as-external` makes a package of `node_modules` external whatever `unresolvableAlias` says; without a path, `unresolvableAlias: false` leaves it an unknown local (review of #695) | Not solved (decision 48); an optional resolved `path` on an external target, passed to `describeDependency`, can be added later as a MINOR |
 | Specifiers are structured | The spike writes names only | The reader maps them |
 | `files` of the analysis is a `Map` | It is not JSON | A snapshot holds the `Project`, not the evaluation |
 

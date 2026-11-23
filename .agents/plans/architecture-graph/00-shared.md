@@ -71,6 +71,8 @@ export type ConfigAnalysis = {
   readonly settings: SettingsNormalized;
   readonly diagnostics: readonly Diagnostic[];
   readonly rulesValid: boolean;
+  /** False when a config makes the analysis read a statement differently from ESLint (decision 47) */
+  readonly dependencyNodesReadAsESLint: boolean;
   readonly elementTypes: readonly Omit<ElementTypeSummary, "files">[];
   readonly fileCategories: readonly Omit<FileCategorySummary, "files">[];
   readonly rules: readonly RuleSummary[];
@@ -96,6 +98,8 @@ export type ProjectAnalysis = {
   readonly dependencies: readonly DependencyResult[];
   readonly diagnostics: readonly Diagnostic[];
   readonly rulesValid: boolean;
+  /** The one of the analysis */
+  readonly dependencyNodesReadAsESLint: boolean;
   readonly notEvaluated: NotEvaluatedReason | undefined;
   readonly policies: readonly PolicySummary[];
   readonly elementTypes: readonly ElementTypeSummary[];
@@ -110,6 +114,7 @@ export function evaluateProject(analysis: ConfigAnalysis, project: Pick<Project,
 - `ConfigAnalysis` holds what depends on the config only: the normalized settings with the diagnostics, the validity of the rules, the rule chosen with its normalized options or why none is, and the summaries without the counts that depend on the project, which `evaluateProject` adds without reading the config as written (decision 41, lint-enforced in the package). It is public, and the adapter reads its diagnostics and settings to place the problems in the text.
 - Two functions (decision 15) because they are the seam that exists today between `analyzeConfig` and `evaluateSketch`: the playground keeps memoizing the analysis by the config text (`createEngine` of `E/evaluate.ts`).
 - The target kind is `file` (decision 26), where the `Sketch` of the playground says `node`: the adapter already builds each dependency again to add its source.
+- A dependency is read only through a node whose selector is a built-in selector of its syntax and its import kind, with the `name` and `kind` of that node (decision 47); the analysis describes and evaluates through a `Policies` instance of `@boundaries/policies` per normalized settings object, freed with the analysis (decision 46).
 - The engine of the playground is an adapter. It parses the text, calls `analyzeConfig` and `evaluateProject` with `getFiles(sketch)` and each dependency plus its source, and maps the output back to the `Evaluation` the panes read: paths to ranges (the default at the options when `default` is not written), one ranged `PolicyRef` per policy built once per config text, and `config-unparsed` when the text does not parse, which it analyzes as an empty config. `E/engine.types.ts` re-exports the description types and `SkipReason` of the package with their names and shapes (decision 42), and `E/index.ts` did not change, so no page code did.
 
 `@boundaries/graph-data` takes the `ProjectAnalysis` (decision 14); `engine-cut.md`, "Input of `@boundaries/graph-data`", lists what it reads of it.

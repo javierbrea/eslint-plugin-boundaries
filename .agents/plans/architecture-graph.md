@@ -1,6 +1,6 @@
 # Architecture graph plan
 
-**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is in `architecture-graph/00-shared.md`, and the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694. Phase 2 is in review as the draft pull request #695 into `release`, with decisions 44 and 45 taken during it; the plan is ready for the phases after it, and its own file is gone. Phases 3 and 10 can start; phases 4 and 5 wait for #695 to merge, and the others for their blockers.
+**Status (2026-11-22):** nothing is merged. Phase 1 is done: the design is in `architecture-graph/00-shared.md`, and the milestone [architecture-graph](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/49) holds the tracking issue #685 and one issue per phase, #686 to #694. Phase 2 is in review as the draft pull request #695 into `release`, with decisions 44 to 48 taken during it and its review; the plan is ready for the phases after it, and its own file is gone. #695 also adds the `Policies` class to `@boundaries/policies`, so its first release publishes `@boundaries/policies` 1.1.0 before `@boundaries/analysis` 1.0.0 (the description of #695, "Before the first release"). Phases 3 and 10 can start; phases 4 and 5 wait for #695 to merge, and the others for their blockers.
 
 ## Where it lives
 
@@ -50,7 +50,7 @@ The numbers are the ones the maintainer agreed on 2026-11-22, so phase 10, added
 
 ## Decisions
 
-Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 45; 41 to 43 at the start of phase 2, 44 and 45 during it, recorded in #695). They have no public link: the issues of phase 1 record the ones their readers need.
+Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (12 to 48; 41 to 43 at the start of phase 2, 44 to 48 during it and its review, recorded in #695). They have no public link: the issues of phase 1 record the ones their readers need.
 
 1. The graph is first drawn on the website, over the sketch that the user edits in the playground. The local app is out of this plan.
 2. `@boundaries/analysis` evaluates a whole project: it takes the config as an object, the files and the dependencies, and returns the descriptions and the verdicts. It is extracted from the playground from the start, so that no later refactor is needed.
@@ -97,6 +97,9 @@ Taken by the maintainer in the sessions of 2026-11-20 (1 to 11) and 2026-11-22 (
 43. `@boundaries/analysis` exports no helper that reads the config as written, such as `readSettings`: the adapter reads the object it parsed itself.
 44. A published package that lints its own layering with the workspace plugin builds the plugin through a task dependency of its `lint` on the `build` of `eslint-plugin`, with no project edge, as `packages/analysis/project.json` does: `nx graph` shows no dependency on the plugin, so the release check of dependent packages does not flag the package and no other target builds the plugin.
 45. The `DependencyResult` of `@boundaries/analysis` has no `source`: the source of a dependency is `dependency.source`, the input object itself.
+46. `@boundaries/policies` has a `Policies` class whose instances own their matchers, and `@boundaries/analysis` keeps one per normalized settings object in a `WeakMap`, so that dropping an analysis frees them; it never calls the functions of `@boundaries/policies` that build a matcher (lint-enforced).
+47. `@boundaries/analysis` reads a dependency only through a node whose selector is a built-in selector of its syntax and its import kind, with the `name` and `kind` of that node; `dependencyNodesReadAsESLint` of `ConfigAnalysis` and `ProjectAnalysis` is false when a config makes it read a statement differently from ESLint, and the playground warns from it.
+48. An external target of the input of `@boundaries/analysis` has no resolved path until a reader of real projects needs one; `engine-cut.md`, "Does a real project fit?", says what it changes.
 
 ## Open questions
 
