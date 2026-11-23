@@ -55,7 +55,7 @@ function analyzeText(text: string): TextAnalysis {
     problems: [
       ...parsed.problems,
       ...toConfigProblems(analysis.diagnostics, parsed.ast),
-      ...getAdditionalNodesProblems(parsed, analysis.settings),
+      ...getAdditionalNodesProblems(parsed, analysis),
     ],
     policies: analysis.policies.map(({ index, path }) => ({
       index,

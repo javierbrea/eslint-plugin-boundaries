@@ -81,7 +81,7 @@ export type DependencyRef = {
   readonly index: number;
 };
 
-/** Why a dependency is not checked: the skip reasons of `@boundaries/policies`, and `not-read` when `boundaries/dependency-nodes` leaves its syntax out, so that the plugin never sees it */
+/** Why a dependency is not checked: the skip reasons of `@boundaries/policies`, and `not-read` when no dependency node of the settings reads it, so that the plugin never sees it. A dependency is read only through a node of `boundaries/dependency-nodes` or `boundaries/additional-dependency-nodes` that repeats a built-in selector of its syntax and its import kind, such as an `import type` through `ImportDeclaration[importKind=type] > Literal`, because the analysis cannot run a selector */
 export type SkipReason =
   | "from-ignored"
   | "from-unknown"
@@ -126,7 +126,7 @@ export type DependencyResult = {
   readonly dependency: ProjectDependency;
   /** Its file and its position among the dependencies of that file */
   readonly ref: DependencyRef;
-  /** What the plugin describes of it, or `undefined` when the plugin does not read it, because `boundaries/dependency-nodes` leaves its syntax out. It is described whether or not the dependencies are evaluated, with the settings the analysis uses */
+  /** What the plugin describes of it, or `undefined` when the analysis does not read it, because no node of the settings repeats a built-in selector of its syntax and its import kind. Its `nodeKind` is the `name` of the node that reads it, or `null` when that `name` is empty or missing, and its `kind` the `kind` of that node, or `value` when the node has none, as the plugin passes them: the last node with that selector, because it is the one that ESLint runs, whatever its `name` and its `kind` are. When the nodes of several built-in selectors of its syntax and import kind disagree, or only some of them have a node, it is the node of the first of them that has one, in the order of `DEFAULT_DEPENDENCY_NODES` of `@boundaries/config`, because the analysis does not tell the forms of a syntax apart, such as `require('x')` and `import x = require('x')`, while ESLint reads each form through the node of its own selector, or not at all. It is described whether or not the dependencies are evaluated, with the settings the analysis uses */
   readonly description: DependencyDescription | undefined;
   /** What the analysis says about it */
   readonly verdict: DependencyVerdict;
@@ -142,6 +142,8 @@ export type ProjectAnalysis = {
   readonly diagnostics: readonly Diagnostic[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
+  /** The `dependencyNodesReadAsESLint` of the analysis: `ConfigAnalysis.dependencyNodesReadAsESLint` says when it is false */
+  readonly dependencyNodesReadAsESLint: boolean;
   /** Why no dependency is evaluated, when none is: every verdict is then `not-evaluated`. `undefined` when they are */
   readonly notEvaluated: NotEvaluatedReason | undefined;
   /** The policies of the evaluated rule in their order, then its default, with the dependencies each one decided. Empty when `notEvaluated` is set */

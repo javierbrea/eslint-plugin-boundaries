@@ -1,7 +1,8 @@
 import { normalizeConfig } from "@boundaries/config";
 import type { SettingsNormalized } from "@boundaries/config";
+import { Elements } from "@boundaries/elements";
 import type { EntityDescription as PluginEntityDescription } from "@boundaries/elements";
-import { describeEntity } from "@boundaries/policies";
+import { describeEntity, Policies } from "@boundaries/policies";
 
 import { describeFiles } from "./DescribeFiles";
 import type { EntityDescription } from "./Descriptions.types";
@@ -48,6 +49,13 @@ function omitDeprecated(
 }
 
 describe("DescribeFiles", () => {
+  let policies: Policies;
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    policies = new Policies();
+  });
+
   describe("describeFiles", () => {
     it("should describe each file as describeEntity does, with every property but the deprecated ones", () => {
       // Arrange
@@ -60,7 +68,7 @@ describe("DescribeFiles", () => {
       });
 
       // Act
-      const { files } = describeFiles(settings, FILES);
+      const { files } = describeFiles(policies, settings, FILES);
 
       // Assert
       expect(files).toEqual(
@@ -90,6 +98,7 @@ describe("DescribeFiles", () => {
 
       // Act
       const { elementDescriptorFiles, fileDescriptorFiles } = describeFiles(
+        policies,
         settings,
         FILES
       );
@@ -107,7 +116,7 @@ describe("DescribeFiles", () => {
       });
 
       // Act
-      const { files } = describeFiles(settings, FILES);
+      const { files } = describeFiles(policies, settings, FILES);
 
       // Assert
       expect(files.get("src/helpers/format/index.js")).toEqual(
@@ -118,6 +127,59 @@ describe("DescribeFiles", () => {
       );
     });
 
+    it("should describe every file with the instance it is given, with the settings and then with the settings that label each descriptor", () => {
+      // Arrange
+      const settings = normalize({
+        "boundaries/elements": [
+          { type: "helper", pattern: "helpers/*" },
+          { type: "module", pattern: "modules/*" },
+        ],
+        "boundaries/files": [{ category: "test", pattern: "**/*.spec.js" }],
+      });
+      const instanceDescribeEntity = jest.spyOn(policies, "describeEntity");
+
+      // Act
+      describeFiles(policies, settings, FILES);
+
+      // Assert
+      const calls = instanceDescribeEntity.mock.calls;
+
+      expect(calls.map(([, path]) => path)).toEqual([...FILES, ...FILES]);
+      expect(
+        calls
+          .slice(0, FILES.length)
+          .map(([calledSettings]) => calledSettings === settings)
+      ).toEqual(FILES.map(() => true));
+      expect(
+        calls
+          .slice(FILES.length)
+          .map(([labelled]) => [
+            labelled.elementDescriptors.map(({ type }) => type),
+            labelled.fileDescriptors.map(({ category }) => category),
+          ])
+      ).toEqual(FILES.map(() => [["0", "1"], ["0"]]));
+    });
+
+    it("should build the matchers with one Elements instance, one for the settings and one for the labelled settings, however many times it describes files with the same instance and settings", () => {
+      // Arrange
+      const settings = normalize({
+        "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }],
+        "boundaries/files": [{ category: "test", pattern: "**/*.spec.js" }],
+      });
+      const elementsGetMatcher = jest.spyOn(Elements.prototype, "getMatcher");
+
+      // Act
+      describeFiles(policies, settings, FILES);
+      describeFiles(policies, settings, FILES);
+      describeFiles(policies, settings, FILES);
+
+      // Assert
+      expect(new Set(elementsGetMatcher.mock.contexts).size).toBe(1);
+      expect(
+        new Set(elementsGetMatcher.mock.results.map(({ value }) => value)).size
+      ).toBe(2);
+    });
+
     it("should describe nothing and count no files when there are no files", () => {
       // Arrange
       const settings = normalize({
@@ -125,7 +187,7 @@ describe("DescribeFiles", () => {
       });
 
       // Act
-      const described = describeFiles(settings, []);
+      const described = describeFiles(policies, settings, []);
 
       // Assert
       expect(described).toEqual({

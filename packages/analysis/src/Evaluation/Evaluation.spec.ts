@@ -1,4 +1,13 @@
 // cspell:ignore patern -- a deliberate typo, the mistake of the config that makes an element descriptor ignored
+import {
+  describeDependency,
+  describeEntity,
+  evaluateDependency,
+  evaluatePolicies,
+  getMatcher,
+  Policies,
+} from "@boundaries/policies";
+
 import { analyzeConfig } from "../Config";
 import type { NotEvaluatedReason, ProjectConfig } from "../Config";
 
@@ -6,6 +15,29 @@ import { evaluateDependencies } from "./Dependencies";
 import { describeFiles } from "./DescribeFiles";
 import { evaluateProject } from "./Evaluation";
 import type { Project, ProjectDependency } from "./Evaluation.types";
+import { getPolicies } from "./PoliciesInstances";
+
+/** The functions of `@boundaries/policies` that keep what they build for the life of the module */
+type ModuleFunctions = {
+  getMatcher: typeof getMatcher;
+  describeEntity: typeof describeEntity;
+  describeDependency: typeof describeDependency;
+  evaluatePolicies: typeof evaluatePolicies;
+  evaluateDependency: typeof evaluateDependency;
+};
+
+// The real functions of the module, which the tests only count, to prove that the evaluation never calls them
+jest.mock<ModuleFunctions>("@boundaries/policies", () => {
+  const actual = jest.requireActual<ModuleFunctions>("@boundaries/policies");
+  return {
+    ...actual,
+    getMatcher: jest.fn(actual.getMatcher),
+    describeEntity: jest.fn(actual.describeEntity),
+    describeDependency: jest.fn(actual.describeDependency),
+    evaluatePolicies: jest.fn(actual.evaluatePolicies),
+    evaluateDependency: jest.fn(actual.evaluateDependency),
+  };
+});
 
 const FORMAT = "src/helpers/format/index.js";
 const BUTTON = "src/components/atoms/Button/index.js";
@@ -109,7 +141,9 @@ describe("Evaluation", () => {
       const { files } = evaluateProject(analysis, PROJECT);
 
       // Assert
-      expect(files).toEqual(describeFiles(analysis.settings, FILES).files);
+      expect(files).toEqual(
+        describeFiles(new Policies(), analysis.settings, FILES).files
+      );
       expect([...files.keys()]).toEqual(FILES);
       expect(
         FILES.map((path) => [
@@ -139,6 +173,7 @@ describe("Evaluation", () => {
       expect(dependencies).toEqual(
         evaluateDependencies({
           dependencies: DEPENDENCIES,
+          policies: new Policies(),
           settings: analysis.settings,
           rule: analysis.rule,
         })
@@ -219,6 +254,44 @@ describe("Evaluation", () => {
         expect(result.rulesValid).toBe(rulesValid);
         expect(analysis.notEvaluated).toBe(notEvaluated);
         expect(result.notEvaluated).toBe(notEvaluated);
+      }
+    );
+
+    it.each<[string, ProjectConfig, boolean]>([
+      ["the default nodes", CONFIG, true],
+      [
+        "an additional node with a selector that is not built-in",
+        {
+          settings: {
+            ...SETTINGS,
+            "boundaries/additional-dependency-nodes": [
+              {
+                selector: "ImportDeclaration > Literal",
+                kind: "value",
+                name: "custom",
+              },
+            ],
+          },
+          rules: CONFIG.rules,
+        },
+        false,
+      ],
+    ])(
+      "should give whether the analysis reads the dependency nodes as ESLint does with %s",
+      (_title, config, dependencyNodesReadAsESLint) => {
+        // Arrange
+        const analysis = analyzeConfig(config);
+
+        // Act
+        const result = evaluateProject(analysis, PROJECT);
+
+        // Assert
+        expect(analysis.dependencyNodesReadAsESLint).toBe(
+          dependencyNodesReadAsESLint
+        );
+        expect(result.dependencyNodesReadAsESLint).toBe(
+          dependencyNodesReadAsESLint
+        );
       }
     );
 
@@ -406,6 +479,122 @@ describe("Evaluation", () => {
 
       // Assert
       expect(analysis).toEqual(analyzeConfig(CONFIG));
+    });
+
+    describe("with the Policies instance of the settings of the analysis", () => {
+      let instanceDescribeEntity: jest.SpiedFunction<
+        Policies["describeEntity"]
+      >;
+      let instanceDescribeDependency: jest.SpiedFunction<
+        Policies["describeDependency"]
+      >;
+      let instanceEvaluateDependency: jest.SpiedFunction<
+        Policies["evaluateDependency"]
+      >;
+
+      /**
+       * Lists the `Policies` instances that described a file, described a dependency or decided one since the mocks were last cleared.
+       * @returns The instances, each once.
+       */
+      function usedInstances(): unknown[] {
+        return [
+          ...new Set([
+            ...instanceDescribeEntity.mock.contexts,
+            ...instanceDescribeDependency.mock.contexts,
+            ...instanceEvaluateDependency.mock.contexts,
+          ]),
+        ];
+      }
+
+      beforeEach(() => {
+        jest.restoreAllMocks();
+        instanceDescribeEntity = jest.spyOn(
+          Policies.prototype,
+          "describeEntity"
+        );
+        instanceDescribeDependency = jest.spyOn(
+          Policies.prototype,
+          "describeDependency"
+        );
+        instanceEvaluateDependency = jest.spyOn(
+          Policies.prototype,
+          "evaluateDependency"
+        );
+      });
+
+      it("should describe and decide with one instance in every evaluation of one analysis, the instance of its settings", () => {
+        // Arrange
+        const analysis = analyzeConfig(CONFIG);
+        const other = { files: [FORMAT], dependencies: [DEPENDENCIES[0]] };
+
+        // Act
+        evaluateProject(analysis, PROJECT);
+        evaluateProject(analysis, other);
+
+        // Assert
+        expect(instanceDescribeEntity).toHaveBeenCalled();
+        expect(instanceDescribeDependency).toHaveBeenCalled();
+        expect(instanceEvaluateDependency).toHaveBeenCalled();
+        expect(
+          usedInstances().map(
+            (instance) => instance === getPolicies(analysis.settings)
+          )
+        ).toEqual([true]);
+      });
+
+      it("should describe and decide with another instance for another analysis of the same config", () => {
+        // Arrange
+        const analysis = analyzeConfig(CONFIG);
+        const otherAnalysis = analyzeConfig(CONFIG);
+
+        // Act
+        evaluateProject(analysis, PROJECT);
+        const instances = usedInstances();
+        jest.clearAllMocks();
+        evaluateProject(otherAnalysis, PROJECT);
+        const otherInstances = usedInstances();
+
+        // Assert
+        expect(otherAnalysis.settings).not.toBe(analysis.settings);
+        expect(otherAnalysis.settings).toEqual(analysis.settings);
+        expect(
+          instances.map(
+            (instance) => instance === getPolicies(analysis.settings)
+          )
+        ).toEqual([true]);
+        expect(
+          otherInstances.map(
+            (instance) => instance === getPolicies(otherAnalysis.settings)
+          )
+        ).toEqual([true]);
+        expect(otherInstances[0]).not.toBe(instances[0]);
+      });
+
+      it("should never call the functions of @boundaries/policies, which keep what they build for the life of the module", () => {
+        // Arrange
+        const analysis = analyzeConfig(CONFIG);
+
+        // Act
+        evaluateProject(analysis, PROJECT);
+
+        // Assert
+        expect(usedInstances()).toHaveLength(1);
+        expect(
+          Object.entries({
+            getMatcher,
+            describeEntity,
+            describeDependency,
+            evaluatePolicies,
+            evaluateDependency,
+          }).map(([name, fn]) => [name, jest.mocked(fn).mock.calls.length])
+        ).toEqual([
+          ["getMatcher", 0],
+          ["describeEntity", 0],
+          ["describeDependency", 0],
+          ["evaluatePolicies", 0],
+          ["evaluateDependency", 0],
+        ]);
+      });
     });
   });
 });

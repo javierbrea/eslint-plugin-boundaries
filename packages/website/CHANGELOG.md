@@ -16,7 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- chore(#686): The playground evaluates the sketched project through the `@boundaries/analysis` package; what it shows doesn't change.
+- chore(#686): The playground evaluates the sketched project through the `@boundaries/analysis` package.
+
+### Fixed
+
+- fix(#686): The playground reads a statement only through a dependency node with a built-in selector of its syntax and import kind, with the `name` and `kind` of the node that reads it, so a type import is no longer checked when only the selector of value imports is kept. It warns at `boundaries/additional-dependency-nodes` when that setting has another selector or makes the nodes of the built-in selectors of a syntax and import kind differ.
+- fix(#686): The playground no longer keeps in memory what it described with each version of the settings it evaluated, which grew with every edit of the settings until the page was closed.
+- docs(#686): The Playground guide says which dependency nodes the playground reads statements through.
 
 ## [7.4.1+rev.4] - 2026-11-19
 

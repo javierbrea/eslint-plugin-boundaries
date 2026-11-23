@@ -11,7 +11,8 @@ The folders under `src/` are elements whose imports `eslint.config.mjs` lint-enf
 ## Hard constraints
 
 - The package runs in browsers (`.agents/rules/browser-code.md`), and its functions never print: a problem of the config is a `Diagnostic` of `@boundaries/config` in the result.
-- The package keeps no memo and no state between calls: every result is computed from the arguments of the call. A host that evaluates often keeps a memo of its own, as the adapter of the playground does.
+- The package keeps one state between calls: a `WeakMap` from each normalized settings object to the `Policies` instance of `@boundaries/policies` that describes and evaluates with it (`src/Evaluation/PoliciesInstances.ts`), so the evaluations of an analysis reuse its matchers and, unless `boundaries/cache` is `false`, the descriptions they cache; a host frees them by dropping the analysis. No result depends on it: every result is computed from the arguments of the call, and a host that evaluates often keeps a memo of its own, as the adapter of the playground does.
+- The package never calls the functions of `@boundaries/policies` that build a matcher, which keep it for the life of the module: it describes and evaluates with a `Policies` instance (lint-enforced in `eslint.config.mjs`).
 - `src/index.ts` is the public interface: a symbol of any other file is public only when `src/index.ts` lists it.
 - The types that `src/index.ts` exports are a published contract: a change that makes code stop type-checking against them is MAJOR (`.github/CONTRIBUTING.md`, "Versioning").
 

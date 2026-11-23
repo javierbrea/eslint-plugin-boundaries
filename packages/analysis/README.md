@@ -179,7 +179,7 @@ The dependencies are decided by the first of `boundaries/dependencies` and the d
 | `rule-off` | The rule is off |
 | `no-options` | The rule has no options, such as `"boundaries/dependencies": 2`, so the plugin checks nothing |
 
-Every verdict is then `not-evaluated`, and no policy is summarized. The files are described all the same, and so are the dependencies whose syntax is read.
+Every verdict is then `not-evaluated`, and no policy is summarized. The files are described all the same, and so are the dependencies that are read.
 
 ### The Project
 
@@ -187,10 +187,14 @@ The project is the paths of its files and the dependencies of each file. Each de
 
 - The `target` is a file of the project, by its path, or a module outside it, by its name.
 - The `source` is the source as the statement writes it, such as `../pages/home` or `react`. It is required, because the origin of the target depends on it: an external target is described from its `source`, not from its `name`, so `node:fs` is a `core` module and `react/jsx-runtime` is the module `react` with the internal path `jsx-runtime`.
-- The `syntax` is `import`, `export-from`, `require` or `dynamic-import`. Policies match it as the `nodeKind` that the plugin gives it: `import`, `export`, `require` and `dynamic-import`.
+- The `syntax` is `import`, `export-from`, `require` or `dynamic-import`. Policies match it as the `nodeKind` that the plugin gives it, which is the `name` of the dependency node that reads it, or `null` when that `name` is empty or missing: `import`, `export`, `require` and `dynamic-import` for the built-in nodes.
 - The `specifiers` that a policy matches are the `named` ones of an `import` or an `export … from`: the imported name of an `import`, and the exported name of an `export … from`, which is its `alias` when it has one.
 
-The analysis reads each syntax only through the built-in dependency nodes. A dependency whose syntax `boundaries/dependency-nodes` leaves out, such as a `require` when the setting lists only `import`, is `not-checked` with the reason `not-read`, and has no description. The selectors of `boundaries/additional-dependency-nodes` are not run: an additional node reads a syntax only when it repeats a built-in selector of that syntax with the same `name`.
+The analysis cannot run a selector, so it reads a dependency only through the built-in selectors of its syntax and its `importKind`, such as `ImportDeclaration[importKind=type] > Literal` for an `import type`. A dependency is read when a node of `boundaries/dependency-nodes` or of `boundaries/additional-dependency-nodes` has one of those selectors, whatever its `name` and its `kind`. Otherwise it is `not-checked` with the reason `not-read`, and has no description: a `require` when `boundaries/dependency-nodes` lists only `import`, or an `import type` when the only node of imports is an additional one with the selector of the value imports. The other selectors of `boundaries/additional-dependency-nodes` are not run.
+
+As in the plugin, the last node with a selector is the one that runs, so its `name` is the `nodeKind` of the description, or `null` when that `name` is empty or missing, and its `kind` is the `kind`, or `value` when the node has none. When the nodes of several built-in selectors of the same syntax and import kind disagree, such as one with the selector of `require('x')` and another with the one of `import x = require('x')`, or only some of those selectors have a node, the analysis does not tell the forms of the syntax apart, so it reads every dependency of that syntax and import kind through the node of the first of those selectors that has one, in the order of `SETTINGS.DEFAULT_DEPENDENCY_NODES` of `@boundaries/config`, while ESLint reads each form through the node of its own selector, or not at all.
+
+`dependencyNodesReadAsESLint` of the `ConfigAnalysis`, which the `ProjectAnalysis` repeats, is `false` when a statement may be read differently from ESLint: a node of `boundaries/additional-dependency-nodes` has a selector that is not built-in, or the built-in selectors of a syntax and import kind do not all have the same node, as when only some of them have one, or their nodes differ in `name` or `kind` as the plugin uses them. A host can then warn that the verdicts of some statements may differ from those of ESLint, as the analysis cannot say which statements without parsing the code. It is `true` for the default nodes.
 
 ### Verdicts
 
@@ -217,14 +221,16 @@ The summaries of `evaluateProject` add what depends on the project: the files of
 
 ### Memoization
 
-The package keeps nothing between calls: `analyzeConfig` normalizes the config each time it is called, and `evaluateProject` describes every file and every dependency each time. A `ConfigAnalysis` can be evaluated against any number of projects, so a host that evaluates often keeps the analysis of a config while the config does not change, and calls `evaluateProject` with it again. That also keeps the normalized settings and policies by whose identity `@boundaries/policies` memoizes its matcher and its selectors.
+`analyzeConfig` normalizes the config each time it is called, and `evaluateProject` describes every file and every dependency each time, with the matchers that `@boundaries/policies` builds from the settings of the analysis, which cache the description of each path they describe unless `boundaries/cache` is `false`. The matchers and the descriptions belong to the analysis: its evaluations reuse them, another analysis builds its own even for the same config, and they are freed with the analysis when the host drops it. No result depends on them.
+
+A `ConfigAnalysis` can be evaluated against any number of projects, so a host that evaluates often keeps the analysis of a config while the config does not change, and calls `evaluateProject` with it again. That also keeps the normalized policies by whose identity `@boundaries/policies` memoizes its selectors. An analysis kept alive keeps the descriptions of every path evaluated with it, unless `boundaries/cache` is `false`, so a host that evaluates many projects with other paths analyzes the config again to free them.
 
 ## API Reference
 
 | Function | Parameters | Returns |
 | --- | --- | --- |
-| `analyzeConfig` | `config: ProjectConfig` | A `ConfigAnalysis`: the normalized settings, the diagnostics, the rule whose dependencies are evaluated or why none is, and the summaries that do not depend on the project |
-| `evaluateProject` | `analysis: ConfigAnalysis`, `project: Pick<Project, "files" \| "dependencies">` | A `ProjectAnalysis`: the description of every file, a result for every dependency in the order of the project, and the diagnostics and the summaries of the analysis, with what depends on the project |
+| `analyzeConfig` | `config: ProjectConfig` | A `ConfigAnalysis`: the normalized settings, the diagnostics, the rule whose dependencies are evaluated or why none is, whether the analysis reads statements through the dependency nodes as ESLint does, and the summaries that do not depend on the project |
+| `evaluateProject` | `analysis: ConfigAnalysis`, `project: Pick<Project, "files" \| "dependencies">` | A `ProjectAnalysis`: the description of every file, a result for every dependency in the order of the project, and the diagnostics, the validity of the rules, the reason no dependency is evaluated, whether the analysis reads statements through the dependency nodes as ESLint does and the summaries of the analysis, with what depends on the project |
 
 `evaluateProject` does not read the `config` of the project, so a `Project` can be passed as it is. The result holds the diagnostics and the rule summaries of the analysis, the same objects, and each dependency result holds the dependency of the project, the same object.
 
@@ -290,6 +296,8 @@ type ProjectAnalysis = {
   readonly diagnostics: readonly Diagnostic[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized */
   readonly rulesValid: boolean;
+  /** The `dependencyNodesReadAsESLint` of the analysis: `ConfigAnalysis.dependencyNodesReadAsESLint` says when it is false */
+  readonly dependencyNodesReadAsESLint: boolean;
   /** Why no dependency is evaluated, or `undefined` when they are */
   readonly notEvaluated: NotEvaluatedReason | undefined;
   readonly policies: readonly PolicySummary[];
@@ -303,7 +311,7 @@ type DependencyResult = {
   readonly dependency: ProjectDependency;
   /** Its file and its position among the dependencies of that file, from 0 */
   readonly ref: DependencyRef;
-  /** What the plugin describes of it, or `undefined` when its syntax is not read */
+  /** What the plugin describes of it, or `undefined` when it is not read */
   readonly description: DependencyDescription | undefined;
   readonly verdict: DependencyVerdict;
 };
@@ -421,6 +429,8 @@ type ConfigAnalysis = {
   readonly settings: SettingsNormalized;
   readonly diagnostics: readonly Diagnostic[];
   readonly rulesValid: boolean;
+  /** False when a statement may be read differently from ESLint, because a dependency node has a selector that is not built-in or the built-in selectors of a syntax and import kind do not all have the same node */
+  readonly dependencyNodesReadAsESLint: boolean;
   readonly elementTypes: readonly Omit<ElementTypeSummary, "files">[];
   readonly fileCategories: readonly Omit<FileCategorySummary, "files">[];
   readonly rules: readonly RuleSummary[];

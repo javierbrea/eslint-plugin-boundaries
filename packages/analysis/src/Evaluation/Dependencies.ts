@@ -1,18 +1,13 @@
 import { DEPENDENCY_NODE_KEYS_MAP } from "@boundaries/config";
-import type {
-  DependenciesRuleOptionsNormalized,
-  SettingsNormalized,
-} from "@boundaries/config";
+import type { DependenciesRuleOptionsNormalized } from "@boundaries/config";
 import type { DependencyDescription as PluginDependencyDescription } from "@boundaries/elements";
-import { describeDependency, evaluateDependency } from "@boundaries/policies";
 
-import type { EvaluatedRule } from "../Config";
+import { getReadNodes } from "../Config";
 
 import type {
   DependenciesInput,
   DependencyJudgment,
 } from "./Dependencies.types";
-import { getReadNodeKinds } from "./DependencyNodes";
 import { toDependencyDescription } from "./Descriptions";
 import type {
   DependencyResult,
@@ -24,14 +19,14 @@ import type {
 /** The verdict of every dependency while none is evaluated */
 const NOT_EVALUATED: DependencyVerdict = { status: "not-evaluated" };
 
-/** The verdict of a dependency whose syntax `boundaries/dependency-nodes` leaves out */
+/** The verdict of a dependency that no dependency node of the settings reads */
 const NOT_READ: DependencyVerdict = {
   status: "not-checked",
   reason: "not-read",
 };
 
-/** The name that the plugin gives the dependency nodes of each syntax, which `boundaries/dependency-nodes` selects and the policies match as `nodeKind` */
-const NODE_KINDS: Readonly<Record<ProjectDependencySyntax, string>> = {
+/** The key of the built-in nodes of each syntax in `DEFAULT_DEPENDENCY_NODES`, which `boundaries/dependency-nodes` selects */
+const NODE_KEYS: Readonly<Record<ProjectDependencySyntax, string>> = {
   import: DEPENDENCY_NODE_KEYS_MAP.IMPORT,
   "export-from": DEPENDENCY_NODE_KEYS_MAP.EXPORT,
   require: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
@@ -79,14 +74,19 @@ function explainEmptyMessage(
 /**
  * Decides a dependency as the `dependencies` rule does.
  * @param description What the plugin describes of the dependency, or `undefined` when it does not read it.
- * @param settings The normalized settings.
- * @param rule The rule that decides, or `undefined` when no dependency is evaluated.
- * @returns Not evaluated when there is no rule, not checked when the plugin does not read the syntax of the dependency or the rule skips it, and otherwise allowed or disallowed with the policy that decided, the `PolicyRef` of the rule with its path in the config object. A custom message that fails to render makes it disallowed, with the error text and no policy. A custom message that renders to an empty text makes it disallowed too, with the policy that decided and a message that says so, because ESLint stops with an error when a rule reports a problem with no message, and the analysis cannot stop.
+ * @param judgment What the rule decides with.
+ * @param judgment.policies
+ * @param judgment.settings
+ * @param judgment.rule
+ * @returns Not evaluated when there is no rule, not checked when the plugin does not read the dependency or the rule skips it, and otherwise allowed or disallowed with the policy that decided, the `PolicyRef` of the rule with its path in the config object. A custom message that fails to render makes it disallowed, with the error text and no policy. A custom message that renders to an empty text makes it disallowed too, with the policy that decided and a message that says so, because ESLint stops with an error when a rule reports a problem with no message, and the analysis cannot stop.
  */
 function judge(
   description: PluginDependencyDescription | undefined,
-  settings: SettingsNormalized,
-  rule: EvaluatedRule | undefined
+  {
+    policies,
+    settings,
+    rule,
+  }: Pick<DependencyJudgment, "policies" | "settings" | "rule">
 ): DependencyVerdict {
   if (rule === undefined) {
     return NOT_EVALUATED;
@@ -96,7 +96,11 @@ function judge(
   }
 
   try {
-    const evaluation = evaluateDependency(settings, rule.options, description);
+    const evaluation = policies.evaluateDependency(
+      settings,
+      rule.options,
+      description
+    );
     if (!evaluation.checked) {
       return { status: "not-checked", reason: evaluation.reason };
     }
@@ -130,55 +134,61 @@ function judge(
  * Describes a dependency as the plugin does, once, and decides it with that description.
  * @param dependency The dependency, with the source its statement writes.
  * @param judgment What the rule decides with.
+ * @param judgment.policies
  * @param judgment.settings
- * @param judgment.readNodeKinds
+ * @param judgment.readNodes
  * @param judgment.rule
- * @returns Its description, which is `undefined` when the plugin does not read its syntax, and its verdict, which is the same description judged, so the plugin is asked only once.
+ * @returns Its description, which is `undefined` when no node reads its syntax and its import kind, and otherwise has the `name` of that node as its `nodeKind`, or `null` when that `name` is empty or missing, and the `kind` of that node as its `kind`, or `value` when the node has none, as the plugin passes them; and its verdict, which is the same description judged, so the plugin is asked only once.
  */
 function describeAndJudge(
   dependency: ProjectDependency,
-  { settings, readNodeKinds, rule }: DependencyJudgment
+  judgment: DependencyJudgment
 ): Pick<DependencyResult, "description" | "verdict"> {
-  const nodeKind = NODE_KINDS[dependency.syntax];
-  // The analysis reads a syntax only through the built-in selectors of `boundaries/dependency-nodes`
-  if (!readNodeKinds.has(nodeKind)) {
+  const { policies, settings, readNodes } = judgment;
+  // The analysis reads a dependency only through a node that repeats a built-in selector of its syntax and its import kind
+  const node = readNodes
+    .get(NODE_KEYS[dependency.syntax])
+    ?.get(dependency.importKind);
+  if (node === undefined) {
     return {
       description: undefined,
-      verdict: judge(undefined, settings, rule),
+      verdict: judge(undefined, judgment),
     };
   }
 
   const { target } = dependency;
-  const described = describeDependency(settings, {
+  const described = policies.describeDependency(settings, {
     from: dependency.from,
     // Surviving Stryker mutant: the `true` replacement of the condition survives, because an external target has no `path`, so `target.path` is `undefined` for it as well
     to: target.kind === "file" ? target.path : undefined,
     source: dependency.source,
-    kind: dependency.importKind,
-    nodeKind,
+    kind: node.kind || "value",
+    nodeKind: node.name,
     specifiers: getSpecifiers(dependency),
   });
   return {
     description: toDependencyDescription(described),
-    verdict: judge(described, settings, rule),
+    verdict: judge(described, judgment),
   };
 }
 
 /**
  * Decides every dependency of a project.
- * @param input The dependencies of the project, the settings and the rule.
+ * @param input The dependencies of the project, the `Policies` instance that describes and decides them, the settings and the rule.
  * @param input.dependencies
+ * @param input.policies
  * @param input.settings
  * @param input.rule
- * @returns A result for each dependency, in the order of the input, with the dependency itself, whose `source` is the one `describeDependency` receives, its position among the dependencies of its file and its description, which is made once and also decides the verdict. Every verdict is `not-evaluated` when there is no rule to evaluate, and the description is `undefined` for a dependency whose syntax the plugin does not read.
+ * @returns A result for each dependency, in the order of the input, with the dependency itself, whose `source` is the one that `describeDependency` of the instance receives, its position among the dependencies of its file and its description, which is made once and also decides the verdict. Every verdict is `not-evaluated` when there is no rule to evaluate, and the description is `undefined` for a dependency that the analysis does not read, because no node repeats a built-in selector of its syntax and its import kind.
  */
 export function evaluateDependencies({
   dependencies,
+  policies,
   settings,
   rule,
 }: DependenciesInput): DependencyResult[] {
   const seen = new Map<string, number>();
-  const readNodeKinds = getReadNodeKinds(settings);
+  const readNodes = getReadNodes(settings);
 
   return dependencies.map((dependency): DependencyResult => {
     const index = seen.get(dependency.from) ?? 0;
@@ -186,7 +196,7 @@ export function evaluateDependencies({
     return {
       dependency,
       ref: { path: dependency.from, index },
-      ...describeAndJudge(dependency, { settings, readNodeKinds, rule }),
+      ...describeAndJudge(dependency, { policies, settings, readNodes, rule }),
     };
   });
 }

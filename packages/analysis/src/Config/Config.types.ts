@@ -114,6 +114,8 @@ export type ConfigAnalysis = {
   readonly diagnostics: readonly Diagnostic[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
+  /** False when a statement may be read differently from ESLint, because the analysis runs only the built-in selectors of `@boundaries/config` and reads every statement of a syntax and import kind through one node: a dependency node of the settings has a selector that is not built-in, or the built-in selectors of a syntax and import kind do not all have the same node, the last one with each selector, as one has a node and another none, or their nodes differ in `name` or `kind` as the plugin uses them. True for the default nodes */
+  readonly dependencyNodesReadAsESLint: boolean;
   /** One per element descriptor as written, without the files it matches, which depend on the project */
   readonly elementTypes: readonly Omit<ElementTypeSummary, "files">[];
   /** One per valid file descriptor, without the files it matches, which depend on the project */

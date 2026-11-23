@@ -19,6 +19,7 @@ import type {
   DependencyVerdict,
   ProjectDependency,
 } from "./Evaluation.types";
+import { getPolicies } from "./PoliciesInstances";
 
 const QUICK_START_CONFIG: ProjectConfig = {
   settings: {
@@ -85,7 +86,7 @@ function countElementTypes(
   const { settings, elementTypes } = analyzeConfig(config);
   return addElementTypeFiles(
     elementTypes,
-    describeFiles(settings, files).elementDescriptorFiles
+    describeFiles(getPolicies(settings), settings, files).elementDescriptorFiles
   );
 }
 
@@ -102,7 +103,7 @@ function countFileCategories(
   const { settings, fileCategories } = analyzeConfig(config);
   return addFileCategoryFiles(
     fileCategories,
-    describeFiles(settings, files).fileDescriptorFiles
+    describeFiles(getPolicies(settings), settings, files).fileDescriptorFiles
   );
 }
 

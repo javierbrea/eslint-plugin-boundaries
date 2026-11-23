@@ -1130,7 +1130,7 @@ describe("Evaluate", () => {
   },
 }`;
 
-      it("should warn that the playground does not run the selectors, at the setting", () => {
+      it("should warn that the playground may not read statements as ESLint does, at the setting, when a node has a selector that is not built-in", () => {
         // Arrange
         const sketch = createSketch(NODES_CONFIG, QUICK_START_FILES);
 
@@ -1142,9 +1142,9 @@ describe("Evaluate", () => {
           {
             level: "warning",
             title:
-              'The playground does not run the selectors of "boundaries/additional-dependency-nodes".',
+              'The playground may not read statements as ESLint does with "boundaries/additional-dependency-nodes".',
             detail:
-              'A statement that only one of them reads is not checked as ESLint checks it: the playground reads a statement only through the built-in selectors of "boundaries/dependency-nodes".',
+              "It runs only the built-in selectors, and reads every statement of a syntax and import kind through one node, so a statement that another selector reads, or that the built-in selectors of its syntax and import kind read through different nodes or leave out, is not checked as ESLint checks it.",
             links: [],
             path: ["settings", "boundaries/additional-dependency-nodes"],
             range: expect.objectContaining({ line: 4, column: 47 }),
@@ -1250,6 +1250,90 @@ describe("Evaluate", () => {
         expect(problems).toEqual([]);
       });
 
+      it("should not warn when every node repeats a built-in selector, with another name or kind, and decide the statements that they read", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/dependency-nodes": [],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector:
+                    "ImportDeclaration:not([importKind=type]) > Literal",
+                  kind: "value",
+                  name: "custom",
+                },
+                {
+                  selector: "ImportDeclaration[importKind=type] > Literal",
+                  kind: "value",
+                  name: "import",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES, [
+          importOf(FORMAT, BUTTON),
+          { ...importOf(FORMAT, BUTTON), importKind: "type" },
+        ]);
+
+        // Act
+        const { problems, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "disallowed",
+          "disallowed",
+        ]);
+      });
+
+      it("should warn at the setting when one node repeats a built-in selector and another has a selector that is not built-in", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector:
+                    "ImportDeclaration:not([importKind=type]) > Literal",
+                  kind: "type",
+                  name: "custom",
+                },
+                {
+                  selector: "ImportDeclaration > Literal",
+                  kind: "value",
+                  name: "other",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(
+          problems.map(({ path, level, title }) => [path, level, title])
+        ).toEqual([
+          [
+            ["settings", "boundaries/additional-dependency-nodes"],
+            "warning",
+            'The playground may not read statements as ESLint does with "boundaries/additional-dependency-nodes".',
+          ],
+        ]);
+      });
+
       it("should read a syntax only through the built-in selectors, and check the others as not read", () => {
         // Arrange
         const config = JSON.stringify(
@@ -1287,6 +1371,135 @@ describe("Evaluate", () => {
           status: "not-checked",
           reason: "not-read",
         });
+      });
+
+      // ESLint 9.39.5 checks no `import type` through the built-in selector of the value imports alone (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      it("should not read an import type through an additional node that repeats only the built-in selector of the value imports, and read the import of the same files", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/dependency-nodes": [],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector:
+                    "ImportDeclaration:not([importKind=type]) > Literal",
+                  kind: "value",
+                  name: "import",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES, [
+          importOf(FORMAT, BUTTON),
+          { ...importOf(FORMAT, BUTTON), importKind: "type" },
+        ]);
+
+        // Act
+        const { dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(dependencies.map(({ verdict }) => verdict.status)).toEqual([
+          "disallowed",
+          "not-checked",
+        ]);
+        expect(dependencies[1].verdict).toEqual({
+          status: "not-checked",
+          reason: "not-read",
+        });
+        expect(dependencies[1].description).toBeUndefined();
+      });
+
+      // ESLint 9.39.5 runs the last node with a selector, and reports its name as the `nodeKind` and its kind as the `kind` (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      it("should describe a statement read through an additional node that repeats a built-in selector with the name and the kind of that node", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/dependency-nodes": ["import"],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector:
+                    "ImportDeclaration:not([importKind=type]) > Literal",
+                  kind: "type",
+                  name: "custom",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES, [
+          importOf(FORMAT, BUTTON),
+        ]);
+
+        // Act
+        const [{ description }] = evaluate(sketch).dependencies;
+
+        // Assert
+        expect(description?.dependency).toMatchObject({
+          nodeKind: "custom",
+          kind: "type",
+        });
+      });
+
+      // ESLint 9.39.5 reads `export * from` through `export` and `export { f } from` through `reexport` (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      it("should warn at the setting when the built-in selectors of a syntax and import kind have nodes of different names, and read every statement of them through the node of the first selector", () => {
+        // Arrange
+        const config = JSON.stringify(
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/dependency-nodes": ["export"],
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector:
+                    "ExportNamedDeclaration:not([exportKind=type]) > Literal",
+                  kind: "value",
+                  name: "reexport",
+                },
+              ],
+            },
+            rules: QUICK_START_RULES,
+          },
+          null,
+          2
+        );
+        const sketch = createSketch(config, QUICK_START_FILES, [
+          { ...importOf(FORMAT, BUTTON), syntax: "export-from" },
+          {
+            ...importOf(FORMAT, BUTTON),
+            syntax: "export-from",
+            specifiers: [{ kind: "named", name: "f" }],
+          },
+        ]);
+
+        // Act
+        const { problems, dependencies } = evaluate(sketch);
+
+        // Assert
+        expect(
+          problems.map(({ path, level, title }) => [path, level, title])
+        ).toEqual([
+          [
+            ["settings", "boundaries/additional-dependency-nodes"],
+            "warning",
+            'The playground may not read statements as ESLint does with "boundaries/additional-dependency-nodes".',
+          ],
+        ]);
+        expect(
+          dependencies.map(
+            ({ description }) => description?.dependency.nodeKind
+          )
+        ).toEqual(["export", "export"]);
       });
     });
 

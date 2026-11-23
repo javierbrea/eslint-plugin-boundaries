@@ -220,6 +220,74 @@ describe("Config", () => {
       });
     });
 
+    describe("the reading of the dependency nodes", () => {
+      it.each<[string, ProjectConfig]>([
+        ["the quick-start config", QUICK_START_CONFIG],
+        ["a config with no settings", { rules: QUICK_START_RULES }],
+        ["a config with empty settings and rules", { settings: {}, rules: {} }],
+        ["a config whose settings are a list", { settings: [] }],
+        ["a config whose settings are a number", { settings: 5 }],
+        [
+          "a config whose additional nodes repeat a built-in selector with its name and kind",
+          {
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/additional-dependency-nodes": [
+                {
+                  selector: "ImportDeclaration[importKind=type] > Literal",
+                  kind: "type",
+                  name: "import",
+                },
+              ],
+            },
+          },
+        ],
+      ])(
+        "should say that the analysis reads the dependency nodes as ESLint does for %s",
+        (_title, config) => {
+          // Act
+          const { dependencyNodesReadAsESLint } = analyzeConfig(config);
+
+          // Assert
+          expect(dependencyNodesReadAsESLint).toBe(true);
+        }
+      );
+
+      it.each([
+        [
+          "has a selector that is not built-in",
+          {
+            selector: "ImportDeclaration > Literal",
+            kind: "value",
+            name: "custom",
+          },
+        ],
+        [
+          "gives a built-in selector another name than the other built-in selectors of its syntax and import kind have",
+          {
+            selector: "ExportNamedDeclaration:not([exportKind=type]) > Literal",
+            kind: "value",
+            name: "reexport",
+          },
+        ],
+      ])(
+        "should say that the analysis does not read the dependency nodes as ESLint does when an additional node %s",
+        (_title, node) => {
+          // Act
+          const { dependencyNodesReadAsESLint } = analyzeConfig({
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/additional-dependency-nodes": [node],
+            },
+            rules: QUICK_START_RULES,
+          });
+
+          // Assert
+          expect(dependencyNodesReadAsESLint).toBe(false);
+        }
+      );
+    });
+
     describe("the normalized config", () => {
       it("should return the settings and the diagnostics that normalizeConfig returns", () => {
         // Arrange

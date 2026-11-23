@@ -1,6 +1,7 @@
 import { areRulesValid } from "../Shared";
 
 import type { ConfigAnalysis, ProjectConfig } from "./Config.types";
+import { areDependencyNodesReadAsESLint } from "./DependencyNodes";
 import { selectRule } from "./EvaluatedRule";
 import { normalizeConfigSafely } from "./NormalizeConfigSafely";
 import { summarizePolicies } from "./Policies";
@@ -12,7 +13,7 @@ import {
 } from "./Summaries";
 
 /**
- * Normalizes a config object and says what it defines, before any file of a project is described: its diagnostics, the rule whose dependencies are evaluated or why none is, and the summaries of its element types, file categories, rules and policies, each with its path in the config object.
+ * Normalizes a config object and says what it defines, before any file of a project is described: its diagnostics, the rule whose dependencies are evaluated or why none is, whether the analysis reads statements through its dependency nodes as ESLint does, and the summaries of its element types, file categories, rules and policies, each with its path in the config object.
  * @param config The config object as written: only `settings` and `rules` are read.
  * @returns The analysis of the config. A policy whose selector cannot be normalized, such as one half written, gives an error at its path instead of a throw.
  * @throws What `normalizeConfig` of `@boundaries/config` threw for the config, the same object, when an entry that is on throws for a reason that none of its policies explains, such as a schema that the validator cannot compile where code generation from strings is forbidden, so that the evaluation fails instead of showing a project without problems. What `normalizeConfig` throws for the config without the entries that throw goes through too.
@@ -36,6 +37,7 @@ export function analyzeConfig(config: ProjectConfig): ConfigAnalysis {
     settings,
     diagnostics,
     rulesValid,
+    dependencyNodesReadAsESLint: areDependencyNodesReadAsESLint(settings),
     elementTypes: summarizeElementTypes(input),
     fileCategories: summarizeFileCategories(input),
     rules: summarizeRules(input),

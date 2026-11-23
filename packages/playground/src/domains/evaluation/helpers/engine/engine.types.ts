@@ -164,7 +164,7 @@ export type DependencyResult = {
   readonly ref: DependencyRef;
   /** The source its statement writes, in full: the relative path of the target with its extension and its `index`, or the name of an external module. It is the one passed to `describeDependency` */
   readonly source: string;
-  /** What the plugin describes of it, or `undefined` when the plugin does not read it, because `boundaries/dependency-nodes` leaves its syntax out. It is described whether or not the dependencies are evaluated, with the settings the engine uses */
+  /** What the plugin describes of it, or `undefined` when the playground does not read it, because no node of the settings repeats a built-in selector of its syntax and its import kind. It is described whether or not the dependencies are evaluated, with the settings the engine uses */
   readonly description: DependencyDescription | undefined;
   readonly verdict: DependencyVerdict;
 };
@@ -194,7 +194,7 @@ export type Evaluation = {
   /** The sketch that was evaluated, whose config text the ranges point into. An evaluation aligned to a newer sketch keeps it, while its dependencies and its files follow the newer sketch */
   readonly sketch: Sketch;
   readonly configParsed: boolean;
-  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node */
+  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground may not read statements as ESLint does with `boundaries/additional-dependency-nodes`, when `dependencyNodesReadAsESLint` of the analysis of the config is false */
   readonly problems: readonly ConfigProblem[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;

@@ -1,4 +1,4 @@
-import { describeDependency, evaluateDependency } from "@boundaries/policies";
+import { Policies } from "@boundaries/policies";
 
 import { analyzeConfig } from "../Config";
 import type { ConfigPath, ProjectConfig } from "../Config";
@@ -12,22 +12,6 @@ import type {
   ProjectSpecifier,
   SkipReason,
 } from "./Evaluation.types";
-
-// The real descriptions and evaluations, which the tests only count
-jest.mock<{
-  describeDependency: typeof describeDependency;
-  evaluateDependency: typeof evaluateDependency;
-}>("@boundaries/policies", () => {
-  const actual = jest.requireActual<{
-    describeDependency: typeof describeDependency;
-    evaluateDependency: typeof evaluateDependency;
-  }>("@boundaries/policies");
-  return {
-    ...actual,
-    describeDependency: jest.fn(actual.describeDependency),
-    evaluateDependency: jest.fn(actual.evaluateDependency),
-  };
-});
 
 const SETTINGS = {
   "boundaries/elements": [
@@ -70,7 +54,7 @@ const QUICK_START_RULE = [2, QUICK_START_OPTIONS];
 const OPTIONS_PATH = ["rules", "boundaries/dependencies", 1] as const;
 
 /**
- * Builds what `evaluateDependencies` is given, with the config analyzed as the analysis does.
+ * Builds what `evaluateDependencies` is given, with the config analyzed as the analysis does and a new `Policies` instance, whose real descriptions and evaluations the tests only count.
  * @param config The config object, with the settings of the quick start unless it has its own.
  * @param dependencies The dependencies of the project.
  * @returns The input.
@@ -83,7 +67,10 @@ function createInput(
     settings: config.settings ?? SETTINGS,
     rules: config.rules,
   });
-  return { dependencies, settings, rule };
+  const policies = new Policies();
+  jest.spyOn(policies, "describeDependency");
+  jest.spyOn(policies, "evaluateDependency");
+  return { dependencies, policies, settings, rule };
 }
 
 /**
@@ -170,12 +157,14 @@ function disallowing(disallow: object, options: object = {}): [number, object] {
 }
 
 /**
- * Lists the sources that `describeDependency` received, in the order it received them.
+ * Lists the sources that `describeDependency` of the instance of an input received, in the order it received them.
+ * @param input The input, as `createInput` builds it.
+ * @param input.policies
  * @returns The sources.
  */
-function describedSources(): string[] {
+function describedSources({ policies }: DependenciesInput): string[] {
   return jest
-    .mocked(describeDependency)
+    .mocked(policies.describeDependency)
     .mock.calls.map(([, { source }]) => source);
 }
 
@@ -305,7 +294,7 @@ describe("Dependencies", () => {
         const results = evaluateDependencies(input);
 
         // Assert
-        expect(describedSources()).toEqual([
+        expect(describedSources(input)).toEqual([
           "../../components/atoms/Button/index.js",
           "./Button.css",
           "react",
@@ -605,27 +594,40 @@ describe("Dependencies", () => {
         expect(verdict.status).toBe("disallowed");
       });
 
-      it.each<[ProjectDependencySyntax, string, string]>([
+      it.each<[ProjectDependencySyntax, string, string, "value" | "type"]>([
         [
           "import",
           "ImportDeclaration:not([importKind=type]) > Literal",
           "import",
+          "value",
         ],
         [
           "export-from",
           "ExportNamedDeclaration:not([exportKind=type]) > Literal",
           "export",
+          "value",
         ],
-        ["require", "CallExpression[callee.name=require] > Literal", "require"],
+        [
+          "require",
+          "CallExpression[callee.name=require] > Literal",
+          "require",
+          "value",
+        ],
         [
           "require",
           "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
           "require",
+          "type",
         ],
-        ["dynamic-import", "ImportExpression > Literal", "dynamic-import"],
+        [
+          "dynamic-import",
+          "ImportExpression > Literal",
+          "dynamic-import",
+          "value",
+        ],
       ])(
         "should read the syntax %s through a built-in selector that an additional node repeats: %s",
-        (syntax, selector, nodeName) => {
+        (syntax, selector, nodeName, importKind) => {
           // Arrange
           const settings = {
             ...SETTINGS,
@@ -638,7 +640,7 @@ describe("Dependencies", () => {
           // Act
           const verdict = verdictOf(
             QUICK_START_RULE,
-            { ...HELPER_ON_COMPONENT, syntax },
+            { ...HELPER_ON_COMPONENT, syntax, importKind },
             settings
           );
 
@@ -684,30 +686,289 @@ describe("Dependencies", () => {
         ]);
       });
 
-      it("should not read a syntax through a built-in selector that an additional node gives another name", () => {
-        // Arrange
-        const settings = {
-          ...SETTINGS,
-          "boundaries/dependency-nodes": [],
-          "boundaries/additional-dependency-nodes": [
+      // ESLint 9.39.5 checks the `require()` call through a node with the built-in selector of `require()` and another name or no name, with `dependency-nodes: []`, and reports the name of that node as the `nodeKind` (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      it.each([
+        ["another name", { name: "custom" }, "custom"],
+        ["no name", {}, null],
+      ])(
+        "should read a syntax through a built-in selector that an additional node gives %s, and describe it with that name",
+        (_title, name, nodeKind) => {
+          // Arrange
+          const input = createInput(
             {
-              selector: "CallExpression[callee.name=require] > Literal",
-              kind: "value",
-              name: "custom",
+              settings: {
+                ...SETTINGS,
+                "boundaries/dependency-nodes": [],
+                "boundaries/additional-dependency-nodes": [
+                  {
+                    selector: "CallExpression[callee.name=require] > Literal",
+                    kind: "value",
+                    ...name,
+                  },
+                ],
+              },
+              rules: { "boundaries/dependencies": QUICK_START_RULE },
             },
-          ],
-        };
+            [{ ...HELPER_ON_COMPONENT, syntax: "require" }]
+          );
 
-        // Act
-        const verdict = verdictOf(
-          QUICK_START_RULE,
-          { ...HELPER_ON_COMPONENT, syntax: "require" },
-          settings
+          // Act
+          const [{ description, verdict }] = evaluateDependencies(input);
+
+          // Assert
+          expect(verdict.status).toBe("disallowed");
+          expect(description?.dependency.nodeKind).toBe(nodeKind);
+        }
+      );
+    });
+
+    describe("when the nodes read only one import kind of a syntax", () => {
+      // ESLint 9.39.5 checks no `import type`, `export type … from`, `import type x = require()` nor `typeof import()` through the value selector of its syntax alone, and no value `import` through the type selector alone (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      it.each<[ProjectDependencySyntax, string, string]>([
+        [
+          "import",
+          "ImportDeclaration:not([importKind=type]) > Literal",
+          "import",
+        ],
+        [
+          "export-from",
+          "ExportNamedDeclaration:not([exportKind=type]) > Literal",
+          "export",
+        ],
+        ["require", "CallExpression[callee.name=require] > Literal", "require"],
+        ["dynamic-import", "ImportExpression > Literal", "dynamic-import"],
+      ])(
+        "should not read a type dependency of the syntax %s that only the value selector %s reads, nor describe it, and read the value one",
+        (syntax, selector, nodeName) => {
+          // Arrange
+          const input = createInput(
+            {
+              settings: {
+                ...SETTINGS,
+                "boundaries/dependency-nodes": [],
+                "boundaries/additional-dependency-nodes": [
+                  { selector, kind: "value", name: nodeName },
+                ],
+              },
+              rules: { "boundaries/dependencies": QUICK_START_RULE },
+            },
+            [
+              { ...HELPER_ON_COMPONENT, syntax, importKind: "value" },
+              { ...HELPER_ON_COMPONENT, syntax, importKind: "type" },
+            ]
+          );
+
+          // Act
+          const results = evaluateDependencies(input);
+
+          // Assert
+          expect(results.map(({ verdict }) => verdict)).toEqual([
+            expect.objectContaining({ status: "disallowed" }),
+            { status: "not-checked", reason: "not-read" },
+          ]);
+          expect(
+            results.map(({ description }) => description !== undefined)
+          ).toEqual([true, false]);
+          expect(input.policies.describeDependency).toHaveBeenCalledTimes(1);
+          expect(input.policies.evaluateDependency).toHaveBeenCalledTimes(1);
+        }
+      );
+
+      it.each<[ProjectDependencySyntax, string, string]>([
+        ["import", "ImportDeclaration[importKind=type] > Literal", "import"],
+        [
+          "export-from",
+          "ExportNamedDeclaration[exportKind=type] > Literal",
+          "export",
+        ],
+        [
+          "require",
+          "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
+          "require",
+        ],
+        [
+          "dynamic-import",
+          ":matches(TSImportType > Literal, TSImportType > TSLiteralType > Literal)",
+          "dynamic-import",
+        ],
+      ])(
+        "should not read a value dependency of the syntax %s that only the type selector %s reads, nor describe it, and read the type one",
+        (syntax, selector, nodeName) => {
+          // Arrange
+          const input = createInput(
+            {
+              settings: {
+                ...SETTINGS,
+                "boundaries/dependency-nodes": [],
+                "boundaries/additional-dependency-nodes": [
+                  { selector, kind: "type", name: nodeName },
+                ],
+              },
+              rules: { "boundaries/dependencies": QUICK_START_RULE },
+            },
+            [
+              { ...HELPER_ON_COMPONENT, syntax, importKind: "value" },
+              { ...HELPER_ON_COMPONENT, syntax, importKind: "type" },
+            ]
+          );
+
+          // Act
+          const results = evaluateDependencies(input);
+
+          // Assert
+          expect(results.map(({ verdict }) => verdict)).toEqual([
+            { status: "not-checked", reason: "not-read" },
+            expect.objectContaining({ status: "disallowed" }),
+          ]);
+          expect(
+            results.map(({ description }) => description !== undefined)
+          ).toEqual([false, true]);
+          expect(input.policies.describeDependency).toHaveBeenCalledTimes(1);
+        }
+      );
+
+      it("should check a type import when boundaries/dependency-nodes selects its syntax, which keeps both selectors", () => {
+        // Arrange
+        const input = createInput(
+          {
+            settings: {
+              ...SETTINGS,
+              "boundaries/dependency-nodes": ["import"],
+            },
+            rules: { "boundaries/dependencies": QUICK_START_RULE },
+          },
+          [{ ...HELPER_ON_COMPONENT, importKind: "type" }]
         );
 
+        // Act
+        const [{ description, verdict }] = evaluateDependencies(input);
+
         // Assert
-        expect(verdict).toEqual({ status: "not-checked", reason: "not-read" });
+        expect(verdict.status).toBe("disallowed");
+        expect(description?.dependency).toMatchObject({
+          kind: "type",
+          nodeKind: "import",
+        });
       });
+    });
+
+    describe("when an additional node repeats a built-in selector with its own name or kind", () => {
+      // ESLint 9.39.5 runs the last node with a selector, and reports its name as the `nodeKind` and its kind as the `kind`, or `value` when it has none (measured on 2026-11-23 with the workspace build of `@boundaries/eslint-plugin` 7.4.4)
+      const IMPORT_VALUE = "ImportDeclaration:not([importKind=type]) > Literal";
+
+      /**
+       * Writes the settings of the quick start with `boundaries/dependency-nodes: ["import"]` and additional nodes.
+       * @param additional The `boundaries/additional-dependency-nodes` setting.
+       * @returns The settings as written.
+       */
+      const withImportAnd = (additional: object[]): object => ({
+        ...SETTINGS,
+        "boundaries/dependency-nodes": ["import"],
+        "boundaries/additional-dependency-nodes": additional,
+      });
+
+      it.each<[string, object, "value" | "type", string | null, string]>([
+        [
+          "another name and the kind type",
+          { selector: IMPORT_VALUE, kind: "type", name: "custom" },
+          "value",
+          "custom",
+          "type",
+        ],
+        [
+          "the kind typeof",
+          { selector: IMPORT_VALUE, kind: "typeof", name: "import" },
+          "value",
+          "import",
+          "typeof",
+        ],
+        [
+          "no name",
+          { selector: IMPORT_VALUE, kind: "value" },
+          "value",
+          null,
+          "value",
+        ],
+        [
+          "no kind, which the plugin passes as value, also for a type import",
+          {
+            selector: "ImportDeclaration[importKind=type] > Literal",
+            name: "custom",
+          },
+          "type",
+          "custom",
+          "value",
+        ],
+      ])(
+        "should describe a dependency read through a node with %s with the name and the kind of that node",
+        (_title, node, importKind, nodeKind, kind) => {
+          // Arrange
+          const input = createInput(
+            {
+              settings: withImportAnd([node]),
+              rules: { "boundaries/dependencies": QUICK_START_RULE },
+            },
+            [{ ...MODULE_ON_HELPER, importKind }]
+          );
+
+          // Act
+          const [{ description }] = evaluateDependencies(input);
+
+          // Assert
+          expect(description?.dependency.nodeKind).toBe(nodeKind);
+          expect(description?.dependency.kind).toBe(kind);
+        }
+      );
+
+      it("should describe a dependency through the last of two nodes with the same selector", () => {
+        // Arrange
+        const input = createInput(
+          {
+            settings: withImportAnd([
+              { selector: IMPORT_VALUE, kind: "type", name: "first" },
+              { selector: IMPORT_VALUE, kind: "value", name: "last" },
+            ]),
+            rules: { "boundaries/dependencies": QUICK_START_RULE },
+          },
+          [MODULE_ON_HELPER]
+        );
+
+        // Act
+        const [{ description }] = evaluateDependencies(input);
+
+        // Assert
+        expect(description?.dependency).toMatchObject({
+          kind: "value",
+          nodeKind: "last",
+        });
+      });
+
+      it.each([
+        ["nodeKind", { nodeKind: "custom" }],
+        ["kind", { kind: "type" }],
+      ])(
+        "should decide a value import read through a node named custom of the kind type by a policy on its %s, which it does not match with the built-in node",
+        (_title, dependency) => {
+          // Arrange
+          const rule = disallowing({ dependency });
+          const node = { selector: IMPORT_VALUE, kind: "type", name: "custom" };
+
+          // Act
+          const overridden = verdictOf(
+            rule,
+            MODULE_ON_HELPER,
+            withImportAnd([node])
+          );
+          const builtIn = verdictOf(rule, MODULE_ON_HELPER, withImportAnd([]));
+
+          // Assert
+          expect(overridden).toMatchObject({
+            status: "disallowed",
+            policy: { index: 0 },
+          });
+          expect(builtIn.status).toBe("allowed");
+        }
+      );
     });
 
     describe("with the severity of the rule", () => {
@@ -1128,7 +1389,7 @@ describe("Dependencies", () => {
         const [{ description, verdict }] = evaluateDependencies(input);
 
         // Assert
-        expect(describedSources()).toEqual(["../../helpers/format"]);
+        expect(describedSources(input)).toEqual(["../../helpers/format"]);
         expect(description?.dependency.source).toBe("../../helpers/format");
         expect(verdict.status).toBe("disallowed");
       });
@@ -1583,7 +1844,7 @@ describe("Dependencies", () => {
           evaluateDependencies(input);
 
           // Assert
-          expect(describeDependency).toHaveBeenCalledTimes(3);
+          expect(input.policies.describeDependency).toHaveBeenCalledTimes(3);
         });
 
         it("should decide each dependency with the description that it gives the result", () => {
@@ -1598,10 +1859,10 @@ describe("Dependencies", () => {
 
           // Assert
           const described = jest
-            .mocked(describeDependency)
+            .mocked(input.policies.describeDependency)
             .mock.results.map(({ value }) => value as unknown);
           const decided = jest
-            .mocked(evaluateDependency)
+            .mocked(input.policies.evaluateDependency)
             .mock.calls.map(([, , description]) => description as unknown);
 
           expect(decided).toHaveLength(3);
@@ -1623,8 +1884,8 @@ describe("Dependencies", () => {
           evaluateDependencies(input);
 
           // Assert
-          expect(describeDependency).toHaveBeenCalledTimes(3);
-          expect(evaluateDependency).not.toHaveBeenCalled();
+          expect(input.policies.describeDependency).toHaveBeenCalledTimes(3);
+          expect(input.policies.evaluateDependency).not.toHaveBeenCalled();
         });
 
         it("should not describe a dependency that the plugin does not read", () => {
@@ -1648,8 +1909,8 @@ describe("Dependencies", () => {
           evaluateDependencies(input);
 
           // Assert
-          expect(describeDependency).toHaveBeenCalledTimes(1);
-          expect(evaluateDependency).toHaveBeenCalledTimes(1);
+          expect(input.policies.describeDependency).toHaveBeenCalledTimes(1);
+          expect(input.policies.evaluateDependency).toHaveBeenCalledTimes(1);
         });
       });
     });
@@ -1687,7 +1948,7 @@ describe("Dependencies", () => {
             verdict: { status: "not-evaluated" },
           },
         ]);
-        expect(describedSources()).toEqual([
+        expect(describedSources(input)).toEqual([
           "../../helpers/format/index.js",
           "../../components/atoms/Button/Button.spec.js",
         ]);

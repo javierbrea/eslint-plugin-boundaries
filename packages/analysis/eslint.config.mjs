@@ -103,6 +103,32 @@ export default [
     },
   },
   createBrowserConfig("This package does not depend on the platform."),
+  // The module functions of @boundaries/policies keep every matcher and what it caches for the life of the module, so the sources describe and evaluate through the Policies instance of the settings of an analysis, which is freed with the analysis. Specs may call them to compute what they expect
+  {
+    files: ["src/**/*.ts"],
+    ignores: ["src/**/*.spec.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@boundaries/policies",
+              importNames: [
+                "getMatcher",
+                "describeEntity",
+                "describeDependency",
+                "evaluatePolicies",
+                "evaluateDependency",
+              ],
+              message:
+                "It keeps what it builds for the life of the module. Describe and evaluate with the Policies instance that getPolicies of src/Evaluation/PoliciesInstances.ts returns for the settings of the analysis.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // The package's own layering, enforced with the workspace eslint-plugin-boundaries
   {
     files: ["src/**/*.ts"],
