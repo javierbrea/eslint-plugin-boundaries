@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- feat(#686): The `Policies` class describes files and dependencies and evaluates policies as the functions of the same name do, with matchers of its own. Its matchers, and the descriptions they cache unless `boundaries/cache` is `false`, are freed with the instance, while those of the functions are kept for the life of the module.
+
 ## [1.0.3] - 2026-11-15
 
 ### Changed

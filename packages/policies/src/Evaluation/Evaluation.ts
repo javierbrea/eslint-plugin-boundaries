@@ -22,6 +22,7 @@ import type {
 } from "@boundaries/elements";
 
 import { getMatcher } from "../Descriptions";
+import type { MatcherGetter } from "../Descriptions";
 import {
   customErrorMessage,
   dependenciesRuleDefaultErrorMessage,
@@ -250,21 +251,21 @@ export function buildErrorMessage({
 }
 
 /**
- * Evaluates the policies of the `dependencies` rule against a dependency, as the rule does.
- *
- * For each policy, the outer `from`/`to`/`dependency` fields are merged with each entry in `allow`/`disallow` to build the final dependency selector. Policies follow **last-write-wins** semantics: the last policy that produces a match decides. Within a single policy, `disallow` takes precedence over `allow`: `allow` is not evaluated when `disallow` already matched. When no policy matches, `options.default` decides.
+ * Evaluates the policies of the `dependencies` rule against a dependency, as `evaluatePolicies` does, with the matcher that a given function returns.
+ * @param matcherOf The function that returns the matcher of the settings.
  * @param settings The settings, normalized by `@boundaries/config`.
  * @param options The options of the rule, normalized by `@boundaries/config`.
  * @param dependency The description of the dependency.
  * @returns The verdict, the deciding policy and match, the message of a violation, and the problems found while matching.
  * @throws An error naming the custom `message` and where it is set, with the Handlebars error as its `cause`, when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
  */
-export function evaluatePolicies(
+export function evaluatePoliciesWith(
+  matcherOf: MatcherGetter,
   settings: SettingsNormalized,
   options: DependenciesRuleOptionsNormalized,
   dependency: DependencyDescription
 ): PolicyEvaluation {
-  const matcher = getMatcher(settings);
+  const matcher = matcherOf(settings);
   const diagnostics: Diagnostic[] = [];
   let allowed: boolean | null = null;
   let policyIndex: number | null = null;
@@ -334,6 +335,24 @@ export function evaluatePolicies(
 }
 
 /**
+ * Evaluates the policies of the `dependencies` rule against a dependency, as the rule does.
+ *
+ * For each policy, the outer `from`/`to`/`dependency` fields are merged with each entry in `allow`/`disallow` to build the final dependency selector. Policies follow **last-write-wins** semantics: the last policy that produces a match decides. Within a single policy, `disallow` takes precedence over `allow`: `allow` is not evaluated when `disallow` already matched. When no policy matches, `options.default` decides.
+ * @param settings The settings, normalized by `@boundaries/config`.
+ * @param options The options of the rule, normalized by `@boundaries/config`.
+ * @param dependency The description of the dependency.
+ * @returns The verdict, the deciding policy and match, the message of a violation, and the problems found while matching.
+ * @throws An error naming the custom `message` and where it is set, with the Handlebars error as its `cause`, when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
+ */
+export function evaluatePolicies(
+  settings: SettingsNormalized,
+  options: DependenciesRuleOptionsNormalized,
+  dependency: DependencyDescription
+): PolicyEvaluation {
+  return evaluatePoliciesWith(getMatcher, settings, options, dependency);
+}
+
+/**
  * Returns why the `dependencies` rule does not evaluate a dependency, checking the reasons in the order of `DependencySkipReason`.
  * @param options The options of the rule, as the user wrote them or normalized. An option that is not set is false.
  * @param dependency The description of the dependency.
@@ -375,6 +394,31 @@ export function getDependencySkipReason(
 }
 
 /**
+ * Evaluates a dependency as `evaluateDependency` does, with the matcher that a given function returns. A dependency that the rule does not evaluate gets no matcher.
+ * @param matcherOf The function that returns the matcher of the settings.
+ * @param settings The settings, normalized by `@boundaries/config`.
+ * @param options The options of the rule, normalized by `@boundaries/config`.
+ * @param dependency The description of the dependency.
+ * @returns The reason why the dependency is not evaluated, or the evaluation of the policies.
+ * @throws An error naming the custom `message` and where it is set, with the Handlebars error as its `cause`, when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
+ */
+export function evaluateDependencyWith(
+  matcherOf: MatcherGetter,
+  settings: SettingsNormalized,
+  options: DependenciesRuleOptionsNormalized,
+  dependency: DependencyDescription
+): DependencyEvaluation {
+  const reason = getDependencySkipReason(options, dependency);
+  if (reason) {
+    return { checked: false, reason };
+  }
+  return {
+    checked: true,
+    ...evaluatePoliciesWith(matcherOf, settings, options, dependency),
+  };
+}
+
+/**
  * Evaluates a dependency as the `dependencies` rule does: it checks first whether the rule evaluates it, and then evaluates the policies.
  * @param settings The settings, normalized by `@boundaries/config`.
  * @param options The options of the rule, normalized by `@boundaries/config`.
@@ -387,9 +431,5 @@ export function evaluateDependency(
   options: DependenciesRuleOptionsNormalized,
   dependency: DependencyDescription
 ): DependencyEvaluation {
-  const reason = getDependencySkipReason(options, dependency);
-  if (reason) {
-    return { checked: false, reason };
-  }
-  return { checked: true, ...evaluatePolicies(settings, options, dependency) };
+  return evaluateDependencyWith(getMatcher, settings, options, dependency);
 }

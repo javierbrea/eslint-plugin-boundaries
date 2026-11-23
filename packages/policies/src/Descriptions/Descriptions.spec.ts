@@ -1,7 +1,12 @@
 import type { SettingsNormalized } from "@boundaries/config";
 import { Elements } from "@boundaries/elements";
 
-import { describeDependency, describeEntity, getMatcher } from "./Descriptions";
+import {
+  createMatcherGetter,
+  describeDependency,
+  describeEntity,
+  getMatcher,
+} from "./Descriptions";
 
 const createSettings = (
   overrides: Partial<SettingsNormalized> = {}
@@ -42,6 +47,30 @@ describe("Descriptions", () => {
     jest.restoreAllMocks();
   });
 
+  describe("createMatcherGetter", () => {
+    it("should build the matchers with the Elements instance it receives", () => {
+      const elements = new Elements();
+      const elementsGetMatcher = jest.spyOn(elements, "getMatcher");
+      const matcherOf = createMatcherGetter(elements);
+
+      const matcher = matcherOf(createProjectSettings());
+
+      expect(elementsGetMatcher).toHaveBeenCalledTimes(1);
+      expect(elementsGetMatcher).toHaveReturnedWith(matcher);
+    });
+
+    it("should memoize the matchers of each getter apart", () => {
+      const settings = createProjectSettings();
+      const matcherOf = createMatcherGetter(new Elements());
+      const otherMatcherOf = createMatcherGetter(new Elements());
+
+      const matcher = matcherOf(settings);
+
+      expect(otherMatcherOf(settings)).not.toBe(matcher);
+      expect(matcherOf(settings)).toBe(matcher);
+    });
+  });
+
   describe("getMatcher", () => {
     it("should return the same matcher instance for the same settings reference", () => {
       const settings = createProjectSettings();
@@ -57,6 +86,16 @@ describe("Descriptions", () => {
       getMatcher(settings);
 
       expect(elementsGetMatcher).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return the same matcher instance for settings references with equal content", () => {
+      const settings = createProjectSettings();
+      const equalSettings = createProjectSettings();
+
+      const matcher = getMatcher(settings);
+
+      expect(equalSettings).not.toBe(settings);
+      expect(getMatcher(equalSettings)).toBe(matcher);
     });
 
     it("should return different matcher instances for settings with different descriptors", () => {
@@ -105,6 +144,19 @@ describe("Descriptions", () => {
       expect(description.file.isIgnored).toBe(true);
     });
 
+    it("should describe the file with the matcher that getMatcher returns", () => {
+      const settings = createProjectSettings();
+      const filePath = "/repo/src/helpers/format/index.ts";
+      const matcherDescribeEntity = jest.spyOn(
+        getMatcher(settings),
+        "describeEntity"
+      );
+
+      describeEntity(settings, filePath);
+
+      expect(matcherDescribeEntity).toHaveBeenCalledWith(filePath);
+    });
+
     it("should return what the matcher of the settings returns", () => {
       const settings = createProjectSettings();
       const filePath = "/repo/src/helpers/format/index.ts";
@@ -116,6 +168,25 @@ describe("Descriptions", () => {
   });
 
   describe("describeDependency", () => {
+    it("should describe the dependency with the matcher that getMatcher returns", () => {
+      const settings = createProjectSettings();
+      const dependency = {
+        from: "/repo/src/components/Price/index.ts",
+        to: "/repo/src/helpers/format/index.ts",
+        source: "../../helpers/format",
+        kind: "value" as const,
+        nodeKind: "import",
+      };
+      const matcherDescribeDependency = jest.spyOn(
+        getMatcher(settings),
+        "describeDependency"
+      );
+
+      describeDependency(settings, dependency);
+
+      expect(matcherDescribeDependency).toHaveBeenCalledWith(dependency);
+    });
+
     it("should describe a local dependency between two elements", () => {
       const settings = createProjectSettings();
 

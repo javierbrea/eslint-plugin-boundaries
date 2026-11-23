@@ -29,7 +29,9 @@ import {
 import {
   buildErrorMessage,
   evaluateDependency,
+  evaluateDependencyWith,
   evaluatePolicies,
+  evaluatePoliciesWith,
   getDependencySkipReason,
   resolveCustomMessage,
 } from "./Evaluation";
@@ -182,6 +184,25 @@ describe("Evaluation", () => {
   });
 
   describe("evaluatePolicies", () => {
+    it("gets the matcher of the settings from getMatcher", () => {
+      const matcher = createMatcher();
+      const settings = createSettings();
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        settings
+      );
+
+      expect(getMatcherMock).toHaveBeenCalledWith(settings);
+      expect(
+        matcher.getDependencySelectorMatchingDescription
+      ).toHaveBeenCalled();
+    });
+
     it("returns the default effect when there are no policies", () => {
       const matcher = createMatcher();
 
@@ -2183,7 +2204,103 @@ describe("Evaluation", () => {
     });
   });
 
+  describe("evaluatePoliciesWith", () => {
+    it("evaluates the policies with the matcher that the given function returns", () => {
+      const matcher = createMatcher();
+      setMatcherReturns(matcher, [{ matched: "disallow" }]);
+      const matcherOf = jest.fn().mockReturnValue(matcher);
+      const settings = createSettings();
+
+      const result = evaluatePoliciesWith(
+        matcherOf,
+        settings,
+        normalizeOptions({
+          policies: [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        }),
+        createDependencyDescription()
+      );
+
+      expect(result).toEqual({
+        allowed: false,
+        policyIndex: 0,
+        match: { matched: "disallow" },
+        message: "default-message",
+        diagnostics: [],
+      });
+      expect(matcherOf).toHaveBeenCalledWith(settings);
+      expect(getMatcherMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("evaluateDependencyWith", () => {
+    it("returns the skip reason without getting a matcher", () => {
+      const matcherOf = jest.fn();
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          module: { origin: ORIGINS_MAP.EXTERNAL },
+        }),
+      });
+
+      const result = evaluateDependencyWith(
+        matcherOf,
+        createSettings(),
+        normalizeOptions({ policies: [] }),
+        dependency
+      );
+
+      expect(result).toEqual({ checked: false, reason: "not-local" });
+      expect(matcherOf).not.toHaveBeenCalled();
+    });
+
+    it("evaluates the policies of a checked dependency with the matcher that the given function returns", () => {
+      const matcher = createMatcher();
+      setMatcherReturns(matcher, [{ matched: "disallow" }]);
+      const matcherOf = jest.fn().mockReturnValue(matcher);
+      const settings = createSettings();
+
+      const result = evaluateDependencyWith(
+        matcherOf,
+        settings,
+        normalizeOptions({
+          policies: [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        }),
+        createDependencyDescription()
+      );
+
+      expect(result).toEqual({
+        checked: true,
+        allowed: false,
+        policyIndex: 0,
+        match: { matched: "disallow" },
+        message: "default-message",
+        diagnostics: [],
+      });
+      expect(matcherOf).toHaveBeenCalledWith(settings);
+      expect(getMatcherMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe("evaluateDependency", () => {
+    it("gets the matcher of the settings of a checked dependency from getMatcher", () => {
+      const matcher = createMatcher();
+      setMatcherReturns(matcher, [{ matched: "disallow" }]);
+      getMatcherMock.mockReturnValue(matcher);
+      const settings = createSettings();
+
+      evaluateDependency(
+        settings,
+        normalizeOptions({
+          policies: [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        }),
+        createDependencyDescription()
+      );
+
+      expect(getMatcherMock).toHaveBeenCalledWith(settings);
+      expect(
+        matcher.getDependencySelectorMatchingDescription
+      ).toHaveBeenCalled();
+    });
+
     it("returns the skip reason without evaluating the policies", () => {
       const dependency = createDependencyDescription({
         to: createEntityDescription({
