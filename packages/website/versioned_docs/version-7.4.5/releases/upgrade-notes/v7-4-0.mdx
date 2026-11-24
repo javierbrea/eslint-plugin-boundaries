@@ -1,0 +1,185 @@
+---
+id: v7-4-0
+title: Upgrading to v7.4.0
+sidebar_label: v7.4.0
+description: Learn whether the fixes for Node.js built-in modules with the node prefix, for extglob patterns and for dot files in element folders in ESLint Plugin Boundaries v7.4.0 affect your project, and how to adapt your configuration.
+tags:
+  - configuration
+  - migration
+  - troubleshooting
+keywords:
+  - eslint-plugin-boundaries
+  - upgrade notes
+  - release
+  - v7.4.0
+  - module origin
+  - core modules
+  - node prefix
+  - node:test
+  - extglob
+  - glob patterns
+  - cache
+  - dot files
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Upgrading to v7.4.0
+
+## Overview
+
+v7.4.0 is a minor release, and most projects can upgrade without any change. However, it fixes bugs that some configurations may rely on:
+
+- **[Node.js built-in modules with the `node:` prefix](#nodejs-built-in-modules-with-the-node-prefix)**: imports of the built-in modules that Node.js only provides with the `node:` prefix, such as `node:test`, had the `external` origin instead of `core`.
+- **[Extglob patterns](#extglob-patterns)**: some patterns with extglobs, such as `src/@(foo/**)`, did not match all the paths they describe.
+- **[Dot files in element folders](#dot-files-in-element-folders)**: with the cache enabled, which is the default, the files placed next to a linted or imported dot file, such as `.lintstagedrc.js`, could get the description of that dot file, or give it theirs, and the errors could change from one run to another.
+
+This page explains how to check whether your project is affected, and how to adapt your configuration if it is.
+
+:::info
+v7.4.0 also upgrades `picomatch`, the glob matching library, to v4. Apart from the extglob fixes described on this page, the pattern syntax and the matching results do not change. Read the [changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/eslint-plugin/CHANGELOG.md) for the full list of changes.
+:::
+
+## Node.js built-in modules with the `node:` prefix
+
+Some Node.js built-in modules, such as `node:test`, `node:sqlite` and `node:sea`, only exist with the `node:` prefix: `import test from "test"` imports a package named `test`, not the built-in module. Before v7.4.0, the plugin looked for them without the prefix, so it did not recognize them, and their imports got the **[module origin](../../classification/modules.md#module-origins)** `external`. From v7.4.0, they get the `core` origin, like any other built-in module.
+
+The opposite case is also fixed: imports of sub-paths that a built-in module does not provide, such as `fs/utils`, are no longer `core`. Node.js can not resolve them, so they are `external` with the default **[`boundaries/flag-as-external`](../../settings/settings.md#boundariesflag-as-external)** settings.
+
+### Who is affected
+
+Your project is affected only if both of these conditions are true:
+
+- Your code imports `node:test`, `node:sqlite` or `node:sea`, or one of their sub-paths, such as `node:test/reporters`.
+- Your configuration distinguishes the `core` origin from the `external` one. For example, a **[`boundaries/dependencies`](../../rules/dependencies.md)** policy with `checkAllOrigins: true` selects `{ module: { origin: "external" } }` or `{ module: { origin: "core" } }`, but not both, or a [custom message](../../policies/policies.mdx) prints the module origin.
+
+After upgrading, you may notice that policies for `external` modules no longer apply to these imports, and policies for `core` modules apply to them. For example, if your test files can only import `core` modules and some packages, imports of `node:test` are no longer reported.
+
+The deprecated **[`boundaries/external`](../../rules/external.mdx)** rule checks `external` and `core` modules alike, so its results do not change.
+
+### Find the affected imports
+
+Search your code for imports of these modules, for example:
+
+```bash
+grep -rnE "[\"']node:(test|sqlite|sea)[\"'/]" src
+```
+
+If there are none, your project is not affected.
+
+### Adapt your configuration
+
+No configuration change is required if your policies already expected these imports to be `core`. Otherwise, review the lint results after upgrading:
+
+- Remove the workarounds that you added because they were `external`, such as policies that allowed `external` modules with the source `node:test`.
+- Allow the imports that are now reported, if they are expected. For example, to allow test files to import `node:test`:
+
+<CodeDiff language="javascript">{`
+. {
+.   from: { file: { categories: "test" } },
+.   allow: [
+-     { to: { module: { origin: "external", source: "node:test" } } },
++     { to: { module: { origin: "core", source: "node:test" } } },
+.   ],
+. }
+`}</CodeDiff>
+
+## Extglob patterns
+
+Extglobs are the glob patterns with the syntax `@(...)`, `*(...)`, `+(...)`, `?(...)` and `!(...)`, which match groups of alternatives. From v7.4.0, two kinds of extglobs match all the paths that they describe, like the same patterns without extglobs:
+
+- **Patterns that end with an extglob ending with `/**`**, such as `src/@(foo/**)`, now also match the parent folder, `src/foo`, as `src/foo/**` already did.
+- **Repeated extglobs that contain a `*(...)` extglob**, such as `+(*(a)|*(b))` or `*(a|*(b))`, now match every combination of their alternatives, such as `b` or `ab`, as `+(a|b)` already did.
+
+### Who is affected
+
+Your project is affected only if a glob pattern in your configuration has one of the forms above. Glob patterns appear in element and file descriptors, in settings such as **[`boundaries/include`](../../settings/settings.md#boundariesinclude)** and **[`boundaries/ignore`](../../settings/settings.md#boundariesignore)**, and in the selectors of your policies.
+
+After upgrading, those patterns may match more paths. For example, more files may belong to an element type, or a policy may apply to more dependencies.
+
+### Find the affected patterns
+
+Search your ESLint configuration for patterns ending with `/**)`, and for `*(...)` extglobs inside `+(...)` or `*(...)` ones, for example:
+
+```bash
+grep -nE "/\*\*\)|[+*]\([^)]*\*\(" eslint.config.*
+```
+
+If there are none, your project is not affected.
+
+### Adapt your configuration
+
+No configuration change is required in most cases, because the patterns now match what they describe. If a pattern relied on the old results, rewrite it so it says what it was meant to match. For example, to match the paths inside `src/foo`, but not `src/foo` itself:
+
+<CodeDiff language="javascript">{`
+- "src/@(foo/**)"
++ "src/foo/**/*"
+`}</CodeDiff>
+
+## Dot files in element folders
+
+Before v7.4.0, when the **[`boundaries/cache`](../../settings/settings.md#boundariescache)** setting was enabled, which is the default, a file whose name starts with a dot, such as `.lintstagedrc.js`, could give its description to the other files of its folder, or get theirs, and the errors could change from one run to another. From v7.4.0, every file gets the same description as with the cache disabled, in every run.
+
+### Who is affected
+
+Your project is affected if all of these conditions are true:
+
+- `boundaries/cache` is enabled, which is the default.
+- The folder of an element, or one of its subfolders, has a dot file next to other files.
+- ESLint lints the dot file, or a linted file imports it.
+
+Only the files placed directly in the same folder as the dot file are affected, not the files in its subfolders.
+
+### What changes
+
+The plugin appends `/**/*` to element patterns, and `*` does not match names starting with a dot, so the dot file does not belong to the element. Before v7.4.0, the cache reused the description of the first file described in the folder:
+
+- When the dot file was described first, the other files of the folder were unknown too.
+- When another file was described first, the dot file got the description of the element.
+
+With flat config, the order in which ESLint lints the files can change from one run to another, and so could these errors, even when the code did not change.
+
+After upgrading, the dot file is always unknown, and the other files of the folder always belong to their element:
+
+- **[`boundaries/no-unknown-files`](../../rules/no-unknown-files.md)** and **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** may report the dot file and the dependencies on it, and no longer report the other files of the folder.
+- The policies of the element apply to the other files of the folder, and no longer to the dot file.
+
+### Find the affected files
+
+Search the folders of your elements for dot files, for example:
+
+```bash
+find src -type f -name ".*"
+```
+
+If ESLint lints none of them and no linted file imports them, your project is not affected. Otherwise, lint your project with the version you use now and the cache disabled. Its results for these files are the ones of v7.4.0:
+
+```js
+export default [{
+  settings: {
+    "boundaries/cache": false,
+  },
+}];
+```
+
+With flat config, getting the same results with the cache enabled in one run does not prove that your project is not affected, because they can change in the next one.
+
+### Adapt your configuration
+
+No configuration change is required. Review the lint results after upgrading:
+
+- Remove the workarounds that you added for the errors that are no longer reported, such as `eslint-disable` comments in the files placed next to a dot file.
+- If `boundaries/no-unknown-files` reports a dot file that does not belong to any element, such as a configuration file, add it to **[`boundaries/ignore`](../../settings/settings.md#boundariesignore)**:
+
+<CodeDiff language="javascript">{`
+. settings: {
++   "boundaries/ignore": ["**/.lintstagedrc.js"],
+. }
+`}</CodeDiff>
+
+### Configurations outside the documented use
+
+Two other configurations are also affected. Both are outside the documented use of **[element descriptors](../../classification/elements.md)** and give unexpected results with the cache disabled too. From v7.4.0, each file gets its own values instead of the values of the first file described in its folder:
+
+- **An element `pattern` that matches files instead of folders**, such as `**`, `src/*/**` or `!src/*`: each file placed directly in a folder is an element of its own, with its own `path`. To give the same `path` to all the files of an element, make the pattern [match its folder](../../classification/elements.md#pattern-required), such as `src/*` instead of `src/*/**`.
+- **More `capture` names than wildcards in `pattern`, or more `baseCapture` names than wildcards in `basePattern`**, such as `{ pattern: "src/*", capture: ["name", "rest", "file"] }`: the extra names take values from the rest of the file path, file name included. Give one name per wildcard.
