@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore(#686): The playground evaluates the sketched project through the `@boundaries/analysis` package.
+- docs: The home says that more than 5,000 repositories depend on the plugin, and shows up-to-date stars and downloads until the live numbers load.
 
 ### Fixed
 

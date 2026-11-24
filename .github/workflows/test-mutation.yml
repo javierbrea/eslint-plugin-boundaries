@@ -1,10 +1,7 @@
 name: Test Mutation
 on:
+  # NOTE: Runs on every push to master, which only receives the promotion of release and gives the score that the README badges read, and by hand on release from the Actions tab
   push:
-    branches:
-      - master
-      - release
-  pull_request:
     branches:
       - master
   workflow_dispatch:
