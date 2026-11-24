@@ -28,7 +28,7 @@ jobs:
     - uses: ./.github/actions/install
       with:
         cache: 'false'
-    - run: pnpm nx run-many -t build -p elements config policies eslint-plugin --output-style=stream
+    - run: pnpm nx run-many -t build -p elements config policies analysis eslint-plugin --output-style=stream
     - run: pnpm -r publish --no-git-checks
     - name: Rename package to eslint-plugin-boundaries
       run: npm pkg set name=eslint-plugin-boundaries
@@ -48,7 +48,7 @@ jobs:
     - uses: ./.github/actions/install
       with:
         cache: 'false'
-    - run: pnpm nx run-many -t build -p elements config policies eslint-plugin --output-style=stream
+    - run: pnpm nx run-many -t build -p elements config policies analysis eslint-plugin --output-style=stream
     - run: pnpm -r publish --no-git-checks --tag beta
     - name: Rename package to eslint-plugin-boundaries
       run: npm pkg set name=eslint-plugin-boundaries

@@ -36,6 +36,10 @@ const CHANGELOGS = [
     paths: ["packages/policies/"],
   },
   {
+    changelog: "packages/analysis/CHANGELOG.md",
+    paths: ["packages/analysis/"],
+  },
+  {
     changelog: "packages/eslint-plugin/CHANGELOG.md",
     paths: ["packages/eslint-plugin/", "README.md"],
   },

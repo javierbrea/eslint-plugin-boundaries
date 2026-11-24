@@ -23,6 +23,7 @@ jobs:
           - elements
           - config
           - policies
+          - analysis
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1

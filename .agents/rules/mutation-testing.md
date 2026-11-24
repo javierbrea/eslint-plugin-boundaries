@@ -2,6 +2,7 @@
 paths:
   - "packages/config/src/**/*.ts"
   - "packages/policies/src/**/*.ts"
+  - "packages/analysis/src/**/*.ts"
   - "packages/elements/src/**/*.ts"
 ---
 

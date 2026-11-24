@@ -14,6 +14,7 @@
     "test:e2e": "playwright install chromium firefox webkit && playwright test"
   },
   "dependencies": {
+    "@boundaries/analysis": "workspace:*",
     "@boundaries/config": "workspace:*",
     "@boundaries/elements": "workspace:*",
     "@boundaries/policies": "workspace:*",

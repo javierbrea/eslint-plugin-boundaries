@@ -75,6 +75,12 @@ jobs:
           name: policies-coverage
           path: packages/policies/coverage
           retention-days: 1
+      - name: Upload analysis test results
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: analysis-coverage
+          path: packages/analysis/coverage
+          retention-days: 1
       - name: Upload eslint-plugin test results
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -121,12 +127,13 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      # NOTE: In Node versions other than the development one, we only run elements, config, policies and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      # NOTE: In Node versions other than the development one, we only run elements, config, policies, analysis and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         run: |
           pnpm nx test:unit elements --output-style=stream --parallel=1
           pnpm nx test:unit config --output-style=stream --parallel=1
           pnpm nx test:unit policies --output-style=stream --parallel=1
+          pnpm nx test:unit analysis --output-style=stream --parallel=1
           pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
   build-windows:
     runs-on: windows-2025
@@ -165,6 +172,7 @@ jobs:
       SONAR_TOKEN_ELEMENTS: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       SONAR_TOKEN_CONFIG: ${{ secrets.SONAR_TOKEN_CONFIG }}
       SONAR_TOKEN_POLICIES: ${{ secrets.SONAR_TOKEN_POLICIES }}
+      SONAR_TOKEN_ANALYSIS: ${{ secrets.SONAR_TOKEN_ANALYSIS }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
@@ -186,6 +194,11 @@ jobs:
         with:
           name: policies-coverage
           path: packages/policies/coverage
+      - name: Download analysis test results
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: analysis-coverage
+          path: packages/analysis/coverage
       - name: Download eslint-plugin test results
         uses: actions/download-artifact@v8.0.2
         with:
@@ -212,6 +225,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/policies/coverage/lcov.info
           flag-name: policies
+      - name: Coveralls for Analysis
+        uses: coverallsapp/github-action@v2.3.8
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./packages/analysis/coverage/lcov.info
+          flag-name: analysis
       - name: Coveralls for Eslint Plugin
         uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
@@ -243,6 +263,14 @@ jobs:
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_POLICIES }}
+      - name: SonarCloud Scan - Analysis
+        if: env.SONAR_TOKEN_ANALYSIS != ''
+        uses: SonarSource/sonarqube-scan-action@v8.5.0
+        with:
+          projectBaseDir: packages/analysis
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ANALYSIS }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@v8.5.0

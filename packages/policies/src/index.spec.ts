@@ -4,6 +4,7 @@ import type { DependencyDescriptorOptions } from "@boundaries/elements";
 
 import {
   DEPENDENCY_SKIP_REASONS_MAP,
+  Policies,
   describeDependency,
   describeEntity,
   evaluateDependency,
@@ -142,6 +143,33 @@ describe("policies", () => {
       expect(evaluation).toEqual({
         checked: false,
         reason: DEPENDENCY_SKIP_REASONS_MAP.NOT_LOCAL,
+      });
+    });
+
+    it("should report what the plugin reports for a helper importing a component, with the matchers of a Policies instance", () => {
+      const policies = new Policies();
+      const description = policies.describeDependency(settings, {
+        from: "/repo/src/helpers/format/index.js",
+        to: "/repo/src/components/atoms/Price/index.js",
+        source: "../../components/atoms/Price",
+        kind: "value",
+        nodeKind: "import",
+      });
+
+      const evaluation = policies.evaluateDependency(
+        settings,
+        options,
+        description
+      );
+
+      expect(evaluation).toEqual({
+        checked: true,
+        allowed: false,
+        policyIndex: null,
+        match: null,
+        message:
+          'There is no policy allowing dependencies from elements of type "helper" to elements of type "component"',
+        diagnostics: [],
       });
     });
   });

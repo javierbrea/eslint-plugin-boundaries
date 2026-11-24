@@ -19,4 +19,4 @@ An entry is written for the users of the package, not for the reviewer of the ch
 - Say what changes for the user, or, in the `chore` entry of an internal change, what changes in the package. When the change may affect their project, say what to do, and link the upgrade notes or the issue for the details.
 - Leave implementation details, reasoning and measurement methods to the pull request or the commit message. Include a number only when it changes what the reader expects, such as a speed-up.
 - Don't repeat a fact across entries. A dependency upgrade is one `chore` entry; the entries of the changes it brings describe their effect, not the upgrade.
-- Keep the `type(#issue):` prefix and the contributor credit at the end, `([@user](https://github.com/user))`, as the file already does.
+- Keep the `type(#issue):` prefix, as the file already does. Only an entry for a change that an external contributor wrote, alone or with a maintainer, ends with their credit, `([@user](https://github.com/user))`.

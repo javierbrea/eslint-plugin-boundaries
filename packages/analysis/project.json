@@ -1,0 +1,55 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "analysis",
+  "projectType": "library",
+  "tags": [
+    "type:node:lib"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      // It lints its own layering with the workspace eslint-plugin-boundaries, which is built by a task dependency and not a project edge, so that no other target builds it
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        {
+          "target": "build",
+          "projects": ["eslint-plugin"]
+        },
+        "^build"
+      ]
+    },
+    "test:unit": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "{projectRoot}/coverage"
+      ]
+    },
+    "build": {
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        "production"
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-config",
+    "cspell-config"
+  ]
+}

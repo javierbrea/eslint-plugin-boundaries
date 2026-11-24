@@ -1,3 +1,4 @@
+import { ANALYSIS_SCENARIOS } from "./analysis.js";
 import { CONFIG_SCENARIOS } from "./config.js";
 import { ELEMENTS_SCENARIOS } from "./elements.js";
 import { POLICIES_SCENARIOS } from "./policies.js";
@@ -16,6 +17,7 @@ export const SCENARIOS = [
   ...ELEMENTS_SCENARIOS,
   ...CONFIG_SCENARIOS,
   ...POLICIES_SCENARIOS,
+  ...ANALYSIS_SCENARIOS,
 ];
 
 /**

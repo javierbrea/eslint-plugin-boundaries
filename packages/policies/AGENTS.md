@@ -2,7 +2,7 @@
 
 Package-scoped agent instructions for `@boundaries/policies` (Nx project `policies`). See `.agents/rules/unit-testing.md` and `typescript-conventions.md` for conventions that apply here too.
 
-The package evaluates what the user wrote, as `@boundaries/config` normalizes it: it describes files and dependencies from their paths, decides which dependencies the `dependencies` rule checks, evaluates its policies and builds the messages. `@boundaries/eslint-plugin` reads the AST, resolves modules, prints the diagnostics and the debug output and reports; other hosts, such as the website playground, call the same functions.
+The package evaluates what the user wrote, as `@boundaries/config` normalizes it: it describes files and dependencies from their paths, decides which dependencies the `dependencies` rule checks, evaluates its policies and builds the messages. `@boundaries/eslint-plugin` reads the AST, resolves modules, prints the diagnostics and the debug output and reports; `@boundaries/analysis` evaluates a whole project with the methods of a `Policies` instance, and the website playground evaluates through it.
 
 ## Layering
 
@@ -12,8 +12,9 @@ Folders under `src/`, bottom to top. Each one imports only from the folders befo
 2. `Messages` — the default messages of the `dependencies` rule, the custom messages with their Handlebars and legacy `${...}` templates, and the types of the template context.
 3. `Descriptions` — `getMatcher`, `describeEntity` and `describeDependency`.
 4. `Evaluation` — the dependency selectors of each policy, `getDependencySkipReason`, `evaluatePolicies` and `evaluateDependency`.
+5. `Policies` — the `Policies` class, whose methods describe and evaluate as the functions of the same name, with matchers of its own.
 
-The layering is not lint-enforced: linting this package with the workspace plugin would make the plugin its devDependency, and Nx refuses the cycle between their `^build` targets.
+The layering is not lint-enforced, and the package has no project edge to `eslint-plugin`, neither an `implicitDependencies` entry nor a dependency that Nx infers, because the plugin depends on this package and Nx refuses the cycle between their `^build` targets.
 
 ## Hard constraints
 
@@ -21,7 +22,8 @@ The layering is not lint-enforced: linting this package with the workspace plugi
 - Functions never print. A problem found while evaluating is a `Diagnostic` of `@boundaries/config` in the result, with the paths of the affected entries from the root of the options. The exception is a custom `message` that fails to render, such as one with invalid Handlebars syntax or an unknown helper: `evaluatePolicies` throws an error that names the message and where it is set, with the Handlebars error as its `cause`, and the plugin fails with it.
 - The messages are the texts the plugin reports, so changing one changes the plugin's output, and its changelog.
 - Which dependencies `getDependencySkipReason` skips, and in which order it checks the reasons, is what the `dependencies` rule does: the plugin calls it before normalizing the policies, so that an invalid selector does not fail on a file whose dependencies are all skipped.
-- Memoization is by object identity in `WeakMap`s: the matcher by `SettingsNormalized`, and the dependency selectors by `DependenciesPolicyNormalized`. Results are shared with the caches and are never mutated, and neither is the input.
+- The module functions build their matchers with one module-wide `Elements`, which keeps every matcher for the life of the module and returns the same one for settings of equal content; the plugin relies on it, since it normalizes the settings once per `context.settings` object. Each `Policies` instance builds them with an `Elements` and a `WeakMap` of its own, so its matchers are freed with it and never shared with another instance or with the functions. The functions and the class run the same code, which takes the function that returns the matcher, and `evaluateDependency` gets no matcher for a skipped dependency.
+- Memoization by object identity is in `WeakMap`s: the matcher by `SettingsNormalized`, and the dependency selectors by `DependenciesPolicyNormalized`. Results are shared with the caches and are never mutated, and neither is the input.
 - `src/index.ts` is the public interface: a symbol of any other file is public only when `src/index.ts` lists it.
 
 ## Build and test shape
