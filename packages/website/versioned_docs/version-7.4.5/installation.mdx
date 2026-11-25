@@ -1,0 +1,80 @@
+---
+id: installation
+title: Installation
+description: Learn how to install ESLint Plugin Boundaries and integrate it into your JavaScript and TypeScript projects.
+tags:
+  - eslint
+  - configuration
+keywords:
+  - eslint-plugin-boundaries
+  - eslint plugin
+  - JavaScript
+  - TypeScript
+  - flat config
+  - npm install
+  - installation
+  - recommended config
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Installation
+
+Install `eslint-plugin-boundaries` as a dev dependency:
+
+```bash
+npm install --save-dev eslint eslint-plugin-boundaries
+```
+
+:::note
+`eslint-plugin-boundaries` does **not** install `eslint` automatically. You must install it yourself.
+:::
+
+Once installed, enable the plugin and apply one of the [predefined configs](./settings/config-helpers.md) in your `eslint.config.js` file. The `recommended` config enables the boundary rules and is safe for existing projects:
+
+<Tabs>
+<TabItem value="JavaScript">
+
+```javascript
+import boundaries from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+    ...boundaries.configs.recommended,
+  },
+];
+```
+
+</TabItem>
+<TabItem value="TypeScript">
+
+```typescript
+import boundaries, { Config } from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+    ...boundaries.configs.recommended,
+  } satisfies Config,
+];
+```
+
+</TabItem>
+</Tabs>
+
+:::warning[ESLint Version Compatibility]
+Starting from version `5.0.0`, this plugin is compatible with ESLint **v9 and above**.
+While it may still work with earlier versions of ESLint, refer to the
+[documentation for version `4.2.2`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) if you need to configure it using the legacy format.
+:::
+
+## Next Steps
+
+- Follow the **[Quick Start](./quick-start.mdx)** to classify your files and configure your first rule.
+- Learn how to configure elements in depth in **[Elements](./classification/elements.md)**.

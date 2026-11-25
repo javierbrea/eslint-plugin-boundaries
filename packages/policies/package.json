@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/policies",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Evaluation of the dependency policies and messages of @boundaries tools",
   "keywords": [
     "boundaries",
