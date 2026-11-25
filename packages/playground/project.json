@@ -24,39 +24,39 @@
       ]
     },
     "check:types": {
-      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import, with the specs and mocks
       "dependsOn": [
         {
           "target": "build",
-          "projects": ["elements", "config", "policies"]
+          "projects": ["elements", "config", "policies", "analysis"]
         }
       ]
     },
     "test:unit": {
-      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import, with the specs and mocks
       "dependsOn": [
         {
           "target": "build",
-          "projects": ["elements", "config", "policies"]
+          "projects": ["elements", "config", "policies", "analysis"]
         }
       ]
     },
     "dev": {
-      // The harness loads the packages the sources import from their builds
+      // The harness loads the packages the production code imports from their builds
       "dependsOn": [
         {
           "target": "build",
-          "projects": ["elements", "config", "policies"]
+          "projects": ["config", "analysis"]
         }
       ]
     },
     "build": {
       "cache": true,
-      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the production code imports
       "dependsOn": [
         {
           "target": "build",
-          "projects": ["elements", "config", "policies"]
+          "projects": ["config", "analysis"]
         }
       ],
       "outputs": ["{projectRoot}/dist"],

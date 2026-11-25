@@ -1,8 +1,10 @@
 import { normalizeConfig } from "@boundaries/config";
 import {
+  Policies,
   describeDependency,
   describeEntity,
   evaluateDependency,
+  getMatcher,
 } from "@boundaries/policies";
 
 import {
@@ -72,6 +74,24 @@ function evaluate({ from, to, source }, rules = QUICK_START_RULES) {
 }
 
 /**
+ * Describes a dependency of the quick-start project with a `Policies` instance.
+ * @param {Policies} policies The instance.
+ * @param {import("@boundaries/config").SettingsNormalized} settings The normalized settings.
+ * @param {{ from: string, to?: string, source: string }} dependency The paths of the files, relative to the root, and the source as written.
+ * @returns {import("@boundaries/elements").DependencyDescription} The description of the dependency.
+ */
+function describeWithInstance(policies, settings, { from, to, source }) {
+  return policies.describeDependency(settings, {
+    from: `${ROOT_PATH}/${from}`,
+    to: to && `${ROOT_PATH}/${to}`,
+    source,
+    kind: "value",
+    nodeKind: "import",
+    specifiers: [],
+  });
+}
+
+/**
  * Scenarios of `@boundaries/policies`: the files and dependencies of the quick-start example of the docs.
  * @type {Scenario[]}
  */
@@ -122,5 +142,63 @@ export const POLICIES_SCENARIOS = [
         from: "src/components/atoms/Button/index.js",
         source: "react",
       }),
+  },
+  {
+    name: "policies: a Policies instance describes and evaluates the quick-start example with matchers of its own",
+    run: () => {
+      const policies = new Policies();
+      const quickStart = getConfig(QUICK_START_RULES);
+      const withCustomMessage = getConfig(RULES_WITH_CUSTOM_MESSAGE);
+      const testFileImport = describeWithInstance(
+        policies,
+        withCustomMessage.settings,
+        {
+          from: "src/modules/checkout/index.js",
+          to: "src/components/atoms/Button/Button.spec.js",
+          source: "../../components/atoms/Button/Button.spec",
+        }
+      );
+      const matcher = policies.getMatcher(quickStart.settings);
+      return {
+        entities: QUICK_START_FILES.map((filePath) =>
+          policies.describeEntity(
+            quickStart.settings,
+            `${ROOT_PATH}/${filePath}`
+          )
+        ),
+        evaluations: [
+          {
+            from: "src/helpers/format/index.js",
+            to: "src/components/atoms/Button/index.js",
+            source: "../../components/atoms/Button",
+          },
+          {
+            from: "src/components/atoms/Button/index.js",
+            to: "src/helpers/format/index.js",
+            source: "../../../helpers/format",
+          },
+          {
+            from: "src/components/atoms/Button/index.js",
+            source: "react",
+          },
+        ].map((dependency) =>
+          policies.evaluateDependency(
+            quickStart.settings,
+            quickStart.options,
+            describeWithInstance(policies, quickStart.settings, dependency)
+          )
+        ),
+        policiesWithCustomMessage: policies.evaluatePolicies(
+          withCustomMessage.settings,
+          withCustomMessage.options,
+          testFileImport
+        ),
+        keepsItsMatcher: policies.getMatcher(quickStart.settings) === matcher,
+        sharesNoMatcherWithTheFunctions:
+          getMatcher(quickStart.settings) !== matcher,
+        sharesNoMatcherWithAnotherInstance:
+          new Policies().getMatcher(quickStart.settings) !== matcher,
+      };
+    },
   },
 ];

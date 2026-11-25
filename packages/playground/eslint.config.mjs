@@ -323,9 +323,8 @@ const POLICIES = [
     from: elementNamed("evaluation", "engine", "helper"),
     allow: {
       to: externalModule([
+        "@boundaries/analysis",
         "@boundaries/config",
-        "@boundaries/policies",
-        "@boundaries/elements",
         "@humanwhocodes/momoa",
       ]),
     },

@@ -2,7 +2,6 @@
 name: architecture-reviewer
 description: Reviews whether a change respects the architecture of the repository, changing nothing — the dependencies between projects, the elements inside each one and the Nx build graph. Use after implementing a change that crosses a boundary or adds to the architecture, and in the review of a pull request, beside the reviewer
 tools: Read, Grep, Glob, Bash
-model: opus
 skills: [repo-architecture]
 ---
 

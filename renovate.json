@@ -7,11 +7,20 @@
     "release"
   ],
   "rangeStrategy": "pin",
+  "separateMultipleMajor": false,
   "ignorePaths": [
     "**/node_modules/**",
     "**/fixtures/**"
   ],
   "packageRules": [
+    {
+      "description": "Groups all major updates into one PR, as the preset does with the minor and the patch ones. The top-level separateMultipleMajor: false overrides the preset, which would split the group by the major that each dependency reaches. A later rule that sets its own groupName must also set its own groupSlug, because it overrides only the options it specifies",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "groupName": "all major dependencies",
+      "groupSlug": "all-major"
+    },
     {
       "description": "chalk 5 is ESM-only, and the plugin is published as CommonJS",
       "matchFileNames": [
@@ -107,6 +116,7 @@
         "@fontsource/*"
       ],
       "groupName": "fontsource",
+      "groupSlug": "fontsource",
       "prBodyNotes": [
         "Run `pnpm --filter @boundaries/design-tokens sync:fonts` and `pnpm --filter website social-card`, and commit `packages/design-tokens/static/fonts/` and `packages/website/static/img/og-image.png`."
       ]

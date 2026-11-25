@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [7.4.5] - 2026-11-24
+
+### Changed
+
+- chore(#686): The package list of the README names `@boundaries/analysis`.
+- chore: Upgrade `@boundaries/policies` to 1.1.0.
+
 ## [7.4.4] - 2026-11-15
 
 ### Changed

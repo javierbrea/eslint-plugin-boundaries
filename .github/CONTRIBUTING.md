@@ -172,7 +172,7 @@ The release process is as follows:
    * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
    * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
    * Check that every version named in those changes, or in the website docs written for them, is that same version, because a contributor PR that doesn't bump the version may still name the one it expects. If one doesn't match, update it everywhere it appears.
-   * For `elements`, `config`, `policies` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
+   * For `elements`, `config`, `policies`, `analysis` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
    * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).
 2. Give the website a version. Merging `release` into `master` deploys the website, so this release publishes the changes in the "Unreleased" section of `packages/website/CHANGELOG.md`. The current version of the website is the `version` field of `packages/website/package.json`, which is also the first entry of `packages/website/versions.json`.
    * __New version__: when the release bumps `eslint-plugin` and `packages/website/docs/` differs from `packages/website/versioned_docs/version-<current version>/`, the website takes the new `eslint-plugin` version:
@@ -183,9 +183,11 @@ The release process is as follows:
    * When the "Unreleased" section has no changes and the website gets no new version, leave the website package, its changelog and its versioned docs untouched.
 3. Commit the changes with a message such as `chore(release): Release eslint-plugin v7.2.1 and elements v3.1.2`, or `chore(release): Release website v7.4.1+rev.2` when the release only deploys the website. If the release was prepared on a branch, open a PR into `release` and squash-merge it (see the [merging strategy](#merging-strategy)) before opening the PR to `master`.
 4. Open a PR from the `release` branch to the `master` branch:
+   * Before opening it, a maintainer who wants the mutation score of `release` runs the "Test Mutation" workflow by hand on `release` from GitHub's Actions tab, because it only runs on its own on `master`.
    * Title: `Release vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, or `Release website vX.Y.Z+rev.N` when the release only deploys the website.
    * Body: built from the [PR template](./PULL_REQUEST_TEMPLATE.md), in this order: the title as a heading, such as `# Release vX.Y.Z`; one section per released package, copied from its `CHANGELOG.md` (for example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`, and `## website v7.2.1` or `## website v7.1.0+rev.1` when the website gets a version); a `## chore` section listing the repository-level changes that are in no package changelog; the template's Agreement; and a `closes #N` line for every issue the release fixes. Closing keywords only take effect when a PR is merged into the default branch (`master`), so this is the PR that closes the issues fixed by the release.
    * Once the PR is approved and merged (with a merge commit, see the [merging strategy](#merging-strategy)), the build pipeline will run in the `master` branch, but packages will not be published yet.
+   * The merge also runs the "Test Mutation" workflow on `master`, which updates the mutation score of the README badges.
    * If the release changed the website's documentation, verify that the Algolia search index was successfully updated. If the index is not updated, manually trigger the workflow from GitHub's Actions tab by selecting "Update Website Search Index" and clicking "Run workflow".
 
      **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
@@ -195,7 +197,7 @@ The release process is as follows:
    * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
    * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
 6. Once the release is created, the publishing workflows (`.github/workflows/publish.yml` and `.github/workflows/publish-to-github.yml`) run automatically. A tag without `-beta.` publishes:
-   * `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
+   * `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/analysis` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
    * The plugin also as `eslint-plugin-boundaries` to the npm registry, and as `@javierbrea/eslint-plugin-boundaries` to the GitHub Packages registry. Both fail if that `eslint-plugin` version was already published, which is why every release bumps the `eslint-plugin` version.
 
    A tag with `-beta.` publishes the same packages to the npm registry with the `beta` tag, and nothing to GitHub Packages.
@@ -215,10 +217,14 @@ If another package becomes a main entry point of the repository, it may get its 
 
 * Any step of a job with the `id-token: write` permission can obtain a token that publishes. So the `check` job runs `check:all` without it, and the `publish` and `publish-beta` jobs, which have it, restore no cache and only install, build the published packages and publish them.
 * Those two jobs run in the `npm` environment of the repository, which only allows deployments from the `v*` tags.
-* Each package published to npm (`@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/eslint-plugin` and `eslint-plugin-boundaries`) has a trusted publisher in its settings on the npm website: publisher GitHub Actions, user `javierbrea`, repository `eslint-plugin-boundaries`, workflow `publish.yml`, environment `npm`, and `npm publish` allowed. A trusted publisher cannot be edited, so renaming the workflow file or the environment means deleting it and creating it again in every package.
+* Each package published to npm (`@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/analysis`, `@boundaries/eslint-plugin` and `eslint-plugin-boundaries`) has a trusted publisher in its settings on the npm website: publisher GitHub Actions, user `javierbrea`, repository `eslint-plugin-boundaries`, workflow `publish.yml`, environment `npm`, and `npm publish` allowed. A trusted publisher cannot be edited, so renaming the workflow file or the environment means deleting it and creating it again in every package.
 * A trusted publisher that publishes nothing in the 2 days after its creation expires, and an expired one is deleted before creating it again. So a package whose last published version shows nothing in `npm view <package>@<version> _npmUser.trustedPublisher`, because it has not published with trusted publishing yet, gets its trusted publisher less than 2 days before the GitHub release of step 5.
 * Instead of the npm website, a maintainer logged in with 2FA on npm 11.15.0 or later can create a trusted publisher with `npm trust github <package> --file publish.yml --repo javierbrea/eslint-plugin-boundaries --env npm --allow-publish`.
-* A trusted publisher can only be added to a package that already exists on npm: a maintainer publishes the first version of a new package from their machine, with 2FA, and then adds its trusted publisher.
+* A trusted publisher can only be added to a package that already exists on npm. So a maintainer creates a new package on npm with placeholder versions, logged in with 2FA on npm 11.15.0 or later, and the GitHub release publishes the version in its `package.json` once it has its trusted publisher:
+   1. In a folder outside the repository, write a `package.json` with the name of the package, the version `0.0.0-bootstrap`, a description that says it is a placeholder, its `license` and `repository`, and `"publishConfig": { "access": "public" }`, and a `README.md` that says the same.
+   2. Run `npm stage publish --tag bootstrap` in that folder. npm publishes a placeholder of its own, `0.0.0-stage`, with the `latest` tag, and stages `0.0.0-bootstrap`.
+   3. Approve it with `npm stage approve <stage-id>`, the id that `npm stage list <package>` shows, once that list shows `status: staged` instead of `validating`, a few minutes after staging. Rejecting it instead removes the package.
+   4. Deprecate `0.0.0-bootstrap` and `0.0.0-stage` with `npm deprecate`, and remove the tag with `npm dist-tag rm <package> bootstrap`.
 
 # License
 

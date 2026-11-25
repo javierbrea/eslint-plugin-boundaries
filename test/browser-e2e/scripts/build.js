@@ -16,6 +16,7 @@ const PACKAGES = [
   "@boundaries/elements",
   "@boundaries/config",
   "@boundaries/policies",
+  "@boundaries/analysis",
 ];
 
 const requireFromProject = createRequire(import.meta.url);

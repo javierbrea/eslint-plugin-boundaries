@@ -15,6 +15,9 @@ export {
   evaluateDependency,
 } from "./Evaluation";
 
+// Descriptions and evaluation with matchers of an instance
+export { Policies } from "./Policies";
+
 // Messages
 export type {
   CustomMessageTemplatePolicyEntitySelectorContext,

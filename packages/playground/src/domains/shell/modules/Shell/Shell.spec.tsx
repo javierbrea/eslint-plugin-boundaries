@@ -867,7 +867,7 @@ describe("Shell", () => {
       // Assert
       expect(getStatus(shell)).toBe("6 files · 0 dependencies · 1 problem");
       expect(row.message).toBe(
-        'The playground does not run the selectors of "boundaries/additional-dependency-nodes". A statement that only one of them reads is not checked as ESLint checks it: the playground reads a statement only through the built-in selectors of "boundaries/dependency-nodes".'
+        'The playground may not read statements as ESLint does with "boundaries/additional-dependency-nodes". It runs only the built-in selectors, and reads every statement of a syntax and import kind through one node, so a statement that another selector reads, or that the built-in selectors of its syntax and import kind read through different nodes or leave out, is not checked as ESLint checks it.'
       );
       expect(row.meta).toBe(
         "warning · settings › boundaries/additional-dependency-nodes"

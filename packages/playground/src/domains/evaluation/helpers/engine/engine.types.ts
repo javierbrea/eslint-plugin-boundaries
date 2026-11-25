@@ -1,5 +1,24 @@
+import type {
+  DependencyDescription,
+  DependencyRelationship,
+  DependencyRelationshipKind,
+  EntityDescription,
+  ParentDescription,
+  SkipReason,
+} from "@boundaries/analysis";
+
 import type { Sketch, SketchDependency } from "@/contract";
 import type { DependencyRef } from "@/domains/project/helpers/sketch";
+
+// The description types of the analysis and `SkipReason`, so that a host that reads them and the analysis share one shape
+export type {
+  DependencyDescription,
+  DependencyRelationship,
+  DependencyRelationshipKind,
+  EntityDescription,
+  ParentDescription,
+  SkipReason,
+};
 
 /** A range of the config text: offsets for the editor, and the line and column of its start for the problem list */
 export type TextRange = {
@@ -50,97 +69,6 @@ export type ConfigProblem = {
   readonly source: "parse" | "config";
 };
 
-/** A parent of an element: the element that contains it, by the pattern of its descriptor */
-export type ParentDescription = {
-  /** The types of the parent, or `null` when no element descriptor gives it any */
-  readonly types: readonly string[] | null;
-  /** The path of the parent, or `null` when it cannot be resolved */
-  readonly path: string | null;
-  /** What the pattern of the parent captured, or `null` when it captured nothing */
-  readonly captured: Readonly<Record<string, string>> | null;
-};
-
-/** What the plugin describes of an entity, with the names and the values of its selectors: a file of the sketch or, as the target of a dependency, an external module. It is every property that an element, a file or a module selector matches, so that a pane can show them all. The engine maps it from `@boundaries/elements`, so that no other code depends on the shape of its descriptions */
-export type EntityDescription = {
-  /** The element that the file belongs to, which an element selector matches */
-  readonly element: {
-    /** The types of the element of the file, or `null` when no element descriptor matches it */
-    readonly types: readonly string[] | null;
-    /** The path of the element, which is the path of the file when the settings ignore it, or `null` when no element descriptor matches the file */
-    readonly path: string | null;
-    /** The path of the file inside its element, such as `index.js`, or `null` when no element descriptor matches the file or the settings ignore it */
-    readonly fileInternalPath: string | null;
-    /** What the pattern of the element captured, or `null` when it captured nothing */
-    readonly captured: Readonly<Record<string, string>> | null;
-    /** The elements that contain it, the closest first, or none when it has no parent or no element descriptor matches the file */
-    readonly parents: readonly ParentDescription[];
-    /** Whether the settings ignore the file, so that nothing else is known of its element */
-    readonly isIgnored: boolean;
-    /** Whether no element descriptor matches the file, which is also so when the settings ignore it and when the entity is a module outside the sketch */
-    readonly isUnknown: boolean;
-  };
-  /** The file itself, which a file selector matches */
-  readonly file: {
-    /** The categories of the file, or `null` when no file descriptor matches it */
-    readonly categories: readonly string[] | null;
-    /** The path of the file, or `null` when the entity is a module outside the sketch, which is no file of it */
-    readonly path: string | null;
-    /** What the pattern of the file descriptor captured, or `null` when it captured nothing */
-    readonly captured: Readonly<Record<string, string>> | null;
-    /** Whether the settings ignore the file */
-    readonly isIgnored: boolean;
-    /** Whether no file descriptor matches the file, which is also so when the settings ignore it and when the entity is a module outside the sketch */
-    readonly isUnknown: boolean;
-  };
-  /** The module that the entity is, which a module selector matches */
-  readonly module: {
-    /** Where the module comes from. Every file of the sketch is local, unless the root path leaves it outside with `outsideRootPath` */
-    readonly origin: "local" | "external" | "core";
-    /** The base name of an external or core module, such as `react` for `react/jsx-runtime`, or `null` for a local one */
-    readonly source: string | null;
-    /** The path inside an external or core module, such as `jsx-runtime` for `react/jsx-runtime`, or `null` for a local one or when the source is the module itself */
-    readonly internalPath: string | null;
-  };
-};
-
-/** How the elements of a dependency are related, as the `relationship` of a dependency selector names it */
-export type DependencyRelationshipKind =
-  | "internal"
-  | "child"
-  | "descendant"
-  | "sibling"
-  | "parent"
-  | "uncle"
-  | "nephew"
-  | "ancestor";
-
-/** The relationship between the element of a dependency and the element it points to, from the perspective of both */
-export type DependencyRelationship = {
-  /** What the file that has the dependency is to the target, such as `parent` when the target is a child of its element, or `null` when they are not related or the target is not an element */
-  readonly from: DependencyRelationshipKind | null;
-  /** What the target is to the file that has the dependency, such as `child`, or `null` when they are not related or the target is not an element */
-  readonly to: DependencyRelationshipKind | null;
-};
-
-/** What the plugin describes of a dependency, with the names and the values of its selectors: what it points to and the dependency itself. What it comes from is the description of its file, in `Evaluation.files` */
-export type DependencyDescription = {
-  /** What the dependency points to: a file of the sketch, or an external module */
-  readonly to: EntityDescription;
-  /** The dependency itself, which a dependency selector matches */
-  readonly dependency: {
-    /** `value` for an import of a value, `type` for a type-only one, and `typeof` for a `typeof` one */
-    readonly kind: "value" | "type" | "typeof";
-    /** The name of the dependency node that produced it, such as `import`, or `null` when none is given */
-    readonly nodeKind: string | null;
-    /** The source its statement writes, in full */
-    readonly source: string;
-    /** The names it imports or exports, as the plugin reads them from the code, or `null` when none are given */
-    readonly specifiers: readonly string[] | null;
-    /** The relationship between its file and its target */
-    readonly relationship: DependencyRelationship;
-  };
-};
-
 /** An element descriptor of the settings, with how many files of the sketch it matches */
 export type ElementTypeSummary = {
   /** Position in `settings["boundaries/elements"]` */
@@ -149,7 +77,7 @@ export type ElementTypeSummary = {
   readonly type: string;
   readonly patterns: readonly string[];
   readonly files: number;
-  /** A diagnostic of `config` says it is invalid and ignored, or describing the files with it throws and the engine leaves it out */
+  /** A diagnostic of `config` says it is invalid and ignored */
   readonly ignored: boolean;
   readonly range: TextRange;
 };
@@ -176,16 +104,6 @@ export type RuleSummary = {
   readonly evaluated: boolean;
   readonly range: TextRange;
 };
-
-/** Why a dependency is not checked: the skip reasons of `@boundaries/policies`, and `not-read` when `boundaries/dependency-nodes` leaves its syntax out, so that the plugin never sees it */
-export type SkipReason =
-  | "from-ignored"
-  | "from-unknown"
-  | "to-ignored"
-  | "not-local"
-  | "unknown-local"
-  | "internal"
-  | "not-read";
 
 /** Why no dependency of the sketch is evaluated, in the order the engine checks them. `no-options` is the rule written with no options, such as `"boundaries/dependencies": 2`: the plugin checks nothing then, as the rule runner returns before it reads a dependency */
 export type NotEvaluatedReason =
@@ -246,7 +164,7 @@ export type DependencyResult = {
   readonly ref: DependencyRef;
   /** The source its statement writes, in full: the relative path of the target with its extension and its `index`, or the name of an external module. It is the one passed to `describeDependency` */
   readonly source: string;
-  /** What the plugin describes of it, or `undefined` when the plugin does not read it, because `boundaries/dependency-nodes` leaves its syntax out. It is described whether or not the dependencies are evaluated, with the settings the engine uses */
+  /** What the plugin describes of it, or `undefined` when the playground does not read it, because no node of the settings repeats a built-in selector of its syntax and its import kind. It is described whether or not the dependencies are evaluated, with the settings the engine uses */
   readonly description: DependencyDescription | undefined;
   readonly verdict: DependencyVerdict;
 };
@@ -276,7 +194,7 @@ export type Evaluation = {
   /** The sketch that was evaluated, whose config text the ranges point into. An evaluation aligned to a newer sketch keeps it, while its dependencies and its files follow the newer sketch */
   readonly sketch: Sketch;
   readonly configParsed: boolean;
-  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground does not run the selectors of `boundaries/additional-dependency-nodes`, when it keeps a valid node */
+  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, and last the warning that the playground may not read statements as ESLint does with `boundaries/additional-dependency-nodes`, when `dependencyNodesReadAsESLint` of the analysis of the config is false */
   readonly problems: readonly ConfigProblem[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;

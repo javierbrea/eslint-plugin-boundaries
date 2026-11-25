@@ -100,6 +100,7 @@ JS Boundaries is published as these packages:
 | [`@boundaries/elements`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/elements#readme) | Entity descriptors and matchers for `@boundaries` tools. |
 | [`@boundaries/config`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/config#readme) | Normalization and validation of the settings and rule options of the plugin, without ESLint. |
 | [`@boundaries/policies`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/policies#readme) | Evaluation of the dependency policies of the plugin and their messages, without ESLint. |
+| [`@boundaries/analysis`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/analysis#readme) | Evaluation of a whole project against a config: the description of each file and the verdict of each dependency, without ESLint. |
 
 ## Contributing
 

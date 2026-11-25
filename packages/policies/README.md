@@ -18,6 +18,8 @@
   - [Evaluation of the Policies](#evaluation-of-the-policies)
   - [Memoization](#memoization)
 - [API Reference](#api-reference)
+  - [Functions](#functions)
+  - [Policies](#policies)
 - [Type Reference](#type-reference)
 - [Contributing](#contributing)
 - [License](#license)
@@ -141,9 +143,13 @@ When the dependency is not allowed, `message` is the message the plugin reports:
 
 ### Memoization
 
-The matcher is memoized by the identity of the normalized settings, and the merged selectors of each policy by the identity of the normalized policy, in `WeakMap`s. Pass the same normalized objects while the config does not change, and new ones when it does; the old entries are collected with them. Results are shared with the memoization of `@boundaries/elements`, so they must not be mutated.
+The functions build their matchers with one `Elements` instance of `@boundaries/elements` for the whole module. It keeps every matcher it builds, with the descriptions that the matcher caches unless `boundaries/cache` is `false`, for the life of the module, and returns the same matcher for settings of equal content. A [`Policies`](#policies) instance builds them with an `Elements` instance of its own instead, so its matchers and their descriptions are freed with it. A host that evaluates many configs or projects in one process creates a `Policies` instance for each one and drops it when it is done.
+
+The matcher is also memoized by the identity of the normalized settings, and the merged selectors of each policy by the identity of the normalized policy, in `WeakMap`s. Pass the same normalized objects while the config does not change, so that the matcher is found without hashing the config again. Results are shared with the memoization of `@boundaries/elements`, so they must not be mutated.
 
 ## API Reference
+
+### Functions
 
 | Function | Parameters | Returns |
 | --- | --- | --- |
@@ -157,6 +163,49 @@ The matcher is memoized by the identity of the normalized settings, and the merg
 | `elementDescriptionMessage` | `element: ElementDescription \| ElementParent`, `properties: string[]`, `options?: { singleElement?: boolean; includeNullValues?: boolean }` | A description of an element, as the plugin's messages write it |
 
 `DependencyDescriptorOptions` is the input of `@boundaries/elements`: `from` and `to` are paths (`to` is the resolved path of the target, absent when nothing resolves it), `source` is the import specifier as written, `kind` is `value` or `type`, `nodeKind` is the name of the dependency node (`import`, `export`, `require`, `dynamic-import`, or the `name` of an additional dependency node) and `specifiers` are the named imports or exports. A host without a resolver passes `to` only for the files it knows: with the default `boundaries/flag-as-external` setting, an unresolved non-relative source is external, or core for a Node.js built-in.
+
+### Policies
+
+`new Policies()` creates an instance that describes and evaluates with matchers of its own, which are freed with it (see [Memoization](#memoization)). Two instances never share a matcher, and an instance never shares one with the functions. Its methods take the same parameters, return the same results and throw the same errors as the functions of the same name:
+
+| Method | Parameters | Returns |
+| --- | --- | --- |
+| `getMatcher` | `settings: SettingsNormalized` | The `Matcher` of the instance for the settings |
+| `describeEntity` | `settings: SettingsNormalized`, `filePath: string` | The `EntityDescription` of the file |
+| `describeDependency` | `settings: SettingsNormalized`, `dependency: DependencyDescriptorOptions` | The `DependencyDescription` of the dependency |
+| `evaluatePolicies` | `settings: SettingsNormalized`, `options: DependenciesRuleOptionsNormalized`, `dependency: DependencyDescription` | A `PolicyEvaluation` |
+| `evaluateDependency` | `settings: SettingsNormalized`, `options: DependenciesRuleOptionsNormalized`, `dependency: DependencyDescription` | A `DependencyEvaluation` |
+
+With the `settings` and `rules` of the [Quick Start](#quick-start):
+
+```ts
+import { Policies } from "@boundaries/policies";
+
+const policies = new Policies();
+
+const evaluation = policies.evaluateDependency(
+  settings,
+  rules.dependencies!.options,
+  policies.describeDependency(settings, {
+    from: "/project/src/components/atoms/Price/index.js",
+    to: "/project/src/helpers/format/index.js",
+    source: "../../../helpers/format",
+    kind: "value",
+    nodeKind: "import",
+  })
+);
+
+// {
+//   checked: true,
+//   allowed: true,
+//   policyIndex: 0,
+//   match: {
+//     from: { element: { type: "component" } },
+//     to: { element: { type: "helper" } },
+//   },
+//   diagnostics: [],
+// }
+```
 
 ## Type Reference
 
