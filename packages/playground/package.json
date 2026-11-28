@@ -50,7 +50,7 @@
   "dependencies": {
     "@boundaries/analysis": "workspace:*",
     "@boundaries/config": "workspace:*",
-    "@codemirror/commands": "6.11.1",
+    "@codemirror/commands": "6.11.2",
     "@codemirror/language": "6.13.1",
     "@codemirror/lint": "6.9.8",
     "@codemirror/state": "6.7.6",
@@ -61,7 +61,7 @@
     "@mui/x-tree-view": "9.18.0",
     "codemirror-json5": "1.0.3",
     "fflate": "0.8.3",
-    "react-resizable-panels": "4.24.1"
+    "react-resizable-panels": "4.24.2"
   },
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
@@ -80,7 +80,7 @@
     "@mui/material": "9.5.0",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
-    "@types/react": "19.3.0",
+    "@types/react": "19.3.3",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
