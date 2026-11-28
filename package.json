@@ -26,7 +26,7 @@
     "@stryker-mutator/jest-runner": "10.1.1",
     "@types/jest": "30.0.0",
     "@types/node": "24.19.2",
-    "@typescript-eslint/parser": "8.73.0",
+    "@typescript-eslint/parser": "8.74.0",
     "cross-env": "10.1.0",
     "cspell": "10.5.2",
     "eslint": "9.39.5",
